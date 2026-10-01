@@ -8,9 +8,11 @@ import {
   DepthChartTier,
   Player,
   StateAndNationalPolls,
-  PlayerRankingsAndStatsState
+  PlayerRankingsAndStatsState,
+  ScheduledGame
 } from '../types/game';
-import { generateDistrictTeams, generateProceduralPlayer } from '../generators/rosterGenerator';
+import { generateDistrictTeams, generateProceduralPlayer, NEIGHBOR_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
+import { applyGameResult, generateSeasonSchedule, getTeamGameForWeek } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision } from '../sim/dilemmaEngine';
 import { generateMiddleSchoolProspects, evaluateCollegeScoutExposure } from '../sim/scoutingEngine';
 import { simulateMacroMatch } from '../sim/macroSim';
@@ -33,6 +35,8 @@ interface GameStoreState {
   currentYear: number;
   userTeamId: string;
   districtTeams: Team[];
+  neighborDistrictTeams: Team[]; // non-district opponents and playoff District B
+  seasonSchedule: ScheduledGame[];
   activeGame: GameSimulationState | null;
   activeDilemma: NarrativeDilemma | null;
   scoutingPool: FeederProspect[];
@@ -67,6 +71,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   currentYear: 2026,
   userTeamId: 'team_westlake',
   districtTeams: [],
+  neighborDistrictTeams: [],
+  seasonSchedule: [],
   activeGame: null,
   activeDilemma: null,
   scoutingPool: [],
@@ -81,6 +87,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   startNewSeason: () => {
     const teams = generateDistrictTeams();
+    const neighborTeams = generateDistrictTeams('tx_6a_d25', NEIGHBOR_DISTRICT_SCHOOLS);
     const prospects = generateMiddleSchoolProspects(10);
     const initialNews = generateWeeklyNewsStream(1, teams[0]);
     const initialPolls = generateNationalAndStatePolls(teams, null, 1);
@@ -89,6 +96,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({
       currentWeek: 1,
       districtTeams: teams,
+      neighborDistrictTeams: neighborTeams,
+      seasonSchedule: generateSeasonSchedule(teams, neighborTeams, get().currentYear),
       userTeamId: teams[0].id,
       scoutingPool: prospects,
       newsArticles: initialNews,
@@ -104,9 +113,23 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   advanceWeek: () => {
-    const { currentWeek, districtTeams, userTeamId, practiceIntensity, newsArticles, polls } = get();
+    const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId, practiceIntensity, newsArticles, polls } = get();
     const nextWeek = currentWeek + 1;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
+
+    // Finish this week's schedule: every unplayed game (including the user's, if skipped) is simulated
+    const allTeams = [...districtTeams, ...neighborDistrictTeams];
+    seasonSchedule
+      .filter((g) => g.week === currentWeek && g.homeScore === undefined)
+      .forEach((g) => {
+        const home = allTeams.find((t) => t.id === g.homeTeamId);
+        const away = allTeams.find((t) => t.id === g.awayTeamId);
+        if (!home || !away) return;
+        const box = simulateMacroMatch(g.gameId, g.week, home, away);
+        g.homeScore = box.homeScore;
+        g.awayScore = box.awayScore;
+        applyGameResult(home, away, box.homeScore, box.awayScore, g.isDistrictGame);
+      });
 
     // Check Postseason Trigger (Week 15)
     if (nextWeek === 15) {
@@ -128,24 +151,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       if (nextWeek % 3 === 0) evaluateAcademicReport(p);
     });
 
-    // 2. Simulate other district matches
-    for (let i = 1; i < districtTeams.length; i += 2) {
-      if (districtTeams[i] && districtTeams[i + 1]) {
-        simulateMacroMatch(`ai_gm_${nextWeek}_${i}`, nextWeek, districtTeams[i], districtTeams[i + 1]);
-      }
-    }
-
-    // 3. Recalculate National & State Team Polls
+    // 2. Recalculate National & State Team Polls
     const updatedPolls = generateNationalAndStatePolls(districtTeams, polls, nextWeek);
 
-    // 4. Recalculate Player Stats Leaderboards & Positional Prospect Rankings
+    // 3. Recalculate Player Stats Leaderboards & Positional Prospect Rankings
     const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(districtTeams, nextWeek);
 
-    // 5. College Scout Exposure & Weekly Dilemma
+    // 4. College Scout Exposure & Weekly Dilemma
     evaluateCollegeScoutExposure(userTeam, nextWeek);
     const dilemma = generateWeeklyDilemma(nextWeek, userTeam);
 
-    // 6. Generate Weekly Press Articles
+    // 5. Generate Weekly Press Articles
     const newArticles = generateWeeklyNewsStream(nextWeek, userTeam, undefined, dilemma?.title);
 
     const updatedState = {
@@ -172,14 +188,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       districtTeams: updatedState.districtTeams,
       activeDilemma: dilemma,
       scoutingPool: get().scoutingPool,
-      history: []
+      history: [],
+      currentYear: get().currentYear,
+      neighborDistrictTeams,
+      seasonSchedule
     });
   },
 
   startPostseason: () => {
-    const { districtTeams } = get();
-    const districtB = generateDistrictTeams('tx_6a_d27');
-    const bracket = buildInitialPlayoffBracket(districtTeams, districtB);
+    const { districtTeams, neighborDistrictTeams } = get();
+    const bracket = buildInitialPlayoffBracket(districtTeams, neighborDistrictTeams);
     set({ currentWeek: 15, playoffBracket: bracket });
   },
 
@@ -192,7 +210,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   transitionToNextYear: () => {
-    const { districtTeams, userTeamId, currentYear, scoutingPool } = get();
+    const { districtTeams, neighborDistrictTeams, userTeamId, currentYear, scoutingPool } = get();
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
 
     // Purge Seniors & advance student-athlete classes
@@ -215,7 +233,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       processStateRealignment(districtTeams);
     }
 
-    districtTeams.forEach((t) => {
+    [...districtTeams, ...neighborDistrictTeams].forEach((t) => {
       t.record = {
         wins: 0,
         losses: 0,
@@ -240,7 +258,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       polls: newPolls,
       playerRankings: newPlayerRankings,
       scoutingPool: generateMiddleSchoolProspects(10),
-      districtTeams: [...districtTeams]
+      districtTeams: [...districtTeams],
+      neighborDistrictTeams: [...neighborDistrictTeams],
+      seasonSchedule: generateSeasonSchedule(districtTeams, neighborDistrictTeams, currentYear + 1)
     });
   },
 
@@ -254,25 +274,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   setPracticeIntensity: (mode) => set({ practiceIntensity: mode }),
   setActiveGame: (game) => set({ activeGame: game }),
 
-  // Applies a finished live game: team records (regular season only) and player season stats
+  // Applies a finished live game: the scheduled result and team records (regular season only) and player season stats
   recordUserGame: (finalState) => {
-    const { districtTeams, playoffBracket } = get();
-    const home = districtTeams.find((t) => t.id === finalState.homeTeam.id);
-    const away = districtTeams.find((t) => t.id === finalState.awayTeam.id);
-    const { homeScore, awayScore } = finalState;
+    const { districtTeams, neighborDistrictTeams, seasonSchedule, currentWeek, userTeamId, playoffBracket } = get();
+    const allTeams = [...districtTeams, ...neighborDistrictTeams];
+    const home = allTeams.find((t) => t.id === finalState.homeTeam.id);
+    const away = allTeams.find((t) => t.id === finalState.awayTeam.id);
 
-    if (!playoffBracket) {
-      const cappedMargin = Math.max(-17, Math.min(17, homeScore - awayScore));
-      const applyRecord = (team: Team | undefined, pointsFor: number, pointsAgainst: number, margin: number) => {
-        if (!team) return;
-        team.record.wins += pointsFor > pointsAgainst ? 1 : 0;
-        team.record.losses += pointsFor < pointsAgainst ? 1 : 0;
-        team.record.pointsFor += pointsFor;
-        team.record.pointsAgainst += pointsAgainst;
-        team.record.districtPointDifferential += margin;
-      };
-      applyRecord(home, homeScore, awayScore, cappedMargin);
-      applyRecord(away, awayScore, homeScore, -cappedMargin);
+    const scheduled = playoffBracket ? undefined : getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
+    if (scheduled && scheduled.homeScore === undefined && home && away) {
+      const sameOrientation = scheduled.homeTeamId === home.id;
+      scheduled.homeScore = sameOrientation ? finalState.homeScore : finalState.awayScore;
+      scheduled.awayScore = sameOrientation ? finalState.awayScore : finalState.homeScore;
+      applyGameResult(home, away, finalState.homeScore, finalState.awayScore, scheduled.isDistrictGame);
     }
 
     [home, away].forEach((team) =>
@@ -283,7 +297,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       })
     );
 
-    set({ districtTeams: [...districtTeams] });
+    set({ districtTeams: [...districtTeams], neighborDistrictTeams: [...neighborDistrictTeams], seasonSchedule: [...seasonSchedule] });
   },
   spendAP: (amount) => {
     const { coachingAP } = get();

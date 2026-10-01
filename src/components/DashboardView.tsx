@@ -2,26 +2,40 @@ import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { PreGameStrategyModal } from './PreGameStrategyModal';
 import { FilmStudyModal } from './FilmStudyModal';
+import { getSeasonPhase, getTeamGameForWeek } from '../sim/scheduleEngine';
+
+const PHASE_MESSAGES: Record<string, string> = {
+  SPRING_EVALUATION: 'Spring evaluation: scout 8th-grade feeders and run 7-on-7 drills. No game this week.',
+  SUMMER_CAMP: 'Summer two-a-days: install schemes and build conditioning. No game this week.',
+  STATE_PLAYOFFS: 'State playoffs: open the Bracket from the header to play your postseason game.',
+  OFF_SEASON: "Off-season: graduation, awards and next year's planning."
+};
 
 export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
 
 export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus) => void }> = ({ onLaunchGame }) => {
-  const { currentWeek, districtTeams, userTeamId, activeDilemma, resolveDilemma, advanceWeek } = useGameStore();
+  const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId, activeDilemma, resolveDilemma, advanceWeek } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
-  const opponent = districtTeams.find((t) => t.id !== userTeamId);
+  const game = getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
+  const opponentId = game && (game.homeTeamId === userTeamId ? game.awayTeamId : game.homeTeamId);
+  const opponent = [...districtTeams, ...neighborDistrictTeams].find((t) => t.id === opponentId);
+  const isHome = game?.homeTeamId === userTeamId;
+  const isPlayed = game?.homeScore !== undefined;
+  const userScore = isHome ? game?.homeScore : game?.awayScore;
+  const opponentScore = isHome ? game?.awayScore : game?.homeScore;
 
-  if (!userTeam || !opponent) return <div>Loading Program Dashboard...</div>;
+  if (!userTeam) return <div>Loading Program Dashboard...</div>;
 
   return (
     <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      {showFilmModal && (
+      {showFilmModal && opponent && (
         <FilmStudyModal opponent={opponent} onClose={() => setShowFilmModal(false)} />
       )}
 
-      {showPreGameModal && (
+      {showPreGameModal && opponent && (
         <PreGameStrategyModal
           userTeam={userTeam}
           opponentTeam={opponent}
@@ -85,22 +99,40 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus) => 
 
       {/* Matchup & Strategy Launcher */}
       <div style={{ background: '#1E293B', color: '#fff', borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
-        <h2 style={{ margin: '0 0 8px 0' }}>FRIDAY NIGHT SHOWDOWN</h2>
-        <p style={{ margin: '0 0 16px 0', color: '#94A3B8' }}>Matchup vs. {opponent.name} {opponent.mascot} ({opponent.record.wins}-{opponent.record.losses})</p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
-          <button
-            onClick={() => setShowFilmModal(true)}
-            style={{ padding: '10px 20px', background: '#475569', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
-          >
-            🎥 Study Opponent Film
-          </button>
-          <button
-            onClick={() => setShowPreGameModal(true)}
-            style={{ padding: '10px 24px', background: '#10B981', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
-          >
-            🏈 Set Gameplan & Kick Off
-          </button>
-        </div>
+        {!game || !opponent ? (
+          <>
+            <h2 style={{ margin: '0 0 8px 0' }}>NO GAME THIS WEEK</h2>
+            <p style={{ margin: 0, color: '#94A3B8' }}>{PHASE_MESSAGES[getSeasonPhase(currentWeek)] ?? 'Bye week.'}</p>
+          </>
+        ) : isPlayed ? (
+          <>
+            <h2 style={{ margin: '0 0 8px 0' }}>
+              {userScore! > opponentScore! ? 'VICTORY' : 'DEFEAT'}: {userTeam.name} {userScore}, {opponent.name} {opponentScore}
+            </h2>
+            <p style={{ margin: 0, color: '#94A3B8' }}>Final is in the books. Advance the week to continue the season.</p>
+          </>
+        ) : (
+          <>
+            <h2 style={{ margin: '0 0 8px 0' }}>FRIDAY NIGHT SHOWDOWN</h2>
+            <p style={{ margin: '0 0 16px 0', color: '#94A3B8' }}>
+              {game.isDistrictGame ? 'District game' : 'Non-district game'} · {isHome ? 'vs.' : 'at'} {opponent.name} {opponent.mascot} ({opponent.record.wins}-{opponent.record.losses})
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <button
+                onClick={() => setShowFilmModal(true)}
+                style={{ padding: '10px 20px', background: '#475569', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+              >
+                🎥 Study Opponent Film
+              </button>
+              <button
+                onClick={() => setShowPreGameModal(true)}
+                style={{ padding: '10px 24px', background: '#10B981', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+              >
+                🏈 Set Gameplan & Kick Off
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

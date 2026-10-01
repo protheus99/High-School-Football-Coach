@@ -4,6 +4,7 @@ import { simulateMacroMatch } from '../macroSim';
 import { processOffSeasonProgression, processPostGameSeasonWear, processWeeklyInjuryHealing, evaluateAcademicReport } from '../playerEngine';
 import { buildInitialPlayoffBracket, advancePlayoffRound } from '../playoffEngine';
 import { calculateSeasonAwards } from '../awardsEngine';
+import { applyGameResult } from '../scheduleEngine';
 import { GameSimulationState } from '../../types/game';
 
 /**
@@ -68,7 +69,8 @@ export function runDynastySimulation(numYears = 3): void {
       // Simulate other district matches
       for (let i = 1; i < districtTeams.length; i += 2) {
         if (districtTeams[i] && districtTeams[i + 1]) {
-          simulateMacroMatch(`ai_${year}_wk_${week}_${i}`, week, districtTeams[i], districtTeams[i + 1]);
+          const box = simulateMacroMatch(`ai_${year}_wk_${week}_${i}`, week, districtTeams[i], districtTeams[i + 1]);
+          applyGameResult(districtTeams[i], districtTeams[i + 1], box.homeScore, box.awayScore, true);
         }
       }
     }

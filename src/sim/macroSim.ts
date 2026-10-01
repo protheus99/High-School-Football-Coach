@@ -106,6 +106,8 @@ export function teamStarterRating(team: Team): number {
 
 /**
  * Fast sub-millisecond AI vs AI background macro match simulation.
+ * Credits individual player stats; team records are applied by the caller
+ * (see applyGameResult in scheduleEngine) so playoff games stay off the regular-season record.
  */
 export function simulateMacroMatch(
   gameId: string,
@@ -206,22 +208,6 @@ export function simulateMacroMatch(
     passYds: awayPassYds, rushYds: awayRushYds, touchdowns: awayTDs, interceptions: awayINT, fumbles: awayTO - awayINT,
     opponentInterceptions: homeINT, opponentPlays: plays(homePassYds, homeRushYds)
   });
-
-  // Update records
-  const margin = homeScore - awayScore;
-  const cappedMargin = clamp(margin, -17, 17);
-
-  homeTeam.record.wins += homeScore > awayScore ? 1 : 0;
-  homeTeam.record.losses += homeScore < awayScore ? 1 : 0;
-  homeTeam.record.pointsFor += homeScore;
-  homeTeam.record.pointsAgainst += awayScore;
-  homeTeam.record.districtPointDifferential += cappedMargin;
-
-  awayTeam.record.wins += awayScore > homeScore ? 1 : 0;
-  awayTeam.record.losses += awayScore < homeScore ? 1 : 0;
-  awayTeam.record.pointsFor += awayScore;
-  awayTeam.record.pointsAgainst += homeScore;
-  awayTeam.record.districtPointDifferential += -cappedMargin;
 
   const homeQb = homeTeam.roster.find((p) => p.position === 'QB') || homeTeam.roster[0];
   const homeRb = homeTeam.roster.find((p) => p.position === 'RB') || homeTeam.roster[0];

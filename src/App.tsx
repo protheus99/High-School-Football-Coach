@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from './store/gameStore';
 import { DashboardView, DefensiveFocus } from './components/DashboardView';
+import { getTeamGameForWeek } from './sim/scheduleEngine';
 import { RosterDepthChartView } from './components/RosterDepthChartView';
 import { DistrictStandingsView } from './components/DistrictStandingsView';
 import { FeedersScoutingView } from './components/FeedersScoutingView';
@@ -32,6 +33,8 @@ export const App: React.FC = () => {
   const {
     startNewSeason,
     districtTeams,
+    neighborDistrictTeams,
+    seasonSchedule,
     userTeamId,
     currentWeek,
     currentYear,
@@ -56,11 +59,16 @@ export const App: React.FC = () => {
 
   const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED') => {
     if (!userTeam) return;
-    const away = districtTeams.find((t) => t.id !== userTeamId)!;
+    const scheduled = getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
+    if (!scheduled || scheduled.homeScore !== undefined) return;
+    const allTeams = [...districtTeams, ...neighborDistrictTeams];
+    const home = allTeams.find((t) => t.id === scheduled.homeTeamId);
+    const away = allTeams.find((t) => t.id === scheduled.awayTeamId);
+    if (!home || !away) return;
 
     const newGame: GameSimulationState = {
-      gameId: `gm_${Date.now()}`,
-      homeTeam: userTeam,
+      gameId: scheduled.gameId,
+      homeTeam: home,
       awayTeam: away,
       homeScore: 0,
       awayScore: 0,
@@ -70,7 +78,7 @@ export const App: React.FC = () => {
       teamMomentum: 0,
       currentQuarter: 1,
       clockSecondsRemaining: 720,
-      possessionTeamId: userTeam.id,
+      possessionTeamId: Math.random() < 0.5 ? home.id : away.id, // opening coin toss
       down: 1,
       distance: 10,
       yardLine: 25,

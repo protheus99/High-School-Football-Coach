@@ -285,6 +285,17 @@ export interface OvertimeState {
   firstOffenseTeamId: string;
 }
 
+/** One game on the season schedule; scores are filled in once it has been played. */
+export interface ScheduledGame {
+  gameId: string;
+  week: number;
+  homeTeamId: string;
+  awayTeamId: string;
+  isDistrictGame: boolean;
+  homeScore?: number;
+  awayScore?: number;
+}
+
 export interface DilemmaChoice {
   id: string;
   label: string;

@@ -1,31 +1,31 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
+import { getSeasonPhase, getTeamGameForWeek } from '../sim/scheduleEngine';
 
 export const ScheduleView: React.FC = () => {
-  const { currentWeek, districtTeams, userTeamId } = useGameStore();
+  const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId } = useGameStore();
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
   if (!userTeam) return null;
 
-  const opponentList = districtTeams.filter((t) => t.id !== userTeamId);
+  const allTeams = [...districtTeams, ...neighborDistrictTeams];
 
-  // Generate 20-week season schedule
+  // 20-week season built from the stored schedule
   const schedule = Array.from({ length: 20 }, (_, i) => {
     const weekNum = i + 1;
-    let type = 'REGULAR_SEASON';
-    const opponent = opponentList[(weekNum - 1) % opponentList.length];
-
-    if (weekNum <= 2) type = 'SPRING_EVALUATION';
-    else if (weekNum <= 4) type = 'SUMMER_CAMP';
-    else if (weekNum <= 7) type = 'NON_DISTRICT';
-    else if (weekNum <= 14) type = 'DISTRICT_PLAY';
-    else if (weekNum <= 18) type = 'STATE_PLAYOFFS';
-    else type = 'OFF_SEASON';
+    const scheduled = getTeamGameForWeek(seasonSchedule, weekNum, userTeamId);
+    const isHome = scheduled?.homeTeamId === userTeamId;
+    const opponentId = scheduled && (isHome ? scheduled.awayTeamId : scheduled.homeTeamId);
+    const played = scheduled?.homeScore !== undefined;
+    const userScore = isHome ? scheduled?.homeScore : scheduled?.awayScore;
+    const opponentScore = isHome ? scheduled?.awayScore : scheduled?.homeScore;
 
     return {
       week: weekNum,
-      type,
-      opponent: type === 'DISTRICT_PLAY' || type === 'NON_DISTRICT' ? opponent : null,
+      type: getSeasonPhase(weekNum),
+      opponent: allTeams.find((t) => t.id === opponentId) ?? null,
+      isHome,
+      result: played ? `${userScore! > opponentScore! ? 'W' : 'L'} ${userScore}-${opponentScore}` : null,
       isCurrent: weekNum === currentWeek,
       isCompleted: weekNum < currentWeek
     };
@@ -53,15 +53,18 @@ export const ScheduleView: React.FC = () => {
             <div>
               <span style={{ fontWeight: 'bold', fontSize: '14px', marginRight: '10px' }}>Week {game.week}</span>
               <span style={{ fontSize: '12px', background: '#F1F5F9', padding: '2px 8px', borderRadius: '4px', color: '#475569' }}>
-                {game.type.replace('_', ' ')}
+                {game.type.replace(/_/g, ' ')}
               </span>
             </div>
 
             <div style={{ textAlign: 'right', fontSize: '13px' }}>
               {game.opponent ? (
                 <div>
-                  vs. <strong style={{ color: game.opponent.primaryColor }}>{game.opponent.name} {game.opponent.mascot}</strong>
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>Prestige: {game.opponent.prestige} | Scheme: {game.opponent.schemeOffense.replace('_', ' ')}</div>
+                  {game.isHome ? 'vs.' : 'at'} <strong style={{ color: game.opponent.primaryColor }}>{game.opponent.name} {game.opponent.mascot}</strong>
+                  {game.result && (
+                    <strong style={{ marginLeft: '8px', color: game.result.startsWith('W') ? '#059669' : '#DC2626' }}>{game.result}</strong>
+                  )}
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>Record: {game.opponent.record.wins}-{game.opponent.record.losses} | Scheme: {game.opponent.schemeOffense.replace('_', ' ')}</div>
                 </div>
               ) : (
                 <span style={{ color: '#94A3B8' }}>Practice / Internal Preparation</span>

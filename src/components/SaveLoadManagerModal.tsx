@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueImporter';
 import { persistSaveGame, loadSaveGame } from '../services/db';
+import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
+import { generateSeasonSchedule } from '../sim/scheduleEngine';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { districtTeams, currentWeek, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
+  const { districtTeams, neighborDistrictTeams, seasonSchedule, currentWeek, currentYear, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
   const [importText, setImportText] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -20,7 +22,10 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
       districtTeams,
       activeDilemma,
       scoutingPool,
-      history: []
+      history: [],
+      currentYear,
+      neighborDistrictTeams,
+      seasonSchedule
     });
     setFeedback('Game successfully saved to IndexedDB!');
   };
@@ -28,7 +33,13 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   const handleLoadFromBrowser = async () => {
     const save = await loadSaveGame('current_save');
     if (save) {
+      // Saves made before the season schedule existed get a fresh neighbor district and schedule
+      const year = save.currentYear ?? 2026;
+      const neighborTeams = save.neighborDistrictTeams ?? generateDistrictTeams('tx_6a_d25', NEIGHBOR_DISTRICT_SCHOOLS);
       useGameStore.setState({
+        currentYear: year,
+        neighborDistrictTeams: neighborTeams,
+        seasonSchedule: save.seasonSchedule ?? generateSeasonSchedule(save.districtTeams, neighborTeams, year),
         currentWeek: save.currentWeek,
         userTeamId: save.userTeamId,
         coachingAP: save.coachingAP,
@@ -57,7 +68,11 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   const handleImportJSON = () => {
     const res = importCustomDistrictJSON(importText);
     if (res.success && res.teams) {
-      useGameStore.setState({ districtTeams: res.teams, userTeamId: res.teams[0].id });
+      useGameStore.setState({
+        districtTeams: res.teams,
+        userTeamId: res.teams[0].id,
+        seasonSchedule: generateSeasonSchedule(res.teams, neighborDistrictTeams, currentYear)
+      });
       setFeedback('Custom district successfully imported!');
     } else {
       setFeedback(`Import error: ${res.error}`);

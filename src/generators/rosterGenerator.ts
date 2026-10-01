@@ -30,6 +30,20 @@ const HIGH_SCHOOL_NAMES = [
   { name: 'Lehman', mascot: 'Lobos', primary: '#004D40', secondary: '#FFB300' }
 ];
 
+// Neighboring district: non-district opponents and the other half of the playoff bracket
+export const NEIGHBOR_DISTRICT_SCHOOLS = [
+  { name: 'Round Rock', mascot: 'Dragons', primary: '#6A0DAD', secondary: '#FFFFFF' },
+  { name: 'Cedar Ridge', mascot: 'Raiders', primary: '#8B0000', secondary: '#C0C0C0' },
+  { name: 'Stony Point', mascot: 'Tigers', primary: '#FF6600', secondary: '#000000' },
+  { name: 'Vista Ridge', mascot: 'Rangers', primary: '#00205B', secondary: '#C8102E' },
+  { name: 'Vandegrift', mascot: 'Vipers', primary: '#006341', secondary: '#B3A369' },
+  { name: 'Cedar Park', mascot: 'Timberwolves', primary: '#4B0082', secondary: '#FFD700' },
+  { name: 'Leander', mascot: 'Lions', primary: '#1C3F94', secondary: '#FFC72C' },
+  { name: 'McNeil', mascot: 'Mavericks', primary: '#00843D', secondary: '#FFFFFF' }
+];
+
+type SchoolIdentity = (typeof HIGH_SCHOOL_NAMES)[number];
+
 let playerIdCounter = 0;
 
 export function generateProceduralPlayer(position: Position, classYear: PlayerClass, tier: 1 | 2 | 3 = 1): Player {
@@ -181,11 +195,11 @@ export function generateCompleteTeamRoster(): Player[] {
   });
 }
 
-export function generateDistrictTeams(districtId = 'tx_6a_d26'): Team[] {
+export function generateDistrictTeams(districtId = 'tx_6a_d26', schools: SchoolIdentity[] = HIGH_SCHOOL_NAMES): Team[] {
   const schemesOffense: OffensiveScheme[] = ['TRIPLE_OPTION', 'AIR_RAID', 'POWER_I', 'SPREAD'];
   const schemesDefense: DefensiveScheme[] = ['FOUR_THREE', 'FOUR_FOUR', 'THREE_THREE_FIVE', 'DROP_EIGHT'];
 
-  return HIGH_SCHOOL_NAMES.map((hs, i) => {
+  return schools.map((hs, i) => {
     const roster = generateCompleteTeamRoster();
     const prestige = randomInt(68, 92);
 

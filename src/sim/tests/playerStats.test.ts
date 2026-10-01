@@ -108,7 +108,14 @@ describe('AI vs. AI macro-sim player stats', () => {
 describe('Recording a finished live game', () => {
   it('updates team records and adds game stats to season totals', () => {
     const [home, away] = generateDistrictTeams();
-    useGameStore.setState({ districtTeams: [home, away], userTeamId: home.id, playoffBracket: null });
+    useGameStore.setState({
+      districtTeams: [home, away],
+      neighborDistrictTeams: [],
+      userTeamId: home.id,
+      playoffBracket: null,
+      currentWeek: 8,
+      seasonSchedule: [{ gameId: 'g8', week: 8, homeTeamId: home.id, awayTeamId: away.id, isDistrictGame: true }]
+    });
 
     const qb = home.roster.find((p) => p.position === 'QB' && p.depthChartTier === 1)!;
     const before = qb.stats.passYards;
@@ -131,5 +138,7 @@ describe('Recording a finished live game', () => {
     expect(storedHome.record.pointsFor).toBe(28);
     expect(storedQb.stats.passYards).toBe(before + 180);
     expect(storedQb.stats.gamesPlayed).toBe(1);
+    expect(storedHome.record.districtWins).toBe(1);
+    expect(useGameStore.getState().seasonSchedule[0].homeScore).toBe(28);
   });
 });

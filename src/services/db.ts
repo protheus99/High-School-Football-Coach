@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { Team, NarrativeDilemma, FeederProspect, CompactBoxScore } from '../types/game';
+import { Team, NarrativeDilemma, FeederProspect, CompactBoxScore, ScheduledGame } from '../types/game';
 
 export interface GameSaveRecord {
   id: string; // 'current_save' or custom profile ID
@@ -13,6 +13,10 @@ export interface GameSaveRecord {
   activeDilemma: NarrativeDilemma | null;
   scoutingPool: FeederProspect[];
   history: CompactBoxScore[];
+  // Added with the season schedule; older saves may not have them
+  currentYear?: number;
+  neighborDistrictTeams?: Team[];
+  seasonSchedule?: ScheduledGame[];
 }
 
 export class GameDatabase extends Dexie {
