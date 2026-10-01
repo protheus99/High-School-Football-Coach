@@ -4,6 +4,7 @@ import {
   CAMP_WEEKS,
   academicFit,
   advanceCollegeRecruiting,
+  classCounts,
   classLimit,
   alumniPrestigeChanges,
   collegeActionBlocker,
@@ -16,7 +17,7 @@ import {
   starsFromScore,
   updateStarRatings
 } from '../collegeRecruitingEngine';
-import { COLLEGES, COLLEGES_BY_NAME } from '../../data/colleges';
+import { COLLEGES, COLLEGES_BY_ID } from '../../data/colleges';
 import { generateProceduralPlayer } from '../../generators/rosterGenerator';
 import { Player, Team } from '../../types/game';
 
@@ -119,31 +120,25 @@ describe('Evaluations and offers', () => {
 });
 
 describe('Signing day', () => {
-  it('committed seniors sign where they committed, nearly every senior with an offer signs, and prestige stays balanced', () => {
+  it('every senior with an offer signs (with his commitment if he has one) and prestige stays balanced', () => {
     const { teams, seniors } = season();
     const commitments = new Map(seniors.map((p) => [p.id, p.recruiting.committedCollege]));
     const { signings, prestigeChanges } = runSigningDay(teams, YEAR);
     const withOffers = seniors.filter((p) => p.recruiting.offers.length > 0);
     withOffers.forEach((p) => {
-      if (commitments.get(p.id)) {
-        expect(p.recruiting.isNationalLetterOfIntentSigned).toBe(true);
-        expect(p.recruiting.committedCollege).toBe(commitments.get(p.id));
-      }
+      expect(p.recruiting.isNationalLetterOfIntentSigned).toBe(true);
+      if (commitments.get(p.id)) expect(p.recruiting.committedCollege).toBe(commitments.get(p.id));
     });
-    // A few lose out when every school that offered them fills its class
-    expect(withOffers.filter((p) => p.recruiting.isNationalLetterOfIntentSigned).length / withOffers.length).toBeGreaterThan(0.9);
     expect(signings.length).toBeGreaterThan(0);
     const changes = [...prestigeChanges.values()];
     changes.forEach((c) => expect(c).toBeGreaterThanOrEqual(-3));
     expect(Math.abs(changes.reduce((a, b) => a + b, 0) / changes.length)).toBeLessThan(0.5);
   });
 
-  it('colleges stop at their class limits, so recruits spread across programs', () => {
+  it('colleges stop taking commitments at their class limits, so recruits spread across programs', () => {
     const { teams } = season();
+    classCounts(teams).forEach((n, id) => expect(n).toBeLessThanOrEqual(classLimit(COLLEGES_BY_ID.get(id)!) + 2));
     const { signings } = runSigningDay(teams, YEAR);
-    const perCollege = new Map<string, number>();
-    signings.forEach((s) => perCollege.set(s.offer.collegeName, (perCollege.get(s.offer.collegeName) ?? 0) + 1));
-    perCollege.forEach((n, name) => expect(n).toBeLessThanOrEqual(classLimit(COLLEGES_BY_NAME.get(name)!) + 2));
     const p4Schools = new Set(signings.filter((s) => s.offer.tier === 'POWER_4').map((s) => s.offer.collegeName));
     expect(p4Schools.size).toBeGreaterThanOrEqual(10);
   });
@@ -185,7 +180,7 @@ describe('Head coach actions', () => {
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
     store
       .getState()
-      .graduatingSeniors.filter((p) => p.recruiting.committedCollege)
+      .graduatingSeniors.filter((p) => p.recruiting.offers.length > 0)
       .forEach((p) => expect(p.recruiting.isNationalLetterOfIntentSigned).toBe(true));
 
     // Juniors keep their offers into their senior year; stars are re-evaluated

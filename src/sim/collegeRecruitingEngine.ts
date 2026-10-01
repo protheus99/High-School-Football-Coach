@@ -441,8 +441,8 @@ export function alumniPrestigeChanges(results: { prestige: number; points: numbe
 }
 
 /**
- * Signing day at the banquet: seniors sign with the school they committed to, or their best remaining
- * offer. Signing is final. Each program earns alumni prestige from its Division I signees.
+ * Signing day at the banquet: every senior with an offer signs, with the school he committed to or his
+ * best available offer. Signing is final. Each program earns alumni prestige from its Division I signees.
  */
 export function runSigningDay(teams: Team[], year: number): { signings: Signing[]; prestigeChanges: Map<string, number> } {
   const signings: Signing[] = [];
@@ -453,11 +453,12 @@ export function runSigningDay(teams: Team[], year: number): { signings: Signing[
     team.roster.forEach((player) => {
       if (player.classYear !== 'Senior' || player.recruiting.offers.length === 0) return;
       const r = player.recruiting;
-      // Uncommitted seniors take the best offer still open; if every school filled up, he goes unsigned
+      // Uncommitted seniors take the best offer from a school with room; if every school that offered him
+      // has filled its class, he still signs with his best offer (classes can run over on signing day)
       let offer = committedOffer(player);
       if (!offer) {
-        offer = sortedOffers(player, year).find((o) => !isFull(collegeOf(o), counts));
-        if (!offer) return;
+        const offers = sortedOffers(player, year);
+        offer = offers.find((o) => !isFull(collegeOf(o), counts)) ?? offers[0];
         const col = collegeOf(offer);
         if (col) counts.set(col.id, (counts.get(col.id) ?? 0) + 1);
       }
