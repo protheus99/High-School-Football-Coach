@@ -72,7 +72,7 @@ import {
   processPostGameSeasonWear,
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
-import { buildPlayoffBracket, advancePlayoffRound, recordPlayoffResult, PlayoffBracketState } from '../sim/playoffEngine';
+import { buildPlayoffBracket, advancePlayoffRound, findUserNode, recordPlayoffResult, PlayoffBracketState } from '../sim/playoffEngine';
 import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
@@ -564,7 +564,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const recentTemplates = dilemmaLog
       .filter((r) => r.year === currentYear && nextWeek - r.week < DILEMMA_COOLDOWN_WEEKS)
       .map((r) => r.templateId);
-    const dilemma = generateWeeklyDilemma(nextWeek, userTeam, recentTemplates);
+    // Once the user's season is over (eliminated or not in the playoffs), program dilemmas stop until next year
+    const bracket = get().playoffBracket;
+    const seasonOver = !!bracket?.isPlayoffsActive && !findUserNode(bracket, userTeamId);
+    const dilemma = seasonOver ? null : generateWeeklyDilemma(nextWeek, userTeam, recentTemplates);
 
 
     // 5. Generate Weekly Press Articles

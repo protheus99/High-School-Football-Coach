@@ -338,6 +338,7 @@ export interface DilemmaChoice {
     promoteToStarterPlayerId?: string;
     addTransfer?: { position: Position; overallRating: number; name: string };
     injuryRisk?: { chance: number; weeks: number }; // a random first-string player may get hurt
+    removePlayerId?: string; // the player leaves the program (transfers out, quits)
   };
 }
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS } from '../dilemmaEngine';
+import { TEMPLATES } from '../dilemmaTemplates';
 import { DilemmaChoice } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -38,13 +39,63 @@ describe('Weekly dilemma selection', () => {
       }
     }
 
-    expect(seen.size).toBeGreaterThanOrEqual(7);
+    expect(seen.size).toBeGreaterThanOrEqual(40);
     expect(quietWeeks / weeks).toBeGreaterThan(0.2);
     expect(quietWeeks / weeks).toBeLessThan(0.6);
   });
 });
 
+describe('Dilemma library', () => {
+  it('has 50 distinct scenarios, each well-formed and playable', () => {
+    expect(TEMPLATES).toHaveLength(50);
+    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(50);
+
+    const built = new Set<string>();
+    for (let attempt = 0; attempt < 6 && built.size < TEMPLATES.length; attempt++) {
+      for (const team of generateDistrictTeams()) {
+        for (let week = 1; week <= 20; week++) {
+          TEMPLATES.forEach((t) => {
+            const subject = t.appliesTo(team, week);
+            if (subject === null) return;
+            const d = t.build(team, week, subject === true ? undefined : subject);
+            expect(d.title.length).toBeGreaterThan(0);
+            expect(d.choices.length).toBeGreaterThanOrEqual(3);
+            expect(d.choices.length).toBeLessThanOrEqual(4);
+            expect(new Set(d.choices.map((c) => c.id)).size).toBe(d.choices.length);
+            expect(d.choices.some((c) => c.tier === 'GOOD')).toBe(true);
+            if (d.involvedPlayerId) expect(team.roster.some((p) => p.id === d.involvedPlayerId)).toBe(true);
+            built.add(t.id);
+          });
+        }
+      }
+    }
+    expect([...TEMPLATES.map((t) => t.id)].filter((id) => !built.has(id))).toEqual([]);
+  });
+
+  it('every choice applies cleanly to a team', () => {
+    TEMPLATES.forEach((t) => {
+      const [team] = generateDistrictTeams();
+      for (let week = 1; week <= 20; week++) {
+        const subject = t.appliesTo(team, week);
+        if (subject === null) continue;
+        t.build(team, week, subject === true ? undefined : subject).choices.forEach((c) => {
+          expect(() => executeDilemmaDecision(team, c)).not.toThrow();
+        });
+        break;
+      }
+    });
+  });
+});
+
 describe('Dilemma consequences', () => {
+  it('removes a player who leaves the program', () => {
+    const [team] = generateDistrictTeams();
+    const leaving = team.roster.find((p) => p.depthChartTier === 1 && p.position === 'RB')!;
+    executeDilemmaDecision(team, choice({ removePlayerId: leaving.id }));
+    expect(team.roster.some((p) => p.id === leaving.id)).toBe(false);
+    expect(team.roster.filter((p) => p.position === 'RB' && p.depthChartTier === 1).length).toBeGreaterThan(0);
+  });
+
   it('sidelines a player for the protocol period', () => {
     const [team] = generateDistrictTeams();
     const player = team.roster[0];
