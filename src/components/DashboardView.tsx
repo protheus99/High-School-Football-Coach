@@ -22,6 +22,7 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
   const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, activeDilemma, resolveDilemma, advanceWeek, sanctionLevel } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
+  const [showSimWarning, setShowSimWarning] = useState(false);
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   const game = getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket });
@@ -36,10 +37,53 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
 
   if (!userTeam) return <div>Loading Program Dashboard...</div>;
 
+  // Skipping an unplayed game auto-simulates it, so confirm first
+  const handleAdvanceWeek = () => {
+    if (game && opponent && !isPlayed) setShowSimWarning(true);
+    else advanceWeek();
+  };
+
   return (
     <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       {showFilmModal && opponent && (
         <FilmStudyModal opponent={opponent} onClose={() => setShowFilmModal(false)} />
+      )}
+
+      {showSimWarning && opponent && (
+        <div style={overlayStyle} onClick={() => setShowSimWarning(false)}>
+          <div style={dialogStyle} role="dialog" aria-modal="true" aria-labelledby="sim-warning-title" onClick={(e) => e.stopPropagation()}>
+            <h3 id="sim-warning-title" style={{ margin: '0 0 8px 0', color: '#0F172A' }}>
+              Game Not Played Yet
+            </h3>
+            <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#475569' }}>
+              You haven&apos;t played this week&apos;s game {isHome ? 'vs' : 'at'} <strong>{opponent.name}</strong>. If you advance now, the game will be
+              auto-simulated and the result will count.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <button onClick={() => setShowSimWarning(false)} style={dialogBtn('#fff', '#334155', '1px solid #CBD5E1')}>
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowSimWarning(false);
+                  setShowPreGameModal(true);
+                }}
+                style={dialogBtn('#2563EB', '#fff')}
+              >
+                🏈 Play the Game
+              </button>
+              <button
+                onClick={() => {
+                  setShowSimWarning(false);
+                  advanceWeek();
+                }}
+                style={dialogBtn('#334155', '#fff')}
+              >
+                ⏭️ Auto-Sim &amp; Advance
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {showPreGameModal && opponent && (
@@ -68,7 +112,7 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
             WEEK {currentWeek} OF {totalWeeks}
           </div>
           <button
-            onClick={advanceWeek}
+            onClick={handleAdvanceWeek}
             style={{ padding: '8px 14px', background: '#334155', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
           >
             ⏭️ Advance Week
@@ -170,3 +214,35 @@ const MeterCard: React.FC<{ label: string; val: number; color: string }> = ({ la
     </div>
   </div>
 );
+
+const overlayStyle: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(15, 23, 42, 0.55)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 1000,
+  padding: '16px'
+};
+
+const dialogStyle: React.CSSProperties = {
+  background: '#fff',
+  borderRadius: '10px',
+  padding: '20px',
+  maxWidth: '440px',
+  width: '100%',
+  boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+  fontFamily: 'sans-serif'
+};
+
+const dialogBtn = (background: string, color: string, border = 'none'): React.CSSProperties => ({
+  padding: '8px 14px',
+  background,
+  color,
+  border,
+  borderRadius: '6px',
+  fontWeight: 'bold',
+  fontSize: '13px',
+  cursor: 'pointer'
+});
