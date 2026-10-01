@@ -13,6 +13,20 @@ interface LiveMatchProps {
   onExit: (finalState: GameSimulationState) => void;
 }
 
+const LEVERAGE_HEADINGS: Record<Exclude<LeverageType, 'PAT_DECISION'>, string> = {
+  FOURTH_DOWN: '4TH DOWN TACTICAL DECISION',
+  RED_ZONE_GOAL_TO_GO: 'GOAL-TO-GO: PUNCH IT IN',
+  TWO_MINUTE_DRILL: 'TWO-MINUTE DRILL'
+};
+
+const downLabel = (down: number) => ['1st', '2nd', '3rd', '4th'][down - 1] ?? `${down}th`;
+
+/** Field position from the offense's view: own half below the 50, opponent's half above it. */
+const fieldPosition = (yardLine: number) =>
+  yardLine === 50 ? 'midfield' : yardLine < 50 ? `your own ${yardLine}` : `the opponent's ${100 - yardLine}`;
+
+const MAX_FIELD_GOAL_PROMPT_YARDS = 55;
+
 export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTeamId, onExit }) => {
   const [gameState, setGameState] = useState<GameSimulationState>(initialState);
   const [leveragePrompt, setLeveragePrompt] = useState<LeverageType | null>(null);
@@ -188,15 +202,24 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
 
       {leveragePrompt && leveragePrompt !== 'PAT_DECISION' && !gameState.isGameOver && (
         <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', color: '#92400E' }}>⚡ 4th DOWN TACTICAL DECISION</h3>
+          <h3 style={{ margin: '0 0 8px 0', color: '#92400E' }}>⚡ {LEVERAGE_HEADINGS[leveragePrompt]}</h3>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
-            4th & {gameState.distance} at opponent {gameState.yardLine}-yard line. Choose your tactical call:
+            {downLabel(gameState.down)} & {gameState.yardLine + gameState.distance >= 100 ? 'Goal' : gameState.distance} at {fieldPosition(gameState.yardLine)}
+            {leveragePrompt === 'TWO_MINUTE_DRILL' && ` with ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')} left`}
+            . Choose your tactical call:
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => handleDecision('INSIDE_RUN')} style={btnStyle}>🏈 Power Run</button>
             <button onClick={() => handleDecision('SHORT_PASS')} style={btnStyle}>🎯 Quick Pass</button>
-            <button onClick={() => handleDecision('FIELD_GOAL')} style={btnStyle}>👟 Field Goal</button>
-            <button onClick={() => handleDecision('PUNT')} style={btnStyle}>🛡️ Punt</button>
+            {leveragePrompt !== 'RED_ZONE_GOAL_TO_GO' && (
+              <button onClick={() => handleDecision('DEEP_PASS')} style={btnStyle}>🚀 Deep Shot</button>
+            )}
+            {gameState.down === 4 && 100 - gameState.yardLine + 17 <= MAX_FIELD_GOAL_PROMPT_YARDS && (
+              <button onClick={() => handleDecision('FIELD_GOAL')} style={btnStyle}>👟 Field Goal ({100 - gameState.yardLine + 17} yds)</button>
+            )}
+            {gameState.down === 4 && gameState.yardLine < 80 && (
+              <button onClick={() => handleDecision('PUNT')} style={btnStyle}>🛡️ Punt</button>
+            )}
           </div>
         </div>
       )}
