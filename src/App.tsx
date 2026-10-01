@@ -5,6 +5,7 @@ import { getUserMatchup } from './sim/userMatchup';
 import { RosterDepthChartView } from './components/RosterDepthChartView';
 import { DistrictStandingsView } from './components/DistrictStandingsView';
 import { FeedersScoutingView } from './components/FeedersScoutingView';
+import { CollegeRecruitingView } from './components/CollegeRecruitingView';
 import { CoachesOfficeView } from './components/CoachesOfficeView';
 import { NewsMediaView } from './components/NewsMediaView';
 import { RankingsView } from './components/RankingsView';
@@ -21,7 +22,7 @@ import { calculateSeasonAwards, SeasonAwardsRecord } from './sim/awardsEngine';
 import { GameSimulationState, OffensiveScheme, Player } from './types/game';
 
 export const App: React.FC = () => {
-  const [tab, setTab] = useState<'DASHBOARD' | 'ROSTER' | 'DISTRICT' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS' | 'OFFICE'>('DASHBOARD');
+  const [tab, setTab] = useState<'DASHBOARD' | 'ROSTER' | 'DISTRICT' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'COLLEGE' | 'NEWS' | 'OFFICE'>('DASHBOARD');
   const [activeMatch, setActiveMatch] = useState<GameSimulationState | null>(null);
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [showBracketModal, setShowBracketModal] = useState(false);
@@ -220,6 +221,7 @@ export const App: React.FC = () => {
           />
         )}
         {tab === 'FEEDERS' && <FeedersScoutingView />}
+        {tab === 'COLLEGE' && <CollegeRecruitingView />}
         {tab === 'NEWS' && <NewsMediaView articles={newsArticles} />}
         {tab === 'OFFICE' && <CoachesOfficeView />}
       </div>
@@ -232,6 +234,7 @@ export const App: React.FC = () => {
         <button onClick={() => setTab('RANKINGS')} style={navBtnStyle(tab === 'RANKINGS')}>🥇 Polls</button>
         <button onClick={() => setTab('LEADERS')} style={navBtnStyle(tab === 'LEADERS')}>🌟 Leaders</button>
         <button onClick={() => setTab('FEEDERS')} style={navBtnStyle(tab === 'FEEDERS')}>🔍 Feeders</button>
+        <button onClick={() => setTab('COLLEGE')} style={navBtnStyle(tab === 'COLLEGE')}>🎓 College</button>
         <button onClick={() => setTab('NEWS')} style={navBtnStyle(tab === 'NEWS')}>📰 News</button>
         <button onClick={() => setTab('OFFICE')} style={navBtnStyle(tab === 'OFFICE')}>🏢 Office</button>
       </div>

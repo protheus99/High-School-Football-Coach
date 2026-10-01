@@ -1,4 +1,5 @@
 import { Team } from '../types/game';
+import { bestOffer } from './collegeRecruitingEngine';
 
 export interface NewsArticle {
   id: string;
@@ -62,7 +63,7 @@ export function generateWeeklyNewsStream(
 
   // 2. Recruiting / Star Player Spotlight
   if (starPlayer && starPlayer.recruiting.offers.length > 0) {
-    const topOffer = starPlayer.recruiting.offers[0];
+    const topOffer = bestOffer(starPlayer)!;
     articles.push({
       id: `news_rec_${week}`,
       week,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Player } from '../types/game';
+import { TIER_LABELS, recruitingStatus, sortedOffers } from '../sim/collegeRecruitingEngine';
 
 interface PlayerDetailModalProps {
   player: Player;
@@ -40,20 +41,34 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player, on
         <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <h4 style={{ margin: 0 }}>Collegiate Offer Sheet ({player.recruiting.starRating}★ Prospect)</h4>
-            <span style={{ fontSize: '12px', fontWeight: 'bold', color: player.recruiting.isNationalLetterOfIntentSigned ? '#16A34A' : '#D97706' }}>
-              {player.recruiting.isNationalLetterOfIntentSigned ? 'Signed NLI' : 'Uncommitted'}
-            </span>
+            <span style={{ fontSize: '12px', fontWeight: 'bold', color: recruitingStatus(player).color }}>{recruitingStatus(player).label}</span>
           </div>
           {player.recruiting.offers.length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {player.recruiting.offers.map((offer, i) => (
-                <div key={i} style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', color: '#1E40AF' }}>
-                  🎓 {offer.collegeName} ({offer.tier.replace('_', ' ')})
-                </div>
-              ))}
+              {sortedOffers(player).map((offer) => {
+                const committed = offer.collegeName === player.recruiting.committedCollege;
+                return (
+                  <div
+                    key={offer.collegeName}
+                    style={{
+                      background: committed ? '#DCFCE7' : '#EFF6FF',
+                      border: `1px solid ${committed ? '#86EFAC' : '#BFDBFE'}`,
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      color: committed ? '#166534' : '#1E40AF'
+                    }}
+                  >
+                    {committed ? '✅' : '🎓'} {offer.collegeName} ({TIER_LABELS[offer.tier]})
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div style={{ fontSize: '12px', color: '#64748B' }}>No formal scholarship offers yet. Perform well on Friday nights!</div>
+          )}
+          {(player.recruiting.decommitCount ?? 0) > 0 && (
+            <div style={{ fontSize: '11px', color: '#92400E', marginTop: '6px' }}>Flipped his commitment {player.recruiting.decommitCount}×</div>
           )}
         </div>
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Player, Team } from '../types/game';
+import { TIER_LABELS, isDivisionOne, tierRank } from '../sim/collegeRecruitingEngine';
 
 interface BanquetProps {
   userTeam: Team;
@@ -12,9 +13,11 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
   graduatingSeniors,
   onStartNextYear
 }) => {
-  const d1Signees = graduatingSeniors.filter((p) =>
-    p.recruiting.offers.some((o) => o.tier === 'POWER_4' || o.tier === 'GROUP_OF_5')
-  );
+  // Signing day already ran for every senior in the state when the banquet opened
+  const signees = graduatingSeniors
+    .filter((p) => p.recruiting.isNationalLetterOfIntentSigned && p.recruiting.signedTier)
+    .sort((a, b) => tierRank(b.recruiting.signedTier!) - tierRank(a.recruiting.signedTier!) || b.overallRating - a.overallRating);
+  const d1Count = signees.filter((p) => isDivisionOne(p.recruiting.signedTier)).length;
 
   return (
     <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
@@ -28,17 +31,26 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
 
       {/* National Signing Day (NLI) Showcase */}
       <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
-        <h3 style={{ margin: '0 0 12px 0', color: '#1E293B' }}>✍️ National Signing Day (NLI)</h3>
-        {d1Signees.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-            {d1Signees.map((senior) => {
-              const topOffer = senior.recruiting.offers[0];
+        <h3 style={{ margin: '0 0 4px 0', color: '#1E293B' }}>✍️ National Signing Day (NLI)</h3>
+        <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#64748B' }}>
+          {signees.length} senior{signees.length === 1 ? '' : 's'} signed to play in college ({d1Count} Division I). Every Division I signee builds the
+          program&apos;s alumni prestige.
+        </p>
+        {signees.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px' }}>
+            {signees.map((senior) => {
+              const tier = senior.recruiting.signedTier!;
+              const d1 = isDivisionOne(tier);
               return (
-                <div key={senior.id} style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '6px', padding: '12px' }}>
+                <div
+                  key={senior.id}
+                  style={{ background: d1 ? '#EFF6FF' : '#F8FAFC', border: `1px solid ${d1 ? '#93C5FD' : '#CBD5E1'}`, borderRadius: '6px', padding: '12px' }}
+                >
                   <div style={{ fontWeight: 'bold' }}>{senior.firstName} {senior.lastName} ({senior.position})</div>
                   <div style={{ color: '#2563EB', fontSize: '13px', fontWeight: 'bold' }}>
-                    Signed with: {topOffer?.collegeName}
+                    Signed with: {senior.recruiting.committedCollege}
                   </div>
+                  <div style={{ fontSize: '12px', color: '#475569' }}>{TIER_LABELS[tier]}</div>
                   <div style={{ fontSize: '12px', color: '#64748B' }}>
                     Rating: {senior.overallRating} OVR ({senior.recruiting.starRating}★)
                   </div>
@@ -47,7 +59,7 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
             })}
           </div>
         ) : (
-          <div style={{ color: '#64748B', fontSize: '14px' }}>No FBS collegiate signings this season.</div>
+          <div style={{ color: '#64748B', fontSize: '14px' }}>No seniors signed with a college this season.</div>
         )}
       </div>
 

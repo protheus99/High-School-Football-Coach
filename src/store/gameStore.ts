@@ -17,7 +17,21 @@ import { buildTexasLeague, findDistrict, leagueRegionTeams, LeagueStructure } fr
 import { applyGameResult, forfeitMostRecentDistrictWin, generateSeasonSchedule, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
 import { randomInt } from '../sim/math/variance';
-import { evaluateCollegeScoutExposure } from '../sim/scoutingEngine';
+import {
+  COLLEGE_ACTION_COSTS,
+  CollegeAction,
+  CollegeActionResult,
+  RecruitingEvent,
+  Signing,
+  TIER_LABELS,
+  advanceCollegeRecruiting,
+  classCounts,
+  isDivisionOne,
+  performCollegeAction,
+  resetSeasonRecruiting,
+  runSigningDay,
+  updateStarRatings
+} from '../sim/collegeRecruitingEngine';
 import {
   FEEDER_EVENTS,
   FeederEventType,
@@ -65,6 +79,79 @@ import { advanceTeamToNextSeason } from '../sim/offseasonEngine';
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
 const INDUCEMENT_AP_COST = 20;
 const BAN_HEAT_THRESHOLD = 50; // getting caught with this much evidence brings a postseason ban
+
+const MID_SEASON_STAR_UPDATE_WEEK = 8;
+const STATEWIDE_RECRUITING_HEADLINES = 2; // five-star commitments elsewhere in the state, per week
+
+/** Headlines from a week of college recruiting: the user's players, plus five-star news statewide. */
+function collegeRecruitingNews(events: RecruitingEvent[], userTeamId: string, week: number, year: number): NewsArticle[] {
+  const name = (e: RecruitingEvent) => `${e.player.firstName} ${e.player.lastName}`;
+  const stars = (e: RecruitingEvent) => `${e.player.recruiting.starRating}★`;
+  const article = (e: RecruitingEvent, headline: string, content: string, i: number): NewsArticle => ({
+    id: `news_college_${e.type}_${e.player.id}_${year}_${week}_${i}`,
+    week,
+    outlet: e.team.id === userTeamId ? 'TOWN_JOURNAL' : 'PREP_GRIDIRON_TALK',
+    headline,
+    content,
+    impactSentiment: e.type === 'DECOMMIT' && e.team.id === userTeamId ? 'NEUTRAL' : 'POSITIVE',
+    featuredTeamName: e.team.name,
+    featuredPlayerName: name(e)
+  });
+  const mine = events.filter((e) => e.team.id === userTeamId && (e.type !== 'OFFER' || e.tier === 'POWER_4'));
+  const statewide = events.filter((e) => e.team.id !== userTeamId && e.type !== 'OFFER' && e.player.recruiting.starRating === 5).slice(0, STATEWIDE_RECRUITING_HEADLINES);
+  return [...mine, ...statewide].map((e, i) => {
+      if (e.type === 'COMMIT')
+        return article(
+          e,
+          `${e.team.name} ${e.player.position} ${name(e)} Commits to ${e.collegeName}`,
+          `The ${stars(e)} ${e.player.classYear.toLowerCase()} gave a verbal commitment to ${e.collegeName} (${TIER_LABELS[e.tier]}).`,
+          i
+        );
+      if (e.type === 'DECOMMIT')
+        return article(
+          e,
+          `${name(e)} Flips From ${e.previousCollege} to ${e.collegeName}`,
+          `The ${stars(e)} ${e.player.position} from ${e.team.name} reopened his recruitment and committed to ${e.collegeName}.`,
+          i
+        );
+      return article(e, `${e.collegeName} Offers ${e.team.name} ${e.player.position} ${name(e)}`, `A Power 4 scholarship offer for the ${stars(e)} ${e.player.classYear.toLowerCase()}.`, i);
+    });
+}
+
+/** Signing day coverage: the user's class and the state's top signees. */
+function signingDayNews(signings: Signing[], prestigeChange: number, userTeam: Team, year: number, week: number): NewsArticle[] {
+  const mine = signings.filter((s) => s.team.id === userTeam.id);
+  const d1 = mine.filter((s) => isDivisionOne(s.offer.tier));
+  const articles: NewsArticle[] = [];
+  if (mine.length > 0) {
+    articles.push({
+      id: `news_signing_day_${year}`,
+      week,
+      outlet: 'TOWN_JOURNAL',
+      headline: `Signing Day: ${mine.length} ${userTeam.name} Seniors Sign With Colleges${d1.length ? ` (${d1.length} Division I)` : ''}`,
+      content: `${mine.map((s) => `${s.player.firstName} ${s.player.lastName} (${s.offer.collegeName})`).join(', ')}.${
+        prestigeChange > 0 ? ' The class gives the program a boost in prestige.' : prestigeChange < 0 ? ' Program prestige slips after a thin class.' : ''
+      }`,
+      impactSentiment: d1.length > 0 ? 'POSITIVE' : 'NEUTRAL',
+      featuredTeamName: userTeam.name
+    });
+  }
+  signings
+    .filter((s) => s.team.id !== userTeam.id && s.player.recruiting.starRating === 5)
+    .slice(0, 3)
+    .forEach((s, i) =>
+      articles.push({
+        id: `news_signing_star_${year}_${i}`,
+        week,
+        outlet: 'PREP_GRIDIRON_TALK',
+        headline: `Five-Star ${s.player.position} ${s.player.firstName} ${s.player.lastName} Signs With ${s.offer.collegeName}`,
+        content: `${s.team.name}'s standout makes it official on signing day.`,
+        impactSentiment: 'NEUTRAL',
+        featuredTeamName: s.team.name
+      })
+    );
+  return articles;
+}
 
 const recruitingContext = (state: { league: LeagueStructure | null; leagueTeams: Team[]; userTeamId: string }): RecruitingContext | undefined =>
   state.league ? buildRecruitingContext(state.league, state.leagueTeams, state.userTeamId) : undefined;
@@ -146,6 +233,7 @@ interface GameStoreState {
   visitFeederProspect: (prospectId: string) => void;
   pitchFeederStar: (prospectId: string) => void;
   offerFeederInducement: (prospectId: string) => void; // illegal booster offer: big pull, adds heat
+  collegeRecruitAction: (playerId: string, action: CollegeAction) => CollegeActionResult; // promote a player to colleges
   updatePlayerTier: (playerId: string, tier: DepthChartTier) => void;
   togglePlayerStudyHall: (playerId: string) => void;
   startPostseason: () => void;
@@ -190,6 +278,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       t.feederProfile.strategy = chooseFeederStrategy(t);
     });
     const ctx = buildRecruitingContext(league, teams, userTeamId);
+    updateStarRatings(teams, false);
 
     set({
       currentWeek: 1,
@@ -356,10 +445,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return;
     }
 
-    // Banquet once the state championship games are decided
+    // Banquet once the state championship games are decided: signing day for every senior in the state
     if (get().playoffBracket?.isPlayoffsActive === false) {
       const seniors = userTeam.roster.filter((p) => p.classYear === 'Senior');
-      set({ currentWeek: nextWeek, graduatingSeniors: seniors, isBanquetActive: true });
+      const { signings, prestigeChanges } = runSigningDay(leagueTeams, get().currentYear);
+      const news = signingDayNews(signings, prestigeChanges.get(userTeamId) ?? 0, userTeam, get().currentYear, nextWeek);
+      set({ currentWeek: nextWeek, graduatingSeniors: seniors, isBanquetActive: true, newsArticles: [...news, ...get().newsArticles] });
       return;
     }
 
@@ -376,8 +467,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // 3. Recalculate Player Stats Leaderboards & Positional Prospect Rankings
     const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(leagueTeams, nextWeek);
 
-    // 4. College Scout Exposure & Weekly Dilemma
-    evaluateCollegeScoutExposure(userTeam, nextWeek);
+    // 4. College recruiting statewide (offers, commitments, flips) & Weekly Dilemma
+    if (nextWeek === MID_SEASON_STAR_UPDATE_WEEK) updateStarRatings(leagueTeams, true);
+    const collegeNews = collegeRecruitingNews(advanceCollegeRecruiting(leagueTeams, nextWeek, currentYear), userTeamId, nextWeek, currentYear);
     const recentTemplates = dilemmaLog
       .filter((r) => r.year === currentYear && nextWeek - r.week < DILEMMA_COOLDOWN_WEEKS)
       .map((r) => r.templateId);
@@ -392,7 +484,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       activeDilemma: dilemma,
       polls: updatedPolls,
       playerRankings: updatedPlayerRankings,
-      newsArticles: [...newArticles, ...get().newsArticles],
+      newsArticles: [...collegeNews, ...newArticles, ...get().newsArticles],
       districtTeams: [...districtTeams]
     };
 
@@ -466,6 +558,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       if (team.id === userTeamId) advanceTeamToNextSeason(team, feederClass.joined);
       else advanceTeamToNextSeason(team, rivalIncoming.get(team.id) ?? [], STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL']);
     });
+    // New recruiting cycle: offers carry over, exposure and calls reset, stars re-evaluated after progression
+    resetSeasonRecruiting(leagueTeams);
+    updateStarRatings(leagueTeams, false);
 
     // Year-end investigations: some programs get caught, the rest see their evidence fade
     const investigationNews: NewsArticle[] = [];
@@ -614,6 +709,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const result = runFeederEvent(scoutingPool, type, userTeam, recruitingContext(get()));
     set({ coachingAP: coachingAP - cost, scoutingPool: result.pool, feederEventsThisWeek: [...feederEventsThisWeek, type] });
     return result.discovered;
+  },
+
+  collegeRecruitAction: (playerId, action) => {
+    const { coachingAP, leagueTeams, userTeamId, currentWeek, currentYear, districtTeams } = get();
+    const cost = COLLEGE_ACTION_COSTS[action];
+    if (coachingAP < cost) return { ok: false, message: 'Not enough AP' };
+    const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
+    const player = userTeam.roster.find((p) => p.id === playerId);
+    if (!player) return { ok: false, message: 'Player not found' };
+    const result = performCollegeAction(player, userTeam, action, currentWeek, currentYear, classCounts(leagueTeams));
+    if (result.ok) set({ coachingAP: coachingAP - cost, districtTeams: [...districtTeams], leagueTeams: [...leagueTeams] });
+    return result;
   },
 
   scoutFeederProspect: (prospectId) => {

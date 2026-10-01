@@ -14,7 +14,7 @@ export type DefensiveScheme = 'FOUR_THREE' | 'FOUR_FOUR' | 'THREE_THREE_FIVE' | 
 export type WeatherType = 'CLEAR' | 'HEAVY_RAIN' | 'HIGH_WIND' | 'EXTREME_HEAT' | 'FREEZING_SNOW';
 export type MomentumTier = -2 | -1 | 0 | 1 | 2;
 export type InjurySeverity = 'HEALTHY' | 'DINGED' | 'MODERATE' | 'SEASON_ENDING';
-export type CollegeTier = 'POWER_4' | 'GROUP_OF_5' | 'FCS' | 'DIVISION_2' | 'PWO';
+export type CollegeTier = 'POWER_4' | 'GROUP_OF_5' | 'FCS' | 'DIVISION_2' | 'DIVISION_3' | 'PWO'; // PWO = preferred walk-on at a Division I program
 
 export type PlayConcept =
   | 'INSIDE_RUN'
@@ -100,15 +100,26 @@ export interface PlayerStats {
 
 export interface CollegeOffer {
   collegeName: string;
+  collegeId?: string;
   tier: CollegeTier;
   offerDateWeek: number;
+  offerYear?: number;
 }
 
 export interface RecruitingProfile {
   starRating: 0 | 1 | 2 | 3 | 4 | 5;
   offers: CollegeOffer[];
   committedCollege?: string;
+  committedCollegeId?: string;
+  committedWeek?: number;
+  decommitCount?: number;
   isNationalLetterOfIntentSigned: boolean;
+  signedTier?: CollegeTier;
+  visibility?: number; // 0-100: how much college coaches know about the player
+  campBoost?: number; // evaluation bump earned at a summer camp
+  filmSentYear?: number;
+  campYear?: number;
+  coachCalls?: number; // college calls made by the head coach this season
 }
 
 export interface ParentProfile {
