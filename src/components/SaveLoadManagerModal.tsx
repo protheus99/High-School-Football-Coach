@@ -4,6 +4,7 @@ import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueI
 import { persistSaveGame, loadSaveGame } from '../services/db';
 import { generateSeasonSchedule } from '../sim/scheduleEngine';
 import { buildCustomLeague, leagueRegionTeams, LeagueStructure } from '../sim/league';
+import { generateFeederPool } from '../sim/feederEngine';
 import { Team } from '../types/game';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -69,7 +70,10 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
         coachingAP: save.coachingAP,
         practiceIntensity: save.practiceIntensity,
         activeDilemma: save.activeDilemma,
-        scoutingPool: save.scoutingPool
+        // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
+        scoutingPool: save.scoutingPool.every((p) => 'source' in p)
+          ? save.scoutingPool
+          : generateFeederPool(world.teams.find((t) => t.id === save.userTeamId) ?? world.teams[0])
       });
       setFeedback('Save game restored!');
     } else {

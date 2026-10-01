@@ -10,12 +10,12 @@ import {
 import { calculateGaussianVariance, clamp, randomInt } from '../sim/math/variance';
 import { DEPTH_TEMPLATE, rebuildDepthChart } from '../sim/depthChart';
 
-const FIRST_NAMES = [
+export const FIRST_NAMES = [
   'Marcus', 'Trevor', 'DeShawn', 'Colt', 'Brayden', 'Jalen', 'Cody', 'Ty', 'Elijah', 'Wyatt',
   'Austin', 'Kevon', 'Garrett', 'Malik', 'Brock', 'Dante', 'Tanner', 'Zion', 'Hunter', 'Kaden'
 ];
 
-const LAST_NAMES = [
+export const LAST_NAMES = [
   'Miller', 'Washington', 'Johnson', 'McCoy', 'Williams', 'Strickland', 'Vance', 'Carter',
   'Holloway', 'Beckham', 'Bradford', 'Singleton', 'Odom', 'Broussard', 'Chambers', 'Landry'
 ];
@@ -87,9 +87,35 @@ export function schoolEnrollment(name: string): number {
 
 let playerIdCounter = 0;
 
-export function generateProceduralPlayer(position: Position, classYear: PlayerClass, tier: 1 | 2 | 3 = 1, ovrAdjustment = 0): Player {
-  const firstName = FIRST_NAMES[randomInt(0, FIRST_NAMES.length - 1)];
-  const lastName = LAST_NAMES[randomInt(0, LAST_NAMES.length - 1)];
+/** Pareto talent roll: most players are rotational or depth, a few are All-State or phenoms. */
+export function rollTalent(): { ovr: number; potential: PotentialGrade } {
+  const baseRoll = Math.random();
+  if (baseRoll > 0.98) return { ovr: randomInt(88, 96), potential: 'A+' }; // 5-Star Phenom
+  if (baseRoll > 0.9) return { ovr: randomInt(78, 87), potential: 'A' }; // 4-Star All-State
+  if (baseRoll > 0.7) return { ovr: randomInt(68, 77), potential: 'B' }; // 3-Star Starter
+  if (baseRoll > 0.3) return { ovr: randomInt(52, 67), potential: 'C' }; // Rotational Player
+  return { ovr: randomInt(40, 51), potential: 'D' }; // Depth / JV
+}
+
+/** Fixed identity and ratings for a known prospect joining the roster. */
+export interface PlayerOverrides {
+  firstName?: string;
+  lastName?: string;
+  overall?: number;
+  potential?: PotentialGrade;
+  speed?: number;
+  strength?: number;
+}
+
+export function generateProceduralPlayer(
+  position: Position,
+  classYear: PlayerClass,
+  tier: 1 | 2 | 3 = 1,
+  ovrAdjustment = 0,
+  overrides: PlayerOverrides = {}
+): Player {
+  const firstName = overrides.firstName ?? FIRST_NAMES[randomInt(0, FIRST_NAMES.length - 1)];
+  const lastName = overrides.lastName ?? LAST_NAMES[randomInt(0, LAST_NAMES.length - 1)];
 
   // Age based on class
   const ageMap: Record<PlayerClass, number> = {
@@ -100,34 +126,18 @@ export function generateProceduralPlayer(position: Position, classYear: PlayerCl
   };
 
   // Pareto Distribution base overall
-  const baseRoll = Math.random();
-  let ovr = 55;
-  let potential: PotentialGrade = 'C';
-
-  if (baseRoll > 0.98) {
-    ovr = randomInt(88, 96); // 5-Star Phenom
-    potential = 'A+';
-  } else if (baseRoll > 0.90) {
-    ovr = randomInt(78, 87); // 4-Star All-State
-    potential = 'A';
-  } else if (baseRoll > 0.70) {
-    ovr = randomInt(68, 77); // 3-Star Starter
-    potential = 'B';
-  } else if (baseRoll > 0.30) {
-    ovr = randomInt(52, 67); // Rotational Player
-    potential = 'C';
-  } else {
-    ovr = randomInt(40, 51); // Depth / JV
-    potential = 'D';
-  }
+  const talent = rollTalent();
+  let ovr = talent.ovr;
+  const potential: PotentialGrade = overrides.potential ?? talent.potential;
 
   // Adjust for tier
   if (tier === 2) ovr = Math.max(40, ovr - randomInt(6, 12));
   if (tier === 3) ovr = Math.max(35, ovr - randomInt(14, 22));
   ovr = Math.max(35, ovr + ovrAdjustment);
+  if (overrides.overall !== undefined) ovr = overrides.overall;
 
-  const speed = clamp(Math.floor(ovr + calculateGaussianVariance(0, 5)), 40, 99);
-  const strength = clamp(Math.floor(ovr + calculateGaussianVariance(0, 5)), 40, 99);
+  const speed = overrides.speed ?? clamp(Math.floor(ovr + calculateGaussianVariance(0, 5)), 40, 99);
+  const strength = overrides.strength ?? clamp(Math.floor(ovr + calculateGaussianVariance(0, 5)), 40, 99);
   const agility = clamp(Math.floor(ovr + calculateGaussianVariance(0, 4)), 40, 99);
   const stamina = clamp(Math.floor(randomInt(70, 95)), 50, 99);
 

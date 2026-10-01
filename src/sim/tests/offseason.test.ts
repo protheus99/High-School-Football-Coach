@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateDistrictTeams } from '../../generators/rosterGenerator';
+import { generateDistrictTeams, generateProceduralPlayer } from '../../generators/rosterGenerator';
 import { advanceTeamToNextSeason } from '../offseasonEngine';
 import { DEPTH_TEMPLATE } from '../depthChart';
 import { teamStarterRating } from '../macroSim';
@@ -31,13 +31,14 @@ describe('Off-season rollover', () => {
     const juniors = team.roster.filter((p) => p.classYear === 'Junior').map((p) => p.id);
     team.roster[0].stats.passYards = 2500;
 
-    const { graduated, freshmen } = advanceTeamToNextSeason(team, ['QB', 'WR']);
+    const newcomers = [generateProceduralPlayer('QB', 'Freshman', 1), generateProceduralPlayer('WR', 'Freshman', 1)];
+    const { graduated, freshmen } = advanceTeamToNextSeason(team, newcomers);
 
     expect(graduated.map((p) => p.id).sort()).toEqual(seniors.sort());
     team.roster.forEach((p) => expect(seniors).not.toContain(p.id));
     juniors.forEach((id) => expect(team.roster.find((p) => p.id === id)?.classYear).toBe('Senior'));
     freshmen.forEach((p) => expect(p.classYear).toBe('Freshman'));
-    expect(freshmen.filter((p) => p.position === 'QB').length).toBeGreaterThanOrEqual(1);
+    expect(freshmen).toEqual(expect.arrayContaining(newcomers));
     team.roster.forEach((p) => expect(p.stats.passYards).toBe(0));
     expectFullDepthChart(team);
   });

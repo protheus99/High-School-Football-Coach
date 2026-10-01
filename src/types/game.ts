@@ -338,16 +338,44 @@ export interface NarrativeDilemma {
   choices: DilemmaChoice[];
 }
 
+/** Where a prospect comes from (feeder pipeline). */
+export type ProspectSource =
+  | 'FEEDER_MIDDLE_SCHOOL' // 8th graders playing tackle at the district's middle schools
+  | 'SEVEN_ON_SEVEN' // good athletes from 7-on-7 clubs who don't play tackle yet
+  | 'MOVE_IN' // families relocating into the district
+  | 'STAR_RECRUIT' // elite out-of-area talent; only top programs can try to coax them in
+  | 'TRYOUT'; // general students who come out for the team
+
 export interface FeederProspect {
   id: string;
   name: string;
-  middleSchool: string;
+  source: ProspectSource;
+  middleSchool: string; // origin: middle school, 7-on-7 club, or hometown
   projectedPosition: Position;
+  incomingClass: PlayerClass; // grade they would play next season
+  trueOverall: number; // hidden until scouted
+  truePotential: PotentialGrade; // hidden until scouted
+  trueSpeed: number;
+  trueStrength: number;
   revealedPotential: PotentialGrade | 'UNKNOWN';
   scoutedSpeed: number | null;
   scoutedStrength: number | null;
-  interestScore: number;
-  isTransferRisk: boolean;
+  interestScore: number; // 0-100: how likely they are to come play for the program
+  coachContacts: number; // visits / pitches so far (diminishing returns)
+  isTransferRisk: boolean; // family may leave the area before next season
+}
+
+export type FeederOutcomeType = 'JOINED' | 'JV_TEAM' | 'NOT_PLAYING' | 'LEFT_AREA' | 'OTHER_SCHOOL';
+
+/** What happened to a prospect when the class was decided at the end of the year. */
+export interface FeederOutcome {
+  prospectId: string;
+  playerId?: string; // set when the prospect joined and became a player
+  prospectName: string;
+  source: ProspectSource;
+  position: Position;
+  outcome: FeederOutcomeType;
+  overall?: number; // revealed for players who joined
 }
 
 // ============================================================================

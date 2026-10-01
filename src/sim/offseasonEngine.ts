@@ -13,10 +13,10 @@ const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior
 
 /**
  * Rolls a team into the next season: seniors graduate, everyone else moves up a class and
- * progresses, each position is refilled to its roster size with freshmen (incoming feeder
- * positions first), season stats and eligibility reset, and the depth chart is rebuilt.
+ * progresses, newcomers from the feeder pipeline join (already in their new grade), remaining
+ * open spots are filled with freshmen, season stats and eligibility reset, and the depth chart is rebuilt.
  */
-export function advanceTeamToNextSeason(team: Team, incomingPositions: Position[] = []): { graduated: Player[]; freshmen: Player[] } {
+export function advanceTeamToNextSeason(team: Team, incomingPlayers: Player[] = []): { graduated: Player[]; freshmen: Player[] } {
   const graduated = team.roster.filter((p) => p.classYear === 'Senior');
   team.roster = team.roster.filter((p) => p.classYear !== 'Senior');
 
@@ -33,9 +33,8 @@ export function advanceTeamToNextSeason(team: Team, incomingPositions: Position[
   const freshmen: Player[] = [];
   const countAt = (pos: Position) => team.roster.filter((p) => p.position === pos).length;
 
-  // Signed feeder prospects join first (even beyond the template), then open spots are filled
-  incomingPositions.forEach((pos) => {
-    const player = newFreshman(pos);
+  // Newcomers from the feeder pipeline join first (even beyond the template), then open spots are filled
+  incomingPlayers.forEach((player) => {
     team.roster.push(player);
     freshmen.push(player);
   });
