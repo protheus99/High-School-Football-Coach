@@ -1,0 +1,13 @@
+{
+  // Cloudflare Workers static-assets deploy for the Vite build (no server code).
+  // The name must match the Worker's name in the Cloudflare dashboard.
+  "name": "high-school-football-coach",
+  "compatibility_date": "2026-10-01",
+  "build": {
+    "command": "npm run build"
+  },
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
