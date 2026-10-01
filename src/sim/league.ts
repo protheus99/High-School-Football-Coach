@@ -27,6 +27,22 @@ export interface LeagueStructure {
 
 export const DEFAULT_USER_SCHOOL = 'Austin Westlake';
 
+export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+
+/** New Game: the school's prestige range for each difficulty (stronger programs are easier). */
+export const DIFFICULTY_PRESTIGE: Record<Difficulty, { min: number; max: number }> = {
+  EASY: { min: 90, max: 100 },
+  MEDIUM: { min: 80, max: 89 },
+  HARD: { min: 60, max: 79 }
+};
+
+/** A random Texas 6A school whose prestige fits the difficulty. */
+export function pickSchoolForDifficulty(difficulty: Difficulty): string {
+  const { min, max } = DIFFICULTY_PRESTIGE[difficulty];
+  const schools = texas6A.regions.flatMap((r) => r.districts.flatMap((d) => d.schools)).filter((s) => s.prestige >= min && s.prestige <= max);
+  return schools[Math.floor(Math.random() * schools.length)].name;
+}
+
 /** A built game world and the team the user coaches. */
 export interface GameWorld {
   league: LeagueStructure;

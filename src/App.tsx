@@ -13,6 +13,7 @@ import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { LiveMatchScreen } from './components/LiveMatchScreen';
 import { SaveLoadManagerModal } from './components/SaveLoadManagerModal';
+import { SplashScreen } from './components/SplashScreen';
 import { StatePlayoffBracketModal } from './components/StatePlayoffBracketModal';
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
 import { AllStateAwardsModal } from './components/AllStateAwardsModal';
@@ -31,9 +32,10 @@ export const App: React.FC = () => {
   const [selectedPlayerDetail, setSelectedPlayerDetail] = useState<Player | null>(null);
   const [awardsRecord, setAwardsRecord] = useState<SeasonAwardsRecord | null>(null);
   const [awardsShownForYear, setAwardsShownForYear] = useState<number | null>(null);
+  const [showMenu, setShowMenu] = useState(true); // title screen until a game is started or loaded
 
   const {
-    startNewSeason,
+    league,
     districtTeams,
     leagueTeams,
     seasonSchedule,
@@ -50,10 +52,6 @@ export const App: React.FC = () => {
     advancePlayoffGame,
     recordUserGame
   } = useGameStore();
-
-  useEffect(() => {
-    startNewSeason();
-  }, [startNewSeason]);
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
@@ -100,6 +98,22 @@ export const App: React.FC = () => {
       setAwardsShownForYear(currentYear);
     }
   }, [isBanquetActive, awardsShownForYear, leagueTeams, currentYear]);
+
+  // Title screen: new game, continue, or load a save
+  if (showMenu) {
+    return (
+      <SplashScreen
+        canContinue={league !== null}
+        onEnterGame={() => {
+          setShowMenu(false);
+          setTab('DASHBOARD');
+          setActiveMatch(null);
+          setShowSaveLoadModal(false);
+          setAwardsRecord(null);
+        }}
+      />
+    );
+  }
 
   // Render Postseason Tournament Modal
   if (playoffBracket && showBracketModal) {
@@ -203,6 +217,12 @@ export const App: React.FC = () => {
             style={{ padding: '6px 12px', background: '#334155', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
           >
             ⚙️ Save / Load
+          </button>
+          <button
+            onClick={() => setShowMenu(true)}
+            style={{ padding: '6px 12px', background: '#1E293B', color: '#fff', border: '1px solid #475569', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+          >
+            🏠 Main Menu
           </button>
         </div>
       </div>

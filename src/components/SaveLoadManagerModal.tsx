@@ -1,23 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useGameStore, userDistrictTeams } from '../store/gameStore';
+import { useGameStore } from '../store/gameStore';
 import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueImporter';
-import { persistSaveGame, loadSaveGame } from '../services/db';
-import { generateSeasonSchedule } from '../sim/scheduleEngine';
-import {
-  buildCustomLeague,
-  buildStateLeague,
-  buildTexasLeague,
-  GameWorld,
-  leagueRegionTeams,
-  LeagueStructure,
-  nearestDistrictIndexes,
-  StateDistrictFile
-} from '../sim/league';
-import { generateFeederPool } from '../sim/feederEngine';
-import { Team } from '../types/game';
+import { AUTOSAVE_ID, loadSaveGame } from '../services/db';
+import { buildCustomLeague, buildStateLeague, buildTexasLeague, GameWorld, nearestDistrictIndexes, StateDistrictFile } from '../sim/league';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { districtTeams, league, leagueTeams, seasonSchedule, playoffBracket, sanctionLevel, statewideRecruits, userViolationHeat, pendingUserBan, dilemmaLog, currentWeek, currentYear, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
+  const { districtTeams, saveGame, loadGame } = useGameStore();
   const [importText, setImportText] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [leagueIndex, setLeagueIndex] = useState<LeagueIndexEntry[]>([]);
@@ -34,63 +22,15 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   const stateDistricts = leagueIndex.find((s) => s.state === selectedState)?.districts ?? [];
 
   const handleSaveToBrowser = async () => {
-    await persistSaveGame({
-      id: 'current_save',
-      saveName: `Week ${currentWeek} - ${districtTeams.find((t) => t.id === userTeamId)?.name}`,
-      timestamp: Date.now(),
-      currentWeek,
-      userTeamId,
-      coachingAP,
-      practiceIntensity,
-      districtTeams,
-      activeDilemma,
-      scoutingPool,
-      history: [],
-      currentYear,
-      league: league ?? undefined,
-      leagueTeams,
-      seasonSchedule,
-      dilemmaLog,
-      playoffBracket,
-      sanctionLevel,
-      statewideRecruits,
-      userViolationHeat,
-      pendingUserBan
-    });
-    setFeedback('Game successfully saved to IndexedDB!');
+    await saveGame();
+    setFeedback('Game saved! Find it on the Load Game screen.');
   };
 
   const handleLoadFromBrowser = async () => {
-    const save = await loadSaveGame('current_save');
+    const save = await loadSaveGame(AUTOSAVE_ID);
     if (save) {
-      // League saves restore the whole world; older saves get a world built around their district
-      const year = save.currentYear ?? 2026;
-      let world: { league: LeagueStructure; teams: Team[] };
-      if (save.league && save.leagueTeams) world = { league: save.league, teams: save.leagueTeams };
-      else world = buildCustomLeague(save.districtTeams, 'Saved District');
-      useGameStore.setState({
-        currentYear: year,
-        league: world.league,
-        leagueTeams: world.teams,
-        districtTeams: userDistrictTeams(world.league, world.teams, save.userTeamId),
-        seasonSchedule: save.league && save.seasonSchedule ? save.seasonSchedule : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
-        playoffBracket: save.league ? save.playoffBracket ?? null : null,
-        sanctionLevel: save.sanctionLevel ?? 0,
-        statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
-        userViolationHeat: save.userViolationHeat ?? 0,
-        pendingUserBan: save.pendingUserBan ?? false,
-        dilemmaLog: save.dilemmaLog ?? [],
-        currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, 14),
-        userTeamId: save.userTeamId,
-        coachingAP: save.coachingAP,
-        practiceIntensity: save.practiceIntensity,
-        activeDilemma: save.activeDilemma,
-        // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
-        scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p)
-          ? save.scoutingPool
-          : generateFeederPool(world.teams.find((t) => t.id === save.userTeamId) ?? world.teams[0])
-      });
-      setFeedback('Save game restored!');
+      loadGame(save);
+      setFeedback('Autosave restored!');
     } else {
       setFeedback('No saved game found.');
     }

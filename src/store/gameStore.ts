@@ -13,7 +13,12 @@ import {
   DilemmaRecord,
   FeederOutcome
 } from '../types/game';
-import { buildTexasLeague, findDistrict, GameWorld, leagueRegionTeams, LeagueStructure } from '../sim/league';
+import {
+  buildCustomLeague,
+  buildTexasLeague,
+  Difficulty,
+  findDistrict,
+  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty } from '../sim/league';
 import { applyGameResult, forfeitMostRecentDistrictWin, generateSeasonSchedule, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
 import { randomInt } from '../sim/math/variance';
@@ -73,6 +78,7 @@ import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
+import type { GameSaveRecord } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
 import { advanceTeamToNextSeason } from '../sim/offseasonEngine';
 
@@ -174,6 +180,36 @@ function punishCaughtProgram(team: Team, bannedSeason: number, week: number): Ne
   };
 }
 
+/** A full save of the current game in a given slot. */
+function buildSaveRecord(state: GameStoreState, id: string, saveName: string): GameSaveRecord {
+  return {
+    id,
+    saveName,
+    timestamp: Date.now(),
+    currentWeek: state.currentWeek,
+    userTeamId: state.userTeamId,
+    coachingAP: state.coachingAP,
+    practiceIntensity: state.practiceIntensity,
+    districtTeams: state.districtTeams,
+    activeDilemma: state.activeDilemma,
+    scoutingPool: state.scoutingPool,
+    history: [],
+    currentYear: state.currentYear,
+    league: state.league ?? undefined,
+    leagueTeams: state.leagueTeams,
+    seasonSchedule: state.seasonSchedule,
+    dilemmaLog: state.dilemmaLog,
+    playoffBracket: state.playoffBracket,
+    sanctionLevel: state.sanctionLevel,
+    statewideRecruits: state.statewideRecruits,
+    userViolationHeat: state.userViolationHeat,
+    pendingUserBan: state.pendingUserBan,
+    ...(state.difficulty && { difficulty: state.difficulty })
+  };
+}
+
+const AUTOSAVE_SLOT = 'current_save';
+
 /** The user's district as team objects (shared with leagueTeams). */
 export function userDistrictTeams(league: LeagueStructure, teams: Team[], userTeamId: string): Team[] {
   const district = findDistrict(league, userTeamId);
@@ -192,6 +228,7 @@ const emptyRecord = () => ({
 });
 
 interface GameStoreState {
+  difficulty: Difficulty | null; // chosen at New Game
   currentWeek: number;
   currentYear: number;
   userTeamId: string;
@@ -222,6 +259,9 @@ interface GameStoreState {
 
   // Actions
   startNewSeason: (world?: GameWorld) => void; // default: the Texas 6A world
+  newGame: (difficulty: Difficulty) => string; // random Texas school for the difficulty; returns its name
+  loadGame: (save: GameSaveRecord) => void;
+  saveGame: (saveName?: string) => Promise<string>; // new save slot; returns its id
   advanceWeek: () => void;
   resolveDilemma: (choice: DilemmaChoice) => void;
   setPracticeIntensity: (mode: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT') => void;
@@ -242,6 +282,7 @@ interface GameStoreState {
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
+  difficulty: null,
   currentWeek: 1,
   currentYear: 2026,
   userTeamId: 'team_austin_westlake',
@@ -305,6 +346,56 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       graduatingSeniors: [],
       isBanquetActive: false
     });
+  },
+
+  newGame: (difficulty) => {
+    const school = pickSchoolForDifficulty(difficulty);
+    set({ currentYear: 2026, difficulty });
+    get().startNewSeason(buildTexasLeague(school));
+    return school;
+  },
+
+  // League saves restore the whole world; older saves get a world built around their district
+  loadGame: (save) => {
+    const year = save.currentYear ?? 2026;
+    const world = save.league && save.leagueTeams ? { league: save.league, teams: save.leagueTeams } : buildCustomLeague(save.districtTeams, 'Saved District');
+    const userTeam = world.teams.find((t) => t.id === save.userTeamId) ?? world.teams[0];
+    set({
+      difficulty: save.difficulty ?? null,
+      currentYear: year,
+      league: world.league,
+      leagueTeams: world.teams,
+      districtTeams: userDistrictTeams(world.league, world.teams, userTeam.id),
+      seasonSchedule: save.league && save.seasonSchedule ? save.seasonSchedule : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
+      playoffBracket: save.league ? save.playoffBracket ?? null : null,
+      sanctionLevel: save.sanctionLevel ?? 0,
+      statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
+      userViolationHeat: save.userViolationHeat ?? 0,
+      pendingUserBan: save.pendingUserBan ?? false,
+      dilemmaLog: save.dilemmaLog ?? [],
+      currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
+      userTeamId: userTeam.id,
+      coachingAP: save.coachingAP,
+      practiceIntensity: save.practiceIntensity,
+      activeDilemma: save.activeDilemma,
+      activeGame: null,
+      isBanquetActive: false,
+      graduatingSeniors: [],
+      feederEventsThisWeek: [],
+      newsArticles: [],
+      polls: generateNationalAndStatePolls(world.teams, null, save.currentWeek),
+      playerRankings: generatePlayerRankingsAndLeaderboards(world.teams, save.currentWeek),
+      // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
+      scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p) ? save.scoutingPool : generateFeederPool(userTeam)
+    });
+  },
+
+  saveGame: async (saveName) => {
+    const state = get();
+    const userTeam = state.leagueTeams.find((t) => t.id === state.userTeamId);
+    const id = `save_${Date.now()}`;
+    await persistSaveGame(buildSaveRecord(state, id, saveName?.trim() || `${userTeam?.name ?? 'Season'} - ${state.currentYear} Week ${state.currentWeek}`));
+    return id;
   },
 
   advanceWeek: () => {
@@ -491,29 +582,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set(updatedState);
 
     // Auto-save state to IndexedDB in background
-    persistSaveGame({
-      id: 'current_save',
-      saveName: `Week ${nextWeek} - ${userTeam.name}`,
-      timestamp: Date.now(),
-      currentWeek: nextWeek,
-      userTeamId,
-      coachingAP: get().coachingAP,
-      practiceIntensity,
-      districtTeams: updatedState.districtTeams,
-      activeDilemma: dilemma,
-      scoutingPool: get().scoutingPool,
-      history: [],
-      currentYear: get().currentYear,
-      league: get().league ?? undefined,
-      leagueTeams,
-      seasonSchedule,
-      dilemmaLog: get().dilemmaLog,
-      playoffBracket: get().playoffBracket,
-      sanctionLevel: get().sanctionLevel,
-      statewideRecruits: get().statewideRecruits,
-      userViolationHeat: get().userViolationHeat,
-      pendingUserBan: get().pendingUserBan
-    });
+    persistSaveGame(buildSaveRecord(get(), AUTOSAVE_SLOT, `Week ${nextWeek} - ${userTeam.name}`));
   },
 
   startPostseason: () => {
