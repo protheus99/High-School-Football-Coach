@@ -26,6 +26,7 @@ import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
+import { addPlayerStats } from '../sim/playerStats';
 
 interface GameStoreState {
   currentWeek: number;
@@ -52,6 +53,7 @@ interface GameStoreState {
   resolveDilemma: (choice: DilemmaChoice) => void;
   setPracticeIntensity: (mode: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT') => void;
   setActiveGame: (game: GameSimulationState | null) => void;
+  recordUserGame: (finalState: GameSimulationState) => void;
   spendAP: (amount: number) => boolean;
   updatePlayerTier: (playerId: string, tier: DepthChartTier) => void;
   togglePlayerStudyHall: (playerId: string) => void;
@@ -251,6 +253,38 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   setPracticeIntensity: (mode) => set({ practiceIntensity: mode }),
   setActiveGame: (game) => set({ activeGame: game }),
+
+  // Applies a finished live game: team records (regular season only) and player season stats
+  recordUserGame: (finalState) => {
+    const { districtTeams, playoffBracket } = get();
+    const home = districtTeams.find((t) => t.id === finalState.homeTeam.id);
+    const away = districtTeams.find((t) => t.id === finalState.awayTeam.id);
+    const { homeScore, awayScore } = finalState;
+
+    if (!playoffBracket) {
+      const cappedMargin = Math.max(-17, Math.min(17, homeScore - awayScore));
+      const applyRecord = (team: Team | undefined, pointsFor: number, pointsAgainst: number, margin: number) => {
+        if (!team) return;
+        team.record.wins += pointsFor > pointsAgainst ? 1 : 0;
+        team.record.losses += pointsFor < pointsAgainst ? 1 : 0;
+        team.record.pointsFor += pointsFor;
+        team.record.pointsAgainst += pointsAgainst;
+        team.record.districtPointDifferential += margin;
+      };
+      applyRecord(home, homeScore, awayScore, cappedMargin);
+      applyRecord(away, awayScore, homeScore, -cappedMargin);
+    }
+
+    [home, away].forEach((team) =>
+      team?.roster.forEach((p) => {
+        const line = finalState.playerGameStats?.[p.id];
+        if (line) addPlayerStats(p.stats, line);
+        if (line || p.depthChartTier === 1) p.stats.gamesPlayed += 1;
+      })
+    );
+
+    set({ districtTeams: [...districtTeams] });
+  },
   spendAP: (amount) => {
     const { coachingAP } = get();
     if (coachingAP >= amount) {

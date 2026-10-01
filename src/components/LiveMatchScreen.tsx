@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GameSimulationState, PlayConcept, LeverageType } from '../types/game';
+import { GameSimulationState, PlayConcept, LeverageType, DefensiveCall } from '../types/game';
 import { simWorkerBridge } from '../services/workerBridge';
 import { soundFx } from '../utils/soundEngine';
 import { PostGameBoxScoreModal } from './PostGameBoxScoreModal';
@@ -10,7 +10,7 @@ import { PlayCallingPanel } from './PlayCallingPanel';
 interface LiveMatchProps {
   initialState: GameSimulationState;
   userTeamId: string;
-  onExit: () => void;
+  onExit: (finalState: GameSimulationState) => void;
 }
 
 export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTeamId, onExit }) => {
@@ -77,6 +77,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     return () => clearInterval(interval);
   }, [autoPlay, leveragePrompt, showHalftimeModal, gameState.isGameOver]);
 
+  const handleDefensiveCall = (call: DefensiveCall) => {
+    simWorkerBridge.stepPlay(undefined, call);
+  };
+
   const handleDecision = (concept: PlayConcept) => {
     setLeveragePrompt(null);
     simWorkerBridge.stepPlay(concept);
@@ -88,7 +92,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   return (
     <div style={{ padding: '16px', maxWidth: '840px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       {showBoxScore && (
-        <PostGameBoxScoreModal gameState={gameState} onClose={() => { setShowBoxScore(false); onExit(); }} />
+        <PostGameBoxScoreModal gameState={gameState} onClose={() => { setShowBoxScore(false); onExit(gameState); }} />
       )}
 
       {showHalftimeModal && (
@@ -137,8 +141,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
 
       {/* Manual Play Calling Controls */}
       <PlayCallingPanel
+        side={gameState.possessionTeamId === userTeamId ? 'OFFENSE' : 'DEFENSE'}
         onCallPlay={(concept) => handleDecision(concept)}
-        disabled={autoPlay || gameState.isGameOver || gameState.possessionTeamId !== userTeamId}
+        onCallDefense={handleDefensiveCall}
+        disabled={autoPlay || gameState.isGameOver || leveragePrompt !== null}
       />
 
       {/* Play-by-Play Stream */}

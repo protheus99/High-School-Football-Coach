@@ -1,4 +1,4 @@
-import { GameSimulationState, PlayConcept } from '../types/game';
+import { GameSimulationState, PlayConcept, DefensiveCall } from '../types/game';
 import { simulateSnap, evaluateLeverageTrigger } from '../sim/matchEngine';
 
 let activeGameState: GameSimulationState | null = null;
@@ -19,7 +19,8 @@ self.onmessage = (e: MessageEvent) => {
       if (!activeGameState || activeGameState.isGameOver) return;
 
       const chosenConcept = payload?.chosenConcept as PlayConcept | undefined;
-      const { state, event } = simulateSnap(activeGameState, chosenConcept);
+      const defensiveCall = payload?.defensiveCall as DefensiveCall | undefined;
+      const { state, event } = simulateSnap(activeGameState, chosenConcept, defensiveCall);
       activeGameState = state;
 
       // Check if next snap hits a leverage prompt

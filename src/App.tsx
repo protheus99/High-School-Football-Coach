@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from './store/gameStore';
-import { DashboardView } from './components/DashboardView';
+import { DashboardView, DefensiveFocus } from './components/DashboardView';
 import { RosterDepthChartView } from './components/RosterDepthChartView';
 import { DistrictStandingsView } from './components/DistrictStandingsView';
 import { FeedersScoutingView } from './components/FeedersScoutingView';
@@ -42,7 +42,8 @@ export const App: React.FC = () => {
     isBanquetActive,
     graduatingSeniors,
     transitionToNextYear,
-    advancePlayoffGame
+    advancePlayoffGame,
+    recordUserGame
   } = useGameStore();
 
   useEffect(() => {
@@ -51,7 +52,9 @@ export const App: React.FC = () => {
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
-  const handleLaunchMatch = () => {
+  const FOCUS_TO_DEFENSIVE_CALL = { STOP_RUN: 'RUN_BLITZ', STOP_PASS: 'PASS_COVERAGE', BALANCED: 'BASE' } as const;
+
+  const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED') => {
     if (!userTeam) return;
     const away = districtTeams.find((t) => t.id !== userTeamId)!;
 
@@ -73,7 +76,8 @@ export const App: React.FC = () => {
       yardLine: 25,
       isMercyRuleActive: false,
       isGameOver: false,
-      eventLog: []
+      eventLog: [],
+      defensiveGamePlan: { [userTeam.id]: FOCUS_TO_DEFENSIVE_CALL[focus] }
     };
 
     setActiveMatch(newGame);
@@ -150,9 +154,10 @@ export const App: React.FC = () => {
       <LiveMatchScreen
         initialState={activeMatch}
         userTeamId={userTeamId}
-        onExit={() => {
+        onExit={(finalState) => {
+          recordUserGame(finalState);
           if (playoffBracket) {
-            advancePlayoffGame({ homeScore: activeMatch.homeScore, awayScore: activeMatch.awayScore });
+            advancePlayoffGame({ homeScore: finalState.homeScore, awayScore: finalState.awayScore });
           }
           setActiveMatch(null);
         }}

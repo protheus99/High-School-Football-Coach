@@ -3,7 +3,9 @@ import { useGameStore } from '../store/gameStore';
 import { PreGameStrategyModal } from './PreGameStrategyModal';
 import { FilmStudyModal } from './FilmStudyModal';
 
-export const DashboardView: React.FC<{ onLaunchGame: () => void }> = ({ onLaunchGame }) => {
+export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
+
+export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus) => void }> = ({ onLaunchGame }) => {
   const { currentWeek, districtTeams, userTeamId, activeDilemma, resolveDilemma, advanceWeek } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
@@ -24,9 +26,9 @@ export const DashboardView: React.FC<{ onLaunchGame: () => void }> = ({ onLaunch
           userTeam={userTeam}
           opponentTeam={opponent}
           forecast={{ weather: 'CLEAR', temp: 68, wind: 8 }}
-          onKickoff={(_strategy) => {
+          onKickoff={(strategy) => {
             setShowPreGameModal(false);
-            onLaunchGame();
+            onLaunchGame(strategy.focusTarget);
           }}
           onCancel={() => setShowPreGameModal(false)}
         />

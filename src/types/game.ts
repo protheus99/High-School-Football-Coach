@@ -26,6 +26,9 @@ export type PlayConcept =
   | 'PAT_KICK'
   | 'TWO_POINT_TRY';
 
+/** Per-snap defensive call (user-selected on AI possessions, situational for the AI). */
+export type DefensiveCall = 'BASE' | 'RUN_BLITZ' | 'PASS_COVERAGE' | 'BLITZ';
+
 export type LeverageType =
   | 'FOURTH_DOWN'
   | 'RED_ZONE_GOAL_TO_GO'
@@ -213,6 +216,7 @@ export interface PlayEvent {
   scoreType?: 'TOUCHDOWN' | 'FIELD_GOAL' | 'SAFETY' | 'PAT' | 'TWO_POINT';
   textCommentary: string;
   isLeverageMoment: boolean;
+  defensiveCall?: DefensiveCall;
   leverageType?: LeverageType;
 }
 
@@ -270,6 +274,8 @@ export interface GameSimulationState {
   eventLog: PlayEvent[];
   openingPossessionTeamId?: string; // receives the opening kickoff; kicks off the second half
   overtime?: OvertimeState;
+  defensiveGamePlan?: Record<string, DefensiveCall>; // teamId -> default call when none is chosen
+  playerGameStats?: Record<string, PlayerStats>; // playerId -> this game's stat line
 }
 
 /** Kansas Plan overtime: one possession per team per period from the opponent's 10. */

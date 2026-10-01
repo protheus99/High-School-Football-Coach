@@ -6,9 +6,12 @@ import {
   Position,
   Team,
   WeatherType,
-  LeverageType
+  LeverageType,
+  DefensiveCall,
+  PlayerStats
 } from '../types/game';
 import { calculateGaussianVariance, clamp, randomInt } from './math/variance';
+import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 
 // Helper to safely get starter/sub by position and stamina
 function getActivePlayer(team: Team, pos: Position): Player {
@@ -191,10 +194,10 @@ export function evaluateLeverageTrigger(state: GameSimulationState, userTeamId?:
 const EXECUTION_STDEV = 12; // N(0, 12) execution roll from the design spec
 const EXPLOSIVE_PLAY_QUALITY = 25;
 const PASS_THRESHOLDS = {
-  SHORT_PASS: { interception: -28, sack: -17, incomplete: 3 },
-  DEEP_PASS: { interception: -23, sack: -16, incomplete: 6 }
+  SHORT_PASS: { interception: -31, sack: -17, incomplete: 2 },
+  DEEP_PASS: { interception: -26, sack: -16, incomplete: 5 }
 };
-const RUN_THRESHOLDS = { fumble: -32, tackleForLoss: -15 };
+const RUN_THRESHOLDS = { fumble: -34, tackleForLoss: -15 };
 const PLAY_CLOCK_RUNOFF = { min: 22, max: 31 }; // running plays & completions
 const INCOMPLETE_RUNOFF = 6;
 const MERCY_RULE_RUNOFF = 45;
@@ -202,6 +205,73 @@ const MAX_FIELD_GOAL_ATTEMPT_YARDS = 42;
 const BAD_SNAP_OR_BLOCK_CHANCE = 0.03;
 
 const SCRIMMAGE_CONCEPTS: PlayConcept[] = ['INSIDE_RUN', 'OUTSIDE_RUN', 'SHORT_PASS', 'DEEP_PASS'];
+type ScrimmageConcept = 'INSIDE_RUN' | 'OUTSIDE_RUN' | 'SHORT_PASS' | 'DEEP_PASS';
+
+// Offense play-quality modifier for each defensive call (design spec 16 counter matrix)
+const DEFENSIVE_CALL_MODIFIERS: Record<DefensiveCall, Record<ScrimmageConcept, number>> = {
+  BASE: { INSIDE_RUN: 0, OUTSIDE_RUN: 0, SHORT_PASS: 0, DEEP_PASS: 0 },
+  RUN_BLITZ: { INSIDE_RUN: -7, OUTSIDE_RUN: -5, SHORT_PASS: 3, DEEP_PASS: 6 },
+  PASS_COVERAGE: { INSIDE_RUN: 6, OUTSIDE_RUN: 5, SHORT_PASS: -4, DEEP_PASS: -7 },
+  BLITZ: { INSIDE_RUN: -3, OUTSIDE_RUN: -3, SHORT_PASS: -3, DEEP_PASS: 3 }
+};
+const BLITZ_EXTRA_STDEV = 3; // all-out pressure: more sacks and turnovers, more explosive plays allowed
+
+/** Situational defensive call for an AI-coached defense. */
+export function selectAIDefensiveCall(state: GameSimulationState): DefensiveCall {
+  const r = Math.random();
+  if (state.distance >= 8) return r < 0.45 ? 'PASS_COVERAGE' : r < 0.65 ? 'BLITZ' : r < 0.95 ? 'BASE' : 'RUN_BLITZ';
+  if (state.distance <= 3) return r < 0.5 ? 'RUN_BLITZ' : r < 0.85 ? 'BASE' : 'BLITZ';
+  return r < 0.55 ? 'BASE' : r < 0.7 ? 'RUN_BLITZ' : r < 0.85 ? 'PASS_COVERAGE' : 'BLITZ';
+}
+
+/** Healthy, eligible players at a position: first string first, then by overall. */
+export function getPositionGroup(team: Team, pos: Position): Player[] {
+  return team.roster
+    .filter((p) => p.position === pos && p.academics.isEligible && p.condition.injuryStatus === 'HEALTHY')
+    .sort((a, b) => a.depthChartTier - b.depthChartTier || b.overallRating - a.overallRating);
+}
+
+/** Weighted pick among [player, weight] options, skipping positions with nobody available. */
+function pickWeighted(options: [Player | undefined, number][]): Player | undefined {
+  const available = options.filter((o): o is [Player, number] => o[0] !== undefined);
+  const total = available.reduce((sum, [, w]) => sum + w, 0);
+  let roll = Math.random() * total;
+  for (const [player, weight] of available) {
+    roll -= weight;
+    if (roll <= 0) return player;
+  }
+  return available[available.length - 1]?.[0];
+}
+
+// Usage shares from design spec 11.1
+const pickReceiver = (team: Team) => {
+  const wr = getPositionGroup(team, 'WR');
+  return pickWeighted([[wr[0], 45], [wr[1], 25], [getPositionGroup(team, 'TE')[0], 15], [getPositionGroup(team, 'RB')[0], 15]]);
+};
+const pickRusher = (team: Team) => {
+  const rb = getPositionGroup(team, 'RB');
+  return pickWeighted([[rb[0], 65], [rb[1], 25], [getPositionGroup(team, 'QB')[0], 10]]);
+};
+const pickRunTackler = (team: Team) => {
+  const lb = getPositionGroup(team, 'LB');
+  return pickWeighted([[lb[0], 25], [lb[1], 15], [getPositionGroup(team, 'DE')[0], 20], [getPositionGroup(team, 'DT')[0], 20], [getPositionGroup(team, 'S')[0], 10], [getPositionGroup(team, 'CB')[0], 10]]);
+};
+const pickPassTackler = (team: Team) => {
+  const cb = getPositionGroup(team, 'CB');
+  return pickWeighted([[cb[0], 30], [cb[1], 15], [getPositionGroup(team, 'S')[0], 30], [getPositionGroup(team, 'LB')[0], 25]]);
+};
+const pickSacker = (team: Team) =>
+  pickWeighted([[getPositionGroup(team, 'DE')[0], 55], [getPositionGroup(team, 'DT')[0], 25], [getPositionGroup(team, 'LB')[0], 20]]);
+const pickInterceptor = (team: Team) =>
+  pickWeighted([[getPositionGroup(team, 'CB')[0], 55], [getPositionGroup(team, 'S')[0], 35], [getPositionGroup(team, 'LB')[0], 10]]);
+
+/** Adds to a player's stat line for the current game. */
+function credit(state: GameSimulationState, player: Player | undefined, delta: Partial<PlayerStats>) {
+  if (!player) return;
+  state.playerGameStats ??= {};
+  state.playerGameStats[player.id] ??= createEmptyPlayerStats();
+  addPlayerStats(state.playerGameStats[player.id], delta);
+}
 const isPassConcept = (c: PlayConcept) => c === 'SHORT_PASS' || c === 'DEEP_PASS';
 
 /**
@@ -317,7 +387,8 @@ function startOvertimePeriod(state: GameSimulationState, period: number, firstOf
  */
 export function simulateSnap(
   state: GameSimulationState,
-  chosenConcept?: PlayConcept
+  chosenConcept?: PlayConcept,
+  chosenDefensiveCall?: DefensiveCall
 ): { state: GameSimulationState; event: PlayEvent } {
   if (!state.openingPossessionTeamId) {
     state.openingPossessionTeamId = state.possessionTeamId;
@@ -354,6 +425,7 @@ export function simulateSnap(
   let isScore = false;
   let scoreType: PlayEvent['scoreType'];
   let commentary = '';
+  let defensiveCall: DefensiveCall | undefined;
   let timeElapsed = state.isMercyRuleActive ? MERCY_RULE_RUNOFF : randomInt(PLAY_CLOCK_RUNOFF.min, PLAY_CLOCK_RUNOFF.max);
 
   // No kickoffs in overtime; possession is reset by the overtime rules below
@@ -400,6 +472,7 @@ export function simulateSnap(
     const fgDist = (100 - state.yardLine) + 17; // 17 yards for snap/endzone depth
     const fgRes = resolveFieldGoal(kicker, fgDist, state.windSpeedMph);
     commentary = fgRes.text;
+    credit(state, kicker, { fieldGoalsAttempted: 1, fieldGoalsMade: fgRes.isSuccess ? 1 : 0 });
 
     if (fgRes.isSuccess) {
       isScore = true;
@@ -441,23 +514,38 @@ export function simulateSnap(
   }
   // Standard Scrimmage Plays
   else {
-    const { delta, passer, ballCarrier, receiver, tackler, sacker } = calculateMatchupDelta(concept, offense, defense);
-    const contextMod = getContextualModifier(state.weather, state.teamMomentum, concept);
-    const variance = calculateGaussianVariance(0, EXECUTION_STDEV);
+    const scrimmageConcept = concept as ScrimmageConcept;
+    defensiveCall = chosenDefensiveCall ?? state.defensiveGamePlan?.[defense.id] ?? selectAIDefensiveCall(state);
+    const { delta, passer } = calculateMatchupDelta(concept, offense, defense);
+    const contextMod = getContextualModifier(state.weather, state.teamMomentum, concept) + DEFENSIVE_CALL_MODIFIERS[defensiveCall][scrimmageConcept];
+    const variance = calculateGaussianVariance(0, EXECUTION_STDEV + (defensiveCall === 'BLITZ' ? BLITZ_EXTRA_STDEV : 0));
     const playQuality = delta + contextMod + variance;
     const isPass = isPassConcept(concept);
     const passThresholds = isPass ? PASS_THRESHOLDS[concept as 'SHORT_PASS' | 'DEEP_PASS'] : null;
+
+    // Who is involved on this snap (usage shares from design spec 11.1)
+    const receiver = isPass ? pickReceiver(offense) : undefined;
+    const ballCarrier = isPass ? undefined : pickRusher(offense);
+    const tackler = isPass ? pickPassTackler(defense) : pickRunTackler(defense);
+    const label = (p: Player | undefined) => `${p?.position ?? ''} #${p?.lastName ?? '?'}`;
 
     // Catastrophic Turnover Check
     if (passThresholds ? playQuality < passThresholds.interception : playQuality < RUN_THRESHOLDS.fumble) {
       isTurnover = true;
       turnoverType = isPass ? 'INTERCEPTION' : 'FUMBLE';
-      commentary = isPass
-        ? `INTERCEPTED! QB #${passer?.lastName} picked off by DB #${tackler?.lastName}!`
-        : `FUMBLE! RB #${ballCarrier?.lastName} coughs up the football! Recovered by defense.`;
+      const defender = isPass ? pickInterceptor(defense) : tackler;
+      if (isPass) {
+        commentary = `INTERCEPTED! QB #${passer?.lastName} picked off by ${label(defender)}!`;
+        credit(state, passer, { passAttempts: 1, interceptionsThrown: 1 });
+        credit(state, defender, { interceptionsCaught: 1 });
+      } else {
+        commentary = `FUMBLE! ${label(ballCarrier)} coughs up the football! Recovered by ${label(defender)}.`;
+        credit(state, ballCarrier, { rushAttempts: 1, fumblesLost: 1 });
+        credit(state, defender, { tackles: 1 });
+      }
 
       const spot = isPass ? clamp(state.yardLine + (concept === 'DEEP_PASS' ? 20 : 6), 1, 99) : state.yardLine;
-      const defenseYardLine = 100 - spot + (isOvertime ? 0 : turnoverReturnYards(tackler, offense));
+      const defenseYardLine = 100 - spot + (isOvertime ? 0 : turnoverReturnYards(defender, offense));
       if (defenseYardLine >= 100) {
         isScore = true;
         scoreType = 'TOUCHDOWN';
@@ -470,15 +558,22 @@ export function simulateSnap(
     } else {
       // Sack / TFL
       if (playQuality < (passThresholds ? passThresholds.sack : RUN_THRESHOLDS.tackleForLoss)) {
-        yardsGained = -randomInt(1, isPass ? 8 : 4);
-        commentary = isPass
-          ? `SACKED! DE #${sacker?.lastName} drags down QB #${passer?.lastName} for a loss of ${Math.abs(yardsGained)} yds.`
-          : `TACKLED FOR LOSS! RB #${ballCarrier?.lastName} stopped behind the line for ${yardsGained} yds.`;
+        yardsGained = Math.max(-randomInt(1, isPass ? 8 : 4), -state.yardLine);
+        if (isPass) {
+          const sacker = pickSacker(defense);
+          commentary = `SACKED! ${label(sacker)} drags down QB #${passer?.lastName} for a loss of ${Math.abs(yardsGained)} yds.`;
+          credit(state, sacker, { sacks: 1, tackles: 1, tacklesForLoss: 1 });
+        } else {
+          commentary = `TACKLED FOR LOSS! ${label(ballCarrier)} stopped behind the line by ${label(tackler)} for ${yardsGained} yds.`;
+          credit(state, ballCarrier, { rushAttempts: 1, rushYards: yardsGained });
+          credit(state, tackler, { tackles: 1, tacklesForLoss: 1 });
+        }
       }
       // Incomplete Pass
       else if (passThresholds && playQuality < passThresholds.incomplete) {
         timeElapsed = Math.min(timeElapsed, INCOMPLETE_RUNOFF);
-        commentary = `QB #${passer?.lastName} pass incomplete intended for WR #${receiver?.lastName}.`;
+        commentary = `QB #${passer?.lastName} pass incomplete intended for ${label(receiver)}.`;
+        credit(state, passer, { passAttempts: 1 });
       }
       // Normal Gain (scaled by execution quality)
       else {
@@ -487,9 +582,19 @@ export function simulateSnap(
         else yardsGained = Math.max(0, Math.round(3.5 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
         if (playQuality > EXPLOSIVE_PLAY_QUALITY) yardsGained += randomInt(10, 35); // Explosive break
         yardsGained = Math.min(yardsGained, 100 - state.yardLine);
-        commentary = isPass
-          ? `QB #${passer?.lastName} complete to WR #${receiver?.lastName} for ${yardsGained} yds.`
-          : `RB #${ballCarrier?.lastName} rushes for ${yardsGained} yds. Tackled by #${tackler?.lastName}.`;
+        const scores = state.yardLine + yardsGained >= 100;
+        if (isPass) {
+          commentary = `QB #${passer?.lastName} complete to ${label(receiver)} for ${yardsGained} yds.`;
+          credit(state, passer, { passAttempts: 1, passCompletions: 1, passYards: yardsGained, passTDs: scores ? 1 : 0 });
+          credit(state, receiver, { receptions: 1, receivingYards: yardsGained, receivingTDs: scores ? 1 : 0 });
+        } else {
+          commentary = `${label(ballCarrier)} rushes for ${yardsGained} yds.`;
+          credit(state, ballCarrier, { rushAttempts: 1, rushYards: yardsGained, rushTDs: scores ? 1 : 0 });
+        }
+        if (!scores) {
+          commentary += ` Tackled by ${label(tackler)}.`;
+          credit(state, tackler, { tackles: 1 });
+        }
       }
 
       state.yardLine += yardsGained;
@@ -594,6 +699,10 @@ export function simulateSnap(
     state.isMercyRuleActive = true;
   }
 
+  if (defensiveCall && defensiveCall !== 'BASE') {
+    commentary += ` [vs. ${defensiveCall.replace('_', ' ')}]`;
+  }
+
   const event: PlayEvent = {
     playId,
     quarter: state.currentQuarter,
@@ -609,7 +718,8 @@ export function simulateSnap(
     isScore,
     scoreType,
     textCommentary: commentary,
-    isLeverageMoment: false
+    isLeverageMoment: false,
+    ...(defensiveCall && { defensiveCall })
   };
 
   state.eventLog.push(event);

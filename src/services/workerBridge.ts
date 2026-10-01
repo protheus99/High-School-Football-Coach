@@ -1,4 +1,4 @@
-import { GameSimulationState, PlayConcept, PlayEvent, LeverageType } from '../types/game';
+import { GameSimulationState, PlayConcept, PlayEvent, LeverageType, DefensiveCall } from '../types/game';
 
 export type WorkerEventCallback = (data: {
   state: GameSimulationState;
@@ -32,8 +32,8 @@ class WorkerBridge {
     this.worker?.postMessage({ type: 'INIT_GAME', payload: state, userTeamId });
   }
 
-  public stepPlay(concept?: PlayConcept): void {
-    this.worker?.postMessage({ type: 'SIMULATE_NEXT_PLAY', payload: { chosenConcept: concept } });
+  public stepPlay(concept?: PlayConcept, defensiveCall?: DefensiveCall): void {
+    this.worker?.postMessage({ type: 'SIMULATE_NEXT_PLAY', payload: { chosenConcept: concept, defensiveCall } });
   }
 
   public simToEnd(): void {

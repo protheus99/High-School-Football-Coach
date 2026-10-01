@@ -1,5 +1,6 @@
 import React from 'react';
-import { GameSimulationState } from '../types/game';
+import { GameSimulationState, Player, PlayerStats, Team } from '../types/game';
+import { addPlayerStats, createEmptyPlayerStats } from '../sim/playerStats';
 
 interface BoxScoreProps {
   gameState: GameSimulationState;
@@ -7,16 +8,18 @@ interface BoxScoreProps {
 }
 
 export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onClose }) => {
-  const { homeTeam, awayTeam, homeScore, awayScore, eventLog } = gameState;
+  const { homeTeam, awayTeam, homeScore, awayScore } = gameState;
+  const gameStats = gameState.playerGameStats ?? {};
 
-  // Calculate box score metrics from event log
-  const homePlays = eventLog.filter((e) => e.possessionTeamId === homeTeam.id);
-  const awayPlays = eventLog.filter((e) => e.possessionTeamId === awayTeam.id);
-
-  const calcTotalYards = (plays: typeof eventLog) => plays.reduce((sum, p) => sum + (p.yardsGained > 0 ? p.yardsGained : 0), 0);
-  const calcPassYards = (plays: typeof eventLog) => plays.filter((p) => p.playConcept === 'SHORT_PASS' || p.playConcept === 'DEEP_PASS').reduce((sum, p) => sum + p.yardsGained, 0);
-  const calcRushYards = (plays: typeof eventLog) => plays.filter((p) => p.playConcept === 'INSIDE_RUN' || p.playConcept === 'OUTSIDE_RUN').reduce((sum, p) => sum + p.yardsGained, 0);
-  const calcTurnovers = (plays: typeof eventLog) => plays.filter((p) => p.isTurnover).length;
+  // Team totals are summed from the individual stat lines credited on each play
+  const teamTotals = (team: Team): PlayerStats => {
+    const total = createEmptyPlayerStats();
+    team.roster.forEach((p) => gameStats[p.id] && addPlayerStats(total, gameStats[p.id]));
+    return total;
+  };
+  const home = teamTotals(homeTeam);
+  const away = teamTotals(awayTeam);
+  const turnovers = (t: PlayerStats) => t.interceptionsThrown + t.fumblesLost;
 
   return (
     <div style={overlayStyle}>
@@ -51,29 +54,67 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
           <tbody>
             <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
               <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Total Yards</td>
-              <td>{calcTotalYards(homePlays)}</td>
-              <td>{calcTotalYards(awayPlays)}</td>
+              <td>{home.passYards + home.rushYards}</td>
+              <td>{away.passYards + away.rushYards}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
               <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Passing Yards</td>
-              <td>{calcPassYards(homePlays)}</td>
-              <td>{calcPassYards(awayPlays)}</td>
+              <td>{home.passYards} ({home.passCompletions}/{home.passAttempts})</td>
+              <td>{away.passYards} ({away.passCompletions}/{away.passAttempts})</td>
             </tr>
             <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
               <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Rushing Yards</td>
-              <td>{calcRushYards(homePlays)}</td>
-              <td>{calcRushYards(awayPlays)}</td>
+              <td>{home.rushYards} ({home.rushAttempts} car)</td>
+              <td>{away.rushYards} ({away.rushAttempts} car)</td>
             </tr>
             <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
               <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Turnovers Lost</td>
-              <td style={{ color: calcTurnovers(homePlays) > 0 ? '#DC2626' : '#059669' }}>{calcTurnovers(homePlays)}</td>
-              <td style={{ color: calcTurnovers(awayPlays) > 0 ? '#DC2626' : '#059669' }}>{calcTurnovers(awayPlays)}</td>
+              <td style={{ color: turnovers(home) > 0 ? '#DC2626' : '#059669' }}>{turnovers(home)}</td>
+              <td style={{ color: turnovers(away) > 0 ? '#DC2626' : '#059669' }}>{turnovers(away)}</td>
             </tr>
           </tbody>
         </table>
 
+        {/* Individual Player Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '20px', maxHeight: '260px', overflowY: 'auto' }}>
+          <TeamPlayerStats team={homeTeam} gameStats={gameStats} />
+          <TeamPlayerStats team={awayTeam} gameStats={gameStats} />
+        </div>
+
         <button onClick={onClose} style={confirmBtnStyle}>Return to Team Dashboard</button>
       </div>
+    </div>
+  );
+};
+
+/** Per-team player lines: passing, top rushers, top receivers, top defenders. */
+const TeamPlayerStats: React.FC<{ team: Team; gameStats: Record<string, PlayerStats> }> = ({ team, gameStats }) => {
+  const lines = team.roster
+    .filter((p) => gameStats[p.id])
+    .map((p) => ({ player: p, s: gameStats[p.id] }));
+  const top = (score: (s: PlayerStats) => number, n: number) =>
+    lines.filter((l) => score(l.s) !== 0).sort((a, b) => score(b.s) - score(a.s)).slice(0, n);
+  const name = (p: Player) => `${p.position} ${p.firstName[0]}. ${p.lastName}`;
+  const td = (n: number) => (n ? `, ${n} TD` : '');
+
+  const sections: { title: string; rows: string[] }[] = [
+    { title: 'Passing', rows: top((s) => s.passAttempts, 2).map(({ player, s }) => `${name(player)}: ${s.passCompletions}/${s.passAttempts}, ${s.passYards} yds${td(s.passTDs)}${s.interceptionsThrown ? `, ${s.interceptionsThrown} INT` : ''}`) },
+    { title: 'Rushing', rows: top((s) => s.rushAttempts, 3).map(({ player, s }) => `${name(player)}: ${s.rushAttempts} car, ${s.rushYards} yds${td(s.rushTDs)}`) },
+    { title: 'Receiving', rows: top((s) => s.receptions, 4).map(({ player, s }) => `${name(player)}: ${s.receptions} rec, ${s.receivingYards} yds${td(s.receivingTDs)}`) },
+    { title: 'Defense', rows: top((s) => s.tackles + s.sacks * 2 + s.interceptionsCaught * 3, 4).map(({ player, s }) =>
+      `${name(player)}: ${s.tackles} tkl${s.tacklesForLoss ? `, ${s.tacklesForLoss} TFL` : ''}${s.sacks ? `, ${s.sacks} sack` : ''}${s.interceptionsCaught ? `, ${s.interceptionsCaught} INT` : ''}`) },
+    { title: 'Kicking', rows: top((s) => s.fieldGoalsAttempted, 1).map(({ player, s }) => `${name(player)}: ${s.fieldGoalsMade}/${s.fieldGoalsAttempted} FG`) }
+  ];
+
+  return (
+    <div style={{ fontSize: '12px', color: '#334155' }}>
+      <div style={{ fontWeight: 'bold', color: team.primaryColor, borderBottom: '1px solid #E2E8F0', marginBottom: '6px' }}>{team.name}</div>
+      {sections.filter((sec) => sec.rows.length > 0).map((sec) => (
+        <div key={sec.title} style={{ marginBottom: '6px' }}>
+          <div style={{ fontWeight: 'bold', color: '#64748B', fontSize: '11px', textTransform: 'uppercase' }}>{sec.title}</div>
+          {sec.rows.map((row) => <div key={row}>{row}</div>)}
+        </div>
+      ))}
     </div>
   );
 };
