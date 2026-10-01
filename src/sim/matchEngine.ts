@@ -281,7 +281,8 @@ function selectAIPlayConcept(state: GameSimulationState): PlayConcept {
   if (state.down === 4) {
     const fgDistance = 100 - state.yardLine + 17;
     if (fgDistance <= MAX_FIELD_GOAL_ATTEMPT_YARDS) return 'FIELD_GOAL';
-    const goForIt = (state.distance <= 2 && state.yardLine >= 40) || (state.distance <= 4 && state.yardLine >= 60);
+    const goForIt =
+      state.currentQuarter === 'OT' || (state.distance <= 2 && state.yardLine >= 40) || (state.distance <= 4 && state.yardLine >= 60);
     if (!goForIt) return 'PUNT';
   }
 
@@ -299,6 +300,18 @@ function turnoverReturnYards(defender: Player | undefined, offense: Team): numbe
   return Math.max(0, Math.round(defenderSpeed * 0.3 - pursuit * 0.2 + calculateGaussianVariance(0, 8)));
 }
 
+const OVERTIME_START_YARD_LINE = 90; // opponent's 10-yard line
+
+/** Starts a Kansas Plan overtime period; returns commentary. */
+function startOvertimePeriod(state: GameSimulationState, period: number, firstOffenseTeamId: string): string {
+  state.currentQuarter = 'OT';
+  state.clockSecondsRemaining = 0;
+  state.overtime = { period, possessionsCompleted: 0, firstOffenseTeamId };
+  setFirstDown(state, firstOffenseTeamId, OVERTIME_START_YARD_LINE);
+  const team = firstOffenseTeamId === state.homeTeam.id ? state.homeTeam : state.awayTeam;
+  return ` OVERTIME ${period}: ${team.name} ball at the 10.`;
+}
+
 /**
  * Resolves a single play of football and updates state
  */
@@ -313,6 +326,7 @@ export function simulateSnap(
   const isHomeOffense = state.possessionTeamId === state.homeTeam.id;
   const offense = isHomeOffense ? state.homeTeam : state.awayTeam;
   const defense = isHomeOffense ? state.awayTeam : state.homeTeam;
+  const isOvertime = state.currentQuarter === 'OT';
   const addPoints = (team: Team, points: number) => {
     if (team.id === state.homeTeam.id) state.homeScore += points;
     else state.awayScore += points;
@@ -342,6 +356,17 @@ export function simulateSnap(
   let commentary = '';
   let timeElapsed = state.isMercyRuleActive ? MERCY_RULE_RUNOFF : randomInt(PLAY_CLOCK_RUNOFF.min, PLAY_CLOCK_RUNOFF.max);
 
+  // No kickoffs in overtime; possession is reset by the overtime rules below
+  const kickoffUnlessOvertime = (kicking: Team, receiving: Team, kickSpot = 40) => {
+    if (isOvertime) return;
+    const kick = resolveKickoff(state, kicking, receiving, kickSpot);
+    commentary += kick.text;
+    if (kick.isTurnover) {
+      isTurnover = true;
+      turnoverType = 'FUMBLE';
+    }
+  };
+
   // Try after touchdown (untimed down)
   if (concept === 'PAT_KICK' || concept === 'TWO_POINT_TRY') {
     timeElapsed = 0;
@@ -367,12 +392,7 @@ export function simulateSnap(
         commentary = `Two-point try FAILS! ${defense.name} holds at the goal line.`;
       }
     }
-    const kick = resolveKickoff(state, offense, defense);
-    commentary += kick.text;
-    if (kick.isTurnover) {
-      isTurnover = true;
-      turnoverType = 'FUMBLE';
-    }
+    kickoffUnlessOvertime(offense, defense);
   }
   // Field Goal execution
   else if (concept === 'FIELD_GOAL') {
@@ -385,12 +405,7 @@ export function simulateSnap(
       isScore = true;
       scoreType = 'FIELD_GOAL';
       addPoints(offense, 3);
-      const kick = resolveKickoff(state, offense, defense);
-      commentary += kick.text;
-      if (kick.isTurnover) {
-        isTurnover = true;
-        turnoverType = 'FUMBLE';
-      }
+      kickoffUnlessOvertime(offense, defense);
     } else {
       // Opponent takes over at the spot of the kick (or their 20 if the kick was inside the 20)
       isTurnover = true;
@@ -442,7 +457,7 @@ export function simulateSnap(
         : `FUMBLE! RB #${ballCarrier?.lastName} coughs up the football! Recovered by defense.`;
 
       const spot = isPass ? clamp(state.yardLine + (concept === 'DEEP_PASS' ? 20 : 6), 1, 99) : state.yardLine;
-      const defenseYardLine = 100 - spot + turnoverReturnYards(tackler, offense);
+      const defenseYardLine = 100 - spot + (isOvertime ? 0 : turnoverReturnYards(tackler, offense));
       if (defenseYardLine >= 100) {
         isScore = true;
         scoreType = 'TOUCHDOWN';
@@ -471,12 +486,12 @@ export function simulateSnap(
         else if (concept === 'SHORT_PASS') yardsGained = 4 + randomInt(0, 4) + Math.round(Math.max(0, playQuality) / 5);
         else yardsGained = Math.max(0, Math.round(3.5 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
         if (playQuality > EXPLOSIVE_PLAY_QUALITY) yardsGained += randomInt(10, 35); // Explosive break
+        yardsGained = Math.min(yardsGained, 100 - state.yardLine);
         commentary = isPass
           ? `QB #${passer?.lastName} complete to WR #${receiver?.lastName} for ${yardsGained} yds.`
           : `RB #${ballCarrier?.lastName} rushes for ${yardsGained} yds. Tackled by #${tackler?.lastName}.`;
       }
 
-      yardsGained = Math.min(yardsGained, 100 - state.yardLine);
       state.yardLine += yardsGained;
 
       // Check Safety: conceding team free kicks from its own 20
@@ -485,12 +500,7 @@ export function simulateSnap(
         scoreType = 'SAFETY';
         addPoints(defense, 2);
         commentary += ` SAFETY! Tackled in end zone.`;
-        const kick = resolveKickoff(state, offense, defense, 20);
-        commentary += kick.text;
-        if (kick.isTurnover) {
-          isTurnover = true;
-          turnoverType = 'FUMBLE';
-        }
+        kickoffUnlessOvertime(offense, defense, 20);
       }
       // Check Touchdown: scoring team keeps the ball for the try from the 3
       else if (state.yardLine >= 100) {
@@ -518,11 +528,49 @@ export function simulateSnap(
     }
   }
 
+  // Overtime possession accounting (untimed)
+  if (isOvertime && state.overtime) {
+    const ot = state.overtime;
+    const isSecondPossession = ot.possessionsCompleted === 1;
+    const offenseLeads = isHomeOffense ? state.homeScore > state.awayScore : state.awayScore > state.homeScore;
+    let possessionOver = false;
+
+    if (concept === 'PAT_KICK' || concept === 'TWO_POINT_TRY') {
+      possessionOver = true;
+    } else if (scoreType === 'TOUCHDOWN') {
+      if (isSecondPossession && offenseLeads) {
+        state.isGameOver = true; // walk-off touchdown: no try needed
+      }
+    } else if (isScore || isTurnover || concept === 'PUNT') {
+      possessionOver = true;
+    }
+
+    if (possessionOver) {
+      if (!isSecondPossession) {
+        const secondTeam = ot.firstOffenseTeamId === state.homeTeam.id ? state.awayTeam : state.homeTeam;
+        ot.possessionsCompleted = 1;
+        setFirstDown(state, secondTeam.id, OVERTIME_START_YARD_LINE);
+        commentary += ` ${secondTeam.name} takes its overtime possession at the 10.`;
+      } else if (state.homeScore !== state.awayScore) {
+        state.isGameOver = true;
+      } else {
+        const nextFirst = ot.firstOffenseTeamId === state.homeTeam.id ? state.awayTeam.id : state.homeTeam.id;
+        commentary += ` Still tied!${startOvertimePeriod(state, ot.period + 1, nextFirst)}`;
+      }
+    }
+    if (state.isGameOver) commentary += ` FINAL IN OVERTIME!`;
+  }
+
   // Clock Management & Quarter Progression (a touchdown always gets its try)
-  state.clockSecondsRemaining -= timeElapsed;
-  if (state.clockSecondsRemaining <= 0 && scoreType !== 'TOUCHDOWN') {
+  if (!isOvertime) state.clockSecondsRemaining -= timeElapsed;
+  if (!isOvertime && state.clockSecondsRemaining <= 0 && scoreType !== 'TOUCHDOWN') {
     if (state.currentQuarter === 4) {
-      state.isGameOver = true;
+      if (state.homeScore === state.awayScore) {
+        const coinTossLoser = Math.random() < 0.5 ? state.homeTeam.id : state.awayTeam.id;
+        commentary += ` END OF REGULATION, TIED ${state.homeScore}-${state.awayScore}!${startOvertimePeriod(state, 1, coinTossLoser)}`;
+      } else {
+        state.isGameOver = true;
+      }
     } else if (typeof state.currentQuarter === 'number') {
       state.currentQuarter = (state.currentQuarter + 1) as 1 | 2 | 3 | 4;
       state.clockSecondsRemaining = 720; // 12-min quarters

@@ -111,8 +111,9 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#F59E0B' }}>
-              Q{gameState.currentQuarter} - {Math.floor(gameState.clockSecondsRemaining / 60)}:
-              {(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}
+              {gameState.currentQuarter === 'OT'
+                ? `OVERTIME ${gameState.overtime?.period ?? 1}`
+                : `Q${gameState.currentQuarter} - ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}`}
             </div>
             <div style={{ fontSize: '13px', color: '#9CA3AF' }}>
               BALL ON: {gameState.yardLine} YD | DOWN: {gameState.down} & {gameState.distance}
@@ -156,8 +157,9 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         {gameState.eventLog.map((ev, i) => (
           <div key={i} style={{ marginBottom: '8px', fontSize: '13px', lineHeight: '1.4' }}>
             <span style={{ fontWeight: 'bold', color: '#4B5563' }}>
-              [Q{ev.quarter} - {Math.floor(ev.clockTimeRemainingSeconds / 60)}:
-              {(ev.clockTimeRemainingSeconds % 60).toString().padStart(2, '0')}]
+              [{ev.quarter === 'OT'
+                ? 'OT'
+                : `Q${ev.quarter} - ${Math.floor(ev.clockTimeRemainingSeconds / 60)}:${(ev.clockTimeRemainingSeconds % 60).toString().padStart(2, '0')}`}]
             </span>{' '}
             {ev.textCommentary}
           </div>

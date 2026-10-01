@@ -230,6 +230,7 @@ export interface CompactBoxScore {
   homeScore: number;
   awayScore: number;
   weather: WeatherType;
+  overtimePeriods?: number; // set when the game went to Kansas Plan overtime
   leaders: {
     passing: CompactPlayerLeader;
     rushing: CompactPlayerLeader;
@@ -268,6 +269,14 @@ export interface GameSimulationState {
   isGameOver: boolean;
   eventLog: PlayEvent[];
   openingPossessionTeamId?: string; // receives the opening kickoff; kicks off the second half
+  overtime?: OvertimeState;
+}
+
+/** Kansas Plan overtime: one possession per team per period from the opponent's 10. */
+export interface OvertimeState {
+  period: number;
+  possessionsCompleted: 0 | 1;
+  firstOffenseTeamId: string;
 }
 
 export interface DilemmaChoice {

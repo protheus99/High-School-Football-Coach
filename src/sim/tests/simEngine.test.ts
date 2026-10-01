@@ -100,7 +100,7 @@ export function runStatisticalCalibrationTest(iterations = 1000): {
   console.log(`Underdog Upset Frequency: ${results.underdogWinRate}% (Target: 18-28%)`);
   console.log(`Scrimmage Plays per Team: ${results.playsPerTeam} (Target: 52-62)`);
   console.log(`Completion Rate: ${results.completionRate}% (Target: 50-55%)`);
-  console.log(`Tied at End of Regulation: ${results.tieRate}%`);
+  console.log(`Final Score Tied: ${results.tieRate}% (Target: 0 with overtime)`);
 
   return results;
 }
@@ -120,5 +120,6 @@ describe('NFHS simulation calibration', () => {
     expect(results.playsPerTeam).toBeLessThanOrEqual(62);
     expect(results.completionRate).toBeGreaterThanOrEqual(50);
     expect(results.completionRate).toBeLessThanOrEqual(55);
+    expect(results.tieRate).toBe(0); // regulation ties are decided in overtime
   }, 120000);
 });

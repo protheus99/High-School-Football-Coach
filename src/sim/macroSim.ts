@@ -6,6 +6,16 @@ const HOME_FIELD_RATING = 1;
 const DRIVE_DELTA_SCALE = { td: 1.6, fg: 0.5, turnover: 0.6 };
 const BASE_DRIVE_ODDS = { td: 25, fg: 12, turnover: 15 };
 
+/** One Kansas Plan overtime possession from the opponent's 10: points scored (7, 3 or 0). */
+function resolveOvertimePossession(delta: number): number {
+  const roll = Math.random() * 100;
+  const tdChance = clamp(45 + delta * 1.6, 20, 70);
+  const fgChance = 30;
+  if (roll < tdChance) return 7;
+  if (roll < tdChance + fgChance) return 3;
+  return 0;
+}
+
 /** Average overall rating of a team's first-string players. */
 export function teamStarterRating(team: Team): number {
   const starters = team.roster.filter((p) => p.depthChartTier === 1);
@@ -86,6 +96,14 @@ export function simulateMacroMatch(
     }
   }
 
+  // Kansas Plan overtime: alternate possessions from the 10 until the tie is broken
+  let overtimePeriods = 0;
+  while (homeScore === awayScore) {
+    overtimePeriods += 1;
+    homeScore += resolveOvertimePossession(delta);
+    awayScore += resolveOvertimePossession(-delta);
+  }
+
   // Update records
   const margin = homeScore - awayScore;
   const cappedMargin = clamp(margin, -17, 17);
@@ -113,6 +131,7 @@ export function simulateMacroMatch(
     homeScore,
     awayScore,
     weather,
+    ...(overtimePeriods > 0 && { overtimePeriods }),
     leaders: {
       passing: {
         playerId: homeQb.id,
