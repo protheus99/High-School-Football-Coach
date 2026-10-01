@@ -228,11 +228,25 @@ export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: Na
   const roster: Player[] = [];
   const takenNames = new Set<string>();
 
-  // Starter slots roll first-string talent, depth slots roll backups; then the best player at each position starts
+  // Starter slots roll first-string talent, the rest of the core rolls backups and extra depth rolls
+  // developmental (third-string) talent; then the best players at each position start
   (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => {
-    const { roster: size, starters } = DEPTH_TEMPLATE[pos];
+    const { roster: size, starters, core } = DEPTH_TEMPLATE[pos];
+    const corePlayers: Player[] = [];
     for (let i = 0; i < size; i++) {
-      roster.push(generateProceduralPlayer(pos, classes[randomInt(0, classes.length - 1)], i < starters ? 1 : 2, talentAdjustment, { nameProfile, takenNames }));
+      const classYear = classes[randomInt(0, classes.length - 1)];
+      const tier = i < starters ? 1 : i < core ? 2 : 3;
+      let player = generateProceduralPlayer(pos, classYear, tier, talentAdjustment, { nameProfile, takenNames });
+      if (i < core) corePlayers.push(player);
+      else {
+        // Developmental depth starts behind the core group at its position
+        const ceiling = Math.min(...corePlayers.map((p) => p.overallRating)) - 1;
+        if (player.overallRating > ceiling) {
+          takenNames.delete(`${player.firstName} ${player.lastName}`);
+          player = generateProceduralPlayer(pos, classYear, tier, 0, { nameProfile, takenNames, overall: Math.max(35, ceiling) });
+        }
+      }
+      roster.push(player);
     }
   });
 

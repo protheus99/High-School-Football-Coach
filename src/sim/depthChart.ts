@@ -1,25 +1,26 @@
 import { Player, Position } from '../types/game';
 
 /**
- * Roster size and number of first-string starters per position (30-man roster,
- * 11-on-11 starters plus a kicker and punter). Shared by the roster generator and
- * the off-season so depth charts always have the same shape.
+ * Roster shape per position: three deep at every slot (a 67-man varsity like a real 6A program) plus two
+ * kickers and two punters. `starters` start; the `core` players roll starter/backup talent and the rest are
+ * developmental depth (third-string talent), so adding depth doesn't inflate starter quality. Shared by the
+ * roster generator and the off-season so depth charts always have the same shape.
  */
-export const DEPTH_TEMPLATE: Record<Position, { roster: number; starters: number }> = {
-  QB: { roster: 2, starters: 1 },
-  RB: { roster: 3, starters: 1 },
-  WR: { roster: 4, starters: 2 },
-  TE: { roster: 2, starters: 1 },
-  OT: { roster: 2, starters: 2 },
-  OG: { roster: 2, starters: 2 },
-  C: { roster: 1, starters: 1 },
-  DE: { roster: 2, starters: 2 },
-  DT: { roster: 2, starters: 2 },
-  LB: { roster: 3, starters: 3 },
-  CB: { roster: 3, starters: 2 },
-  S: { roster: 2, starters: 2 },
-  K: { roster: 1, starters: 1 },
-  P: { roster: 1, starters: 1 }
+export const DEPTH_TEMPLATE: Record<Position, { roster: number; starters: number; core: number }> = {
+  QB: { roster: 3, starters: 1, core: 2 },
+  RB: { roster: 3, starters: 1, core: 3 },
+  WR: { roster: 6, starters: 2, core: 4 },
+  TE: { roster: 3, starters: 1, core: 2 },
+  OT: { roster: 6, starters: 2, core: 2 },
+  OG: { roster: 6, starters: 2, core: 2 },
+  C: { roster: 3, starters: 1, core: 1 },
+  DE: { roster: 6, starters: 2, core: 2 },
+  DT: { roster: 6, starters: 2, core: 2 },
+  LB: { roster: 9, starters: 3, core: 3 },
+  CB: { roster: 6, starters: 2, core: 3 },
+  S: { roster: 6, starters: 2, core: 2 },
+  K: { roster: 2, starters: 1, core: 1 },
+  P: { roster: 2, starters: 1, core: 1 }
 };
 
 /** Field slots per position, left to right (one column per starter). */

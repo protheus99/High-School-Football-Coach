@@ -3,6 +3,7 @@ import { generateDistrictTeams, generateProceduralPlayer } from '../../generator
 import {
   MAX_POOL_SIZE,
   MIN_POOL_SIZE,
+  MAX_VARSITY_ROSTER,
   STAR_RECRUIT_MIN_PRESTIGE,
   createProspect,
   enforceVarsityRosterLimit,
@@ -144,12 +145,12 @@ describe('Year-end decisions', () => {
 
   it('sends the lowest-rated newcomers to JV when the varsity roster is full', () => {
     const team = teamWithPrestige(80);
-    while (team.roster.length < 44) team.roster.push(generateProceduralPlayer('WR', 'Junior', 2));
+    while (team.roster.length < MAX_VARSITY_ROSTER - 1) team.roster.push(generateProceduralPlayer('WR', 'Junior', 2));
     const newcomers = [55, 40, 70, 45].map((ovr) => generateProceduralPlayer('LB', 'Freshman', 1, 0, { overall: ovr }));
     team.roster.push(...newcomers);
     const outcomes: FeederOutcome[] = newcomers.map((p, i) => ({ prospectId: `x${i}`, playerId: p.id, prospectName: `${p.firstName} ${p.lastName}`, source: 'FEEDER_MIDDLE_SCHOOL', position: 'LB', outcome: 'JOINED', overall: p.overallRating }));
     const moved = enforceVarsityRosterLimit(team, newcomers, outcomes);
-    expect(team.roster).toHaveLength(45);
+    expect(team.roster).toHaveLength(MAX_VARSITY_ROSTER);
     expect(moved.map((p) => p.overallRating).sort()).toEqual([40, 45, 55]);
     expect(outcomes.filter((o) => o.outcome === 'JV_TEAM')).toHaveLength(3);
   });
@@ -180,7 +181,7 @@ describe('Feeder pipeline through the store', () => {
     expect(lastFeederResults).toHaveLength(finalPool.length);
     expect(scoutingPool.length).toBeGreaterThanOrEqual(MIN_POOL_SIZE);
     const team = store.getState().districtTeams.find((t) => t.id === store.getState().userTeamId)!;
-    expect(team.roster.length).toBeLessThanOrEqual(45);
+    expect(team.roster.length).toBeLessThanOrEqual(MAX_VARSITY_ROSTER);
     lastFeederResults!.filter((o) => o.outcome === 'JOINED').forEach((o) => {
       expect(team.roster.some((p) => p.id === o.playerId)).toBe(true);
     });

@@ -14,7 +14,7 @@ import { clamp, randomInt } from './math/variance';
 export const MIN_POOL_SIZE = 15;
 export const MAX_POOL_SIZE = 40;
 export const STAR_RECRUIT_MIN_PRESTIGE = 85;
-export const MAX_VARSITY_ROSTER = 45; // newcomers beyond this play JV instead
+export const MAX_VARSITY_ROSTER = 70; // newcomers beyond this play JV instead (base roster is 67)
 
 export const SOURCE_LABELS: Record<ProspectSource, string> = {
   FEEDER_MIDDLE_SCHOOL: 'District Middle Schools',

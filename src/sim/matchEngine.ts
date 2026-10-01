@@ -227,7 +227,7 @@ const PLAY_CLOCK_RUNOFF = { min: 21, max: 30 }; // running plays & completions
 const INCOMPLETE_RUNOFF = 6;
 const MERCY_RULE_RUNOFF = 45;
 const MAX_FIELD_GOAL_ATTEMPT_YARDS = 47;
-const REST_STARTERS_LEAD = 28; // second-half lead at which a coach pulls his starters
+const REST_STARTERS_LEAD = 35; // second-half lead at which a coach pulls his starters (five scores)
 const KILL_CLOCK_LEAD = 21; // second-half lead at which the offense keeps the ball on the ground
 const BAD_SNAP_OR_BLOCK_CHANCE = 0.03;
 
