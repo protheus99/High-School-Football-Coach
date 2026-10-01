@@ -1,15 +1,22 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
+import { findDistrict } from '../sim/league';
 
 export const DistrictStandingsView: React.FC = () => {
-  const { districtTeams } = useGameStore();
+  const { districtTeams, league, userTeamId } = useGameStore();
   const standings = calculateDistrictStandings(districtTeams);
+  const districtName = (league && findDistrict(league, userTeamId)?.name) ?? 'District';
+  const districtCount = league?.regions.reduce((n, r) => n + r.districts.length, 0) ?? 4;
+  const bracketSize = districtCount * (league?.splitDivisions ? 2 : 4);
+  const qualifyText = league?.splitDivisions
+    ? `Top 4 teams qualify; they are split by enrollment into the Division 1 and Division 2 ${bracketSize}-team state brackets.`
+    : `Top 4 teams qualify for the ${bracketSize}-team state tournament.`;
 
   return (
     <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <h2>District 26-6A Standings</h2>
-      <p style={{ color: '#6B7280', fontSize: '13px' }}>Top 4 teams qualify for the 16-Team Regional State Tournament. Tiebreakers cap point differentials at &plusmn;17 per game.</p>
+      <h2>{districtName} Standings</h2>
+      <p style={{ color: '#6B7280', fontSize: '13px' }}>{qualifyText} Tiebreakers cap point differentials at &plusmn;17 per game.</p>
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
         <thead>
           <tr style={{ background: '#F3F4F6', borderBottom: '2px solid #E5E7EB' }}>

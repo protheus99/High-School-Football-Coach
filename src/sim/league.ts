@@ -27,8 +27,15 @@ export interface LeagueStructure {
 
 export const DEFAULT_USER_SCHOOL = 'Austin Westlake';
 
+/** A built game world and the team the user coaches. */
+export interface GameWorld {
+  league: LeagueStructure;
+  teams: Team[];
+  userTeamId: string;
+}
+
 /** All of Texas 6A from the design spec's database: 4 regions, 32 districts, every varsity program. */
-export function buildTexasLeague(): { league: LeagueStructure; teams: Team[]; userTeamId: string } {
+export function buildTexasLeague(userSchool = DEFAULT_USER_SCHOOL): GameWorld {
   const teams: Team[] = [];
   const regions: LeagueRegion[] = texas6A.regions.map((region) => ({
     name: region.name,
@@ -52,7 +59,7 @@ export function buildTexasLeague(): { league: LeagueStructure; teams: Team[]; us
     })
   }));
 
-  const userTeamId = teams.find((t) => t.name === DEFAULT_USER_SCHOOL)?.id ?? teams[0].id;
+  const userTeamId = (teams.find((t) => t.name === userSchool) ?? teams.find((t) => t.name === DEFAULT_USER_SCHOOL) ?? teams[0]).id;
   return { league: { name: 'UIL Class 6A', state: 'Texas', splitDivisions: true, regions }, teams, userTeamId };
 }
 
@@ -75,6 +82,108 @@ export function buildCustomLeague(imported: Team[], districtName = 'Custom Distr
       ]
     },
     teams: [...imported, ...neighbor, ...regionC, ...regionD]
+  };
+}
+
+/** A real state district file from public/leagues (built from the design spec's school databases). */
+export interface StateDistrictFile {
+  state: string;
+  districtId: string;
+  districtName: string;
+  schools: {
+    name: string;
+    mascot: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    prestige?: number;
+    offenseScheme?: string;
+    defenseScheme?: string;
+  }[];
+}
+
+/** Districts in a state world: two regions of two districts, a 16-team bracket. */
+export const STATE_WORLD_DISTRICTS = 4;
+
+/** The districts closest to the user's in the state's list (files are ordered geographically by region). */
+export function nearestDistrictIndexes(count: number, userIndex: number, needed = STATE_WORLD_DISTRICTS - 1): number[] {
+  return Array.from({ length: count }, (_, i) => i)
+    .filter((i) => i !== userIndex)
+    .sort((a, b) => Math.abs(a - userIndex) - Math.abs(b - userIndex) || a - b)
+    .slice(0, needed);
+}
+
+// Generic schools that fill out a state with fewer than four districts in the database
+const FILLER_SCHOOLS: [string, string, string, string][] = [
+  ['Riverside', 'Rams', '#7C2D12', '#F59E0B'],
+  ['Lakeview', 'Lakers', '#1D4ED8', '#FFFFFF'],
+  ['Oak Ridge', 'Oaks', '#166534', '#FACC15'],
+  ['Fairview', 'Falcons', '#991B1B', '#E5E7EB'],
+  ['Westfield', 'Warriors', '#4C1D95', '#FBBF24'],
+  ['Northridge', 'Knights', '#0F172A', '#94A3B8'],
+  ['Clearwater', 'Cougars', '#0E7490', '#F8FAFC'],
+  ['Highland', 'Highlanders', '#14532D', '#DC2626'],
+  ['Millbrook', 'Mustangs', '#B45309', '#1F2937'],
+  ['Cedar Grove', 'Panthers', '#000000', '#F97316'],
+  ['Summit', 'Spartans', '#1E3A8A', '#FCD34D'],
+  ['Valley View', 'Vikings', '#6B21A8', '#E5E7EB'],
+  ['Brookside', 'Bulldogs', '#B91C1C', '#000000'],
+  ['Eastwood', 'Eagles', '#065F46', '#FDE68A'],
+  ['Pine Crest', 'Pioneers', '#7F1D1D', '#D1D5DB'],
+  ['Southview', 'Stallions', '#1E40AF', '#F87171']
+];
+
+function fillerDistrict(state: string, index: number): StateDistrictFile {
+  const slice = FILLER_SCHOOLS.slice((index * 8) % FILLER_SCHOOLS.length).concat(FILLER_SCHOOLS).slice(0, 8);
+  return {
+    state,
+    districtId: `${state.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_filler_${index + 1}`,
+    districtName: `${state} Conference ${index + 1}`,
+    schools: slice.map(([name, mascot, primaryColor, secondaryColor]) => ({ name, mascot, primaryColor, secondaryColor, prestige: 60 + ((name.length * 7) % 25) }))
+  };
+}
+
+/**
+ * A world built from one state's real districts: the user's district plus its nearest neighbors in the same
+ * state (two regions, a 16-team bracket). States with fewer than four districts are filled out with generic
+ * schools from that state. The user coaches `userSchool` (default: the district's first school).
+ */
+export function buildStateLeague(userDistrict: StateDistrictFile, neighbors: StateDistrictFile[], userSchool?: string): GameWorld {
+  const files = [userDistrict, ...neighbors.slice(0, STATE_WORLD_DISTRICTS - 1)];
+  for (let i = 0; files.length < STATE_WORLD_DISTRICTS; i++) files.push(fillerDistrict(userDistrict.state, i));
+
+  const teams: Team[] = [];
+  const districts: LeagueDistrict[] = files.map((file) => {
+    const districtTeams = generateDistrictTeams(
+      file.districtId,
+      file.schools.map((s) => ({
+        name: s.name,
+        mascot: s.mascot,
+        primary: s.primaryColor ?? '#002D62',
+        secondary: s.secondaryColor ?? '#C4D600',
+        prestige: s.prestige,
+        offenseScheme: s.offenseScheme as OffensiveScheme | undefined,
+        defenseScheme: s.defenseScheme as DefensiveScheme | undefined
+      })),
+      { talentFromPrestige: true, state: file.state, nameProfile: nameProfileForArea(file.districtName) }
+    );
+    teams.push(...districtTeams);
+    return { id: file.districtId, name: file.districtName, teamIds: districtTeams.map((t) => t.id) };
+  });
+
+  const userTeams = teams.filter((t) => districts[0].teamIds.includes(t.id));
+  const userTeamId = (userTeams.find((t) => t.name === userSchool) ?? userTeams[0]).id;
+  return {
+    league: {
+      name: `${userDistrict.state} ${userDistrict.districtName}`,
+      state: userDistrict.state,
+      splitDivisions: false,
+      regions: [
+        { name: 'Region 1', districts: districts.slice(0, 2) },
+        { name: 'Region 2', districts: districts.slice(2, 4) }
+      ]
+    },
+    teams,
+    userTeamId
   };
 }
 

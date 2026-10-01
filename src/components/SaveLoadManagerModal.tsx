@@ -3,7 +3,16 @@ import { useGameStore, userDistrictTeams } from '../store/gameStore';
 import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueImporter';
 import { persistSaveGame, loadSaveGame } from '../services/db';
 import { generateSeasonSchedule } from '../sim/scheduleEngine';
-import { buildCustomLeague, leagueRegionTeams, LeagueStructure } from '../sim/league';
+import {
+  buildCustomLeague,
+  buildStateLeague,
+  buildTexasLeague,
+  GameWorld,
+  leagueRegionTeams,
+  LeagueStructure,
+  nearestDistrictIndexes,
+  StateDistrictFile
+} from '../sim/league';
 import { generateFeederPool } from '../sim/feederEngine';
 import { Team } from '../types/game';
 
@@ -102,19 +111,7 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   const applyImport = (json: string, label: string) => {
     const res = importCustomDistrictJSON(json);
     if (res.success && res.teams) {
-      const world = buildCustomLeague(res.teams, label);
-      useGameStore.setState({
-        league: world.league,
-        leagueTeams: world.teams,
-        districtTeams: res.teams,
-        userTeamId: res.teams[0].id,
-        currentWeek: 1,
-        playoffBracket: null,
-        activeDilemma: null,
-        dilemmaLog: [],
-        sanctionLevel: 0,
-        seasonSchedule: generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), currentYear)
-      });
+      useGameStore.getState().startNewSeason({ ...buildCustomLeague(res.teams, label), userTeamId: res.teams[0].id });
       setFeedback(`${label} loaded. You now coach ${res.teams[0].name}; a new season begins.`);
     } else {
       setFeedback(`Import error: ${res.error}`);
@@ -123,12 +120,29 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
 
   const handleImportJSON = () => applyImport(importText, 'Custom district');
 
+  // A real state district: the world is built from that state's nearest districts (all of 6A for Texas)
   const handleLoadStateDistrict = async () => {
-    const district = stateDistricts.find((d) => d.file === selectedDistrictFile);
-    if (!district) return;
+    const userIndex = stateDistricts.findIndex((d) => d.file === selectedDistrictFile);
+    if (userIndex < 0) return;
+    const fetchDistrict = async (file: string): Promise<StateDistrictFile> => {
+      const response = await fetch(`${import.meta.env.BASE_URL}leagues/${file}`);
+      if (!response.ok) throw new Error(file);
+      return response.json();
+    };
     try {
-      const response = await fetch(`${import.meta.env.BASE_URL}leagues/${district.file}`);
-      applyImport(await response.text(), district.name);
+      setFeedback('Building the league…');
+      const userDistrict = await fetchDistrict(stateDistricts[userIndex].file);
+      if (!userDistrict.schools?.length) throw new Error('empty district');
+      let world: GameWorld;
+      if (userDistrict.state === 'Texas') {
+        world = buildTexasLeague(userDistrict.schools[0].name);
+      } else {
+        const neighbors = await Promise.all(nearestDistrictIndexes(stateDistricts.length, userIndex).map((i) => fetchDistrict(stateDistricts[i].file)));
+        world = buildStateLeague(userDistrict, neighbors);
+      }
+      useGameStore.getState().startNewSeason(world);
+      const userTeam = world.teams.find((t) => t.id === world.userTeamId)!;
+      setFeedback(`${stateDistricts[userIndex].name} loaded. You now coach ${userTeam.name}; a new season begins.`);
     } catch {
       setFeedback('Could not load that district.');
     }

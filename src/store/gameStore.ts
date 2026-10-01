@@ -13,7 +13,7 @@ import {
   DilemmaRecord,
   FeederOutcome
 } from '../types/game';
-import { buildTexasLeague, findDistrict, leagueRegionTeams, LeagueStructure } from '../sim/league';
+import { buildTexasLeague, findDistrict, GameWorld, leagueRegionTeams, LeagueStructure } from '../sim/league';
 import { applyGameResult, forfeitMostRecentDistrictWin, generateSeasonSchedule, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
 import { randomInt } from '../sim/math/variance';
@@ -221,7 +221,7 @@ interface GameStoreState {
   isBanquetActive: boolean;
 
   // Actions
-  startNewSeason: () => void;
+  startNewSeason: (world?: GameWorld) => void; // default: the Texas 6A world
   advanceWeek: () => void;
   resolveDilemma: (choice: DilemmaChoice) => void;
   setPracticeIntensity: (mode: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT') => void;
@@ -268,8 +268,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   graduatingSeniors: [],
   isBanquetActive: false,
 
-  startNewSeason: () => {
-    const { league, teams, userTeamId } = buildTexasLeague();
+  startNewSeason: (world) => {
+    const { league, teams, userTeamId } = world ?? buildTexasLeague();
     const districtTeams = userDistrictTeams(league, teams, userTeamId);
     const userTeam = teams.find((t) => t.id === userTeamId)!;
     // Every rival program gets a hidden integrity rating and a feeder strategy

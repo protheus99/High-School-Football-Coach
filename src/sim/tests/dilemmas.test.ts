@@ -65,8 +65,11 @@ describe('Dilemma consequences', () => {
   it('adds a transfer near the advertised rating and keeps the depth chart sorted', () => {
     const [team] = generateDistrictTeams();
     const before = team.roster.length;
+    const existingIds = new Set(team.roster.map((p) => p.id));
     executeDilemmaDecision(team, choice({ addTransfer: { position: 'QB', overallRating: 82, name: 'Trey Hayes' } }));
-    const transfer = team.roster.find((p) => p.lastName === 'Hayes')!;
+    // Find the new player by id: a generated roster can already include someone named Hayes
+    const transfer = team.roster.find((p) => !existingIds.has(p.id))!;
+    expect(transfer.lastName).toBe('Hayes');
     expect(team.roster).toHaveLength(before + 1);
     expect(Math.abs(transfer.overallRating - 82)).toBeLessThanOrEqual(2);
     const qbs = team.roster.filter((p) => p.position === 'QB').sort((a, b) => b.overallRating - a.overallRating);
