@@ -8,7 +8,9 @@ import {
   WeatherType,
   LeverageType,
   DefensiveCall,
-  PlayerStats
+  PlayerStats,
+  OffensiveScheme,
+  DefensiveScheme
 } from '../types/game';
 import { calculateGaussianVariance, clamp, randomInt } from './math/variance';
 import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
@@ -195,11 +197,11 @@ const EXECUTION_STDEV = 12; // N(0, 12) execution roll from the design spec
 const GAME_DAY_FORM_STDEV = 2.5; // 'Any Given Friday': each team plays above or below its level for a whole game
 const EXPLOSIVE_PLAY_QUALITY = 25;
 const PASS_THRESHOLDS = {
-  SHORT_PASS: { interception: -29, sack: -17, incomplete: 4 },
-  DEEP_PASS: { interception: -24, sack: -16, incomplete: 7 }
+  SHORT_PASS: { interception: -29, sack: -17, incomplete: 3 },
+  DEEP_PASS: { interception: -24, sack: -16, incomplete: 6 }
 };
 const RUN_THRESHOLDS = { fumble: -32, tackleForLoss: -15 };
-const PLAY_CLOCK_RUNOFF = { min: 22, max: 31 }; // running plays & completions
+const PLAY_CLOCK_RUNOFF = { min: 21, max: 30 }; // running plays & completions
 const INCOMPLETE_RUNOFF = 6;
 const MERCY_RULE_RUNOFF = 45;
 const MAX_FIELD_GOAL_ATTEMPT_YARDS = 42;
@@ -215,7 +217,39 @@ const DEFENSIVE_CALL_MODIFIERS: Record<DefensiveCall, Record<ScrimmageConcept, n
   PASS_COVERAGE: { INSIDE_RUN: 6, OUTSIDE_RUN: 5, SHORT_PASS: -4, DEEP_PASS: -7 },
   BLITZ: { INSIDE_RUN: -3, OUTSIDE_RUN: -3, SHORT_PASS: -3, DEEP_PASS: 3 }
 };
-const BLITZ_EXTRA_STDEV = 3; // all-out pressure: more sacks and turnovers, more explosive plays allowed
+const BLITZ_EXTRA_STDEV = 3;
+
+// Tactical schemes (design spec 16)
+const OFFENSIVE_SCHEME_STYLE: Record<OffensiveScheme, { passRate: number; deepShare: number; insideShare: number }> = {
+  TRIPLE_OPTION: { passRate: 0.45, deepShare: 0.3, insideShare: 0.4 }, // option runs to the edge, rare passes
+  POWER_I: { passRate: 0.75, deepShare: 0.3, insideShare: 0.7 }, // downhill inside runs
+  SPREAD: { passRate: 1.1, deepShare: 0.3, insideShare: 0.5 }, // quick passing game
+  AIR_RAID: { passRate: 1.35, deepShare: 0.45, insideShare: 0.5 } // vertical shots
+};
+const OFFENSIVE_SCHEME_MODIFIERS: Record<OffensiveScheme, Record<ScrimmageConcept, number>> = {
+  TRIPLE_OPTION: { INSIDE_RUN: 1, OUTSIDE_RUN: 3, SHORT_PASS: 0, DEEP_PASS: 0 },
+  POWER_I: { INSIDE_RUN: 2, OUTSIDE_RUN: 0, SHORT_PASS: 0, DEEP_PASS: 0 },
+  SPREAD: { INSIDE_RUN: 0, OUTSIDE_RUN: 0, SHORT_PASS: 1, DEEP_PASS: 0 },
+  AIR_RAID: { INSIDE_RUN: -1, OUTSIDE_RUN: 0, SHORT_PASS: 0, DEEP_PASS: 1 }
+};
+const DEFENSIVE_SCHEME_MODIFIERS: Record<DefensiveScheme, Record<ScrimmageConcept, number>> = {
+  FOUR_THREE: { INSIDE_RUN: -1, OUTSIDE_RUN: -1, SHORT_PASS: 0, DEEP_PASS: 1 }, // balanced
+  FOUR_FOUR: { INSIDE_RUN: -4, OUTSIDE_RUN: -3, SHORT_PASS: 1, DEEP_PASS: 4 }, // heavy box, corners on an island
+  THREE_THREE_FIVE: { INSIDE_RUN: 2, OUTSIDE_RUN: 1, SHORT_PASS: -2, DEEP_PASS: -1 }, // nickel vs spread
+  DROP_EIGHT: { INSIDE_RUN: 4, OUTSIDE_RUN: 2, SHORT_PASS: -2, DEEP_PASS: -5 } // floods passing lanes
+};
+
+/** Scheme-on-scheme counters from the spec 16 matrix (offense quality bonus). */
+function schemeCounterBonus(offense: OffensiveScheme, defense: DefensiveScheme, isPass: boolean): number {
+  if (offense === 'TRIPLE_OPTION' && !isPass) return defense === 'THREE_THREE_FIVE' ? 3 : defense === 'FOUR_FOUR' ? -3 : 0;
+  if (offense === 'AIR_RAID' && isPass) return defense === 'DROP_EIGHT' ? -3 : defense === 'FOUR_FOUR' ? 2 : 0;
+  if (offense === 'SPREAD' && isPass) return defense === 'THREE_THREE_FIVE' ? -2 : 0;
+  if (offense === 'POWER_I' && !isPass) return defense === 'DROP_EIGHT' ? 2 : 0;
+  return 0;
+}
+
+const offensiveSchemeOf = (state: GameSimulationState, team: Team): OffensiveScheme =>
+  state.offensiveGamePlan?.[team.id] ?? team.schemeOffense; // all-out pressure: more sacks and turnovers, more explosive plays allowed
 
 /** Situational defensive call for an AI-coached defense. */
 export function selectAIDefensiveCall(state: GameSimulationState): DefensiveCall {
@@ -348,7 +382,7 @@ export function resolveKickoff(
 }
 
 /** Default AI play selection for the offense. */
-function selectAIPlayConcept(state: GameSimulationState): PlayConcept {
+function selectAIPlayConcept(state: GameSimulationState, scheme: OffensiveScheme): PlayConcept {
   if (state.down === 4) {
     const fgDistance = 100 - state.yardLine + 17;
     if (fgDistance <= MAX_FIELD_GOAL_ATTEMPT_YARDS) return 'FIELD_GOAL';
@@ -357,11 +391,12 @@ function selectAIPlayConcept(state: GameSimulationState): PlayConcept {
     if (!goForIt) return 'PUNT';
   }
 
-  const passChance = state.distance >= 8 ? 0.7 : state.distance <= 3 ? 0.25 : 0.45;
+  const style = OFFENSIVE_SCHEME_STYLE[scheme];
+  const passChance = Math.min(0.9, (state.distance >= 8 ? 0.7 : state.distance <= 3 ? 0.25 : 0.45) * style.passRate);
   if (Math.random() < passChance) {
-    return Math.random() < 0.65 ? 'SHORT_PASS' : 'DEEP_PASS';
+    return Math.random() < style.deepShare ? 'DEEP_PASS' : 'SHORT_PASS';
   }
-  return Math.random() < 0.55 ? 'INSIDE_RUN' : 'OUTSIDE_RUN';
+  return Math.random() < style.insideShare ? 'INSIDE_RUN' : 'OUTSIDE_RUN';
 }
 
 /** Interception / fumble return yardage (design spec 8.4). */
@@ -420,7 +455,7 @@ export function simulateSnap(
   } else {
     concept = chosenConcept && chosenConcept !== 'PAT_KICK' && chosenConcept !== 'TWO_POINT_TRY'
       ? chosenConcept
-      : selectAIPlayConcept(state);
+      : selectAIPlayConcept(state, offensiveSchemeOf(state, offense));
   }
 
   const playId = `play_${Date.now()}_${randomInt(100, 999)}`;
@@ -525,8 +560,14 @@ export function simulateSnap(
     const contextMod = getContextualModifier(state.weather, state.teamMomentum, concept) + DEFENSIVE_CALL_MODIFIERS[defensiveCall][scrimmageConcept];
     const variance = calculateGaussianVariance(0, EXECUTION_STDEV + (defensiveCall === 'BLITZ' ? BLITZ_EXTRA_STDEV : 0));
     const form = (state.gameDayForm?.[offense.id] ?? 0) - (state.gameDayForm?.[defense.id] ?? 0);
-    const playQuality = delta + contextMod + variance + form;
     const isPass = isPassConcept(concept);
+    const offScheme = offensiveSchemeOf(state, offense);
+    const schemeMod =
+      OFFENSIVE_SCHEME_MODIFIERS[offScheme][scrimmageConcept] +
+      DEFENSIVE_SCHEME_MODIFIERS[defense.schemeDefense][scrimmageConcept] +
+      schemeCounterBonus(offScheme, defense.schemeDefense, isPass) +
+      (isPass && state.weather === 'HEAVY_RAIN' && (offScheme === 'AIR_RAID' || offScheme === 'SPREAD') ? -5 : 0);
+    const playQuality = delta + contextMod + variance + form + schemeMod;
     const passThresholds = isPass ? PASS_THRESHOLDS[concept as 'SHORT_PASS' | 'DEEP_PASS'] : null;
 
     // Who is involved on this snap (usage shares from design spec 11.1)
@@ -536,7 +577,9 @@ export function simulateSnap(
     const label = (p: Player | undefined) => `${p?.position ?? ''} #${p?.lastName ?? '?'}`;
 
     // Catastrophic Turnover Check
-    if (passThresholds ? playQuality < passThresholds.interception : playQuality < RUN_THRESHOLDS.fumble) {
+    const fumbleThreshold = RUN_THRESHOLDS.fumble - (offScheme === 'POWER_I' ? 4 : 0);
+    const explosiveThreshold = EXPLOSIVE_PLAY_QUALITY - (offScheme === 'AIR_RAID' || offScheme === 'SPREAD' ? 3 : 0);
+    if (passThresholds ? playQuality < passThresholds.interception : playQuality < fumbleThreshold) {
       isTurnover = true;
       turnoverType = isPass ? 'INTERCEPTION' : 'FUMBLE';
       const defender = isPass ? pickInterceptor(defense) : tackler;
@@ -563,7 +606,8 @@ export function simulateSnap(
       }
     } else {
       // Sack / TFL
-      if (playQuality < (passThresholds ? passThresholds.sack : RUN_THRESHOLDS.tackleForLoss)) {
+      const canBeSacked = offScheme !== 'TRIPLE_OPTION'; // option QBs throw off play-action rollouts
+      if (playQuality < (passThresholds ? (canBeSacked ? passThresholds.sack : -Infinity) : RUN_THRESHOLDS.tackleForLoss)) {
         yardsGained = Math.max(-randomInt(1, isPass ? 8 : 4), -state.yardLine);
         if (isPass) {
           const sacker = pickSacker(defense);
@@ -583,10 +627,10 @@ export function simulateSnap(
       }
       // Normal Gain (scaled by execution quality)
       else {
-        if (concept === 'DEEP_PASS') yardsGained = 11 + randomInt(0, 6) + Math.round(Math.max(0, playQuality) / 3);
-        else if (concept === 'SHORT_PASS') yardsGained = 3 + randomInt(0, 4) + Math.round(Math.max(0, playQuality) / 5);
-        else yardsGained = Math.max(0, Math.round(2.5 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
-        if (playQuality > EXPLOSIVE_PLAY_QUALITY) yardsGained += randomInt(10, 35); // Explosive break
+        if (concept === 'DEEP_PASS') yardsGained = 10 + randomInt(0, 6) + Math.round(Math.max(0, playQuality) / 3);
+        else if (concept === 'SHORT_PASS') yardsGained = 3 + randomInt(0, 3) + Math.round(Math.max(0, playQuality) / 5);
+        else yardsGained = Math.max(0, Math.round(2 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
+        if (playQuality > explosiveThreshold) yardsGained += randomInt(8, 30); // Explosive break
         yardsGained = Math.min(yardsGained, 100 - state.yardLine);
         const scores = state.yardLine + yardsGained >= 100;
         if (isPass) {

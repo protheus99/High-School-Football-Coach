@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { OffensiveScheme } from '../types/game';
 import { PreGameStrategyModal } from './PreGameStrategyModal';
 import { FilmStudyModal } from './FilmStudyModal';
 import { getSeasonPhase, getTeamGameForWeek } from '../sim/scheduleEngine';
@@ -13,7 +14,7 @@ const PHASE_MESSAGES: Record<string, string> = {
 
 export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
 
-export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus) => void }> = ({ onLaunchGame }) => {
+export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void }> = ({ onLaunchGame }) => {
   const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId, activeDilemma, resolveDilemma, advanceWeek } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
@@ -42,7 +43,7 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus) => 
           forecast={{ weather: 'CLEAR', temp: 68, wind: 8 }}
           onKickoff={(strategy) => {
             setShowPreGameModal(false);
-            onLaunchGame(strategy.focusTarget);
+            onLaunchGame(strategy.focusTarget, strategy.selectedOffScheme);
           }}
           onCancel={() => setShowPreGameModal(false)}
         />

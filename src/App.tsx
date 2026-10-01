@@ -18,7 +18,7 @@ import { AllStateAwardsModal } from './components/AllStateAwardsModal';
 import { HallOfFameTrophyModal } from './components/HallOfFameTrophyModal';
 import { PlayerDrillsModal } from './components/PlayerDrillsModal';
 import { calculateSeasonAwards, SeasonAwardsRecord } from './sim/awardsEngine';
-import { GameSimulationState, Player } from './types/game';
+import { GameSimulationState, OffensiveScheme, Player } from './types/game';
 
 export const App: React.FC = () => {
   const [tab, setTab] = useState<'DASHBOARD' | 'ROSTER' | 'DISTRICT' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS' | 'OFFICE'>('DASHBOARD');
@@ -58,7 +58,7 @@ export const App: React.FC = () => {
 
   const FOCUS_TO_DEFENSIVE_CALL = { STOP_RUN: 'RUN_BLITZ', STOP_PASS: 'PASS_COVERAGE', BALANCED: 'BASE' } as const;
 
-  const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED') => {
+  const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED', offensiveScheme?: OffensiveScheme) => {
     if (!userTeam) return;
     const scheduled = getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
     if (!scheduled || scheduled.homeScore !== undefined) return;
@@ -86,7 +86,8 @@ export const App: React.FC = () => {
       isMercyRuleActive: false,
       isGameOver: false,
       eventLog: [],
-      defensiveGamePlan: { [userTeam.id]: FOCUS_TO_DEFENSIVE_CALL[focus] }
+      defensiveGamePlan: { [userTeam.id]: FOCUS_TO_DEFENSIVE_CALL[focus] },
+      offensiveGamePlan: { [userTeam.id]: offensiveScheme ?? userTeam.schemeOffense }
     };
 
     setActiveMatch(newGame);

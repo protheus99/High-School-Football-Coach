@@ -275,6 +275,7 @@ export interface GameSimulationState {
   openingPossessionTeamId?: string; // receives the opening kickoff; kicks off the second half
   overtime?: OvertimeState;
   defensiveGamePlan?: Record<string, DefensiveCall>; // teamId -> default call when none is chosen
+  offensiveGamePlan?: Record<string, OffensiveScheme>; // teamId -> scheme chosen for this game (defaults to the team's)
   playerGameStats?: Record<string, PlayerStats>; // playerId -> this game's stat line
   gameDayForm?: Record<string, number>; // teamId -> 'Any Given Friday' play-quality offset for this game
 }
