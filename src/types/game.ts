@@ -178,6 +178,7 @@ export interface Team {
   mascot: string;
   classification: '1A' | '2A' | '3A' | '4A' | '5A' | '6A';
   state?: string; // e.g. 'Texas'; ranking engines default to Texas when unset
+  enrollment?: number; // drives the UIL 6A Division 1 / Division 2 playoff split
   districtId: string;
   primaryColor: string;
   secondaryColor: string;

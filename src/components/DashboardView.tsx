@@ -3,12 +3,14 @@ import { useGameStore } from '../store/gameStore';
 import { OffensiveScheme } from '../types/game';
 import { PreGameStrategyModal } from './PreGameStrategyModal';
 import { FilmStudyModal } from './FilmStudyModal';
-import { getSeasonPhase, getTeamGameForWeek } from '../sim/scheduleEngine';
+import { getSeasonPhase } from '../sim/scheduleEngine';
+import { getUserMatchup } from '../sim/userMatchup';
+import { findDistrict, findRegion, playoffRoundCount, seasonLength } from '../sim/league';
 
 const PHASE_MESSAGES: Record<string, string> = {
   SPRING_EVALUATION: 'Spring evaluation: scout 8th-grade feeders and run 7-on-7 drills. No game this week.',
   SUMMER_CAMP: 'Summer two-a-days: install schemes and build conditioning. No game this week.',
-  STATE_PLAYOFFS: 'State playoffs: open the Bracket from the header to play your postseason game.',
+  STATE_PLAYOFFS: 'Your playoff run is over. Follow the rest of the tournament in the Bracket.',
   OFF_SEASON: "Off-season: graduation, awards and next year's planning."
 };
 
@@ -17,18 +19,20 @@ const TIER_COLORS: Record<string, string> = { GOOD: '#059669', COMPROMISE: '#256
 export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
 
 export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void }> = ({ onLaunchGame }) => {
-  const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId, activeDilemma, resolveDilemma, advanceWeek, sanctionLevel } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, activeDilemma, resolveDilemma, advanceWeek, sanctionLevel } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
-  const game = getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
-  const opponentId = game && (game.homeTeamId === userTeamId ? game.awayTeamId : game.homeTeamId);
-  const opponent = [...districtTeams, ...neighborDistrictTeams].find((t) => t.id === opponentId);
-  const isHome = game?.homeTeamId === userTeamId;
-  const isPlayed = game?.homeScore !== undefined;
+  const game = getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket });
+  const isHome = game?.home.id === userTeamId;
+  const opponent = game && (isHome ? game.away : game.home);
+  const isPlayed = game?.isPlayed ?? false;
   const userScore = isHome ? game?.homeScore : game?.awayScore;
   const opponentScore = isHome ? game?.awayScore : game?.homeScore;
+  const district = league ? findDistrict(league, userTeamId) : undefined;
+  const region = league ? findRegion(league, userTeamId) : undefined;
+  const totalWeeks = league ? seasonLength(league) : 20;
 
   if (!userTeam) return <div>Loading Program Dashboard...</div>;
 
@@ -56,12 +60,12 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
         <div>
           <h1 style={{ margin: 0 }}>{userTeam.name} {userTeam.mascot}</h1>
           <div style={{ color: '#6B7280' }}>
-            Class 6A - Region 4 | Record: {userTeam.record.wins}-{userTeam.record.losses} (District: {userTeam.record.districtWins}-{userTeam.record.districtLosses})
+            {district?.name ?? 'Class 6A'}{region ? ` · ${region.name}` : ''} | Record: {userTeam.record.wins}-{userTeam.record.losses} (District: {userTeam.record.districtWins}-{userTeam.record.districtLosses})
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <div style={{ background: '#EEF2FF', color: '#4F46E5', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold' }}>
-            WEEK {currentWeek} OF 20
+            WEEK {currentWeek} OF {totalWeeks}
           </div>
           <button
             onClick={advanceWeek}
@@ -119,7 +123,9 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
         {!game || !opponent ? (
           <>
             <h2 style={{ margin: '0 0 8px 0' }}>NO GAME THIS WEEK</h2>
-            <p style={{ margin: 0, color: '#94A3B8' }}>{PHASE_MESSAGES[getSeasonPhase(currentWeek)] ?? 'Bye week.'}</p>
+            <p style={{ margin: 0, color: '#94A3B8' }}>
+              {PHASE_MESSAGES[getSeasonPhase(currentWeek, league ? playoffRoundCount(league) : 6)] ?? 'Bye week.'}
+            </p>
           </>
         ) : isPlayed ? (
           <>
@@ -130,9 +136,9 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
           </>
         ) : (
           <>
-            <h2 style={{ margin: '0 0 8px 0' }}>FRIDAY NIGHT SHOWDOWN</h2>
+            <h2 style={{ margin: '0 0 8px 0' }}>{game.isPlayoff ? 'STATE PLAYOFFS' : 'FRIDAY NIGHT SHOWDOWN'}</h2>
             <p style={{ margin: '0 0 16px 0', color: '#94A3B8' }}>
-              {game.isDistrictGame ? 'District game' : 'Non-district game'} · {isHome ? 'vs.' : 'at'} {opponent.name} {opponent.mascot} ({opponent.record.wins}-{opponent.record.losses})
+              {game.label} · {isHome ? 'vs.' : 'at'} {opponent.name} {opponent.mascot} ({opponent.record.wins}-{opponent.record.losses})
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
               <button

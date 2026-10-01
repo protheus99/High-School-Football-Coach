@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useGameStore } from '../store/gameStore';
+import { useGameStore, userDistrictTeams } from '../store/gameStore';
 import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueImporter';
 import { persistSaveGame, loadSaveGame } from '../services/db';
-import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { generateSeasonSchedule } from '../sim/scheduleEngine';
+import { buildCustomLeague, leagueRegionTeams, LeagueStructure } from '../sim/league';
+import { Team } from '../types/game';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { districtTeams, neighborDistrictTeams, seasonSchedule, dilemmaLog, currentWeek, currentYear, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
+  const { districtTeams, league, leagueTeams, seasonSchedule, playoffBracket, sanctionLevel, dilemmaLog, currentWeek, currentYear, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
   const [importText, setImportText] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [leagueIndex, setLeagueIndex] = useState<LeagueIndexEntry[]>([]);
@@ -36,9 +37,12 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
       scoutingPool,
       history: [],
       currentYear,
-      neighborDistrictTeams,
+      league: league ?? undefined,
+      leagueTeams,
       seasonSchedule,
-      dilemmaLog
+      dilemmaLog,
+      playoffBracket,
+      sanctionLevel
     });
     setFeedback('Game successfully saved to IndexedDB!');
   };
@@ -46,19 +50,24 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   const handleLoadFromBrowser = async () => {
     const save = await loadSaveGame('current_save');
     if (save) {
-      // Saves made before the season schedule existed get a fresh neighbor district and schedule
+      // League saves restore the whole world; older saves get a world built around their district
       const year = save.currentYear ?? 2026;
-      const neighborTeams = save.neighborDistrictTeams ?? generateDistrictTeams('tx_6a_d25', NEIGHBOR_DISTRICT_SCHOOLS);
+      let world: { league: LeagueStructure; teams: Team[] };
+      if (save.league && save.leagueTeams) world = { league: save.league, teams: save.leagueTeams };
+      else world = buildCustomLeague(save.districtTeams, 'Saved District');
       useGameStore.setState({
         currentYear: year,
-        neighborDistrictTeams: neighborTeams,
-        seasonSchedule: save.seasonSchedule ?? generateSeasonSchedule(save.districtTeams, neighborTeams, year),
+        league: world.league,
+        leagueTeams: world.teams,
+        districtTeams: userDistrictTeams(world.league, world.teams, save.userTeamId),
+        seasonSchedule: save.league && save.seasonSchedule ? save.seasonSchedule : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
+        playoffBracket: save.league ? save.playoffBracket ?? null : null,
+        sanctionLevel: save.sanctionLevel ?? 0,
         dilemmaLog: save.dilemmaLog ?? [],
-        currentWeek: save.currentWeek,
+        currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, 14),
         userTeamId: save.userTeamId,
         coachingAP: save.coachingAP,
         practiceIntensity: save.practiceIntensity,
-        districtTeams: save.districtTeams,
         activeDilemma: save.activeDilemma,
         scoutingPool: save.scoutingPool
       });
@@ -83,7 +92,10 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   const applyImport = (json: string, label: string) => {
     const res = importCustomDistrictJSON(json);
     if (res.success && res.teams) {
+      const world = buildCustomLeague(res.teams, label);
       useGameStore.setState({
+        league: world.league,
+        leagueTeams: world.teams,
         districtTeams: res.teams,
         userTeamId: res.teams[0].id,
         currentWeek: 1,
@@ -91,7 +103,7 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
         activeDilemma: null,
         dilemmaLog: [],
         sanctionLevel: 0,
-        seasonSchedule: generateSeasonSchedule(res.teams, neighborDistrictTeams, currentYear)
+        seasonSchedule: generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), currentYear)
       });
       setFeedback(`${label} loaded. You now coach ${res.teams[0].name}; a new season begins.`);
     } else {

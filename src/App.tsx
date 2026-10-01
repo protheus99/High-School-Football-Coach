@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from './store/gameStore';
 import { DashboardView, DefensiveFocus } from './components/DashboardView';
-import { getTeamGameForWeek } from './sim/scheduleEngine';
+import { getUserMatchup } from './sim/userMatchup';
 import { RosterDepthChartView } from './components/RosterDepthChartView';
 import { DistrictStandingsView } from './components/DistrictStandingsView';
 import { FeedersScoutingView } from './components/FeedersScoutingView';
@@ -34,7 +34,7 @@ export const App: React.FC = () => {
   const {
     startNewSeason,
     districtTeams,
-    neighborDistrictTeams,
+    leagueTeams,
     seasonSchedule,
     userTeamId,
     currentWeek,
@@ -60,15 +60,13 @@ export const App: React.FC = () => {
 
   const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED', offensiveScheme?: OffensiveScheme) => {
     if (!userTeam) return;
-    const scheduled = getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
-    if (!scheduled || scheduled.homeScore !== undefined) return;
-    const allTeams = [...districtTeams, ...neighborDistrictTeams];
-    const home = allTeams.find((t) => t.id === scheduled.homeTeamId);
-    const away = allTeams.find((t) => t.id === scheduled.awayTeamId);
-    if (!home || !away) return;
+    // This week's game: the scheduled game, or the current playoff game
+    const matchup = getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket });
+    if (!matchup || matchup.isPlayed) return;
+    const { home, away } = matchup;
 
     const newGame: GameSimulationState = {
-      gameId: scheduled.gameId,
+      gameId: matchup.gameId,
       homeTeam: home,
       awayTeam: away,
       homeScore: 0,
@@ -94,13 +92,13 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    // Show the season's awards once; closing the modal must not re-trigger it
-    if (currentWeek === 19 && awardsShownForYear !== currentYear && districtTeams.length > 0) {
-      const calculated = calculateSeasonAwards(currentYear, districtTeams);
+    // Show the season's awards once at the banquet; closing the modal must not re-trigger it
+    if (isBanquetActive && awardsShownForYear !== currentYear && leagueTeams.length > 0) {
+      const calculated = calculateSeasonAwards(currentYear, leagueTeams);
       setAwardsRecord(calculated);
       setAwardsShownForYear(currentYear);
     }
-  }, [currentWeek, awardsShownForYear, districtTeams, currentYear]);
+  }, [isBanquetActive, awardsShownForYear, leagueTeams, currentYear]);
 
   // Render Postseason Tournament Modal
   if (playoffBracket && showBracketModal) {
@@ -109,29 +107,6 @@ export const App: React.FC = () => {
         bracketState={playoffBracket}
         userTeamId={userTeamId}
         onClose={() => setShowBracketModal(false)}
-        onLaunchPlayoffGame={(node) => {
-          setShowBracketModal(false);
-          setActiveMatch({
-            gameId: `po_gm_${Date.now()}`,
-            homeTeam: node.team1,
-            awayTeam: node.team2,
-            homeScore: 0,
-            awayScore: 0,
-            weather: 'CLEAR',
-            temperatureFahrenheit: 54,
-            windSpeedMph: 12,
-            teamMomentum: 0,
-            currentQuarter: 1,
-            clockSecondsRemaining: 720,
-            possessionTeamId: Math.random() < 0.5 ? node.team1.id : node.team2.id, // opening coin toss
-            down: 1,
-            distance: 10,
-            yardLine: 25,
-            isMercyRuleActive: false,
-            isGameOver: false,
-            eventLog: []
-          });
-        }}
       />
     );
   }

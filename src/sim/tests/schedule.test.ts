@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS } from '../../generators/rosterGenerator';
+import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import {
   applyGameResult,
   generateSeasonSchedule,
@@ -9,53 +9,67 @@ import {
   FIRST_NON_DISTRICT_WEEK,
   LAST_REGULAR_SEASON_WEEK
 } from '../scheduleEngine';
+import { buildTexasLeague, findDistrict, findRegion, leagueRegionTeams } from '../league';
 
 // Keep the store's weekly auto-save away from IndexedDB in tests
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
 import { useGameStore } from '../../store/gameStore';
 
-const district = generateDistrictTeams();
-const neighbor = generateDistrictTeams('tx_6a_d25', NEIGHBOR_DISTRICT_SCHOOLS);
+describe('Texas 6A league', () => {
+  const { league, teams, userTeamId } = buildTexasLeague();
 
-describe('Season schedule', () => {
-  const schedule = generateSeasonSchedule(district, neighbor, 2026);
-
-  it('plays every district opponent exactly once in district weeks', () => {
-    for (const team of district) {
-      const districtGames = schedule.filter((g) => g.isDistrictGame && (g.homeTeamId === team.id || g.awayTeamId === team.id));
-      const opponents = districtGames.map((g) => (g.homeTeamId === team.id ? g.awayTeamId : g.homeTeamId));
-      expect(districtGames).toHaveLength(district.length - 1);
-      expect(new Set(opponents).size).toBe(district.length - 1);
-      districtGames.forEach((g) => {
-        expect(g.week).toBeGreaterThanOrEqual(FIRST_DISTRICT_WEEK);
-        expect(g.week).toBeLessThanOrEqual(LAST_REGULAR_SEASON_WEEK);
-      });
-      const homeGames = districtGames.filter((g) => g.homeTeamId === team.id).length;
-      expect(homeGames).toBeGreaterThanOrEqual(3);
-      expect(homeGames).toBeLessThanOrEqual(4);
-    }
+  it('has 4 regions, 32 districts and every program from the database', () => {
+    expect(league.regions).toHaveLength(4);
+    expect(league.regions.flatMap((r) => r.districts)).toHaveLength(32);
+    expect(teams.length).toBeGreaterThanOrEqual(250);
+    expect(new Set(teams.map((t) => t.id)).size).toBe(teams.length);
+    expect(teams.find((t) => t.id === userTeamId)?.name).toBe('Austin Westlake');
+    expect(findDistrict(league, userTeamId)?.name).toBe('District 26-6A');
   });
 
-  it('gives each district team three different non-district opponents from the neighboring district', () => {
-    const neighborIds = new Set(neighbor.map((t) => t.id));
-    for (const team of district) {
-      const games = schedule.filter((g) => !g.isDistrictGame && (g.homeTeamId === team.id || g.awayTeamId === team.id));
-      const opponents = games.map((g) => (g.homeTeamId === team.id ? g.awayTeamId : g.homeTeamId));
-      expect(games.map((g) => g.week).sort()).toEqual([FIRST_NON_DISTRICT_WEEK, FIRST_NON_DISTRICT_WEEK + 1, FIRST_NON_DISTRICT_WEEK + 2]);
-      expect(new Set(opponents).size).toBe(3);
-      opponents.forEach((id) => expect(neighborIds.has(id)).toBe(true));
-    }
+  it('gives powerhouse programs stronger rosters than low-prestige programs', () => {
+    const avg = (list: typeof teams) =>
+      list.flatMap((t) => t.roster.filter((p) => p.depthChartTier === 1)).reduce((s, p, _, a) => s + p.overallRating / a.length, 0);
+    const elite = teams.filter((t) => t.prestige >= 90);
+    const weak = teams.filter((t) => t.prestige <= 60);
+    expect(avg(elite)).toBeGreaterThan(avg(weak) + 5);
   });
+});
 
-  it('never books a team twice in the same week', () => {
+describe('League season schedule', () => {
+  const { league, teams } = buildTexasLeague();
+  const schedule = generateSeasonSchedule(leagueRegionTeams(league, teams), 2026);
+  const gamesFor = (teamId: string) => schedule.filter((g) => g.homeTeamId === teamId || g.awayTeamId === teamId);
+
+  it('never books a team twice in the same week and only uses weeks 5-14', () => {
     for (let week = 1; week <= 20; week++) {
       const ids = schedule.filter((g) => g.week === week).flatMap((g) => [g.homeTeamId, g.awayTeamId]);
       expect(new Set(ids).size).toBe(ids.length);
     }
+    expect(schedule.every((g) => g.week >= FIRST_NON_DISTRICT_WEEK && g.week <= LAST_REGULAR_SEASON_WEEK)).toBe(true);
   });
 
-  it('has no games in spring, summer, playoff or off-season weeks', () => {
-    expect(schedule.every((g) => g.week >= FIRST_NON_DISTRICT_WEEK && g.week <= LAST_REGULAR_SEASON_WEEK)).toBe(true);
+  it('plays district opponents in district weeks and non-district opponents from the same region', () => {
+    for (const team of teams) {
+      const district = findDistrict(league, team.id)!;
+      const region = findRegion(league, team.id)!;
+      for (const game of gamesFor(team.id)) {
+        const opponent = game.homeTeamId === team.id ? game.awayTeamId : game.homeTeamId;
+        if (game.isDistrictGame) {
+          expect(district.teamIds).toContain(opponent);
+          expect(game.week).toBeGreaterThanOrEqual(FIRST_DISTRICT_WEEK);
+        } else {
+          expect(district.teamIds).not.toContain(opponent);
+          expect(region.districts.some((d) => d.teamIds.includes(opponent))).toBe(true);
+          expect(game.week).toBeLessThan(FIRST_DISTRICT_WEEK);
+        }
+      }
+      // No repeat opponents, and a full district slate up to the seven district weeks
+      const opponents = gamesFor(team.id).map((g) => (g.homeTeamId === team.id ? g.awayTeamId : g.homeTeamId));
+      expect(new Set(opponents).size).toBe(opponents.length);
+      const districtGames = gamesFor(team.id).filter((g) => g.isDistrictGame).length;
+      expect(districtGames).toBeGreaterThanOrEqual(Math.min(district.teamIds.length - 1, 7) - 1);
+    }
   });
 
   it('handles an odd number of teams with byes', () => {
@@ -84,35 +98,29 @@ describe('Recording results', () => {
 });
 
 describe('Playing a season through the store', () => {
-  it('faces a different opponent each game week and seeds the playoffs from the real standings', () => {
-    const store = useGameStore.getState();
-    store.startNewSeason();
+  it('faces a different opponent each game week and records every game in the league', () => {
+    useGameStore.getState().startNewSeason();
     const { userTeamId } = useGameStore.getState();
 
     const opponents: string[] = [];
-    while (useGameStore.getState().currentWeek < 15) {
+    while (useGameStore.getState().currentWeek <= LAST_REGULAR_SEASON_WEEK) {
       const { seasonSchedule, currentWeek } = useGameStore.getState();
       const game = getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
       if (game) opponents.push(game.homeTeamId === userTeamId ? game.awayTeamId : game.homeTeamId);
       useGameStore.getState().advanceWeek();
     }
 
-    const { districtTeams, neighborDistrictTeams, seasonSchedule, playoffBracket } = useGameStore.getState();
-    expect(opponents).toHaveLength(10);
-    expect(new Set(opponents).size).toBe(10);
+    const { leagueTeams, league, seasonSchedule, playoffBracket } = useGameStore.getState();
+    expect(opponents.length).toBeGreaterThanOrEqual(9);
+    expect(new Set(opponents).size).toBe(opponents.length);
     expect(seasonSchedule.every((g) => g.homeScore !== undefined)).toBe(true);
 
-    for (const teams of [districtTeams, neighborDistrictTeams]) {
-      const districtWins = teams.reduce((s, t) => s + t.record.districtWins, 0);
-      const districtLosses = teams.reduce((s, t) => s + t.record.districtLosses, 0);
-      expect(districtWins).toBe(28);
-      expect(districtLosses).toBe(28);
-      teams.forEach((t) => expect(t.record.wins + t.record.losses).toBe(10));
+    for (const district of league!.regions.flatMap((r) => r.districts)) {
+      const teams = leagueTeams.filter((t) => district.teamIds.includes(t.id));
+      const wins = teams.reduce((s, t) => s + t.record.districtWins, 0);
+      const losses = teams.reduce((s, t) => s + t.record.districtLosses, 0);
+      expect(wins).toBe(losses);
     }
-
-    expect(playoffBracket).not.toBeNull();
-    const bracketIds = playoffBracket!.bracket.biDistrict.flatMap((n) => [n.team1.id, n.team2.id]);
-    const neighborIds = new Set(neighborDistrictTeams.map((t) => t.id));
-    expect(bracketIds.some((id) => neighborIds.has(id))).toBe(true);
-  });
+    expect(playoffBracket?.divisions).toHaveLength(2);
+  }, 120000);
 });

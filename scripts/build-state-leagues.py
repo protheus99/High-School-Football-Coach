@@ -145,5 +145,44 @@ def main():
         print(f"  {s['state']}: {len(s['districts'])} districts, {sum(d['schools'] for d in s['districts'])} schools")
 
 
+TEXAS_FULL_DATABASE = (15294, 15701)
+
+
+def build_texas_world(lines, out_file: Path):
+    """Texas 6A as one structure (4 regions, 32 districts, every program) for the default game world."""
+    regions = []
+    first, last = TEXAS_FULL_DATABASE
+    district = None
+    for line in lines[first - 1:last]:
+        region_match = re.match(r'^# (Region \d+) \((.*)\)', line)
+        district_match = re.match(r'^### District (\d+)-6A \((.*)\)', line)
+        if region_match:
+            regions.append({'name': region_match.group(1), 'area': region_match.group(2), 'districts': []})
+        elif district_match and regions:
+            district = {'number': int(district_match.group(1)), 'name': f'District {district_match.group(1)}-6A',
+                        'area': district_match.group(2), 'schools': []}
+            regions[-1]['districts'].append(district)
+        elif line.startswith('| **') and district is not None:
+            cells = [c.strip() for c in line.strip().strip('|').split('|')]
+            if len(cells) < 6:
+                continue
+            name = cells[0].replace('*', '').strip()
+            if any(s['name'] == name for s in district['schools']):
+                continue
+            primary, secondary = colors(name)
+            district['schools'].append({
+                'name': name, 'city': cells[1], 'mascot': re.sub(r'\s*\(.*\)$', '', cells[2]).strip(),
+                'prestige': max(40, min(99, int(re.sub(r'[^0-9]', '', cells[3]) or 70))),
+                'primaryColor': primary, 'secondaryColor': secondary,
+                'offenseScheme': offense_scheme(cells[4]), 'defenseScheme': defense_scheme(cells[5])
+            })
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    out_file.write_text(json.dumps({'state': 'Texas', 'classification': '6A', 'regions': regions}, indent=1) + '\n', encoding='utf-8')
+    districts = [d for r in regions for d in r['districts']]
+    print(f"Texas world: {len(regions)} regions, {len(districts)} districts, {sum(len(d['schools']) for d in districts)} schools")
+
+
 if __name__ == '__main__':
     main()
+    build_texas_world(Path(sys.argv[1]).read_text(encoding='utf-8').split('\n'),
+                      Path(__file__).resolve().parent.parent / 'src' / 'data' / 'texas-6a.json')

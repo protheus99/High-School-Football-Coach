@@ -1,18 +1,43 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
-import { getSeasonPhase, getTeamGameForWeek } from '../sim/scheduleEngine';
+import { getSeasonPhase, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
+import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
+import { ROUND_LABELS } from '../sim/playoffEngine';
+import { Team } from '../types/game';
 
 export const ScheduleView: React.FC = () => {
-  const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId } = useGameStore();
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
   if (!userTeam) return null;
 
-  const allTeams = [...districtTeams, ...neighborDistrictTeams];
+  const totalWeeks = league ? seasonLength(league) : 20;
+  const playoffRounds = league ? playoffRoundCount(league) : 6;
+  const districtName = league ? findDistrict(league, userTeamId)?.name : undefined;
 
-  // 20-week season built from the stored schedule
-  const schedule = Array.from({ length: 20 }, (_, i) => {
+  // Season built from the stored schedule, plus the user's playoff games from the bracket
+  const schedule = Array.from({ length: totalWeeks }, (_, i) => {
     const weekNum = i + 1;
+    const roundIndex = weekNum - LAST_REGULAR_SEASON_WEEK - 1;
+    const base = { week: weekNum, type: getSeasonPhase(weekNum, playoffRounds), isCurrent: weekNum === currentWeek, isCompleted: weekNum < currentWeek };
+
+    if (roundIndex >= 0 && playoffBracket) {
+      const node = playoffBracket.divisions
+        .map((d) => d.rounds[roundIndex]?.find((n) => n.team1.id === userTeamId || n.team2.id === userTeamId))
+        .find(Boolean);
+      const isHome = node?.team1.id === userTeamId;
+      const opponent: Team | null = node ? (isHome ? node.team2 : node.team1) : null;
+      const userScore = isHome ? node?.team1Score : node?.team2Score;
+      const opponentScore = isHome ? node?.team2Score : node?.team1Score;
+      return {
+        ...base,
+        label: playoffBracket.roundNames[roundIndex] ? ROUND_LABELS[playoffBracket.roundNames[roundIndex]] : undefined,
+        opponent,
+        isHome,
+        result: node?.winnerTeamId ? `${node.winnerTeamId === userTeamId ? 'W' : 'L'} ${userScore}-${opponentScore}` : null
+      };
+    }
+
     const scheduled = getTeamGameForWeek(seasonSchedule, weekNum, userTeamId);
     const isHome = scheduled?.homeTeamId === userTeamId;
     const opponentId = scheduled && (isHome ? scheduled.awayTeamId : scheduled.homeTeamId);
@@ -21,9 +46,9 @@ export const ScheduleView: React.FC = () => {
     const opponentScore = isHome ? scheduled?.awayScore : scheduled?.homeScore;
 
     return {
-      week: weekNum,
-      type: getSeasonPhase(weekNum),
-      opponent: allTeams.find((t) => t.id === opponentId) ?? null,
+      ...base,
+      label: undefined as string | undefined,
+      opponent: leagueTeams.find((t) => t.id === opponentId) ?? null,
       isHome,
       result: !played
         ? null
@@ -31,16 +56,14 @@ export const ScheduleView: React.FC = () => {
           ? 'L (forfeit)'
           : scheduled!.forfeitedByTeamId
             ? 'W (forfeit)'
-            : `${userScore! > opponentScore! ? 'W' : 'L'} ${userScore}-${opponentScore}`,
-      isCurrent: weekNum === currentWeek,
-      isCompleted: weekNum < currentWeek
+            : `${userScore! > opponentScore! ? 'W' : 'L'} ${userScore}-${opponentScore}`
     };
   });
 
   return (
     <div style={{ padding: '20px', maxWidth: '850px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <h2>20-Week Season Schedule & Film Room</h2>
-      <p style={{ color: '#64748B', fontSize: '13px' }}>Track your path through Spring Drills, Non-District tune-ups, the District 26-6A race, and the State Tournament.</p>
+      <h2>{totalWeeks}-Week Season Schedule & Film Room</h2>
+      <p style={{ color: '#64748B', fontSize: '13px' }}>Track your path through Spring Drills, Non-District tune-ups, the {districtName ?? 'district'} race, and the State Tournament.</p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {schedule.map((game) => (
@@ -59,7 +82,7 @@ export const ScheduleView: React.FC = () => {
             <div>
               <span style={{ fontWeight: 'bold', fontSize: '14px', marginRight: '10px' }}>Week {game.week}</span>
               <span style={{ fontSize: '12px', background: '#F1F5F9', padding: '2px 8px', borderRadius: '4px', color: '#475569' }}>
-                {game.type.replace(/_/g, ' ')}
+                {game.label ?? game.type.replace(/_/g, ' ')}
               </span>
             </div>
 

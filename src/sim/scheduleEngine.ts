@@ -1,8 +1,8 @@
 import { ScheduledGame, Team } from '../types/game';
 import { simulateMacroMatch } from './macroSim';
 
-// 20-week calendar (design spec 4): weeks 1-4 spring/summer, 5-7 non-district,
-// 8-14 district round robin, 15-18 state playoffs, 19-20 off-season
+// Season calendar (design spec 4): weeks 1-4 spring/summer, 5-7 non-district, 8-14 district round robin,
+// then one week per playoff round (six for Texas 6A) and the banquet week
 export const FIRST_NON_DISTRICT_WEEK = 5;
 export const FIRST_DISTRICT_WEEK = 8;
 export const LAST_REGULAR_SEASON_WEEK = 14;
@@ -10,12 +10,12 @@ const DISTRICT_POINT_DIFFERENTIAL_CAP = 17;
 
 export type SeasonPhase = 'SPRING_EVALUATION' | 'SUMMER_CAMP' | 'NON_DISTRICT' | 'DISTRICT_PLAY' | 'STATE_PLAYOFFS' | 'OFF_SEASON';
 
-export function getSeasonPhase(week: number): SeasonPhase {
+export function getSeasonPhase(week: number, playoffRounds = 6): SeasonPhase {
   if (week <= 2) return 'SPRING_EVALUATION';
   if (week < FIRST_NON_DISTRICT_WEEK) return 'SUMMER_CAMP';
   if (week < FIRST_DISTRICT_WEEK) return 'NON_DISTRICT';
   if (week <= LAST_REGULAR_SEASON_WEEK) return 'DISTRICT_PLAY';
-  if (week <= 18) return 'STATE_PLAYOFFS';
+  if (week <= LAST_REGULAR_SEASON_WEEK + playoffRounds) return 'STATE_PLAYOFFS';
   return 'OFF_SEASON';
 }
 
@@ -50,39 +50,55 @@ export function roundRobinRounds(teamIds: string[]): [string, string][][] {
 }
 
 /**
- * Builds the regular season: three non-district weeks against the neighboring district,
- * then a full district round robin for both districts.
+ * Builds the regular season for a whole league (region -> district -> teams): three non-district weeks
+ * against other districts in the same region (rotating district pairings), then each district's round robin.
  */
-export function generateSeasonSchedule(districtTeams: Team[], neighborTeams: Team[], year: number): ScheduledGame[] {
+export function generateSeasonSchedule(regions: Team[][][], year: number): ScheduledGame[] {
   const games: ScheduledGame[] = [];
-  const district = shuffle(districtTeams.map((t) => t.id));
-  const neighbor = shuffle(neighborTeams.map((t) => t.id));
+  const addGame = (week: number, homeTeamId: string, awayTeamId: string, isDistrictGame: boolean) =>
+    games.push({ gameId: `y${year}_w${week}_${homeTeamId}_${awayTeamId}`, week, homeTeamId, awayTeamId, isDistrictGame });
 
-  for (let k = 0; k < FIRST_DISTRICT_WEEK - FIRST_NON_DISTRICT_WEEK; k++) {
-    const week = FIRST_NON_DISTRICT_WEEK + k;
-    district.forEach((teamId, i) => {
-      if (i >= neighbor.length) return; // larger custom districts: extra teams have a bye
-      const opponentId = neighbor[(i + k) % neighbor.length];
-      const isHome = (i + k) % 2 === 0;
-      games.push({
-        gameId: `y${year}_w${week}_${teamId}_${opponentId}`,
-        week,
-        homeTeamId: isHome ? teamId : opponentId,
-        awayTeamId: isHome ? opponentId : teamId,
-        isDistrictGame: false
+  for (const region of regions) {
+    const districts = region.map((teams) => shuffle(teams.map((t) => t.id)));
+
+    // Non-district: week k pairs district i with district i XOR (k + 1) (1-2/3-4, then 1-3/2-4, then 1-4/2-3)
+    for (let k = 0; k < FIRST_DISTRICT_WEEK - FIRST_NON_DISTRICT_WEEK; k++) {
+      const week = FIRST_NON_DISTRICT_WEEK + k;
+      districts.forEach((a, i) => {
+        const partner = districts.length === 2 ? 1 - i : i ^ (k + 1);
+        if (partner <= i || partner >= districts.length) return; // each pairing once; odd districts get a bye
+        const b = districts[partner];
+        for (let t = 0; t < Math.min(a.length, b.length); t++) {
+          const opponent = b[(t + k) % b.length];
+          if ((t + k) % 2 === 0) addGame(week, a[t], opponent, false);
+          else addGame(week, opponent, a[t], false);
+        }
       });
-    });
-  }
+    }
 
-  // Large (custom) districts play a partial round robin that fits the district weeks
-  const districtWeeks = LAST_REGULAR_SEASON_WEEK - FIRST_DISTRICT_WEEK + 1;
-  for (const ids of [district, neighbor]) {
-    roundRobinRounds(ids).slice(0, districtWeeks).forEach((pairs, r) => {
-      const week = FIRST_DISTRICT_WEEK + r;
-      pairs.forEach(([homeTeamId, awayTeamId]) =>
-        games.push({ gameId: `y${year}_w${week}_${homeTeamId}_${awayTeamId}`, week, homeTeamId, awayTeamId, isDistrictGame: true })
+    // Uneven district sizes leave teams idle: pair them with other idle teams from different districts
+    // (after all district pairings are booked, so an idle pairing never repeats a later regular game)
+    const districtOf = new Map(districts.flatMap((ids, d) => ids.map((id) => [id, d] as const)));
+    for (let week = FIRST_NON_DISTRICT_WEEK; week < FIRST_DISTRICT_WEEK; week++) {
+      const booked = new Set(games.filter((g) => g.week === week).flatMap((g) => [g.homeTeamId, g.awayTeamId]));
+      const met = new Set(games.filter((g) => !g.isDistrictGame).map((g) => [g.homeTeamId, g.awayTeamId].sort().join('|')));
+      const idle = shuffle(districts.flat().filter((id) => !booked.has(id)));
+      while (idle.length > 1) {
+        const team = idle.shift()!;
+        const index = idle.findIndex((other) => districtOf.get(other) !== districtOf.get(team) && !met.has([team, other].sort().join('|')));
+        if (index < 0) continue;
+        const [opponent] = idle.splice(index, 1);
+        addGame(week, team, opponent, false);
+      }
+    }
+
+    // District round robins; large districts play a partial round robin that fits the district weeks
+    const districtWeeks = LAST_REGULAR_SEASON_WEEK - FIRST_DISTRICT_WEEK + 1;
+    for (const ids of districts) {
+      roundRobinRounds(ids).slice(0, districtWeeks).forEach((pairs, r) =>
+        pairs.forEach(([homeTeamId, awayTeamId]) => addGame(FIRST_DISTRICT_WEEK + r, homeTeamId, awayTeamId, true))
       );
-    });
+    }
   }
 
   return games;
@@ -122,16 +138,15 @@ export function applyGameResult(home: Team, away: Team, homeScore: number, awayS
   apply(away, home, awayScore, homeScore, -capped);
 }
 
-/**
- * Plays out a full regular season between two districts in the background
- * (used for the playoff-only districts so their seeds come from real records).
- */
-export function simulateRegularSeason(districtA: Team[], districtB: Team[], year: number): void {
-  const teams = [...districtA, ...districtB];
-  for (const game of generateSeasonSchedule(districtA, districtB, year)) {
+/** Plays out a whole league's regular season in the background (dev tools and tests). */
+export function simulateRegularSeason(regions: Team[][][], year: number): void {
+  const teams = regions.flat(2);
+  for (const game of generateSeasonSchedule(regions, year)) {
     const home = teams.find((t) => t.id === game.homeTeamId)!;
     const away = teams.find((t) => t.id === game.awayTeamId)!;
     const box = simulateMacroMatch(game.gameId, game.week, home, away);
+    game.homeScore = box.homeScore;
+    game.awayScore = box.awayScore;
     applyGameResult(home, away, box.homeScore, box.awayScore, game.isDistrictGame);
   }
 }

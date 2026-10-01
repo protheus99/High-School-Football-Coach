@@ -1,0 +1,2794 @@
+{
+ "state": "Texas",
+ "classification": "6A",
+ "regions": [
+  {
+   "name": "Region 1",
+   "area": "West Texas, DFW Metroplex & North Texas",
+   "districts": [
+    {
+     "number": 1,
+     "name": "District 1-6A",
+     "area": "El Paso Metro",
+     "schools": [
+      {
+       "name": "El Paso Eastlake",
+       "city": "El Paso",
+       "mascot": "Falcons",
+       "prestige": 78,
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "El Paso Franklin",
+       "city": "El Paso",
+       "mascot": "Cougars",
+       "prestige": 76,
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "El Paso Pebble Hills",
+       "city": "El Paso",
+       "mascot": "Spartans",
+       "prestige": 75,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "El Paso Eastwood",
+       "city": "El Paso",
+       "mascot": "Troopers",
+       "prestige": 74,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "El Paso Coronado",
+       "city": "El Paso",
+       "mascot": "Thunderbirds",
+       "prestige": 69,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "El Paso Montwood",
+       "city": "El Paso",
+       "mascot": "Rams",
+       "prestige": 64,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "El Paso Socorro",
+       "city": "El Paso",
+       "mascot": "Bulldogs",
+       "prestige": 48,
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "District 2-6A",
+     "area": "Permian Basin & West Texas",
+     "schools": [
+      {
+       "name": "Odessa Permian",
+       "city": "Odessa",
+       "mascot": "Panthers",
+       "prestige": 88,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Midland Legacy",
+       "city": "Midland",
+       "mascot": "Rebels",
+       "prestige": 87,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Wolfforth Frenship",
+       "city": "Wolfforth / Lubbock",
+       "mascot": "Tigers",
+       "prestige": 84,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Midland High",
+       "city": "Midland",
+       "mascot": "Bulldogs",
+       "prestige": 82,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "San Angelo Central",
+       "city": "San Angelo",
+       "mascot": "Bobcats",
+       "prestige": 78,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Odessa High",
+       "city": "Odessa",
+       "mascot": "Bronchos",
+       "prestige": 68,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "District 3-6A",
+     "area": "Fort Worth & Tarrant County West",
+     "schools": [
+      {
+       "name": "North Crowley",
+       "city": "Fort Worth",
+       "mascot": "Panthers",
+       "prestige": 94,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Crowley",
+       "city": "Crowley",
+       "mascot": "Eagles",
+       "prestige": 81,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mansfield",
+       "city": "Mansfield",
+       "mascot": "Tigers",
+       "prestige": 80,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Mansfield Lake Ridge",
+       "city": "Mansfield",
+       "mascot": "Eagles",
+       "prestige": 78,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mansfield Legacy",
+       "city": "Mansfield",
+       "mascot": "Broncos",
+       "prestige": 76,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Weatherford",
+       "city": "Weatherford",
+       "mascot": "Kangaroos",
+       "prestige": 73,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Fort Worth Boswell",
+       "city": "Fort Worth",
+       "mascot": "Pioneers",
+       "prestige": 71,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "District 4-6A",
+     "area": "Tarrant / Denton County Corridor",
+     "schools": [
+      {
+       "name": "Southlake Carroll",
+       "city": "Southlake",
+       "mascot": "Dragons",
+       "prestige": 97,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Euless Trinity",
+       "city": "Euless",
+       "mascot": "Trojans",
+       "prestige": 90,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Northwest Nelson (Byron)",
+       "city": "Trophy Club",
+       "mascot": "Bobcat",
+       "prestige": 88,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Keller",
+       "city": "Keller",
+       "mascot": "Indians",
+       "prestige": 82,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Northwest Eaton",
+       "city": "Haslet",
+       "mascot": "Eagles",
+       "prestige": 80,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Keller Timber Creek",
+       "city": "Fort Worth",
+       "mascot": "Falcons",
+       "prestige": 76,
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hurst L.D. Bell",
+       "city": "Hurst",
+       "mascot": "Blue Raiders",
+       "prestige": 73,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Keller Central",
+       "city": "Keller",
+       "mascot": "Chargers",
+       "prestige": 68,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Justin Northwest",
+       "city": "Justin",
+       "mascot": "Texans",
+       "prestige": 75,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "District 5-6A",
+     "area": "Denton & Lewisville ISD",
+     "schools": [
+      {
+       "name": "Denton Guyer",
+       "city": "Denton",
+       "mascot": "Wildcats",
+       "prestige": 92,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Coppell",
+       "city": "Coppell",
+       "mascot": "Cowboys",
+       "prestige": 91,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Lewisville",
+       "city": "Lewisville",
+       "mascot": "Farmers",
+       "prestige": 86,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lewisville Marcus",
+       "city": "Flower Mound",
+       "mascot": "Marauders",
+       "prestige": 85,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Lewisville Flower Mound",
+       "city": "Flower Mound",
+       "mascot": "Jaguars",
+       "prestige": 83,
+       "primaryColor": "#006747",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Lewisville Hebron",
+       "city": "Carrollton",
+       "mascot": "Hawks",
+       "prestige": 79,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Denton Braswell",
+       "city": "Little Elm",
+       "mascot": "Bengals",
+       "prestige": 74,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Little Elm",
+       "city": "Little Elm",
+       "mascot": "Lobos",
+       "prestige": 68,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "name": "District 6-6A",
+     "area": "Collin County / North DFW",
+     "schools": [
+      {
+       "name": "Allen",
+       "city": "Allen",
+       "mascot": "Eagles",
+       "prestige": 96,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Prosper",
+       "city": "Prosper",
+       "mascot": "Eagles",
+       "prestige": 91,
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Prosper Rock Hill",
+       "city": "Frisco",
+       "mascot": "Blue Hawks",
+       "prestige": 83,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "McKinney",
+       "city": "McKinney",
+       "mascot": "Lions",
+       "prestige": 82,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "McKinney Boyd",
+       "city": "McKinney",
+       "mascot": "Broncos",
+       "prestige": 76,
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Plano East",
+       "city": "Plano",
+       "mascot": "Panthers",
+       "prestige": 77,
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Plano West",
+       "city": "Plano",
+       "mascot": "Wolves",
+       "prestige": 74,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Plano Senior",
+       "city": "Plano",
+       "mascot": "Wildcats",
+       "prestige": 73,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Princeton",
+       "city": "Princeton",
+       "mascot": "Panthers",
+       "prestige": 65,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "name": "District 7-6A",
+     "area": "Dallas / Richardson / Irving",
+     "schools": [
+      {
+       "name": "Richardson Lake Highlands",
+       "city": "Dallas",
+       "mascot": "Wildcats",
+       "prestige": 85,
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Dallas Jesuit",
+       "city": "Dallas",
+       "mascot": "Rangers",
+       "prestige": 83,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Richardson Pearce",
+       "city": "Richardson",
+       "mascot": "Mustangs",
+       "prestige": 79,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Richardson High",
+       "city": "Richardson",
+       "mascot": "Eagles",
+       "prestige": 74,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Richardson Berkner",
+       "city": "Richardson",
+       "mascot": "Rams",
+       "prestige": 72,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Irving MacArthur",
+       "city": "Irving",
+       "mascot": "Cardinals",
+       "prestige": 69,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Irving Nimitz",
+       "city": "Irving",
+       "mascot": "Vikings",
+       "prestige": 64,
+       "primaryColor": "#000000",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Irving High",
+       "city": "Irving",
+       "mascot": "Tigers",
+       "prestige": 58,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 8,
+     "name": "District 8-6A",
+     "area": "Arlington & Grand Prairie",
+     "schools": [
+      {
+       "name": "Arlington Martin",
+       "city": "Arlington",
+       "mascot": "Warriors",
+       "prestige": 89,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Arlington Bowie",
+       "city": "Arlington",
+       "mascot": "Volunteers",
+       "prestige": 84,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "South Grand Prairie",
+       "city": "Grand Prairie",
+       "mascot": "Warriors",
+       "prestige": 81,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Arlington Lamar",
+       "city": "Arlington",
+       "mascot": "Vikings",
+       "prestige": 76,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Arlington High",
+       "city": "Arlington",
+       "mascot": "Colts",
+       "prestige": 74,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Grand Prairie",
+       "city": "Grand Prairie",
+       "mascot": "Gophers",
+       "prestige": 67,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Haltom City Haltom",
+       "city": "Haltom City",
+       "mascot": "Buffaloes",
+       "prestige": 66,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Arlington Sam Houston",
+       "city": "Arlington",
+       "mascot": "Texans",
+       "prestige": 54,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Region 2",
+   "area": "East DFW, East Texas, Central & North Houston",
+   "districts": [
+    {
+     "number": 9,
+     "name": "District 9-6A",
+     "area": "Garland & Wylie",
+     "schools": [
+      {
+       "name": "Garland Sachse",
+       "city": "Sachse",
+       "mascot": "Mustangs",
+       "prestige": 84,
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Wylie East",
+       "city": "Wylie",
+       "mascot": "Raiders",
+       "prestige": 82,
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Wylie High",
+       "city": "Wylie",
+       "mascot": "Pirates",
+       "prestige": 81,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Garland Rowlett",
+       "city": "Rowlett",
+       "mascot": "Eagles",
+       "prestige": 77,
+       "primaryColor": "#006747",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Garland Naaman Forest",
+       "city": "Garland",
+       "mascot": "Rangers",
+       "prestige": 75,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Garland Lakeview Centennial",
+       "city": "Garland",
+       "mascot": "Patriots",
+       "prestige": 72,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "North Garland",
+       "city": "Garland",
+       "mascot": "Raiders",
+       "prestige": 68,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Garland High",
+       "city": "Garland",
+       "mascot": "Owls",
+       "prestige": 67,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "South Garland",
+       "city": "Garland",
+       "mascot": "Colonels",
+       "prestige": 51,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#000000",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 10,
+     "name": "District 10-6A",
+     "area": "East Texas & Rockwall",
+     "schools": [
+      {
+       "name": "Longview",
+       "city": "Longview",
+       "mascot": "Lobos",
+       "prestige": 92,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Rockwall",
+       "city": "Rockwall",
+       "mascot": "Yellowjackets",
+       "prestige": 89,
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Rockwall-Heath",
+       "city": "Heath",
+       "mascot": "Hawks",
+       "prestige": 86,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Forney",
+       "city": "Forney",
+       "mascot": "Jackrabbits",
+       "prestige": 85,
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "North Forney",
+       "city": "Forney",
+       "mascot": "Falcons",
+       "prestige": 80,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Tyler Legacy",
+       "city": "Tyler",
+       "mascot": "Red Raiders",
+       "prestige": 79,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Royse City",
+       "city": "Royse City",
+       "mascot": "Bulldogs",
+       "prestige": 73,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 11,
+     "name": "District 11-6A",
+     "area": "The DFW \"District of Doom\"",
+     "schools": [
+      {
+       "name": "Duncanville",
+       "city": "Duncanville",
+       "mascot": "Panthers",
+       "prestige": 99,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "DeSoto",
+       "city": "DeSoto",
+       "mascot": "Eagles",
+       "prestige": 98,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Lancaster",
+       "city": "Lancaster",
+       "mascot": "Tigers",
+       "prestige": 88,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Waxahachie",
+       "city": "Waxahachie",
+       "mascot": "Indians",
+       "prestige": 86,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cedar Hill",
+       "city": "Cedar Hill",
+       "mascot": "Longhorns",
+       "prestige": 84,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mesquite Horn",
+       "city": "Mesquite",
+       "mascot": "Jaguars",
+       "prestige": 80,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Dallas Skyline",
+       "city": "Dallas",
+       "mascot": "Raiders",
+       "prestige": 77,
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Mesquite High",
+       "city": "Mesquite",
+       "mascot": "Skeeters",
+       "prestige": 71,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 12,
+     "name": "District 12-6A",
+     "area": "Central Texas / Brazos Valley",
+     "schools": [
+      {
+       "name": "Waco Midway",
+       "city": "Hewitt / Waco",
+       "mascot": "Panthers",
+       "prestige": 84,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Killeen Harker Heights",
+       "city": "Harker Heights",
+       "mascot": "Knights",
+       "prestige": 83,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Temple",
+       "city": "Temple",
+       "mascot": "Wildcats",
+       "prestige": 81,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Bryan",
+       "city": "Bryan",
+       "mascot": "Vikings",
+       "prestige": 78,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Killeen Shoemaker",
+       "city": "Killeen",
+       "mascot": "Greywolves",
+       "prestige": 76,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Copperas Cove",
+       "city": "Copperas Cove",
+       "mascot": "Bulldawgs",
+       "prestige": 73,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Killeen High",
+       "city": "Killeen",
+       "mascot": "Kangaroos",
+       "prestige": 69,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 13,
+     "name": "District 13-6A",
+     "area": "North Houston / Conroe ISD",
+     "schools": [
+      {
+       "name": "The Woodlands",
+       "city": "The Woodlands",
+       "mascot": "Highlanders",
+       "prestige": 91,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Willis",
+       "city": "Willis",
+       "mascot": "Wildkats",
+       "prestige": 90,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Woodlands College Park",
+       "city": "The Woodlands",
+       "mascot": "Cavaliers",
+       "prestige": 84,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Conroe Oak Ridge",
+       "city": "Conroe",
+       "mascot": "War Eagles",
+       "prestige": 82,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Conroe Grand Oaks",
+       "city": "Spring",
+       "mascot": "Grizzlies",
+       "prestige": 80,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Conroe High",
+       "city": "Conroe",
+       "mascot": "Tigers",
+       "prestige": 76,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "New Caney",
+       "city": "New Caney",
+       "mascot": "Eagles",
+       "prestige": 74,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Conroe Caney Creek",
+       "city": "Conroe",
+       "mascot": "Panthers",
+       "prestige": 62,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Cleveland",
+       "city": "Cleveland",
+       "mascot": "Indians",
+       "prestige": 50,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 14,
+     "name": "District 14-6A",
+     "area": "North Houston / Spring & Aldine ISD",
+     "schools": [
+      {
+       "name": "Spring Westfield",
+       "city": "Houston / Spring",
+       "mascot": "Mustangs",
+       "prestige": 90,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Spring Dekaney",
+       "city": "Houston / Spring",
+       "mascot": "Wildcats",
+       "prestige": 82,
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Spring High",
+       "city": "Spring",
+       "mascot": "Lions",
+       "prestige": 80,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Houston Benjamin Davis",
+       "city": "Houston (Aldine)",
+       "mascot": "Falcons",
+       "prestige": 76,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Houston Nimitz",
+       "city": "Houston (Aldine)",
+       "mascot": "Cougars",
+       "prestige": 74,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Houston Eisenhower",
+       "city": "Houston (Aldine)",
+       "mascot": "Eagles",
+       "prestige": 72,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Houston MacArthur",
+       "city": "Houston (Aldine)",
+       "mascot": "Generals",
+       "prestige": 67,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Houston Aldine",
+       "city": "Houston (Aldine)",
+       "mascot": "Mustangs",
+       "prestige": 52,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 15,
+     "name": "District 15-6A",
+     "area": "Northwest Houston / Klein & Tomball",
+     "schools": [
+      {
+       "name": "Klein Collins",
+       "city": "Spring",
+       "mascot": "Tigers",
+       "prestige": 88,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Tomball High",
+       "city": "Tomball",
+       "mascot": "Cougars",
+       "prestige": 87,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Klein Cain",
+       "city": "Houston",
+       "mascot": "Hurricanes",
+       "prestige": 86,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Tomball Memorial",
+       "city": "Tomball",
+       "mascot": "Wildcats",
+       "prestige": 84,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Klein Oak",
+       "city": "Spring",
+       "mascot": "Panthers",
+       "prestige": 81,
+       "primaryColor": "#000000",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Magnolia High",
+       "city": "Magnolia",
+       "mascot": "Bulldogs",
+       "prestige": 79,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Magnolia West",
+       "city": "Magnolia",
+       "mascot": "Mustangs",
+       "prestige": 77,
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Klein High",
+       "city": "Klein",
+       "mascot": "Bearkats",
+       "prestige": 75,
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Klein Forest",
+       "city": "Houston",
+       "mascot": "Golden Eagles",
+       "prestige": 70,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 16,
+     "name": "District 16-6A",
+     "area": "Cy-Fair ISD North",
+     "schools": [
+      {
+       "name": "Bridgeland",
+       "city": "Cypress",
+       "mascot": "Bears",
+       "prestige": 90,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cypress Ranch",
+       "city": "Cypress",
+       "mascot": "Mustangs",
+       "prestige": 87,
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cypress Falls",
+       "city": "Houston",
+       "mascot": "Golden Eagles",
+       "prestige": 84,
+       "primaryColor": "#006747",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cypress Woods",
+       "city": "Cypress",
+       "mascot": "Wildcats",
+       "prestige": 83,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cypress Springs",
+       "city": "Cypress",
+       "mascot": "Panthers",
+       "prestige": 81,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Langham Creek",
+       "city": "Houston",
+       "mascot": "Lobos",
+       "prestige": 76,
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cypress Lakes",
+       "city": "Katy",
+       "mascot": "Spartans",
+       "prestige": 66,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cypress Park",
+       "city": "Cypress",
+       "mascot": "Tigers",
+       "prestige": 62,
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Region 3",
+   "area": "Greater Houston, Katy, Fort Bend & Gulf Coast",
+   "districts": [
+    {
+     "number": 17,
+     "name": "District 17-6A",
+     "area": "Cy-Fair & Spring Branch ISD",
+     "schools": [
+      {
+       "name": "Cy-Fair",
+       "city": "Cypress",
+       "mascot": "Bobcats",
+       "prestige": 89,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Houston Stratford",
+       "city": "Houston",
+       "mascot": "Spartans",
+       "prestige": 87,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Jersey Village",
+       "city": "Houston",
+       "mascot": "Falcons",
+       "prestige": 81,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Houston Memorial",
+       "city": "Houston",
+       "mascot": "Mustangs",
+       "prestige": 80,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cypress Creek",
+       "city": "Houston",
+       "mascot": "Cougars",
+       "prestige": 77,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cypress Ridge",
+       "city": "Houston",
+       "mascot": "Rams",
+       "prestige": 72,
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Houston Spring Woods",
+       "city": "Houston",
+       "mascot": "Tigers",
+       "prestige": 55,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Houston Northbrook",
+       "city": "Houston",
+       "mascot": "Raiders",
+       "prestige": 46,
+       "primaryColor": "#003087",
+       "secondaryColor": "#000000",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 18,
+     "name": "District 18-6A",
+     "area": "Houston ISD Inner City",
+     "schools": [
+      {
+       "name": "Houston Lamar",
+       "city": "Houston",
+       "mascot": "Texans",
+       "prestige": 89,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Houston Heights",
+       "city": "Houston",
+       "mascot": "Bulldogs",
+       "prestige": 82,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Houston Bellaire",
+       "city": "Bellaire",
+       "mascot": "Cardinals",
+       "prestige": 74,
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Houston Westside",
+       "city": "Houston",
+       "mascot": "Wolves",
+       "prestige": 71,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Houston Westbury",
+       "city": "Houston",
+       "mascot": "Huskies",
+       "prestige": 66,
+       "primaryColor": "#000000",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Houston Chavez",
+       "city": "Houston",
+       "mascot": "Lobos",
+       "prestige": 62,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Houston Sam Houston",
+       "city": "Houston",
+       "mascot": "Tigers",
+       "prestige": 57,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Houston Wisdom",
+       "city": "Houston",
+       "mascot": "Generals",
+       "prestige": 44,
+       "primaryColor": "#000000",
+       "secondaryColor": "#000000",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 19,
+     "name": "District 19-6A",
+     "area": "Katy ISD",
+     "schools": [
+      {
+       "name": "Katy High",
+       "city": "Katy",
+       "mascot": "Tigers",
+       "prestige": 96,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Katy Jordan",
+       "city": "Fulshear / Katy",
+       "mascot": "Warriors",
+       "prestige": 89,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Katy Tompkins",
+       "city": "Katy",
+       "mascot": "Falcons",
+       "prestige": 88,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Katy Paetow",
+       "city": "Katy",
+       "mascot": "Panthers",
+       "prestige": 86,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Katy Cinco Ranch",
+       "city": "Katy",
+       "mascot": "Cougars",
+       "prestige": 82,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Katy Taylor",
+       "city": "Katy",
+       "mascot": "Mustangs",
+       "prestige": 79,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Katy Seven Lakes",
+       "city": "Katy",
+       "mascot": "Spartans",
+       "prestige": 74,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Katy Morton Ranch",
+       "city": "Katy",
+       "mascot": "Mavericks",
+       "prestige": 71,
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Katy Mayde Creek",
+       "city": "Houston",
+       "mascot": "Rams",
+       "prestige": 69,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 20,
+     "name": "District 20-6A",
+     "area": "Alief, Lamar CISD & Private Invitee",
+     "schools": [
+      {
+       "name": "Fulshear",
+       "city": "Fulshear",
+       "mascot": "Chargers",
+       "prestige": 88,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Houston Strake Jesuit",
+       "city": "Houston",
+       "mascot": "Crusaders",
+       "prestige": 82,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Richmond Foster",
+       "city": "Richmond",
+       "mascot": "Falcons",
+       "prestige": 80,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Richmond George Ranch",
+       "city": "Richmond",
+       "mascot": "Longhorns",
+       "prestige": 78,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Alief Taylor",
+       "city": "Houston",
+       "mascot": "Lions",
+       "prestige": 74,
+       "primaryColor": "#003087",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Alief Hastings",
+       "city": "Houston",
+       "mascot": "Bears",
+       "prestige": 68,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Alief Elsik",
+       "city": "Houston",
+       "mascot": "Rams",
+       "prestige": 65,
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 21,
+     "name": "District 21-6A",
+     "area": "Fort Bend ISD",
+     "schools": [
+      {
+       "name": "Fort Bend Ridge Point",
+       "city": "Missouri City",
+       "mascot": "Panthers",
+       "prestige": 91,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Fort Bend Hightower",
+       "city": "Missouri City",
+       "mascot": "Hurricanes",
+       "prestige": 89,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Fort Bend Travis",
+       "city": "Richmond",
+       "mascot": "Tigers",
+       "prestige": 79,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Fort Bend Elkins",
+       "city": "Missouri City",
+       "mascot": "Knights",
+       "prestige": 76,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Fort Bend Clements",
+       "city": "Sugar Land",
+       "mascot": "Rangers",
+       "prestige": 74,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Fort Bend Bush",
+       "city": "Richmond",
+       "mascot": "Broncos",
+       "prestige": 71,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Fort Bend Austin",
+       "city": "Sugar Land",
+       "mascot": "Bulldogs",
+       "prestige": 68,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Fort Bend Dulles",
+       "city": "Sugar Land",
+       "mascot": "Vikings",
+       "prestige": 60,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 22,
+     "name": "District 22-6A",
+     "area": "Pearland, Brazoria & Pasadena",
+     "schools": [
+      {
+       "name": "Alvin Shadow Creek",
+       "city": "Pearland",
+       "mascot": "Sharks",
+       "prestige": 92,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Pearland",
+       "city": "Pearland",
+       "mascot": "Oilers",
+       "prestige": 88,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Pearland Dawson",
+       "city": "Pearland",
+       "mascot": "Eagles",
+       "prestige": 86,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Manvel",
+       "city": "Manvel",
+       "mascot": "Mavericks",
+       "prestige": 84,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Pasadena Dobie",
+       "city": "Houston",
+       "mascot": "Longhorns",
+       "prestige": 79,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Alvin High",
+       "city": "Alvin",
+       "mascot": "Yellowjackets",
+       "prestige": 72,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Pasadena Memorial",
+       "city": "Pasadena",
+       "mascot": "Mavericks",
+       "prestige": 70,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Pasadena South Houston",
+       "city": "South Houston",
+       "mascot": "Trojans",
+       "prestige": 65,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Pasadena Rayburn",
+       "city": "Pasadena",
+       "mascot": "Texans",
+       "prestige": 54,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 23,
+     "name": "District 23-6A",
+     "area": "East Houston & Humble ISD",
+     "schools": [
+      {
+       "name": "Galena Park North Shore",
+       "city": "Houston",
+       "mascot": "Mustangs",
+       "prestige": 99,
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Humble Summer Creek",
+       "city": "Houston",
+       "mascot": "Bulldogs",
+       "prestige": 95,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Humble Atascocita",
+       "city": "Humble",
+       "mascot": "Eagles",
+       "prestige": 94,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Houston C.E. King",
+       "city": "Houston",
+       "mascot": "Panthers",
+       "prestige": 87,
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Humble Kingwood",
+       "city": "Kingwood",
+       "mascot": "Mustangs",
+       "prestige": 81,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Channelview",
+       "city": "Channelview",
+       "mascot": "Falcons",
+       "prestige": 76,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Humble High",
+       "city": "Humble",
+       "mascot": "Wildcats",
+       "prestige": 74,
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Goose Creek Memorial",
+       "city": "Baytown",
+       "mascot": "Patriots",
+       "prestige": 67,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 24,
+     "name": "District 24-6A",
+     "area": "Clear Creek ISD & Galveston Coast",
+     "schools": [
+      {
+       "name": "Dickinson",
+       "city": "Dickinson",
+       "mascot": "Gators",
+       "prestige": 89,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Deer Park",
+       "city": "Deer Park",
+       "mascot": "Deer",
+       "prestige": 85,
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "League City Clear Springs",
+       "city": "League City",
+       "mascot": "Chargers",
+       "prestige": 84,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "League City Clear Falls",
+       "city": "League City",
+       "mascot": "Knights",
+       "prestige": 82,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Houston Clear Lake",
+       "city": "Houston",
+       "mascot": "Falcons",
+       "prestige": 77,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Friendswood Clear Brook",
+       "city": "Friendswood",
+       "mascot": "Wolverines",
+       "prestige": 73,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "League City Clear Creek",
+       "city": "League City",
+       "mascot": "Wildcats",
+       "prestige": 72,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Clute Brazoswood",
+       "city": "Clute",
+       "mascot": "Buccaneers",
+       "prestige": 68,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#000000",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Region 4",
+   "area": "Central Texas, San Antonio, Laredo & Rio Grande Valley",
+   "districts": [
+    {
+     "number": 25,
+     "name": "District 25-6A",
+     "area": "Austin North / Leander & Round Rock",
+     "schools": [
+      {
+       "name": "Austin Vandegrift",
+       "city": "Austin",
+       "mascot": "Vipers",
+       "prestige": 94,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cedar Park Vista Ridge",
+       "city": "Cedar Park",
+       "mascot": "Rangers",
+       "prestige": 82,
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Round Rock Westwood",
+       "city": "Austin",
+       "mascot": "Warriors",
+       "prestige": 81,
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cedar Park High",
+       "city": "Cedar Park",
+       "mascot": "Timberwolves",
+       "prestige": 80,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Hutto",
+       "city": "Hutto",
+       "mascot": "Hippos",
+       "prestige": 79,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Leander Rouse",
+       "city": "Leander",
+       "mascot": "Raiders",
+       "prestige": 76,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Leander High",
+       "city": "Leander",
+       "mascot": "Lions",
+       "prestige": 69,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 26,
+     "name": "District 26-6A",
+     "area": "Central Austin & Hill Country",
+     "schools": [
+      {
+       "name": "Austin Westlake",
+       "city": "Austin",
+       "mascot": "Chaparrals",
+       "prestige": 98,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Austin Lake Travis",
+       "city": "Austin",
+       "mascot": "Cavaliers",
+       "prestige": 95,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Dripping Springs",
+       "city": "Dripping Springs",
+       "mascot": "Tigers",
+       "prestige": 90,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Austin Bowie",
+       "city": "Austin",
+       "mascot": "Bulldogs",
+       "prestige": 81,
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Buda Johnson",
+       "city": "Buda",
+       "mascot": "Jaguars",
+       "prestige": 80,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Austin High",
+       "city": "Austin",
+       "mascot": "Maroons",
+       "prestige": 74,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Buda Hays",
+       "city": "Buda",
+       "mascot": "Hawks",
+       "prestige": 72,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Del Valle",
+       "city": "Del Valle",
+       "mascot": "Cardinals",
+       "prestige": 69,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Austin Akins",
+       "city": "Austin",
+       "mascot": "Eagles",
+       "prestige": 50,
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 27,
+     "name": "District 27-6A",
+     "area": "Round Rock ISD & Manor",
+     "schools": [
+      {
+       "name": "Round Rock High",
+       "city": "Round Rock",
+       "mascot": "Dragons",
+       "prestige": 86,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Round Rock Cedar Ridge",
+       "city": "Round Rock",
+       "mascot": "Raiders",
+       "prestige": 82,
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Round Rock Stony Point",
+       "city": "Round Rock",
+       "mascot": "Tigers",
+       "prestige": 80,
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Manor",
+       "city": "Manor",
+       "mascot": "Mustangs",
+       "prestige": 77,
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Round Rock McNeil",
+       "city": "Austin",
+       "mascot": "Mavericks",
+       "prestige": 74,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 28,
+     "name": "District 28-6A",
+     "area": "San Antonio North East & Comal County",
+     "schools": [
+      {
+       "name": "San Antonio Reagan",
+       "city": "San Antonio",
+       "mascot": "Rattlers",
+       "prestige": 90,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Antonio Johnson",
+       "city": "San Antonio",
+       "mascot": "Jaguars",
+       "prestige": 89,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Antonio Churchill",
+       "city": "San Antonio",
+       "mascot": "Chargers",
+       "prestige": 79,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "San Antonio Roosevelt",
+       "city": "San Antonio",
+       "mascot": "Rough Riders",
+       "prestige": 77,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Antonio Madison",
+       "city": "San Antonio",
+       "mascot": "Mavericks",
+       "prestige": 76,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "San Antonio Clark",
+       "city": "San Antonio",
+       "mascot": "Cougars",
+       "prestige": 74,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "San Antonio Brandeis",
+       "city": "San Antonio",
+       "mascot": "Broncos",
+       "prestige": 73,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Antonio LEE",
+       "city": "San Antonio",
+       "mascot": "Volunteers",
+       "prestige": 56,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 29,
+     "name": "District 29-6A",
+     "area": "San Antonio Northside ISD & Cibolo",
+     "schools": [
+      {
+       "name": "Cibolo Steele",
+       "city": "Cibolo",
+       "mascot": "Knights",
+       "prestige": 94,
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Antonio Brennan",
+       "city": "San Antonio",
+       "mascot": "Bears",
+       "prestige": 91,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Antonio Harlan",
+       "city": "San Antonio",
+       "mascot": "Hawks",
+       "prestige": 86,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Converse Judson",
+       "city": "Converse",
+       "mascot": "Rockets",
+       "prestige": 85,
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "San Antonio Sotomayor",
+       "city": "San Antonio",
+       "mascot": "WILDCATS",
+       "prestige": 82,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "San Antonio Taft",
+       "city": "San Antonio",
+       "mascot": "Raiders",
+       "prestige": 79,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Antonio East Central",
+       "city": "San Antonio",
+       "mascot": "Hornets",
+       "prestige": 77,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Schertz Clemens",
+       "city": "Schertz",
+       "mascot": "Buffaloes",
+       "prestige": 75,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Antonio O'Connor",
+       "city": "Helotes",
+       "mascot": "Panthers",
+       "prestige": 74,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "San Marcos",
+       "city": "San Marcos",
+       "mascot": "Rattlers",
+       "prestige": 72,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Antonio Marshall",
+       "city": "San Antonio",
+       "mascot": "Rams",
+       "prestige": 68,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "San Antonio Warren",
+       "city": "San Antonio",
+       "mascot": "Warriors",
+       "prestige": 67,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "San Antonio Holmes",
+       "city": "San Antonio",
+       "mascot": "Huskies",
+       "prestige": 58,
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "San Antonio Stevens",
+       "city": "San Antonio",
+       "mascot": "Falcons",
+       "prestige": 57,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "San Antonio Jay",
+       "city": "San Antonio",
+       "mascot": "Mustangs",
+       "prestige": 55,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#000000",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 30,
+     "name": "District 30-6A",
+     "area": "Laredo, Eagle Pass & Del Rio",
+     "schools": [
+      {
+       "name": "Laredo United",
+       "city": "Laredo",
+       "mascot": "Longhorns",
+       "prestige": 83,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Laredo Alexander",
+       "city": "Laredo",
+       "mascot": "Bulldogs",
+       "prestige": 81,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Eagle Pass",
+       "city": "Eagle Pass",
+       "mascot": "Eagles",
+       "prestige": 79,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Medina Valley",
+       "city": "Castroville",
+       "mascot": "Panthers",
+       "prestige": 78,
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Laredo United South",
+       "city": "Laredo",
+       "mascot": "Panthers",
+       "prestige": 76,
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Del Rio",
+       "city": "Del Rio",
+       "mascot": "Rams",
+       "prestige": 72,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Laredo LBJ",
+       "city": "Laredo",
+       "mascot": "Wolves",
+       "prestige": 64,
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 31,
+     "name": "District 31-6A",
+     "area": "Rio Grande Valley Upper",
+     "schools": [
+      {
+       "name": "Weslaco High",
+       "city": "Weslaco",
+       "mascot": "Panthers",
+       "prestige": 82,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFD700",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "PSJA High",
+       "city": "San Juan",
+       "mascot": "Bears",
+       "prestige": 81,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Edinburg Economedes",
+       "city": "Edinburg",
+       "mascot": "Jaguars",
+       "prestige": 77,
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Edinburg North",
+       "city": "Edinburg",
+       "mascot": "Cougars",
+       "prestige": 75,
+       "primaryColor": "#00205B",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Edinburg High",
+       "city": "Edinburg",
+       "mascot": "Bobcats",
+       "prestige": 73,
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "La Joya High",
+       "city": "La Joya",
+       "mascot": "Coyotes",
+       "prestige": 66,
+       "primaryColor": "#002D62",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 32,
+     "name": "District 32-6A",
+     "area": "Rio Grande Valley Coastal / Lower",
+     "schools": [
+      {
+       "name": "Los Fresnos",
+       "city": "Los Fresnos",
+       "mascot": "Falcons",
+       "prestige": 83,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#000000",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Harlingen High",
+       "city": "Harlingen",
+       "mascot": "Cardinals",
+       "prestige": 82,
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Brownsville Veterans Memorial",
+       "city": "Brownsville",
+       "mascot": "Chargers",
+       "prestige": 80,
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFFFFF",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Benito",
+       "city": "San Benito",
+       "mascot": "Greyhounds",
+       "prestige": 79,
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Harlingen South",
+       "city": "Harlingen",
+       "mascot": "Hawks",
+       "prestige": 74,
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

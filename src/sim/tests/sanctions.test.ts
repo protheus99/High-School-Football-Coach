@@ -43,9 +43,9 @@ describe('State association sanctions', () => {
 
     useGameStore.getState().advanceWeek(); // week 14 -> postseason
     const bracket = useGameStore.getState().playoffBracket!;
-    const bracketIds = bracket.bracket.biDistrict.flatMap((n) => [n.team1.id, n.team2.id]);
+    const bracketIds = bracket.divisions.flatMap((d) => d.rounds[0]).flatMap((n) => [n.team1.id, n.team2.id]);
     expect(bracketIds).not.toContain(userTeamId);
-    expect(new Set(bracketIds).size).toBe(16);
+    expect(new Set(bracketIds).size).toBe(128);
   });
 
   it('do not escalate while compliance is healthy', () => {

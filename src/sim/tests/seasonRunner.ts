@@ -1,8 +1,9 @@
-import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../../generators/rosterGenerator';
+import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { simulateSnap } from '../matchEngine';
 import { simulateMacroMatch, teamStarterRating } from '../macroSim';
 import { processPostGameSeasonWear, processWeeklyInjuryHealing, evaluateAcademicReport } from '../playerEngine';
-import { buildInitialPlayoffBracket, advancePlayoffRound } from '../playoffEngine';
+import { buildPlayoffBracket, advancePlayoffRound } from '../playoffEngine';
+import { buildCustomLeague, leagueRegionTeams } from '../league';
 import { calculateSeasonAwards } from '../awardsEngine';
 import { applyGameResult, simulateRegularSeason } from '../scheduleEngine';
 import { advanceTeamToNextSeason } from '../offseasonEngine';
@@ -79,18 +80,19 @@ export function runDynastySimulation(numYears = 3): void {
     console.log(`Regular Season Complete: ${userTeam.name} finished ${userTeam.record.wins}-${userTeam.record.losses}`);
 
     // 2. State Playoffs (Weeks 15 to 18)
-    const [districtB, districtC, districtD] = [NEIGHBOR_DISTRICT_SCHOOLS, ...PLAYOFF_REGION_DISTRICT_SCHOOLS].map((schools, i) =>
-      generateDistrictTeams(`tx_6a_d${25 + i}`, schools)
+    // The user's district plus three generated districts form a 16-team bracket
+    const world = buildCustomLeague(districtTeams, 'Runner District');
+    const regions = leagueRegionTeams(world.league, world.teams);
+    simulateRegularSeason([[regions[0][1]], regions[1]], calendarYear); // the user's district already played
+    let playoffBracket = buildPlayoffBracket(
+      world.league.regions.map((region, i) => ({ name: region.name, districts: regions[i] })),
+      { splitDivisions: false }
     );
-    simulateRegularSeason(districtB, districtC, calendarYear);
-    simulateRegularSeason(districtD, [], calendarYear); // district round robin only
-    let playoffBracket = buildInitialPlayoffBracket([districtTeams, districtB, districtC, districtD]);
-
     while (playoffBracket.isPlayoffsActive) {
-      playoffBracket = advancePlayoffRound(playoffBracket, userTeam.id);
+      playoffBracket = advancePlayoffRound(playoffBracket);
     }
 
-    console.log(`Playoffs Finished. State Champion: ${playoffBracket.stateChampionTeamId || 'Decided'}`);
+    console.log(`Playoffs Finished. State Champion: ${playoffBracket.divisions[0].championTeamId || 'Decided'}`);
 
     // 3. Postseason Awards
     const awards = calculateSeasonAwards(calendarYear, districtTeams);

@@ -67,7 +67,23 @@ export const PLAYOFF_REGION_DISTRICT_SCHOOLS = [
   ]
 ];
 
-type SchoolIdentity = (typeof HIGH_SCHOOL_NAMES)[number];
+/** A school to generate: colors and mascot, plus optional real-world prestige (PPI) and schemes. */
+export interface SchoolIdentity {
+  name: string;
+  mascot: string;
+  primary: string;
+  secondary: string;
+  prestige?: number;
+  offenseScheme?: OffensiveScheme;
+  defenseScheme?: DefensiveScheme;
+}
+
+/** Stable pseudo-random enrollment (6A range) from the school name; used for the UIL D1/D2 split. */
+export function schoolEnrollment(name: string): number {
+  let hash = 0;
+  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return 2300 + (hash % 2700);
+}
 
 let playerIdCounter = 0;
 
@@ -201,7 +217,7 @@ export function generateProceduralPlayer(position: Position, classYear: PlayerCl
   };
 }
 
-export function generateCompleteTeamRoster(): Player[] {
+export function generateCompleteTeamRoster(talentAdjustment = 0): Player[] {
   const classes: PlayerClass[] = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
   const roster: Player[] = [];
 
@@ -209,7 +225,7 @@ export function generateCompleteTeamRoster(): Player[] {
   (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => {
     const { roster: size, starters } = DEPTH_TEMPLATE[pos];
     for (let i = 0; i < size; i++) {
-      roster.push(generateProceduralPlayer(pos, classes[randomInt(0, classes.length - 1)], i < starters ? 1 : 2));
+      roster.push(generateProceduralPlayer(pos, classes[randomInt(0, classes.length - 1)], i < starters ? 1 : 2, talentAdjustment));
     }
   });
 
@@ -217,13 +233,21 @@ export function generateCompleteTeamRoster(): Player[] {
   return roster;
 }
 
-export function generateDistrictTeams(districtId = 'tx_6a_d26', schools: SchoolIdentity[] = HIGH_SCHOOL_NAMES): Team[] {
+/**
+ * Generates a district's teams. When `talentFromPrestige` is set, schools with a real prestige rating get
+ * rosters that lean toward it (a PPI-95 powerhouse rolls about +6 OVR, a PPI-50 program about -8).
+ */
+export function generateDistrictTeams(
+  districtId = 'tx_6a_d26',
+  schools: SchoolIdentity[] = HIGH_SCHOOL_NAMES,
+  options: { talentFromPrestige?: boolean; state?: string } = {}
+): Team[] {
   const schemesOffense: OffensiveScheme[] = ['TRIPLE_OPTION', 'AIR_RAID', 'POWER_I', 'SPREAD'];
   const schemesDefense: DefensiveScheme[] = ['FOUR_THREE', 'FOUR_FOUR', 'THREE_THREE_FIVE', 'DROP_EIGHT'];
 
   return schools.map((hs, i) => {
-    const roster = generateCompleteTeamRoster();
-    const prestige = randomInt(68, 92);
+    const prestige = hs.prestige ?? randomInt(68, 92);
+    const roster = generateCompleteTeamRoster(options.talentFromPrestige ? Math.round((prestige - 75) * 0.3) : 0);
 
     return {
       id: `team_${hs.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
@@ -235,8 +259,10 @@ export function generateDistrictTeams(districtId = 'tx_6a_d26', schools: SchoolI
       secondaryColor: hs.secondary,
       prestige,
       playbookFamiliarity: randomInt(70, 90),
-      schemeOffense: schemesOffense[i % schemesOffense.length],
-      schemeDefense: schemesDefense[i % schemesDefense.length],
+      schemeOffense: hs.offenseScheme ?? schemesOffense[i % schemesOffense.length],
+      schemeDefense: hs.defenseScheme ?? schemesDefense[i % schemesDefense.length],
+      enrollment: schoolEnrollment(hs.name),
+      ...(options.state && { state: options.state }),
       programMeters: {
         schoolBoardTrust: randomInt(75, 90),
         boosterApproval: randomInt(70, 92),
@@ -245,7 +271,7 @@ export function generateDistrictTeams(districtId = 'tx_6a_d26', schools: SchoolI
       },
       staff: {
         headCoachId: `coach_${i}`,
-        headCoachName: `Coach ${LAST_NAMES[i]}`,
+        headCoachName: `Coach ${LAST_NAMES[i % LAST_NAMES.length]}`,
         reputation: prestige - randomInt(0, 10),
         offensiveCoordinator: { name: `OC ${LAST_NAMES[(i + 1) % LAST_NAMES.length]}`, playCalling: randomInt(65, 88), qbWhispering: randomInt(60, 85) },
         defensiveCoordinator: { name: `DC ${LAST_NAMES[(i + 2) % LAST_NAMES.length]}`, schemeDiscipline: randomInt(65, 88), tacklingTech: randomInt(60, 85) },

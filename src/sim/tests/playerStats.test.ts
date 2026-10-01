@@ -110,7 +110,7 @@ describe('Recording a finished live game', () => {
     const [home, away] = generateDistrictTeams();
     useGameStore.setState({
       districtTeams: [home, away],
-      neighborDistrictTeams: [],
+      leagueTeams: [home, away],
       userTeamId: home.id,
       playoffBracket: null,
       currentWeek: 8,

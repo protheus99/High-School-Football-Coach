@@ -1,4 +1,6 @@
 import Dexie, { Table } from 'dexie';
+import type { LeagueStructure } from '../sim/league';
+import type { PlayoffBracketState } from '../sim/playoffEngine';
 import { Team, NarrativeDilemma, FeederProspect, CompactBoxScore, ScheduledGame, DilemmaRecord } from '../types/game';
 
 export interface GameSaveRecord {
@@ -13,9 +15,13 @@ export interface GameSaveRecord {
   activeDilemma: NarrativeDilemma | null;
   scoutingPool: FeederProspect[];
   history: CompactBoxScore[];
-  // Added with the season schedule; older saves may not have them
+  // Added with the season schedule / league world; older saves may not have them
   currentYear?: number;
-  neighborDistrictTeams?: Team[];
+  neighborDistrictTeams?: Team[]; // pre-league saves only
+  league?: LeagueStructure;
+  leagueTeams?: Team[];
+  playoffBracket?: PlayoffBracketState | null;
+  sanctionLevel?: 0 | 1 | 2 | 3;
   seasonSchedule?: ScheduledGame[];
   dilemmaLog?: DilemmaRecord[];
 }

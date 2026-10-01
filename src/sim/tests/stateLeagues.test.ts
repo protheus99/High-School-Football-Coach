@@ -31,7 +31,7 @@ describe('Real state district files', () => {
           expect(DEFENSES).toContain(t.schemeDefense);
           expect(t.state).toBe(state.state);
         });
-        const schedule = generateSeasonSchedule(teams, neighbor, 2026);
+        const schedule = generateSeasonSchedule([[teams, neighbor]], 2026);
         expect(Math.max(...schedule.map((g) => g.week))).toBeLessThanOrEqual(LAST_REGULAR_SEASON_WEEK);
       }
     }
