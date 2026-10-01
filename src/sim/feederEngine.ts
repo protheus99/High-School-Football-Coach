@@ -1,5 +1,6 @@
 import { FeederOutcome, FeederOutcomeType, FeederProspect, Player, PlayerClass, Position, PotentialGrade, ProspectSource, Team } from '../types/game';
-import { FIRST_NAMES, LAST_NAMES, generateProceduralPlayer, rollTalent } from '../generators/rosterGenerator';
+import { generateProceduralPlayer, rollTalent } from '../generators/rosterGenerator';
+import { randomPlayerName } from '../generators/names';
 import { clamp, randomInt } from './math/variance';
 
 // ============================================================================
@@ -129,9 +130,8 @@ export function createProspect(source: ProspectSource, team: Team, takenNames: S
   }
 
   overall = clamp(Math.round(overall), 35, 95);
-  let name = `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`;
-  for (let tries = 0; tries < 20 && takenNames.has(name); tries++) name = `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`;
-  takenNames.add(name);
+  const { firstName, lastName } = randomPlayerName(team.nameProfile, takenNames);
+  const name = `${firstName} ${lastName}`;
   return {
     id: `prospect_${Date.now()}_${++prospectCounter}`,
     name,

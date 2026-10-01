@@ -1,6 +1,7 @@
 import { OffensiveScheme, DefensiveScheme, Team } from '../types/game';
 import texas6A from '../data/texas-6a.json';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
+import { nameProfileForArea } from '../generators/names';
 import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 
 export interface LeagueDistrict {
@@ -44,7 +45,7 @@ export function buildTexasLeague(): { league: LeagueStructure; teams: Team[]; us
           offenseScheme: s.offenseScheme as OffensiveScheme,
           defenseScheme: s.defenseScheme as DefensiveScheme
         })),
-        { talentFromPrestige: true, state: 'Texas' }
+        { talentFromPrestige: true, state: 'Texas', nameProfile: nameProfileForArea(district.area) }
       );
       teams.push(...districtTeams);
       return { id: `tx_6a_d${district.number}`, name: district.name, area: district.area, teamIds: districtTeams.map((t) => t.id) };

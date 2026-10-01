@@ -7,7 +7,8 @@ import { randomInt } from './math/variance';
 
 // Incoming freshmen roll starter-level talent minus a youth penalty; three years of progression
 // brings them back to the level of the generated rosters, keeping program strength stable
-const newFreshman = (pos: Position) => generateProceduralPlayer(pos, 'Freshman', 1, -randomInt(4, 8));
+const newFreshman = (pos: Position, team: Team, takenNames: Set<string>) =>
+  generateProceduralPlayer(pos, 'Freshman', 1, -randomInt(4, 8), { nameProfile: team.nameProfile, takenNames });
 
 const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior' } as const;
 
@@ -31,6 +32,7 @@ export function advanceTeamToNextSeason(team: Team, incomingPlayers: Player[] = 
   });
 
   const freshmen: Player[] = [];
+  const takenNames = new Set(team.roster.map((p) => `${p.firstName} ${p.lastName}`));
   const countAt = (pos: Position) => team.roster.filter((p) => p.position === pos).length;
 
   // Newcomers from the feeder pipeline join first (even beyond the template), then open spots are filled
@@ -40,7 +42,7 @@ export function advanceTeamToNextSeason(team: Team, incomingPlayers: Player[] = 
   });
   (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => {
     while (countAt(pos) < DEPTH_TEMPLATE[pos].roster) {
-      const player = newFreshman(pos);
+      const player = newFreshman(pos, team, takenNames);
       team.roster.push(player);
       freshmen.push(player);
     }

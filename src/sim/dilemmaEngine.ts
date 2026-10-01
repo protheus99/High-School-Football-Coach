@@ -1,6 +1,7 @@
 import { NarrativeDilemma, Team, DilemmaChoice, Player, Position } from '../types/game';
 import { generateProceduralPlayer } from '../generators/rosterGenerator';
 import { rebuildDepthChart } from './depthChart';
+import { randomPlayerName } from '../generators/names';
 import { randomInt } from './math/variance';
 
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices
@@ -90,7 +91,8 @@ const TEMPLATES: DilemmaTemplate[] = [
       const positions: Position[] = ['QB', 'RB', 'WR', 'LB', 'CB', 'DE'];
       const position = pick(positions)!;
       const overallRating = randomInt(74, 86);
-      const name = `${pick(['Jaylen', 'Marcus', 'Trey', 'Isaiah', 'Caden', 'Darius'])} ${pick(['Brooks', 'Hayes', 'Reed', 'Coleman', 'Ellis', 'Foster'])}`;
+      const generatedName = randomPlayerName();
+      const name = `${generatedName.firstName} ${generatedName.lastName}`;
       const transfer = { position, overallRating, name };
       return {
         title: 'Out-of-District Transfer',

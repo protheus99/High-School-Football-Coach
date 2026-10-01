@@ -9,16 +9,9 @@ import {
 } from '../types/game';
 import { calculateGaussianVariance, clamp, randomInt } from '../sim/math/variance';
 import { DEPTH_TEMPLATE, rebuildDepthChart } from '../sim/depthChart';
+import { NameProfile, randomPlayerName, randomSurname } from './names';
 
-export const FIRST_NAMES = [
-  'Marcus', 'Trevor', 'DeShawn', 'Colt', 'Brayden', 'Jalen', 'Cody', 'Ty', 'Elijah', 'Wyatt',
-  'Austin', 'Kevon', 'Garrett', 'Malik', 'Brock', 'Dante', 'Tanner', 'Zion', 'Hunter', 'Kaden'
-];
-
-export const LAST_NAMES = [
-  'Miller', 'Washington', 'Johnson', 'McCoy', 'Williams', 'Strickland', 'Vance', 'Carter',
-  'Holloway', 'Beckham', 'Bradford', 'Singleton', 'Odom', 'Broussard', 'Chambers', 'Landry'
-];
+// Player and coach names come from ./names (realistic, region-aware pools)
 
 const HIGH_SCHOOL_NAMES = [
   { name: 'Westlake', mascot: 'Chaparrals', primary: '#002D62', secondary: '#C4D600' },
@@ -105,6 +98,8 @@ export interface PlayerOverrides {
   potential?: PotentialGrade;
   speed?: number;
   strength?: number;
+  nameProfile?: NameProfile; // regional name mix (border regions lean Hispanic)
+  takenNames?: Set<string>; // avoid duplicate full names on the same roster
 }
 
 export function generateProceduralPlayer(
@@ -114,8 +109,9 @@ export function generateProceduralPlayer(
   ovrAdjustment = 0,
   overrides: PlayerOverrides = {}
 ): Player {
-  const firstName = overrides.firstName ?? FIRST_NAMES[randomInt(0, FIRST_NAMES.length - 1)];
-  const lastName = overrides.lastName ?? LAST_NAMES[randomInt(0, LAST_NAMES.length - 1)];
+  const generated = overrides.firstName && overrides.lastName ? undefined : randomPlayerName(overrides.nameProfile, overrides.takenNames);
+  const firstName = overrides.firstName ?? generated!.firstName;
+  const lastName = overrides.lastName ?? generated!.lastName;
 
   // Age based on class
   const ageMap: Record<PlayerClass, number> = {
@@ -227,15 +223,16 @@ export function generateProceduralPlayer(
   };
 }
 
-export function generateCompleteTeamRoster(talentAdjustment = 0): Player[] {
+export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: NameProfile = 'DEFAULT'): Player[] {
   const classes: PlayerClass[] = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
   const roster: Player[] = [];
+  const takenNames = new Set<string>();
 
   // Starter slots roll first-string talent, depth slots roll backups; then the best player at each position starts
   (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => {
     const { roster: size, starters } = DEPTH_TEMPLATE[pos];
     for (let i = 0; i < size; i++) {
-      roster.push(generateProceduralPlayer(pos, classes[randomInt(0, classes.length - 1)], i < starters ? 1 : 2, talentAdjustment));
+      roster.push(generateProceduralPlayer(pos, classes[randomInt(0, classes.length - 1)], i < starters ? 1 : 2, talentAdjustment, { nameProfile, takenNames }));
     }
   });
 
@@ -250,14 +247,15 @@ export function generateCompleteTeamRoster(talentAdjustment = 0): Player[] {
 export function generateDistrictTeams(
   districtId = 'tx_6a_d26',
   schools: SchoolIdentity[] = HIGH_SCHOOL_NAMES,
-  options: { talentFromPrestige?: boolean; state?: string } = {}
+  options: { talentFromPrestige?: boolean; state?: string; nameProfile?: NameProfile } = {}
 ): Team[] {
   const schemesOffense: OffensiveScheme[] = ['TRIPLE_OPTION', 'AIR_RAID', 'POWER_I', 'SPREAD'];
   const schemesDefense: DefensiveScheme[] = ['FOUR_THREE', 'FOUR_FOUR', 'THREE_THREE_FIVE', 'DROP_EIGHT'];
 
   return schools.map((hs, i) => {
     const prestige = hs.prestige ?? randomInt(68, 92);
-    const roster = generateCompleteTeamRoster(options.talentFromPrestige ? Math.round((prestige - 75) * 0.3) : 0);
+    const nameProfile = options.nameProfile ?? 'DEFAULT';
+    const roster = generateCompleteTeamRoster(options.talentFromPrestige ? Math.round((prestige - 75) * 0.3) : 0, nameProfile);
 
     return {
       id: `team_${hs.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
@@ -272,6 +270,7 @@ export function generateDistrictTeams(
       schemeOffense: hs.offenseScheme ?? schemesOffense[i % schemesOffense.length],
       schemeDefense: hs.defenseScheme ?? schemesDefense[i % schemesDefense.length],
       enrollment: schoolEnrollment(hs.name),
+      nameProfile,
       ...(options.state && { state: options.state }),
       programMeters: {
         schoolBoardTrust: randomInt(75, 90),
@@ -281,11 +280,11 @@ export function generateDistrictTeams(
       },
       staff: {
         headCoachId: `coach_${i}`,
-        headCoachName: `Coach ${LAST_NAMES[i % LAST_NAMES.length]}`,
+        headCoachName: `Coach ${randomSurname(nameProfile)}`,
         reputation: prestige - randomInt(0, 10),
-        offensiveCoordinator: { name: `OC ${LAST_NAMES[(i + 1) % LAST_NAMES.length]}`, playCalling: randomInt(65, 88), qbWhispering: randomInt(60, 85) },
-        defensiveCoordinator: { name: `DC ${LAST_NAMES[(i + 2) % LAST_NAMES.length]}`, schemeDiscipline: randomInt(65, 88), tacklingTech: randomInt(60, 85) },
-        strengthCoach: { name: `Trainer ${LAST_NAMES[(i + 3) % LAST_NAMES.length]}`, conditioningRating: randomInt(70, 90) }
+        offensiveCoordinator: { name: `OC ${randomSurname(nameProfile)}`, playCalling: randomInt(65, 88), qbWhispering: randomInt(60, 85) },
+        defensiveCoordinator: { name: `DC ${randomSurname(nameProfile)}`, schemeDiscipline: randomInt(65, 88), tacklingTech: randomInt(60, 85) },
+        strengthCoach: { name: `Trainer ${randomSurname(nameProfile)}`, conditioningRating: randomInt(70, 90) }
       },
       roster,
       record: {
