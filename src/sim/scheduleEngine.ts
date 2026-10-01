@@ -133,3 +133,42 @@ export function simulateRegularSeason(districtA: Team[], districtB: Team[], year
     applyGameResult(home, away, box.homeScore, box.awayScore, game.isDistrictGame);
   }
 }
+
+/**
+ * State association forfeit (design spec 12.2): the team's most recent district win becomes a
+ * 1-0 forfeit loss, reversing both teams' records and the head-to-head entry. Returns the game, if any.
+ */
+export function forfeitMostRecentDistrictWin(schedule: ScheduledGame[], teams: Team[], teamId: string): ScheduledGame | undefined {
+  const won = (g: ScheduledGame) =>
+    g.homeScore !== undefined && g.awayScore !== undefined &&
+    (g.homeTeamId === teamId ? g.homeScore > g.awayScore : g.awayScore > g.homeScore);
+  const game = schedule
+    .filter((g) => g.isDistrictGame && !g.forfeitedByTeamId && (g.homeTeamId === teamId || g.awayTeamId === teamId) && won(g))
+    .sort((a, b) => b.week - a.week)[0];
+  if (!game) return undefined;
+
+  const team = teams.find((t) => t.id === teamId);
+  const opponentId = game.homeTeamId === teamId ? game.awayTeamId : game.homeTeamId;
+  const opponent = teams.find((t) => t.id === opponentId);
+  if (!team || !opponent) return undefined;
+
+  const teamScore = game.homeTeamId === teamId ? game.homeScore! : game.awayScore!;
+  const opponentScore = game.homeTeamId === teamId ? game.awayScore! : game.homeScore!;
+  const oldCapped = Math.max(-DISTRICT_POINT_DIFFERENTIAL_CAP, Math.min(DISTRICT_POINT_DIFFERENTIAL_CAP, teamScore - opponentScore));
+
+  team.record.wins -= 1;
+  team.record.losses += 1;
+  team.record.districtWins -= 1;
+  team.record.districtLosses += 1;
+  team.record.districtPointDifferential += -1 - oldCapped;
+  opponent.record.wins += 1;
+  opponent.record.losses -= 1;
+  opponent.record.districtWins += 1;
+  opponent.record.districtLosses -= 1;
+  opponent.record.districtPointDifferential += 1 + oldCapped;
+  team.record.headToHeadHistory[opponentId] = { opponentTeamId: opponentId, won: false, pointsFor: 0, pointsAgainst: 1, pointDifferentialCapped: -1 };
+  opponent.record.headToHeadHistory[teamId] = { opponentTeamId: teamId, won: true, pointsFor: 1, pointsAgainst: 0, pointDifferentialCapped: 1 };
+
+  game.forfeitedByTeamId = teamId;
+  return game;
+}

@@ -296,6 +296,7 @@ export interface ScheduledGame {
   isDistrictGame: boolean;
   homeScore?: number;
   awayScore?: number;
+  forfeitedByTeamId?: string; // state association sanction: result recorded as a 1-0 forfeit loss
 }
 
 /** A resolved dilemma; risky/corrupt choices may be exposed by a whistleblower in a later week. */

@@ -25,7 +25,13 @@ export const ScheduleView: React.FC = () => {
       type: getSeasonPhase(weekNum),
       opponent: allTeams.find((t) => t.id === opponentId) ?? null,
       isHome,
-      result: played ? `${userScore! > opponentScore! ? 'W' : 'L'} ${userScore}-${opponentScore}` : null,
+      result: !played
+        ? null
+        : scheduled!.forfeitedByTeamId === userTeamId
+          ? 'L (forfeit)'
+          : scheduled!.forfeitedByTeamId
+            ? 'W (forfeit)'
+            : `${userScore! > opponentScore! ? 'W' : 'L'} ${userScore}-${opponentScore}`,
       isCurrent: weekNum === currentWeek,
       isCompleted: weekNum < currentWeek
     };

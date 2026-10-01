@@ -17,7 +17,7 @@ const TIER_COLORS: Record<string, string> = { GOOD: '#059669', COMPROMISE: '#256
 export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
 
 export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void }> = ({ onLaunchGame }) => {
-  const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId, activeDilemma, resolveDilemma, advanceWeek } = useGameStore();
+  const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId, activeDilemma, resolveDilemma, advanceWeek, sanctionLevel } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
 
@@ -79,6 +79,15 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
         <MeterCard label="Discipline" val={userTeam.programMeters.lockerRoomDiscipline} color="#3B82F6" />
         <MeterCard label="Compliance" val={userTeam.programMeters.complianceScore} color="#EC4899" />
       </div>
+
+      {/* State Association Sanctions */}
+      {sanctionLevel > 0 && (
+        <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#991B1B' }}>
+          <strong>⚖️ STATE ASSOCIATION SANCTIONS:</strong>{' '}
+          {['', 'Public reprimand issued.', 'A district win has been forfeited.', 'Program banned from the state playoffs.'][sanctionLevel]}{' '}
+          {sanctionLevel < 3 && 'Raise Compliance above 40 to stop further penalties.'}
+        </div>
+      )}
 
       {/* Active Dilemma Banner */}
       {activeDilemma && (

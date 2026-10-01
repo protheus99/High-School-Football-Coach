@@ -13,7 +13,7 @@ import {
   DilemmaRecord
 } from '../types/game';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
-import { applyGameResult, generateSeasonSchedule, getTeamGameForWeek, simulateRegularSeason } from '../sim/scheduleEngine';
+import { applyGameResult, forfeitMostRecentDistrictWin, generateSeasonSchedule, getTeamGameForWeek, simulateRegularSeason, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
 import { randomInt } from '../sim/math/variance';
 import { generateMiddleSchoolProspects, evaluateCollegeScoutExposure } from '../sim/scoutingEngine';
@@ -32,6 +32,8 @@ import { persistSaveGame } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
 import { advanceTeamToNextSeason } from '../sim/offseasonEngine';
 
+const COMPLIANCE_SANCTION_THRESHOLD = 40;
+
 interface GameStoreState {
   currentWeek: number;
   currentYear: number;
@@ -42,6 +44,7 @@ interface GameStoreState {
   activeGame: GameSimulationState | null;
   activeDilemma: NarrativeDilemma | null;
   dilemmaLog: DilemmaRecord[];
+  sanctionLevel: 0 | 1 | 2 | 3; // state association sanctions this season (design spec 12.2)
   scoutingPool: FeederProspect[];
   newsArticles: NewsArticle[];
   polls: StateAndNationalPolls | null;
@@ -79,6 +82,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   activeGame: null,
   activeDilemma: null,
   dilemmaLog: [],
+  sanctionLevel: 0,
   scoutingPool: [],
   newsArticles: [],
   polls: null,
@@ -110,6 +114,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       coachingAP: 100,
       activeGame: null,
       activeDilemma: null,
+      dilemmaLog: [],
+      sanctionLevel: 0,
       playoffBracket: null,
       graduatingSeniors: [],
       isBanquetActive: false
@@ -160,6 +166,34 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       };
     });
     if (exposureArticles.length > 0) set({ newsArticles: [...exposureArticles, ...get().newsArticles] });
+
+    // State association sanctions escalate each regular-season week compliance stays below 40
+    const { sanctionLevel } = get();
+    if (currentWeek <= LAST_REGULAR_SEASON_WEEK && userTeam.programMeters.complianceScore < COMPLIANCE_SANCTION_THRESHOLD && sanctionLevel < 3) {
+      const level = (sanctionLevel + 1) as 1 | 2 | 3;
+      let content = '';
+      if (level === 1) {
+        userTeam.programMeters.boosterApproval = Math.max(0, userTeam.programMeters.boosterApproval - 10);
+        content = 'The state association issued a public reprimand. Booster donations are drying up.';
+      } else if (level === 2) {
+        const forfeited = forfeitMostRecentDistrictWin(seasonSchedule, allTeams, userTeamId);
+        content = forfeited
+          ? `The program must forfeit its Week ${forfeited.week} district win, recorded as a 1-0 loss.`
+          : 'The program was placed on probation; any further violation brings a postseason ban.';
+      } else {
+        content = 'The program is barred from the state playoffs this season.';
+      }
+      const article: NewsArticle = {
+        id: `news_sanction_${level}_${currentWeek}`,
+        week: nextWeek,
+        outlet: 'STATE_SPORTS_CENTRAL',
+        headline: ['', 'State Association Reprimands', 'State Association Orders Forfeit for', 'Postseason Ban Handed to'][level] + ` ${userTeam.name}`,
+        content,
+        impactSentiment: 'NEGATIVE',
+        featuredTeamName: userTeam.name
+      };
+      set({ sanctionLevel: level, newsArticles: [article, ...get().newsArticles] });
+    }
 
     // Check Postseason Trigger (Week 15)
     if (nextWeek === 15) {
@@ -231,11 +265,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   startPostseason: () => {
-    const { districtTeams, neighborDistrictTeams, currentYear } = get();
+    const { districtTeams, neighborDistrictTeams, currentYear, sanctionLevel, userTeamId } = get();
+    // A postseason ban removes the user's team from seeding; the next team in the standings qualifies
+    const eligibleDistrict = sanctionLevel >= 3 ? districtTeams.filter((t) => t.id !== userTeamId) : districtTeams;
     // Two more Region IV districts fill out the 16-team bracket; their season is played out in the background
     const [regionC, regionD] = PLAYOFF_REGION_DISTRICT_SCHOOLS.map((schools, i) => generateDistrictTeams(`tx_6a_d${27 + i}`, schools));
     simulateRegularSeason(regionC, regionD, currentYear);
-    const bracket = buildInitialPlayoffBracket([districtTeams, neighborDistrictTeams, regionC, regionD]);
+    const bracket = buildInitialPlayoffBracket([eligibleDistrict, neighborDistrictTeams, regionC, regionD]);
     set({ currentWeek: 15, playoffBracket: bracket });
   },
 
@@ -280,6 +316,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       currentYear: currentYear + 1,
       isBanquetActive: false,
       playoffBracket: null,
+      sanctionLevel: 0,
       graduatingSeniors: [],
       polls: newPolls,
       playerRankings: newPlayerRankings,

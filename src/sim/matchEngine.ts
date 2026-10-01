@@ -205,7 +205,7 @@ export function evaluateLeverageTrigger(state: GameSimulationState, userTeamId?:
 // ============================================================================
 
 const EXECUTION_STDEV = 12; // N(0, 12) execution roll from the design spec
-const GAME_DAY_FORM_STDEV = 2.5; // 'Any Given Friday': each team plays above or below its level for a whole game
+const GAME_DAY_FORM_STDEV = 2; // 'Any Given Friday': each team plays above or below its level for a whole game
 const EXPLOSIVE_PLAY_QUALITY = 25;
 const PASS_THRESHOLDS = {
   SHORT_PASS: { interception: -29, sack: -17, incomplete: 3 },
@@ -656,8 +656,8 @@ export function simulateSnap(
       // Normal Gain (scaled by execution quality)
       else {
         if (concept === 'DEEP_PASS') yardsGained = 10 + randomInt(0, 6) + Math.round(Math.max(0, playQuality) / 3);
-        else if (concept === 'SHORT_PASS') yardsGained = 3 + randomInt(0, 3) + Math.round(Math.max(0, playQuality) / 5);
-        else yardsGained = Math.max(0, Math.round(2 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
+        else if (concept === 'SHORT_PASS') yardsGained = 3 + randomInt(0, 4) + Math.round(Math.max(0, playQuality) / 5);
+        else yardsGained = Math.max(0, Math.round(2.5 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
         if (playQuality > explosiveThreshold) yardsGained += randomInt(8, 30); // Explosive break
         yardsGained = Math.min(yardsGained, 100 - state.yardLine);
         const scores = state.yardLine + yardsGained >= 100;
