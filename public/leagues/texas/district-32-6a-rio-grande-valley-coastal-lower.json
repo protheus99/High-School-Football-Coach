@@ -1,0 +1,53 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-32-6a-rio-grande-valley-coastal-lower",
+  "districtName": "District 32-6A (Rio Grande Valley Coastal / Lower)",
+  "schools": [
+    {
+      "name": "Los Fresnos",
+      "mascot": "Falcons",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#000000",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Harlingen High",
+      "mascot": "Cardinals",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 82,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Brownsville Veterans Memorial",
+      "mascot": "Chargers",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Benito",
+      "mascot": "Greyhounds",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#B3A369",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Harlingen South",
+      "mascot": "Hawks",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

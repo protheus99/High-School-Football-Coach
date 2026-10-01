@@ -1,0 +1,80 @@
+{
+  "state": "Maryland",
+  "classification": "6A",
+  "districtId": "maryland_maryland-mpssaa-4a-private-wcac-miaa-group-1",
+  "districtName": "Maryland (MPSSAA 4A / Private WCAC / MIAA) (Group 1)",
+  "schools": [
+    {
+      "name": "St. Frances Academy",
+      "mascot": "Panthers",
+      "primaryColor": "#000000",
+      "secondaryColor": "#000000",
+      "prestige": 99,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "DeMatha Catholic",
+      "mascot": "Stags",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 95,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Our Lady of Good Counsel",
+      "mascot": "Falcons",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Archbishop Spalding",
+      "mascot": "Cavaliers",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Quince Orchard",
+      "mascot": "Cougars",
+      "primaryColor": "#006747",
+      "secondaryColor": "#000000",
+      "prestige": 90,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Henry A. Wise",
+      "mascot": "Pumas",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#B3A369",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Northwest",
+      "mascot": "Jaguars",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 85,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Charles H. Flowers",
+      "mascot": "Jaguars",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#B3A369",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

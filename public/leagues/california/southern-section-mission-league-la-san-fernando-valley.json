@@ -1,0 +1,71 @@
+{
+  "state": "California",
+  "classification": "6A",
+  "districtId": "california_southern-section-mission-league-la-san-fernando-valley",
+  "districtName": "Southern Section \u2014 Mission League (LA / San Fernando Valley)",
+  "schools": [
+    {
+      "name": "Sierra Canyon",
+      "mascot": "Trailblazers",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFD700",
+      "prestige": 93,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Gardena Serra",
+      "mascot": "Cavaliers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Chaminade",
+      "mascot": "Eagles",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 84,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Bishop Amat",
+      "mascot": "Lancers",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#000000",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Loyola",
+      "mascot": "Cubs",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 81,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Sherman Oaks Notre Dame",
+      "mascot": "Knights",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 79,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Encino Crespi",
+      "mascot": "Celts",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

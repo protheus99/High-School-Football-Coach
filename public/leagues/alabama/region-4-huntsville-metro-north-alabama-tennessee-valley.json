@@ -1,0 +1,80 @@
+{
+  "state": "Alabama",
+  "classification": "6A",
+  "districtId": "alabama_region-4-huntsville-metro-north-alabama-tennessee-valley",
+  "districtName": "Region 4 (Huntsville Metro & North Alabama Tennessee Valley)",
+  "schools": [
+    {
+      "name": "James Clemens",
+      "mascot": "Jets",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Austin",
+      "mascot": "Black Bears",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#B3A369",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Sparkman",
+      "mascot": "Senators",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Huntsville High",
+      "mascot": "Panthers",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFC72C",
+      "prestige": 84,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Bob Jones",
+      "mascot": "Patriots",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Florence",
+      "mascot": "Falcons",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFD700",
+      "prestige": 81,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Albertville",
+      "mascot": "Aggies",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFD700",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Grissom",
+      "mascot": "Tigers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

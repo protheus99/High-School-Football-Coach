@@ -1,0 +1,62 @@
+{
+  "state": "California",
+  "classification": "6A",
+  "districtId": "california_san-diego-section-open-division-1-avocado-western-leagues-group-1",
+  "districtName": "San Diego Section \u2014 Open / Division 1 (Avocado & Western Leagues) (Group 1)",
+  "schools": [
+    {
+      "name": "Lincoln",
+      "mascot": "Hornets",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cathedral Catholic",
+      "mascot": "Dons",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 90,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Carlsbad",
+      "mascot": "Lancers",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFD700",
+      "prestige": 89,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Mission Hills",
+      "mascot": "Grizzlies",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Granite Hills",
+      "mascot": "Eagles",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFC72C",
+      "prestige": 87,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "La Costa Canyon",
+      "mascot": "Mavericks",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

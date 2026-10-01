@@ -1,0 +1,80 @@
+{
+  "state": "New Jersey",
+  "classification": "6A",
+  "districtId": "new-jersey_public-group-5-south-super-section-central-south-group-3",
+  "districtName": "Public Group 5 \u2014 South Super Section (Central & South) (Group 3)",
+  "schools": [
+    {
+      "name": "Freehold Township",
+      "mascot": "Patriots",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#B3A369",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Old Bridge",
+      "mascot": "Knights",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFD700",
+      "prestige": 74,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Cherry Hill East",
+      "mascot": "Cougars",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 73,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "South Brunswick",
+      "mascot": "Vikings",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#000000",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Vineland",
+      "mascot": "Fighting Clan",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFC72C",
+      "prestige": 71,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "East Brunswick",
+      "mascot": "Bears",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Jackson Memorial",
+      "mascot": "Jaguars",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "prestige": 69,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Trenton Central",
+      "mascot": "Tornadoes",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFD700",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

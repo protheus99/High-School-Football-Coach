@@ -1,0 +1,71 @@
+{
+  "state": "Georgia",
+  "classification": "6A",
+  "districtId": "georgia_georgia-ghsa-class-6a-7a-group-1",
+  "districtName": "Georgia (GHSA Class 6A / 7A) (Group 1)",
+  "schools": [
+    {
+      "name": "Buford",
+      "mascot": "Wolves",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFD700",
+      "prestige": 98,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Grayson",
+      "mascot": "Rams",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 95,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Carrollton",
+      "mascot": "Trojans",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 94,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Milton",
+      "mascot": "Eagles",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "prestige": 93,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mill Creek",
+      "mascot": "Hawks",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Colquitt County",
+      "mascot": "Packers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFC72C",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Valdosta",
+      "mascot": "Wildcats",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

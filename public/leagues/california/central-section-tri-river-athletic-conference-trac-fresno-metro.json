@@ -1,0 +1,80 @@
+{
+  "state": "California",
+  "classification": "6A",
+  "districtId": "california_central-section-tri-river-athletic-conference-trac-fresno-metro",
+  "districtName": "Central Section \u2014 Tri-River Athletic Conference (TRAC / Fresno Metro)",
+  "schools": [
+    {
+      "name": "Clovis North",
+      "mascot": "Broncos",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 91,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Clovis East",
+      "mascot": "Timberwolves",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Central",
+      "mascot": "Grizzlies",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Clovis High",
+      "mascot": "Cougars",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Clovis West",
+      "mascot": "Golden Eagles",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Buchanan",
+      "mascot": "Bears",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 81,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Liberty",
+      "mascot": "Patriots",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Bakersfield High",
+      "mascot": "Drillers",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

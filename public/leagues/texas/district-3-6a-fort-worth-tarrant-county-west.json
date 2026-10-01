@@ -1,0 +1,71 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-3-6a-fort-worth-tarrant-county-west",
+  "districtName": "District 3-6A (Fort Worth & Tarrant County West)",
+  "schools": [
+    {
+      "name": "North Crowley",
+      "mascot": "Panthers",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Crowley",
+      "mascot": "Eagles",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Mansfield",
+      "mascot": "Tigers",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 80,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mansfield Lake Ridge",
+      "mascot": "Eagles",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 78,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Mansfield Legacy",
+      "mascot": "Broncos",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Weatherford",
+      "mascot": "Kangaroos",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 73,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Fort Worth Boswell",
+      "mascot": "Pioneers",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 71,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "state": "Pennsylvania",
+  "classification": "6A",
+  "districtId": "pennsylvania_district-1-suburban-philadelphia-bucks-montgomery-chester-counties-group-1",
+  "districtName": "District 1 \u2014 Suburban Philadelphia (Bucks, Montgomery & Chester Counties) (Group 1)",
+  "schools": [
+    {
+      "name": "Central Bucks West",
+      "mascot": "Bucks",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 91,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Central Bucks South",
+      "mascot": "Titans",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#000000",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "North Penn",
+      "mascot": "Knights",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#B3A369",
+      "prestige": 89,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Spring-Ford",
+      "mascot": "Rams",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFC72C",
+      "prestige": 88,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Downingtown West",
+      "mascot": "Whippets",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#B3A369",
+      "prestige": 87,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Downingtown East",
+      "mascot": "Cougars",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 86,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Pennridge",
+      "mascot": "Rams",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Central Bucks East",
+      "mascot": "Patriots",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

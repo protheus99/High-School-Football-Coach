@@ -1,0 +1,80 @@
+{
+  "state": "California",
+  "classification": "6A",
+  "districtId": "california_southern-section-sunset-south-coast-leagues-orange-county",
+  "districtName": "Southern Section \u2014 Sunset & South Coast Leagues (Orange County)",
+  "schools": [
+    {
+      "name": "Mission Viejo",
+      "mascot": "Diablos",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFD700",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Los Alamitos",
+      "mascot": "Griffins",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 88,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Clemente",
+      "mascot": "Tritons",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 86,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Huntington Beach Edison",
+      "mascot": "Chargers",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Newport Harbor",
+      "mascot": "Sailors",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 79,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Juan Hills",
+      "mascot": "Stallions",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFD700",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Corona del Mar",
+      "mascot": "Sea Kings",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "prestige": 77,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Fountain Valley",
+      "mascot": "Barons",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 62,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

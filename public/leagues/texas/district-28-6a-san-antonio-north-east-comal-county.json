@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-28-6a-san-antonio-north-east-comal-county",
+  "districtName": "District 28-6A (San Antonio North East & Comal County)",
+  "schools": [
+    {
+      "name": "San Antonio Reagan",
+      "mascot": "Rattlers",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Antonio Johnson",
+      "mascot": "Jaguars",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFC72C",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Antonio Churchill",
+      "mascot": "Chargers",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#000000",
+      "prestige": 79,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Antonio Roosevelt",
+      "mascot": "Rough Riders",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Antonio Madison",
+      "mascot": "Mavericks",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFD700",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Antonio Clark",
+      "mascot": "Cougars",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#000000",
+      "prestige": 74,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Antonio Brandeis",
+      "mascot": "Broncos",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#B3A369",
+      "prestige": 73,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Antonio LEE",
+      "mascot": "Volunteers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 56,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

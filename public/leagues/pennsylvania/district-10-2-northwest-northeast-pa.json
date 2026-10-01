@@ -1,0 +1,53 @@
+{
+  "state": "Pennsylvania",
+  "classification": "6A",
+  "districtId": "pennsylvania_district-10-2-northwest-northeast-pa",
+  "districtName": "District 10 & 2 \u2014 Northwest & Northeast PA",
+  "schools": [
+    {
+      "name": "Erie McDowell",
+      "mascot": "Trojans",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 87,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Erie High",
+      "mascot": "Royals",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#000000",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hazleton Area",
+      "mascot": "Cougars",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFD700",
+      "prestige": 76,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Scranton High",
+      "mascot": "Knights",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFD700",
+      "prestige": 71,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Wilkes-Barre Area",
+      "mascot": "Wolfpack",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

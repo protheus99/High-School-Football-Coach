@@ -1,0 +1,62 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-3-central-ohio-columbus-metro-delaware-county-group-2",
+  "districtName": "Region 3 (Central Ohio, Columbus Metro & Delaware County) (Group 2)",
+  "schools": [
+    {
+      "name": "Pickerington North",
+      "mascot": "Panthers",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 88,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Delaware Olentangy Berlin",
+      "mascot": "Bears",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Grove City",
+      "mascot": "Greyhounds",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFC72C",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Groveport-Madison",
+      "mascot": "Cruisers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 82,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Westerville Central",
+      "mascot": "Warhawks",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 81,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Westerville North",
+      "mascot": "Warriors",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFD700",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

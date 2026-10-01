@@ -1,0 +1,71 @@
+{
+  "state": "New Jersey",
+  "classification": "6A",
+  "districtId": "new-jersey_public-group-5-north-super-section-sections-1-2-group-1",
+  "districtName": "Public Group 5 \u2014 North Super Section (Sections 1 & 2) (Group 1)",
+  "schools": [
+    {
+      "name": "Passaic County Tech",
+      "mascot": "Bulldogs",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "prestige": 92,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Phillipsburg",
+      "mascot": "Stateliners",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#000000",
+      "prestige": 91,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "West Orange",
+      "mascot": "Mountaineers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Ridgewood",
+      "mascot": "Maroons",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 88,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "East Orange Campus",
+      "mascot": "Jaguars",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Elizabeth",
+      "mascot": "Minutemen",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Montclair",
+      "mascot": "Mounties",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-24-6a-clear-creek-isd-galveston-coast",
+  "districtName": "District 24-6A (Clear Creek ISD & Galveston Coast)",
+  "schools": [
+    {
+      "name": "Dickinson",
+      "mascot": "Gators",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Deer Park",
+      "mascot": "Deer",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 85,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "League City Clear Springs",
+      "mascot": "Chargers",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "League City Clear Falls",
+      "mascot": "Knights",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Houston Clear Lake",
+      "mascot": "Falcons",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFD700",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Friendswood Clear Brook",
+      "mascot": "Wolverines",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "prestige": 73,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "League City Clear Creek",
+      "mascot": "Wildcats",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 72,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Clute Brazoswood",
+      "mascot": "Buccaneers",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#000000",
+      "prestige": 68,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

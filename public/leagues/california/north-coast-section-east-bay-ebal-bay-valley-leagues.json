@@ -1,0 +1,89 @@
+{
+  "state": "California",
+  "classification": "6A",
+  "districtId": "california_north-coast-section-east-bay-ebal-bay-valley-leagues",
+  "districtName": "North Coast Section \u2014 East Bay (EBAL) & Bay Valley Leagues",
+  "schools": [
+    {
+      "name": "De La Salle",
+      "mascot": "Spartans",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 96,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Pittsburg",
+      "mascot": "Pirates",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#000000",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Ramon Valley",
+      "mascot": "Wolves",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 88,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Monte Vista",
+      "mascot": "Mustangs",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "California High",
+      "mascot": "Grizzlies",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Clayton Valley Charter",
+      "mascot": "Ugly Eagles",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 81,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Amador Valley",
+      "mascot": "Dons",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFC72C",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Liberty",
+      "mascot": "Lions",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Antioch",
+      "mascot": "Panthers",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 71,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "state": "Maryland",
+  "classification": "6A",
+  "districtId": "maryland_maryland-mpssaa-4a-private-wcac-miaa-group-2",
+  "districtName": "Maryland (MPSSAA 4A / Private WCAC / MIAA) (Group 2)",
+  "schools": [
+    {
+      "name": "McDonogh",
+      "mascot": "Eagles",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Broadneck",
+      "mascot": "Bruins",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFC72C",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Paint Branch",
+      "mascot": "Panthers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Churchill",
+      "mascot": "Bulldogs",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 76,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Walter Johnson",
+      "mascot": "Wildcats",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 72,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "High Point",
+      "mascot": "Eagles",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 52,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Bladensburg",
+      "mascot": "Mustangs",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 45,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

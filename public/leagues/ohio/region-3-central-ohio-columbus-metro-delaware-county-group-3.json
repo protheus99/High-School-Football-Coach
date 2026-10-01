@@ -1,0 +1,62 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-3-central-ohio-columbus-metro-delaware-county-group-3",
+  "districtName": "Region 3 (Central Ohio, Columbus Metro & Delaware County) (Group 3)",
+  "schools": [
+    {
+      "name": "Newark",
+      "mascot": "Wildcats",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Delaware Hayes",
+      "mascot": "Pacers",
+      "primaryColor": "#000000",
+      "secondaryColor": "#B3A369",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Thomas Worthington",
+      "mascot": "Cardinals",
+      "primaryColor": "#003087",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 73,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Lancaster",
+      "mascot": "Golden Gales",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 72,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Reynoldsburg",
+      "mascot": "Raiders",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#B3A369",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Westerville South",
+      "mascot": "Wildcats",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "prestige": 69,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

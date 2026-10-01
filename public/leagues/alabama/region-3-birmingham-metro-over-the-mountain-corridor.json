@@ -1,0 +1,80 @@
+{
+  "state": "Alabama",
+  "classification": "6A",
+  "districtId": "alabama_region-3-birmingham-metro-over-the-mountain-corridor",
+  "districtName": "Region 3 (Birmingham Metro & Over-the-Mountain Corridor)",
+  "schools": [
+    {
+      "name": "Thompson",
+      "mascot": "Warriors",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 99,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Hoover",
+      "mascot": "Buccaneers",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 97,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hewitt-Trussville",
+      "mascot": "Huskies",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFD700",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Vestavia Hills",
+      "mascot": "Rebels",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Spain Park",
+      "mascot": "Jaguars",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#B3A369",
+      "prestige": 88,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Prattville",
+      "mascot": "Lions",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 83,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Oak Mountain",
+      "mascot": "Eagles",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Tuscaloosa County",
+      "mascot": "Wildcats",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 68,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-7-6a-dallas-richardson-irving",
+  "districtName": "District 7-6A (Dallas / Richardson / Irving)",
+  "schools": [
+    {
+      "name": "Richardson Lake Highlands",
+      "mascot": "Wildcats",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Dallas Jesuit",
+      "mascot": "Rangers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFC72C",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Richardson Pearce",
+      "mascot": "Mustangs",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 79,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Richardson High",
+      "mascot": "Eagles",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Richardson Berkner",
+      "mascot": "Rams",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Irving MacArthur",
+      "mascot": "Cardinals",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 69,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Irving Nimitz",
+      "mascot": "Vikings",
+      "primaryColor": "#000000",
+      "secondaryColor": "#000000",
+      "prestige": 64,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Irving High",
+      "mascot": "Tigers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFD700",
+      "prestige": 58,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

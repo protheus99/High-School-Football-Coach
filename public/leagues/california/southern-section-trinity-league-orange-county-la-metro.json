@@ -1,0 +1,62 @@
+{
+  "state": "California",
+  "classification": "6A",
+  "districtId": "california_southern-section-trinity-league-orange-county-la-metro",
+  "districtName": "Southern Section \u2014 Trinity League (Orange County / LA Metro)",
+  "schools": [
+    {
+      "name": "Mater Dei",
+      "mascot": "Monarchs",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 99,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "St. John Bosco",
+      "mascot": "Braves",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#B3A369",
+      "prestige": 98,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Santa Margarita",
+      "mascot": "Eagles",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 94,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Orange Lutheran",
+      "mascot": "Lancers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 90,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Servite",
+      "mascot": "Friars",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFD700",
+      "prestige": 89,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "JSerra Catholic",
+      "mascot": "Lions",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

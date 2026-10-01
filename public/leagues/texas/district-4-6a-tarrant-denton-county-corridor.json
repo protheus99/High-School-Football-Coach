@@ -1,0 +1,89 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-4-6a-tarrant-denton-county-corridor",
+  "districtName": "District 4-6A (Tarrant / Denton County Corridor)",
+  "schools": [
+    {
+      "name": "Southlake Carroll",
+      "mascot": "Dragons",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 97,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Euless Trinity",
+      "mascot": "Trojans",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 90,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Northwest Nelson (Byron)",
+      "mascot": "Bobcat",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Keller",
+      "mascot": "Indians",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Northwest Eaton",
+      "mascot": "Eagles",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Keller Timber Creek",
+      "mascot": "Falcons",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 76,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Hurst L.D. Bell",
+      "mascot": "Blue Raiders",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFC72C",
+      "prestige": 73,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Keller Central",
+      "mascot": "Chargers",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Justin Northwest",
+      "mascot": "Texans",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

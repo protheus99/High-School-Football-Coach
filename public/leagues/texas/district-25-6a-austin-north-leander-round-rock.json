@@ -1,0 +1,71 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-25-6a-austin-north-leander-round-rock",
+  "districtName": "District 25-6A (Austin North / Leander & Round Rock)",
+  "schools": [
+    {
+      "name": "Austin Vandegrift",
+      "mascot": "Vipers",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cedar Park Vista Ridge",
+      "mascot": "Rangers",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Round Rock Westwood",
+      "mascot": "Warriors",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 81,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cedar Park High",
+      "mascot": "Timberwolves",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 80,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hutto",
+      "mascot": "Hippos",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Leander Rouse",
+      "mascot": "Raiders",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Leander High",
+      "mascot": "Lions",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#B3A369",
+      "prestige": 69,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-26-6a-central-austin-hill-country",
+  "districtName": "District 26-6A (Central Austin & Hill Country)",
+  "schools": [
+    {
+      "name": "Austin Westlake",
+      "mascot": "Chaparrals",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 98,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Austin Lake Travis",
+      "mascot": "Cavaliers",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 95,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Dripping Springs",
+      "mascot": "Tigers",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Austin Bowie",
+      "mascot": "Bulldogs",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Buda Johnson",
+      "mascot": "Jaguars",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Austin High",
+      "mascot": "Maroons",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Buda Hays",
+      "mascot": "Hawks",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 72,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Del Valle",
+      "mascot": "Cardinals",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 69,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Austin Akins",
+      "mascot": "Eagles",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 50,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

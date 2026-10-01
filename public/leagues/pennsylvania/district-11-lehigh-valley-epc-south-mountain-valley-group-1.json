@@ -1,0 +1,62 @@
+{
+  "state": "Pennsylvania",
+  "classification": "6A",
+  "districtId": "pennsylvania_district-11-lehigh-valley-epc-south-mountain-valley-group-1",
+  "districtName": "District 11 \u2014 Lehigh Valley (EPC South / Mountain Valley) (Group 1)",
+  "schools": [
+    {
+      "name": "Parkland",
+      "mascot": "Trojans",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Nazareth Area",
+      "mascot": "Blue Eagles",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#B3A369",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Emmaus",
+      "mascot": "Green Hornets",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#000000",
+      "prestige": 86,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Bethlehem Freedom",
+      "mascot": "Patriots",
+      "primaryColor": "#006747",
+      "secondaryColor": "#B3A369",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Bethlehem Liberty",
+      "mascot": "Hurricanes",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFD700",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Easton Area",
+      "mascot": "Red Rovers",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 82,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

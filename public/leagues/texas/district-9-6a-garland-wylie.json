@@ -1,0 +1,89 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-9-6a-garland-wylie",
+  "districtName": "District 9-6A (Garland & Wylie)",
+  "schools": [
+    {
+      "name": "Garland Sachse",
+      "mascot": "Mustangs",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFC72C",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Wylie East",
+      "mascot": "Raiders",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 82,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Wylie High",
+      "mascot": "Pirates",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 81,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Garland Rowlett",
+      "mascot": "Eagles",
+      "primaryColor": "#006747",
+      "secondaryColor": "#B3A369",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Garland Naaman Forest",
+      "mascot": "Rangers",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Garland Lakeview Centennial",
+      "mascot": "Patriots",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFC72C",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "North Garland",
+      "mascot": "Raiders",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Garland High",
+      "mascot": "Owls",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 67,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "South Garland",
+      "mascot": "Colonels",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#000000",
+      "prestige": 51,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

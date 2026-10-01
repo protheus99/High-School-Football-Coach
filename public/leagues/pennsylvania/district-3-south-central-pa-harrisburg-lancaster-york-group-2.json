@@ -1,0 +1,71 @@
+{
+  "state": "Pennsylvania",
+  "classification": "6A",
+  "districtId": "pennsylvania_district-3-south-central-pa-harrisburg-lancaster-york-group-2",
+  "districtName": "District 3 \u2014 South Central PA (Harrisburg, Lancaster & York) (Group 2)",
+  "schools": [
+    {
+      "name": "Central Dauphin East",
+      "mascot": "Panthers",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#B3A369",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Hempfield (D3)",
+      "mascot": "Black Knights",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Carlisle",
+      "mascot": "Thundering Herd",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 75,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Penn Manor",
+      "mascot": "Comets",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 73,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cedar Crest",
+      "mascot": "Falcons",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 72,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Reading High",
+      "mascot": "Red Knights",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Altoona Area\\",
+      "mascot": "Mountain Lions",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 76,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

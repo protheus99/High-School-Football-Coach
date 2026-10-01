@@ -1,0 +1,62 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-1-northeast-ohio-greater-cleveland-northwest-coast-group-2",
+  "districtName": "Region 1 (Northeast Ohio, Greater Cleveland & Northwest Coast) (Group 2)",
+  "schools": [
+    {
+      "name": "Cleveland Heights",
+      "mascot": "Tigers",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#B3A369",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Massillon Jackson",
+      "mascot": "Polar Bears",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Strongsville",
+      "mascot": "Mustangs",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Berea-Midpark",
+      "mascot": "Titans",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 80,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Brunswick",
+      "mascot": "Blue Devils",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 78,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Medina",
+      "mascot": "Battling Bees",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 77,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-29-6a-san-antonio-northside-isd-cibolo-group-2",
+  "districtName": "District 29-6A (San Antonio Northside ISD & Cibolo) (Group 2)",
+  "schools": [
+    {
+      "name": "San Antonio O'Connor",
+      "mascot": "Panthers",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#000000",
+      "prestige": 74,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Marcos",
+      "mascot": "Rattlers",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Antonio Marshall",
+      "mascot": "Rams",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Antonio Warren",
+      "mascot": "Warriors",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 67,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "San Antonio Holmes",
+      "mascot": "Huskies",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "prestige": 58,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "San Antonio Stevens",
+      "mascot": "Falcons",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 57,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "San Antonio Jay",
+      "mascot": "Mustangs",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#000000",
+      "prestige": 55,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

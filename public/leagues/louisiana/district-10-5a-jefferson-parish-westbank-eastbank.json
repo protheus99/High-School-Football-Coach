@@ -1,0 +1,71 @@
+{
+  "state": "Louisiana",
+  "classification": "6A",
+  "districtId": "louisiana_district-10-5a-jefferson-parish-westbank-eastbank",
+  "districtName": "District 10-5A (Jefferson Parish Westbank & Eastbank)",
+  "schools": [
+    {
+      "name": "John Ehret",
+      "mascot": "Patriots",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "West Jefferson",
+      "mascot": "Buccaneers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#B3A369",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "East Jefferson",
+      "mascot": "Warriors",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 77,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Bonnabel",
+      "mascot": "Bruins",
+      "primaryColor": "#003087",
+      "secondaryColor": "#000000",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Riverdale",
+      "mascot": "Scottish Rebels",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "L.W. Higgins",
+      "mascot": "Hurricanes",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 68,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Benjamin Franklin",
+      "mascot": "Falcons",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#B3A369",
+      "prestige": 50,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

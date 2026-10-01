@@ -1,0 +1,71 @@
+{
+  "state": "New Jersey",
+  "classification": "6A",
+  "districtId": "new-jersey_public-group-5-north-super-section-sections-1-2-group-3",
+  "districtName": "Public Group 5 \u2014 North Super Section (Sections 1 & 2) (Group 3)",
+  "schools": [
+    {
+      "name": "Linden",
+      "mascot": "Tigers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFC72C",
+      "prestige": 74,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Livingston",
+      "mascot": "Lancers",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 73,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Bloomfield",
+      "mascot": "Bengals",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFD700",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Paterson Eastside",
+      "mascot": "Ghosts",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Bayonne",
+      "mascot": "Bees",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 67,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Passaic High",
+      "mascot": "Indians",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 55,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Barringer",
+      "mascot": "Blue Bears",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 48,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

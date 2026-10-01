@@ -1,0 +1,89 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-6-6a-collin-county-north-dfw",
+  "districtName": "District 6-6A (Collin County / North DFW)",
+  "schools": [
+    {
+      "name": "Allen",
+      "mascot": "Eagles",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 96,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Prosper",
+      "mascot": "Eagles",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 91,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Prosper Rock Hill",
+      "mascot": "Blue Hawks",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "McKinney",
+      "mascot": "Lions",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "McKinney Boyd",
+      "mascot": "Broncos",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFD700",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Plano East",
+      "mascot": "Panthers",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 77,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Plano West",
+      "mascot": "Wolves",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFD700",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Plano Senior",
+      "mascot": "Wildcats",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 73,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Princeton",
+      "mascot": "Panthers",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 65,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-19-6a-katy-isd",
+  "districtName": "District 19-6A (Katy ISD)",
+  "schools": [
+    {
+      "name": "Katy High",
+      "mascot": "Tigers",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 96,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Katy Jordan",
+      "mascot": "Warriors",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#B3A369",
+      "prestige": 89,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Katy Tompkins",
+      "mascot": "Falcons",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Katy Paetow",
+      "mascot": "Panthers",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Katy Cinco Ranch",
+      "mascot": "Cougars",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#000000",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Katy Taylor",
+      "mascot": "Mustangs",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#000000",
+      "prestige": 79,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Katy Seven Lakes",
+      "mascot": "Spartans",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Katy Morton Ranch",
+      "mascot": "Mavericks",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 71,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Katy Mayde Creek",
+      "mascot": "Rams",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "prestige": 69,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

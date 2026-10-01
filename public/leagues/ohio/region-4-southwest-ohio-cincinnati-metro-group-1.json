@@ -1,0 +1,62 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-4-southwest-ohio-cincinnati-metro-group-1",
+  "districtName": "Region 4 (Southwest Ohio & Cincinnati Metro) (Group 1)",
+  "schools": [
+    {
+      "name": "Cincinnati Archbishop Moeller",
+      "mascot": "Crusaders",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 98,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cincinnati St. Xavier",
+      "mascot": "Bombers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 96,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cincinnati Elder",
+      "mascot": "Panthers",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 94,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cincinnati Princeton",
+      "mascot": "Vikings",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 93,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "West Chester Lakota West",
+      "mascot": "Firebirds",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFD700",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cincinnati Winton Woods",
+      "mascot": "Warriors",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 90,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

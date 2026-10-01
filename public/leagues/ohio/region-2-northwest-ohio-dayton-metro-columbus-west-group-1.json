@@ -1,0 +1,62 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-2-northwest-ohio-dayton-metro-columbus-west-group-1",
+  "districtName": "Region 2 (Northwest Ohio, Dayton Metro & Columbus West) (Group 1)",
+  "schools": [
+    {
+      "name": "Springfield",
+      "mascot": "Wildcats",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Huber Heights Wayne",
+      "mascot": "Warriors",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFD700",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Findlay",
+      "mascot": "Trojans",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 89,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Centerville",
+      "mascot": "Elks",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Troy",
+      "mascot": "Trojans",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 86,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Middletown",
+      "mascot": "Middies",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFC72C",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-31-6a-rio-grande-valley-upper",
+  "districtName": "District 31-6A (Rio Grande Valley Upper)",
+  "schools": [
+    {
+      "name": "Weslaco High",
+      "mascot": "Panthers",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFD700",
+      "prestige": 82,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "PSJA High",
+      "mascot": "Bears",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 81,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Edinburg Economedes",
+      "mascot": "Jaguars",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Edinburg North",
+      "mascot": "Cougars",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#B3A369",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Edinburg High",
+      "mascot": "Bobcats",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 73,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "La Joya High",
+      "mascot": "Coyotes",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 66,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

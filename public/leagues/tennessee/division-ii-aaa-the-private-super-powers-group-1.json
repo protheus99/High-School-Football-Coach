@@ -1,0 +1,62 @@
+{
+  "state": "Tennessee",
+  "classification": "6A",
+  "districtId": "tennessee_division-ii-aaa-the-private-super-powers-group-1",
+  "districtName": "Division II-AAA (The Private Super-Powers) (Group 1)",
+  "schools": [
+    {
+      "name": "Christ Presbyterian",
+      "mascot": "",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFD700",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Ensworth",
+      "mascot": "",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Brentwood Academy",
+      "mascot": "",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Montgomery Bell (MBA)",
+      "mascot": "",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lipscomb Academy",
+      "mascot": "",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Christian Brothers",
+      "mascot": "",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

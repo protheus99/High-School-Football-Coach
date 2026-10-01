@@ -1,0 +1,71 @@
+{
+  "state": "Tennessee",
+  "classification": "6A",
+  "districtId": "tennessee_region-6-6a-williamson-county-south-midstate",
+  "districtName": "Region 6-6A (Williamson County / South Midstate)",
+  "schools": [
+    {
+      "name": "Ravenwood",
+      "mascot": "Raptors",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 95,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Brentwood High",
+      "mascot": "Bruins",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 91,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Independence",
+      "mascot": "Eagles",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Centennial",
+      "mascot": "Cougars",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#000000",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Franklin High",
+      "mascot": "Admirals",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Summit",
+      "mascot": "Spartans",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 81,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Dickson County",
+      "mascot": "Cougars",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 75,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-1-northeast-ohio-greater-cleveland-northwest-coast-group-1",
+  "districtName": "Region 1 (Northeast Ohio, Greater Cleveland & Northwest Coast) (Group 1)",
+  "schools": [
+    {
+      "name": "Lakewood St. Edward",
+      "mascot": "Eagles",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 98,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mentor",
+      "mascot": "Cardinals",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 94,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Canton McKinley",
+      "mascot": "Bulldogs",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 91,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cleveland St. Ignatius",
+      "mascot": "Wildcats",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 89,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Toledo Whitmer",
+      "mascot": "Panthers",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 87,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Perrysburg",
+      "mascot": "Yellow Jackets",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFC72C",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

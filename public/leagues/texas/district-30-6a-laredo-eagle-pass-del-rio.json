@@ -1,0 +1,71 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-30-6a-laredo-eagle-pass-del-rio",
+  "districtName": "District 30-6A (Laredo, Eagle Pass & Del Rio)",
+  "schools": [
+    {
+      "name": "Laredo United",
+      "mascot": "Longhorns",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "prestige": 83,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Laredo Alexander",
+      "mascot": "Bulldogs",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Eagle Pass",
+      "mascot": "Eagles",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 79,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Medina Valley",
+      "mascot": "Panthers",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 78,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Laredo United South",
+      "mascot": "Panthers",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Del Rio",
+      "mascot": "Rams",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFD700",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Laredo LBJ",
+      "mascot": "Wolves",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 64,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

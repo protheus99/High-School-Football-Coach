@@ -1,0 +1,71 @@
+{
+  "state": "Tennessee",
+  "classification": "6A",
+  "districtId": "tennessee_region-5-6a-davidson-county-metro-nashville-publics",
+  "districtName": "Region 5-6A (Davidson County / Metro Nashville Publics)",
+  "schools": [
+    {
+      "name": "Cane Ridge",
+      "mascot": "Ravens",
+      "primaryColor": "#000000",
+      "secondaryColor": "#B3A369",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Antioch",
+      "mascot": "Bears",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "McGavock",
+      "mascot": "Raiders",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFC72C",
+      "prestige": 78,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "John Overton",
+      "mascot": "Bobcats",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hillsboro",
+      "mascot": "Burros",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hunters Lane",
+      "mascot": "Warriors",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 65,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Glencliff",
+      "mascot": "Colts",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 46,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "state": "Pennsylvania",
+  "classification": "6A",
+  "districtId": "pennsylvania_district-12-philadelphia-pcl-red-division-public-league",
+  "districtName": "District 12 \u2014 Philadelphia (PCL Red Division & Public League)",
+  "schools": [
+    {
+      "name": "St. Joseph's Prep",
+      "mascot": "Hawks",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFC72C",
+      "prestige": 99,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "La Salle College High",
+      "mascot": "Explorers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 94,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Roman Catholic",
+      "mascot": "Cahillites",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 93,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Father Judge",
+      "mascot": "Crusaders",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 82,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Northeast High",
+      "mascot": "Vikings",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Abraham Lincoln",
+      "mascot": "Railsplitters",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Central High",
+      "mascot": "Lancers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 72,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "George Washington",
+      "mascot": "Eagles",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFD700",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Frankford",
+      "mascot": "Pioneers",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 64,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Fels High",
+      "mascot": "Panthers",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 48,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

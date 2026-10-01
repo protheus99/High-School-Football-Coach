@@ -1,10 +1,11 @@
-import { Team } from '../types/game';
+import { Team, OffensiveScheme, DefensiveScheme } from '../types/game';
 import { generateCompleteTeamRoster } from '../generators/rosterGenerator';
 
 export interface CustomDistrictImportSchema {
   state: string;
   classification: '1A' | '2A' | '3A' | '4A' | '5A' | '6A';
   districtId: string;
+  districtName?: string;
   schools: Array<{
     name: string;
     mascot: string;
@@ -12,8 +13,13 @@ export interface CustomDistrictImportSchema {
     secondaryColor: string;
     prestige: number;
     headCoachName?: string;
+    offenseScheme?: OffensiveScheme;
+    defenseScheme?: DefensiveScheme;
   }>;
 }
+
+const OFFENSIVE_SCHEMES: OffensiveScheme[] = ['TRIPLE_OPTION', 'AIR_RAID', 'POWER_I', 'SPREAD'];
+const DEFENSIVE_SCHEMES: DefensiveScheme[] = ['FOUR_THREE', 'FOUR_FOUR', 'THREE_THREE_FIVE', 'DROP_EIGHT'];
 
 /**
  * Validates and converts user JSON into playable Team state.
@@ -27,17 +33,18 @@ export function importCustomDistrictJSON(jsonString: string): { success: boolean
     }
 
     const teams: Team[] = data.schools.map((school, i) => ({
-      id: `custom_team_${school.name.toLowerCase().replace(/\s+/g, '_')}_${i}`,
+      id: `custom_team_${school.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_${i}`,
       name: school.name,
       mascot: school.mascot,
       classification: data.classification || '6A',
+      state: data.state,
       districtId: data.districtId || 'custom_district',
       primaryColor: school.primaryColor || '#002D62',
       secondaryColor: school.secondaryColor || '#C4D600',
       prestige: Math.min(99, Math.max(40, school.prestige || 75)),
       playbookFamiliarity: 80,
-      schemeOffense: 'SPREAD',
-      schemeDefense: 'FOUR_TWO_FIVE' as never,
+      schemeOffense: OFFENSIVE_SCHEMES.includes(school.offenseScheme as OffensiveScheme) ? school.offenseScheme! : 'SPREAD',
+      schemeDefense: DEFENSIVE_SCHEMES.includes(school.defenseScheme as DefensiveScheme) ? school.defenseScheme! : 'FOUR_THREE',
       programMeters: {
         schoolBoardTrust: 80,
         boosterApproval: 80,
@@ -76,7 +83,7 @@ export function importCustomDistrictJSON(jsonString: string): { success: boolean
  */
 export function exportDistrictToJSON(teams: Team[]): string {
   const exportPayload: CustomDistrictImportSchema = {
-    state: 'Texas',
+    state: teams[0]?.state ?? 'Texas',
     classification: teams[0]?.classification || '6A',
     districtId: teams[0]?.districtId || 'tx_6a_d26',
     schools: teams.map((t) => ({
@@ -85,7 +92,9 @@ export function exportDistrictToJSON(teams: Team[]): string {
       primaryColor: t.primaryColor,
       secondaryColor: t.secondaryColor,
       prestige: t.prestige,
-      headCoachName: t.staff.headCoachName
+      headCoachName: t.staff.headCoachName,
+      offenseScheme: t.schemeOffense,
+      defenseScheme: t.schemeDefense
     }))
   };
 

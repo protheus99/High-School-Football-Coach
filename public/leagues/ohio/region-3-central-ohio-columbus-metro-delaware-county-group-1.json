@@ -1,0 +1,62 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-3-central-ohio-columbus-metro-delaware-county-group-1",
+  "districtName": "Region 3 (Central Ohio, Columbus Metro & Delaware County) (Group 1)",
+  "schools": [
+    {
+      "name": "Lewis Center Olentangy Orange",
+      "mascot": "Pioneers",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 95,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Pickerington Central",
+      "mascot": "Tigers",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Gahanna Lincoln",
+      "mascot": "Lions",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFC72C",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Powell Olentangy Liberty",
+      "mascot": "Patriots",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Upper Arlington",
+      "mascot": "Golden Bears",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 90,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lewis Center Olentangy",
+      "mascot": "Braves",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

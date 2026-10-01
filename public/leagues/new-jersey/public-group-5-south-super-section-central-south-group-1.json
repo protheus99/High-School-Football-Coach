@@ -1,0 +1,80 @@
+{
+  "state": "New Jersey",
+  "classification": "6A",
+  "districtId": "new-jersey_public-group-5-south-super-section-central-south-group-1",
+  "districtName": "Public Group 5 \u2014 South Super Section (Central & South) (Group 1)",
+  "schools": [
+    {
+      "name": "Toms River North",
+      "mascot": "Mariners",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#000000",
+      "prestige": 94,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Washington Township",
+      "mascot": "Minutemen",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cherokee",
+      "mascot": "Chiefs",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#B3A369",
+      "prestige": 89,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Kingsway",
+      "mascot": "Dragons",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Hillsborough",
+      "mascot": "Raiders",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "prestige": 87,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Rancocas Valley",
+      "mascot": "Red Devils",
+      "primaryColor": "#003087",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Manalapan",
+      "mascot": "Braves",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 85,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Southern Regional",
+      "mascot": "Rams",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFD700",
+      "prestige": 84,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

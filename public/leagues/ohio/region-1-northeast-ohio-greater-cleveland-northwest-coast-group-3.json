@@ -1,0 +1,53 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-1-northeast-ohio-greater-cleveland-northwest-coast-group-3",
+  "districtName": "Region 1 (Northeast Ohio, Greater Cleveland & Northwest Coast) (Group 3)",
+  "schools": [
+    {
+      "name": "Solon",
+      "mascot": "Comets",
+      "primaryColor": "#000000",
+      "secondaryColor": "#B3A369",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Canton GlenOak",
+      "mascot": "Golden Eagles",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#000000",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lorain High",
+      "mascot": "Titans",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 71,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Cleveland John Marshall",
+      "mascot": "Lawyers",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 54,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Parma Normandy",
+      "mascot": "Invaders",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 48,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

@@ -74,8 +74,10 @@ export function generateSeasonSchedule(districtTeams: Team[], neighborTeams: Tea
     });
   }
 
+  // Large (custom) districts play a partial round robin that fits the district weeks
+  const districtWeeks = LAST_REGULAR_SEASON_WEEK - FIRST_DISTRICT_WEEK + 1;
   for (const ids of [district, neighbor]) {
-    roundRobinRounds(ids).forEach((pairs, r) => {
+    roundRobinRounds(ids).slice(0, districtWeeks).forEach((pairs, r) => {
       const week = FIRST_DISTRICT_WEEK + r;
       pairs.forEach(([homeTeamId, awayTeamId]) =>
         games.push({ gameId: `y${year}_w${week}_${homeTeamId}_${awayTeamId}`, week, homeTeamId, awayTeamId, isDistrictGame: true })

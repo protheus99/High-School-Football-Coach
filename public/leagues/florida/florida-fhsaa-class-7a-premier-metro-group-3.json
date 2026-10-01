@@ -1,0 +1,62 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_florida-fhsaa-class-7a-premier-metro-group-3",
+  "districtName": "Florida (FHSAA Class 7A / Premier Metro) (Group 3)",
+  "schools": [
+    {
+      "name": "Tampa Plant",
+      "mascot": "Panthers",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "DeLand",
+      "mascot": "Bulldogs",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Dr. Phillips",
+      "mascot": "Panthers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Miami Palmetto",
+      "mascot": "Panthers",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Coral Gables",
+      "mascot": "Cavaliers",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 64,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hialeah-Miami Lakes",
+      "mascot": "Trojans",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#000000",
+      "prestige": 48,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

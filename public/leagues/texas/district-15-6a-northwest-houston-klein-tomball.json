@@ -1,0 +1,89 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-15-6a-northwest-houston-klein-tomball",
+  "districtName": "District 15-6A (Northwest Houston / Klein & Tomball)",
+  "schools": [
+    {
+      "name": "Klein Collins",
+      "mascot": "Tigers",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Tomball High",
+      "mascot": "Cougars",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFD700",
+      "prestige": 87,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Klein Cain",
+      "mascot": "Hurricanes",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 86,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Tomball Memorial",
+      "mascot": "Wildcats",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Klein Oak",
+      "mascot": "Panthers",
+      "primaryColor": "#000000",
+      "secondaryColor": "#B3A369",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Magnolia High",
+      "mascot": "Bulldogs",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Magnolia West",
+      "mascot": "Mustangs",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 77,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Klein High",
+      "mascot": "Bearkats",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Klein Forest",
+      "mascot": "Golden Eagles",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "state": "Tennessee",
+  "classification": "6A",
+  "districtId": "tennessee_region-8-6a-memphis-metro-shelby-county",
+  "districtName": "Region 8-6A (Memphis Metro & Shelby County)",
+  "schools": [
+    {
+      "name": "Houston",
+      "mascot": "Mustangs",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#B3A369",
+      "prestige": 94,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Collierville",
+      "mascot": "Dragons",
+      "primaryColor": "#000000",
+      "secondaryColor": "#B3A369",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Germantown High",
+      "mascot": "Red Devils",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Bartlett",
+      "mascot": "Panthers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Whitehaven",
+      "mascot": "Tigers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 87,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Southwind",
+      "mascot": "Jaguars",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cordova",
+      "mascot": "Wolves",
+      "primaryColor": "#006747",
+      "secondaryColor": "#000000",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Arlington",
+      "mascot": "Tigers",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 78,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "White Station",
+      "mascot": "Spartans",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "state": "California",
+  "classification": "6A",
+  "districtId": "california_san-diego-section-open-division-1-avocado-western-leagues-group-2",
+  "districtName": "San Diego Section \u2014 Open / Division 1 (Avocado & Western Leagues) (Group 2)",
+  "schools": [
+    {
+      "name": "San Marcos",
+      "mascot": "Knights",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Helix Charter",
+      "mascot": "Highlanders",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#B3A369",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Torrey Pines",
+      "mascot": "Falcons",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 80,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Mater Dei Catholic",
+      "mascot": "Crusaders",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "prestige": 79,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Mount Miguel",
+      "mascot": "Matadors",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Oceanside",
+      "mascot": "Pirates",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFC72C",
+      "prestige": 75,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

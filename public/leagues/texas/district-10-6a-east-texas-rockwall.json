@@ -1,0 +1,71 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-10-6a-east-texas-rockwall",
+  "districtName": "District 10-6A (East Texas & Rockwall)",
+  "schools": [
+    {
+      "name": "Longview",
+      "mascot": "Lobos",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 92,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Rockwall",
+      "mascot": "Yellowjackets",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 89,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Rockwall-Heath",
+      "mascot": "Hawks",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Forney",
+      "mascot": "Jackrabbits",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFC72C",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "North Forney",
+      "mascot": "Falcons",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Tyler Legacy",
+      "mascot": "Red Raiders",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 79,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Royse City",
+      "mascot": "Bulldogs",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#000000",
+      "prestige": 73,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

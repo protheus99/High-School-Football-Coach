@@ -1,0 +1,71 @@
+{
+  "state": "Tennessee",
+  "classification": "6A",
+  "districtId": "tennessee_region-2-6a-knoxville-metro-bradley-county",
+  "districtName": "Region 2-6A (Knoxville Metro & Bradley County)",
+  "schools": [
+    {
+      "name": "Maryville",
+      "mascot": "Red Rebels",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFD700",
+      "prestige": 96,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Bearden",
+      "mascot": "Bulldogs",
+      "primaryColor": "#003087",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Bradley Central",
+      "mascot": "Bears",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cleveland High",
+      "mascot": "Blue Raiders",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#B3A369",
+      "prestige": 88,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Farragut",
+      "mascot": "Admirals",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 87,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Oak Ridge",
+      "mascot": "Wildcats",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hardin Valley Academy",
+      "mascot": "Hawks",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

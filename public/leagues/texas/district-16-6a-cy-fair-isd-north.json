@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-16-6a-cy-fair-isd-north",
+  "districtName": "District 16-6A (Cy-Fair ISD North)",
+  "schools": [
+    {
+      "name": "Bridgeland",
+      "mascot": "Bears",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cypress Ranch",
+      "mascot": "Mustangs",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 87,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cypress Falls",
+      "mascot": "Golden Eagles",
+      "primaryColor": "#006747",
+      "secondaryColor": "#000000",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cypress Woods",
+      "mascot": "Wildcats",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cypress Springs",
+      "mascot": "Panthers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Langham Creek",
+      "mascot": "Lobos",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 76,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cypress Lakes",
+      "mascot": "Spartans",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cypress Park",
+      "mascot": "Tigers",
+      "primaryColor": "#003087",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 62,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

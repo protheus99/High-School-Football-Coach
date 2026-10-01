@@ -1,0 +1,71 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-20-6a-alief-lamar-cisd-private-invitee",
+  "districtName": "District 20-6A (Alief, Lamar CISD & Private Invitee)",
+  "schools": [
+    {
+      "name": "Fulshear",
+      "mascot": "Chargers",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Houston Strake Jesuit",
+      "mascot": "Crusaders",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Richmond Foster",
+      "mascot": "Falcons",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Richmond George Ranch",
+      "mascot": "Longhorns",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 78,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Alief Taylor",
+      "mascot": "Lions",
+      "primaryColor": "#003087",
+      "secondaryColor": "#000000",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Alief Hastings",
+      "mascot": "Bears",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Alief Elsik",
+      "mascot": "Rams",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 65,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

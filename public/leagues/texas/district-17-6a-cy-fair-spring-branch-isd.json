@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-17-6a-cy-fair-spring-branch-isd",
+  "districtName": "District 17-6A (Cy-Fair & Spring Branch ISD)",
+  "schools": [
+    {
+      "name": "Cy-Fair",
+      "mascot": "Bobcats",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Houston Stratford",
+      "mascot": "Spartans",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 87,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Jersey Village",
+      "mascot": "Falcons",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFC72C",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Houston Memorial",
+      "mascot": "Mustangs",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "prestige": 80,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cypress Creek",
+      "mascot": "Cougars",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cypress Ridge",
+      "mascot": "Rams",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Houston Spring Woods",
+      "mascot": "Tigers",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 55,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Houston Northbrook",
+      "mascot": "Raiders",
+      "primaryColor": "#003087",
+      "secondaryColor": "#000000",
+      "prestige": 46,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

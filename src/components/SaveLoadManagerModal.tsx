@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueImporter';
 import { persistSaveGame, loadSaveGame } from '../services/db';
@@ -9,6 +9,18 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   const { districtTeams, neighborDistrictTeams, seasonSchedule, dilemmaLog, currentWeek, currentYear, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
   const [importText, setImportText] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [leagueIndex, setLeagueIndex] = useState<LeagueIndexEntry[]>([]);
+  const [selectedState, setSelectedState] = useState('');
+  const [selectedDistrictFile, setSelectedDistrictFile] = useState('');
+
+  // Real state districts built from the design spec's school databases (public/leagues)
+  useEffect(() => {
+    fetch(`${import.meta.env.BASE_URL}leagues/index.json`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((index: LeagueIndexEntry[]) => setLeagueIndex(index))
+      .catch(() => setLeagueIndex([]));
+  }, []);
+  const stateDistricts = leagueIndex.find((s) => s.state === selectedState)?.districts ?? [];
 
   const handleSaveToBrowser = async () => {
     await persistSaveGame({
@@ -67,17 +79,36 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
     setFeedback('District configuration exported to JSON file!');
   };
 
-  const handleImportJSON = () => {
-    const res = importCustomDistrictJSON(importText);
+  // Imported districts start a fresh season with a new schedule
+  const applyImport = (json: string, label: string) => {
+    const res = importCustomDistrictJSON(json);
     if (res.success && res.teams) {
       useGameStore.setState({
         districtTeams: res.teams,
         userTeamId: res.teams[0].id,
+        currentWeek: 1,
+        playoffBracket: null,
+        activeDilemma: null,
+        dilemmaLog: [],
+        sanctionLevel: 0,
         seasonSchedule: generateSeasonSchedule(res.teams, neighborDistrictTeams, currentYear)
       });
-      setFeedback('Custom district successfully imported!');
+      setFeedback(`${label} loaded. You now coach ${res.teams[0].name}; a new season begins.`);
     } else {
       setFeedback(`Import error: ${res.error}`);
+    }
+  };
+
+  const handleImportJSON = () => applyImport(importText, 'Custom district');
+
+  const handleLoadStateDistrict = async () => {
+    const district = stateDistricts.find((d) => d.file === selectedDistrictFile);
+    if (!district) return;
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}leagues/${district.file}`);
+      applyImport(await response.text(), district.name);
+    } catch {
+      setFeedback('Could not load that district.');
     }
   };
 
@@ -102,6 +133,32 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
           <button onClick={handleExportJSON} style={actionBtn}>📤 Export JSON</button>
         </div>
 
+        {/* Real State Districts */}
+        {leagueIndex.length > 0 && (
+          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px', marginBottom: '12px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>
+              Coach a Real State District:
+            </label>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <select
+                value={selectedState}
+                onChange={(e) => { setSelectedState(e.target.value); setSelectedDistrictFile(''); }}
+                style={selectStyle}
+              >
+                <option value="">State…</option>
+                {leagueIndex.map((s) => <option key={s.state} value={s.state}>{s.state}</option>)}
+              </select>
+              <select value={selectedDistrictFile} onChange={(e) => setSelectedDistrictFile(e.target.value)} disabled={!selectedState} style={{ ...selectStyle, flex: 1, minWidth: '200px' }}>
+                <option value="">District…</option>
+                {stateDistricts.map((d) => <option key={d.file} value={d.file}>{d.name} ({d.schools} schools)</option>)}
+              </select>
+              <button onClick={handleLoadStateDistrict} disabled={!selectedDistrictFile} style={{ ...actionBtn, background: '#0F766E', color: '#fff' }}>
+                🏟️ Load District
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Custom JSON Importer */}
         <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px' }}>
           <label style={{ display: 'block', fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>
@@ -121,6 +178,18 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
       </div>
     </div>
   );
+};
+
+interface LeagueIndexEntry {
+  state: string;
+  districts: { name: string; file: string; schools: number }[];
+}
+
+const selectStyle: React.CSSProperties = {
+  padding: '6px 8px',
+  borderRadius: '4px',
+  border: '1px solid #CBD5E1',
+  fontSize: '13px'
 };
 
 const overlayStyle: React.CSSProperties = {

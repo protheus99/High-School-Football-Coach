@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-11-6a-the-dfw-district-of-doom",
+  "districtName": "District 11-6A (The DFW \"District of Doom\")",
+  "schools": [
+    {
+      "name": "Duncanville",
+      "mascot": "Panthers",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 99,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "DeSoto",
+      "mascot": "Eagles",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 98,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Lancaster",
+      "mascot": "Tigers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Waxahachie",
+      "mascot": "Indians",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 86,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cedar Hill",
+      "mascot": "Longhorns",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Mesquite Horn",
+      "mascot": "Jaguars",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Dallas Skyline",
+      "mascot": "Raiders",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mesquite High",
+      "mascot": "Skeeters",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFC72C",
+      "prestige": 71,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

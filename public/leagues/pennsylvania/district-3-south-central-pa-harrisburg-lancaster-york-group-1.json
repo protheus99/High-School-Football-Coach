@@ -1,0 +1,80 @@
+{
+  "state": "Pennsylvania",
+  "classification": "6A",
+  "districtId": "pennsylvania_district-3-south-central-pa-harrisburg-lancaster-york-group-1",
+  "districtName": "District 3 \u2014 South Central PA (Harrisburg, Lancaster & York) (Group 1)",
+  "schools": [
+    {
+      "name": "Harrisburg High",
+      "mascot": "Cougars",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Central York",
+      "mascot": "Panthers",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 90,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Manheim Township",
+      "mascot": "Blue Streaks",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 89,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cumberland Valley",
+      "mascot": "Eagles",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#B3A369",
+      "prestige": 86,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Wilson (West Lawn)",
+      "mascot": "Bulldogs",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#000000",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "State College Area\\",
+      "mascot": "Little Lions",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Central Dauphin",
+      "mascot": "Rams",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 83,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Chambersburg",
+      "mascot": "Trojans",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

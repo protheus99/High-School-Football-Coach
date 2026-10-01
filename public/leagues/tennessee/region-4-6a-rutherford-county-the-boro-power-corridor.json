@@ -1,0 +1,80 @@
+{
+  "state": "Tennessee",
+  "classification": "6A",
+  "districtId": "tennessee_region-4-6a-rutherford-county-the-boro-power-corridor",
+  "districtName": "Region 4-6A (Rutherford County / The \"Boro\" Power Corridor)",
+  "schools": [
+    {
+      "name": "Oakland",
+      "mascot": "Patriots",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#B3A369",
+      "prestige": 98,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Riverdale",
+      "mascot": "Warriors",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Blackman",
+      "mascot": "Blaze",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 88,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Rockvale",
+      "mascot": "Rockets",
+      "primaryColor": "#006747",
+      "secondaryColor": "#000000",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Stewarts Creek",
+      "mascot": "Red Hawks",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Smyrna High",
+      "mascot": "Bulldogs",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFC72C",
+      "prestige": 80,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Siegel",
+      "mascot": "Stars",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "LaVergne",
+      "mascot": "Wolverines",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

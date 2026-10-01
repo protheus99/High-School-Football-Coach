@@ -1,0 +1,71 @@
+{
+  "state": "Louisiana",
+  "classification": "6A",
+  "districtId": "louisiana_district-8-5a-river-parishes-bayou-region",
+  "districtName": "District 8-5A (River Parishes & Bayou Region)",
+  "schools": [
+    {
+      "name": "Destrehan",
+      "mascot": "Wildcats",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 96,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Hahnville",
+      "mascot": "Tigers",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFD700",
+      "prestige": 90,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "East St. John",
+      "mascot": "Wildcats",
+      "primaryColor": "#000000",
+      "secondaryColor": "#000000",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Thibodaux",
+      "mascot": "Tigers",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Terrebonne",
+      "mascot": "Tigers",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Central Lafourche",
+      "mascot": "Trojans",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#000000",
+      "prestige": 74,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "H.L. Bourgeois",
+      "mascot": "Braves",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFC72C",
+      "prestige": 66,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-1-6a-el-paso-metro",
+  "districtName": "District 1-6A (El Paso Metro)",
+  "schools": [
+    {
+      "name": "El Paso Eastlake",
+      "mascot": "Falcons",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "El Paso Franklin",
+      "mascot": "Cougars",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 76,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "El Paso Pebble Hills",
+      "mascot": "Spartans",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "El Paso Eastwood",
+      "mascot": "Troopers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 74,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "El Paso Coronado",
+      "mascot": "Thunderbirds",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 69,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "El Paso Montwood",
+      "mascot": "Rams",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#B3A369",
+      "prestige": 64,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "El Paso Socorro",
+      "mascot": "Bulldogs",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFD700",
+      "prestige": 48,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

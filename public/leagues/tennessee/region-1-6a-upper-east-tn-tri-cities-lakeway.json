@@ -1,0 +1,53 @@
+{
+  "state": "Tennessee",
+  "classification": "6A",
+  "districtId": "tennessee_region-1-6a-upper-east-tn-tri-cities-lakeway",
+  "districtName": "Region 1-6A (Upper East TN / Tri-Cities & Lakeway)",
+  "schools": [
+    {
+      "name": "Science Hill",
+      "mascot": "Hilltoppers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 87,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Dobyns-Bennett",
+      "mascot": "Indians",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 86,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Jefferson County",
+      "mascot": "Patriots",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 83,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "West Ridge",
+      "mascot": "Wolves",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Morristown-Hamblen East",
+      "mascot": "Hurricanes",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

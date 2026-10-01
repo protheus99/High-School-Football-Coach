@@ -1,0 +1,62 @@
+{
+  "state": "Tennessee",
+  "classification": "6A",
+  "districtId": "tennessee_region-7-6a-clarksville-montgomery-north-midstate",
+  "districtName": "Region 7-6A (Clarksville / Montgomery & North Midstate)",
+  "schools": [
+    {
+      "name": "Clarksville High",
+      "mascot": "Wildcats",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#B3A369",
+      "prestige": 88,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Rossview",
+      "mascot": "Hawks",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFC72C",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Kirkwood",
+      "mascot": "Cobras",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "West Creek",
+      "mascot": "Coyotes",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Northeast",
+      "mascot": "Eagles",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 74,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Kenwood",
+      "mascot": "Knights",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

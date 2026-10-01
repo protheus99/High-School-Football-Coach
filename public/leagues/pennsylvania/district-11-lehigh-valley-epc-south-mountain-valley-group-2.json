@@ -1,0 +1,53 @@
+{
+  "state": "Pennsylvania",
+  "classification": "6A",
+  "districtId": "pennsylvania_district-11-lehigh-valley-epc-south-mountain-valley-group-2",
+  "districtName": "District 11 \u2014 Lehigh Valley (EPC South / Mountain Valley) (Group 2)",
+  "schools": [
+    {
+      "name": "Northampton",
+      "mascot": "Konkrete Kids",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Allentown Dieruff",
+      "mascot": "Huskies",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Allentown William Allen",
+      "mascot": "Canaries",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFC72C",
+      "prestige": 58,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Stroudsburg",
+      "mascot": "Mountaineers",
+      "primaryColor": "#006747",
+      "secondaryColor": "#000000",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "East Stroudsburg South",
+      "mascot": "Cavaliers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFC72C",
+      "prestige": 74,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

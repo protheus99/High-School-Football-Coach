@@ -1,0 +1,80 @@
+{
+  "state": "California",
+  "classification": "6A",
+  "districtId": "california_central-coast-section-west-catholic-athletic-league-wcal-bay-area",
+  "districtName": "Central Coast Section \u2014 West Catholic Athletic League (WCAL / Bay Area)",
+  "schools": [
+    {
+      "name": "San Mateo Serra (Junipero Serra)",
+      "mascot": "Padres",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Saint Francis",
+      "mascot": "Lancers",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#000000",
+      "prestige": 89,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Archbishop Riordan",
+      "mascot": "Crusaders",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 87,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "St. Ignatius",
+      "mascot": "Wildcats",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Valley Christian",
+      "mascot": "Warriors",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 83,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Bellarmine College Prep",
+      "mascot": "Bells",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFC72C",
+      "prestige": 80,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Archbishop Mitty",
+      "mascot": "Monarchs",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Sacred Heart Cathedral",
+      "mascot": "Fightin' Irish",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

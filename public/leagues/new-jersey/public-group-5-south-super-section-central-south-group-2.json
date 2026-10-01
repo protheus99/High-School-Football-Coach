@@ -1,0 +1,80 @@
+{
+  "state": "New Jersey",
+  "classification": "6A",
+  "districtId": "new-jersey_public-group-5-south-super-section-central-south-group-2",
+  "districtName": "Public Group 5 \u2014 South Super Section (Central & South) (Group 2)",
+  "schools": [
+    {
+      "name": "Hunterdon Central",
+      "mascot": "Red Devils",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lenape",
+      "mascot": "Indians",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Atlantic County Tech",
+      "mascot": "Red Hawks",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Sayreville",
+      "mascot": "Bombers",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 80,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Egg Harbor Township",
+      "mascot": "Eagles",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFC72C",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Edison",
+      "mascot": "Eagles",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Eastern",
+      "mascot": "Vikings",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#000000",
+      "prestige": 77,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Williamstown",
+      "mascot": "Braves",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 76,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

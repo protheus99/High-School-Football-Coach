@@ -1,0 +1,53 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-27-6a-round-rock-isd-manor",
+  "districtName": "District 27-6A (Round Rock ISD & Manor)",
+  "schools": [
+    {
+      "name": "Round Rock High",
+      "mascot": "Dragons",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 86,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Round Rock Cedar Ridge",
+      "mascot": "Raiders",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFD700",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Round Rock Stony Point",
+      "mascot": "Tigers",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Manor",
+      "mascot": "Mustangs",
+      "primaryColor": "#003087",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Round Rock McNeil",
+      "mascot": "Mavericks",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "prestige": 74,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

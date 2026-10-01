@@ -1,0 +1,71 @@
+{
+  "state": "New Jersey",
+  "classification": "6A",
+  "districtId": "new-jersey_public-group-5-north-super-section-sections-1-2-group-2",
+  "districtName": "Public Group 5 \u2014 North Super Section (Sections 1 & 2) (Group 2)",
+  "schools": [
+    {
+      "name": "Bridgewater-Raritan",
+      "mascot": "Panthers",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Piscataway",
+      "mascot": "Chiefs",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "prestige": 82,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Union High",
+      "mascot": "Farmers",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Westfield",
+      "mascot": "Blue Devils",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFC72C",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Clifton",
+      "mascot": "Mustangs",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 78,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Morristown",
+      "mascot": "Colonials",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Plainfield",
+      "mascot": "Cardinals",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

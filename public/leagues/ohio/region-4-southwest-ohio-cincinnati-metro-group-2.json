@@ -1,0 +1,62 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-4-southwest-ohio-cincinnati-metro-group-2",
+  "districtName": "Region 4 (Southwest Ohio & Cincinnati Metro) (Group 2)",
+  "schools": [
+    {
+      "name": "Liberty Township Lakota East",
+      "mascot": "Thunderhawks",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 87,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mason",
+      "mascot": "Comets",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Fairfield",
+      "mascot": "Indians",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFD700",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cincinnati Oak Hills",
+      "mascot": "Highlanders",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFD700",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hamilton",
+      "mascot": "Big Blue",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 79,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Milford",
+      "mascot": "Eagles",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 78,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

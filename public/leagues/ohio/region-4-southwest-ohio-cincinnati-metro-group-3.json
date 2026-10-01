@@ -1,0 +1,53 @@
+{
+  "state": "Ohio",
+  "classification": "6A",
+  "districtId": "ohio_region-4-southwest-ohio-cincinnati-metro-group-3",
+  "districtName": "Region 4 (Southwest Ohio & Cincinnati Metro) (Group 3)",
+  "schools": [
+    {
+      "name": "Cincinnati Colerain",
+      "mascot": "Cardinals",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 77,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Cincinnati West Clermont",
+      "mascot": "Wolves",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFD700",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cincinnati Western Hills",
+      "mascot": "Mustangs",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFD700",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Cincinnati Walnut Hills",
+      "mascot": "Eagles",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 64,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Morrow Little Miami",
+      "mascot": "Panthers",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

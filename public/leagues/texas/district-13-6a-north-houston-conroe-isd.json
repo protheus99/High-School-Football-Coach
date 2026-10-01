@@ -1,0 +1,89 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-13-6a-north-houston-conroe-isd",
+  "districtName": "District 13-6A (North Houston / Conroe ISD)",
+  "schools": [
+    {
+      "name": "The Woodlands",
+      "mascot": "Highlanders",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Willis",
+      "mascot": "Wildkats",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFC72C",
+      "prestige": 90,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Woodlands College Park",
+      "mascot": "Cavaliers",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Conroe Oak Ridge",
+      "mascot": "War Eagles",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Conroe Grand Oaks",
+      "mascot": "Grizzlies",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 80,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Conroe High",
+      "mascot": "Tigers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "New Caney",
+      "mascot": "Eagles",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#B3A369",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Conroe Caney Creek",
+      "mascot": "Panthers",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 62,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Cleveland",
+      "mascot": "Indians",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#B3A369",
+      "prestige": 50,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

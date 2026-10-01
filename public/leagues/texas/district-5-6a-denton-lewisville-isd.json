@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-5-6a-denton-lewisville-isd",
+  "districtName": "District 5-6A (Denton & Lewisville ISD)",
+  "schools": [
+    {
+      "name": "Denton Guyer",
+      "mascot": "Wildcats",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Coppell",
+      "mascot": "Cowboys",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Lewisville",
+      "mascot": "Farmers",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFD700",
+      "prestige": 86,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lewisville Marcus",
+      "mascot": "Marauders",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "prestige": 85,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Lewisville Flower Mound",
+      "mascot": "Jaguars",
+      "primaryColor": "#006747",
+      "secondaryColor": "#B3A369",
+      "prestige": 83,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Lewisville Hebron",
+      "mascot": "Hawks",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Denton Braswell",
+      "mascot": "Bengals",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#B3A369",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Little Elm",
+      "mascot": "Lobos",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFC72C",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

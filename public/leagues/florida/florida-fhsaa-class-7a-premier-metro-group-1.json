@@ -1,0 +1,71 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_florida-fhsaa-class-7a-premier-metro-group-1",
+  "districtName": "Florida (FHSAA Class 7A / Premier Metro) (Group 1)",
+  "schools": [
+    {
+      "name": "St. Thomas Aquinas",
+      "mascot": "Raiders",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 99,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "IMG Academy",
+      "mascot": "Ascenders",
+      "primaryColor": "#003087",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 98,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Miami Christopher Columbus",
+      "mascot": "Explorers",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFC72C",
+      "prestige": 96,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Venice",
+      "mascot": "Indians",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Miami Central",
+      "mascot": "Rockets",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 93,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Miami Northwestern",
+      "mascot": "Bulls",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "prestige": 91,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lake Mary",
+      "mascot": "Rams",
+      "primaryColor": "#003087",
+      "secondaryColor": "#000000",
+      "prestige": 90,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

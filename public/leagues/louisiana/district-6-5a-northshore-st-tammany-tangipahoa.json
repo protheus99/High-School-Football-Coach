@@ -1,0 +1,53 @@
+{
+  "state": "Louisiana",
+  "classification": "6A",
+  "districtId": "louisiana_district-6-5a-northshore-st-tammany-tangipahoa",
+  "districtName": "District 6-5A (Northshore / St. Tammany & Tangipahoa)",
+  "schools": [
+    {
+      "name": "Mandeville",
+      "mascot": "Skippers",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "St. Paul's",
+      "mascot": "Wolves",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Covington",
+      "mascot": "Lions",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 84,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Ponchatoula",
+      "mascot": "Green Wave",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 82,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Hammond",
+      "mascot": "Tornadoes",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

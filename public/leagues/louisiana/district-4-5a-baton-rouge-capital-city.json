@@ -1,0 +1,62 @@
+{
+  "state": "Louisiana",
+  "classification": "6A",
+  "districtId": "louisiana_district-4-5a-baton-rouge-capital-city",
+  "districtName": "District 4-5A (Baton Rouge Capital City)",
+  "schools": [
+    {
+      "name": "Catholic-Baton Rouge",
+      "mascot": "Bears",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFD700",
+      "prestige": 98,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Zachary",
+      "mascot": "Broncos",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 95,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Central-Baton Rouge",
+      "mascot": "Wildcats",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 90,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Woodlawn-Baton Rouge",
+      "mascot": "Panthers",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFC72C",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Scotlandville",
+      "mascot": "Hornets",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Liberty Magnet",
+      "mascot": "Patriots",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

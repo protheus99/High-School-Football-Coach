@@ -1,0 +1,71 @@
+{
+  "state": "New Jersey",
+  "classification": "6A",
+  "districtId": "new-jersey_njsiaa-non-public-group-a-the-north-jersey-catholic-super-powers-group-1",
+  "districtName": "NJSIAA Non-Public Group A (The North Jersey Catholic Super Powers) (Group 1)",
+  "schools": [
+    {
+      "name": "Bergen Catholic",
+      "mascot": "Crusaders",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 99,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Don Bosco Prep",
+      "mascot": "Ironmen",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 97,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "St. Joseph Regional",
+      "mascot": "Green Knights",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 96,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Delbarton",
+      "mascot": "Green Wave",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "St. Peter's Prep",
+      "mascot": "Marauders",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 93,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Seton Hall Prep",
+      "mascot": "Pirates",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 90,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "St. Augustine Prep",
+      "mascot": "Hermits",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}
