@@ -192,12 +192,13 @@ export function evaluateLeverageTrigger(state: GameSimulationState, userTeamId?:
 // ============================================================================
 
 const EXECUTION_STDEV = 12; // N(0, 12) execution roll from the design spec
+const GAME_DAY_FORM_STDEV = 2.5; // 'Any Given Friday': each team plays above or below its level for a whole game
 const EXPLOSIVE_PLAY_QUALITY = 25;
 const PASS_THRESHOLDS = {
-  SHORT_PASS: { interception: -31, sack: -17, incomplete: 2 },
-  DEEP_PASS: { interception: -26, sack: -16, incomplete: 5 }
+  SHORT_PASS: { interception: -29, sack: -17, incomplete: 4 },
+  DEEP_PASS: { interception: -24, sack: -16, incomplete: 7 }
 };
-const RUN_THRESHOLDS = { fumble: -34, tackleForLoss: -15 };
+const RUN_THRESHOLDS = { fumble: -32, tackleForLoss: -15 };
 const PLAY_CLOCK_RUNOFF = { min: 22, max: 31 }; // running plays & completions
 const INCOMPLETE_RUNOFF = 6;
 const MERCY_RULE_RUNOFF = 45;
@@ -393,6 +394,10 @@ export function simulateSnap(
   if (!state.openingPossessionTeamId) {
     state.openingPossessionTeamId = state.possessionTeamId;
   }
+  state.gameDayForm ??= {
+    [state.homeTeam.id]: calculateGaussianVariance(0, GAME_DAY_FORM_STDEV),
+    [state.awayTeam.id]: calculateGaussianVariance(0, GAME_DAY_FORM_STDEV)
+  };
 
   const isHomeOffense = state.possessionTeamId === state.homeTeam.id;
   const offense = isHomeOffense ? state.homeTeam : state.awayTeam;
@@ -519,7 +524,8 @@ export function simulateSnap(
     const { delta, passer } = calculateMatchupDelta(concept, offense, defense);
     const contextMod = getContextualModifier(state.weather, state.teamMomentum, concept) + DEFENSIVE_CALL_MODIFIERS[defensiveCall][scrimmageConcept];
     const variance = calculateGaussianVariance(0, EXECUTION_STDEV + (defensiveCall === 'BLITZ' ? BLITZ_EXTRA_STDEV : 0));
-    const playQuality = delta + contextMod + variance;
+    const form = (state.gameDayForm?.[offense.id] ?? 0) - (state.gameDayForm?.[defense.id] ?? 0);
+    const playQuality = delta + contextMod + variance + form;
     const isPass = isPassConcept(concept);
     const passThresholds = isPass ? PASS_THRESHOLDS[concept as 'SHORT_PASS' | 'DEEP_PASS'] : null;
 
@@ -577,9 +583,9 @@ export function simulateSnap(
       }
       // Normal Gain (scaled by execution quality)
       else {
-        if (concept === 'DEEP_PASS') yardsGained = 12 + randomInt(0, 8) + Math.round(Math.max(0, playQuality) / 3);
-        else if (concept === 'SHORT_PASS') yardsGained = 4 + randomInt(0, 4) + Math.round(Math.max(0, playQuality) / 5);
-        else yardsGained = Math.max(0, Math.round(3.5 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
+        if (concept === 'DEEP_PASS') yardsGained = 11 + randomInt(0, 6) + Math.round(Math.max(0, playQuality) / 3);
+        else if (concept === 'SHORT_PASS') yardsGained = 3 + randomInt(0, 4) + Math.round(Math.max(0, playQuality) / 5);
+        else yardsGained = Math.max(0, Math.round(2.5 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
         if (playQuality > EXPLOSIVE_PLAY_QUALITY) yardsGained += randomInt(10, 35); // Explosive break
         yardsGained = Math.min(yardsGained, 100 - state.yardLine);
         const scores = state.yardLine + yardsGained >= 100;

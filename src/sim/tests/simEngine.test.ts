@@ -1,16 +1,26 @@
 import { describe, it, expect } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
-import { simulateSnap } from '../matchEngine';
-import { teamStarterRating } from '../macroSim';
-import { GameSimulationState } from '../../types/game';
+import { calculateMatchupDelta, simulateSnap } from '../matchEngine';
+import { GameSimulationState, PlayConcept, Team } from '../../types/game';
 
-const SCRIMMAGE_CONCEPTS = ['INSIDE_RUN', 'OUTSIDE_RUN', 'SHORT_PASS', 'DEEP_PASS'];
+const SCRIMMAGE_CONCEPTS: PlayConcept[] = ['INSIDE_RUN', 'OUTSIDE_RUN', 'SHORT_PASS', 'DEEP_PASS'];
+
+/**
+ * Engine-based edge of team `a` over `b`: a's average matchup delta on offense minus b's,
+ * across the four scrimmage concepts. Positive means the engine rates `a` as the better team.
+ */
+export function matchupEdge(a: Team, b: Team): number {
+  return SCRIMMAGE_CONCEPTS.reduce(
+    (sum, c) => sum + calculateMatchupDelta(c, a, b).delta - calculateMatchupDelta(c, b, a).delta,
+    0
+  ) / SCRIMMAGE_CONCEPTS.length;
+}
 
 /**
  * Headless 1,000-Game Statistical Verification Test
  * Run using node/vitest to verify NFHS target calibration curves.
  * Each game uses a freshly generated district and a random pairing; the
- * favorite is the team with the stronger first string.
+ * favorite is the team the engine's own matchup math rates higher (matchupEdge).
  */
 export function runStatisticalCalibrationTest(iterations = 1000): {
   averageTotalYards: number;
@@ -33,7 +43,7 @@ export function runStatisticalCalibrationTest(iterations = 1000): {
   for (let i = 0; i < iterations; i++) {
     const teams = generateDistrictTeams();
     const [a, b] = [teams[i % teams.length], teams[(i + 1 + (i % 3)) % teams.length]];
-    const favorite = teamStarterRating(a) >= teamStarterRating(b) ? a : b;
+    const favorite = matchupEdge(a, b) >= 0 ? a : b;
     const underdog = favorite === a ? b : a;
     const homeIsFavorite = i % 2 === 0;
     const homeTeam = homeIsFavorite ? favorite : underdog;

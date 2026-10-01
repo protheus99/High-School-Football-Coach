@@ -5,7 +5,7 @@ import { addPlayerStats } from './playerStats';
 
 // Calibration constants (tuned against src/sim/tests/macroSim.test.ts targets)
 const HOME_FIELD_RATING = 1;
-const DRIVE_DELTA_SCALE = { td: 1.6, fg: 0.5, turnover: 0.6 };
+const DRIVE_DELTA_SCALE = { td: 2.6, fg: 0.7, turnover: 0.8 };
 const BASE_DRIVE_ODDS = { td: 25, fg: 12, turnover: 15 };
 
 /** One Kansas Plan overtime possession from the opponent's 10: points scored (7, 3 or 0). */

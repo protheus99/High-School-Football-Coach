@@ -29,6 +29,7 @@ export const App: React.FC = () => {
   const [showDrillsModal, setShowDrillsModal] = useState(false);
   const [selectedPlayerDetail, setSelectedPlayerDetail] = useState<Player | null>(null);
   const [awardsRecord, setAwardsRecord] = useState<SeasonAwardsRecord | null>(null);
+  const [awardsShownForYear, setAwardsShownForYear] = useState<number | null>(null);
 
   const {
     startNewSeason,
@@ -92,11 +93,13 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    if (currentWeek === 19 && !awardsRecord && districtTeams.length > 0) {
+    // Show the season's awards once; closing the modal must not re-trigger it
+    if (currentWeek === 19 && awardsShownForYear !== currentYear && districtTeams.length > 0) {
       const calculated = calculateSeasonAwards(currentYear, districtTeams);
       setAwardsRecord(calculated);
+      setAwardsShownForYear(currentYear);
     }
-  }, [currentWeek, awardsRecord, districtTeams, currentYear]);
+  }, [currentWeek, awardsShownForYear, districtTeams, currentYear]);
 
   // Render Postseason Tournament Modal
   if (playoffBracket && showBracketModal) {

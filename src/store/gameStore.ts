@@ -11,7 +11,7 @@ import {
   PlayerRankingsAndStatsState,
   ScheduledGame
 } from '../types/game';
-import { generateDistrictTeams, generateProceduralPlayer, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
+import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { applyGameResult, generateSeasonSchedule, getTeamGameForWeek, simulateRegularSeason } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision } from '../sim/dilemmaEngine';
 import { generateMiddleSchoolProspects, evaluateCollegeScoutExposure } from '../sim/scoutingEngine';
@@ -19,8 +19,7 @@ import { simulateMacroMatch } from '../sim/macroSim';
 import {
   evaluateAcademicReport,
   processPostGameSeasonWear,
-  processWeeklyInjuryHealing,
-  processOffSeasonProgression
+  processWeeklyInjuryHealing
 } from '../sim/playerEngine';
 import { buildInitialPlayoffBracket, advancePlayoffRound, recordPlayoffResult, PlayoffBracketState } from '../sim/playoffEngine';
 import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
@@ -29,6 +28,7 @@ import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
+import { advanceTeamToNextSeason } from '../sim/offseasonEngine';
 
 interface GameStoreState {
   currentWeek: number;
@@ -219,22 +219,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   transitionToNextYear: () => {
     const { districtTeams, neighborDistrictTeams, userTeamId, currentYear, scoutingPool } = get();
-    const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
-
-    // Purge Seniors & advance student-athlete classes
-    userTeam.roster = userTeam.roster.filter((p) => p.classYear !== 'Senior');
-    userTeam.roster.forEach((p) => {
-      if (p.classYear === 'Junior') p.classYear = 'Senior';
-      else if (p.classYear === 'Sophomore') p.classYear = 'Junior';
-      else if (p.classYear === 'Freshman') p.classYear = 'Sophomore';
-
-      processOffSeasonProgression(p, userTeam.staff.strengthCoach.conditioningRating);
-    });
-
-    // Influx Freshmen
-    scoutingPool.forEach((prospect) => {
-      const newFreshman = generateProceduralPlayer(prospect.projectedPosition, 'Freshman', 2);
-      userTeam.roster.push(newFreshman);
+    // Every program graduates seniors, moves classes up, progresses, refills positions and resets its depth chart;
+    // the user's signed feeder prospects arrive as freshmen at their projected positions
+    [...districtTeams, ...neighborDistrictTeams].forEach((team) => {
+      const incoming = team.id === userTeamId ? scoutingPool.map((prospect) => prospect.projectedPosition) : [];
+      advanceTeamToNextSeason(team, incoming);
     });
 
     if (currentYear % 2 === 0) {

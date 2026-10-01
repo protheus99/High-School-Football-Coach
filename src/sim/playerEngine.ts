@@ -109,6 +109,24 @@ export function evaluateAcademicReport(player: Player): void {
 /**
  * Calculates off-season player progression and growth spurts.
  */
+// Position skills the roster generator ties to overall rating; they grow with it
+const POSITION_KEY_SKILLS: Record<Position, (keyof Player['attributes'])[]> = {
+  QB: ['passingAccuracy', 'armStrength', 'vision'],
+  RB: ['carrying', 'vision'],
+  WR: ['routeRunning', 'catching'],
+  TE: ['routeRunning', 'catching'],
+  OT: ['runBlocking', 'passBlocking'],
+  OG: ['runBlocking', 'passBlocking'],
+  C: ['runBlocking', 'passBlocking'],
+  DE: ['passRush', 'tackling'],
+  DT: ['passRush', 'tackling'],
+  LB: ['tackling'],
+  CB: ['coverage'],
+  S: ['coverage'],
+  K: ['kickingPower', 'kickingAccuracy'],
+  P: ['kickingPower', 'kickingAccuracy']
+};
+
 export function processOffSeasonProgression(player: Player, strengthCoachRating: number): void {
   const potentialMap: Record<PotentialGrade, number> = {
     'A+': 6,
@@ -136,6 +154,9 @@ export function processOffSeasonProgression(player: Player, strengthCoachRating:
   player.attributes.speed = clamp(player.attributes.speed + Math.floor(growth * 0.75), 35, 99);
   player.attributes.agility = clamp(player.attributes.agility + Math.floor(growth * 0.7), 35, 99);
   player.attributes.footballIQ = clamp(player.attributes.footballIQ + 3, 30, 99);
+  POSITION_KEY_SKILLS[player.position].forEach((skill) => {
+    player.attributes[skill] = clamp((player.attributes[skill] as number) + growth, 20, 99);
+  });
 
   // Reset conditions for new year
   player.condition.seasonWear = 0;

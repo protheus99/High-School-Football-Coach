@@ -276,6 +276,7 @@ export interface GameSimulationState {
   overtime?: OvertimeState;
   defensiveGamePlan?: Record<string, DefensiveCall>; // teamId -> default call when none is chosen
   playerGameStats?: Record<string, PlayerStats>; // playerId -> this game's stat line
+  gameDayForm?: Record<string, number>; // teamId -> 'Any Given Friday' play-quality offset for this game
 }
 
 /** Kansas Plan overtime: one possession per team per period from the opponent's 10. */

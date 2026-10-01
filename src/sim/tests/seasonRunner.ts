@@ -1,10 +1,11 @@
-import { generateDistrictTeams, generateProceduralPlayer, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../../generators/rosterGenerator';
+import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../../generators/rosterGenerator';
 import { simulateSnap } from '../matchEngine';
-import { simulateMacroMatch } from '../macroSim';
-import { processOffSeasonProgression, processPostGameSeasonWear, processWeeklyInjuryHealing, evaluateAcademicReport } from '../playerEngine';
+import { simulateMacroMatch, teamStarterRating } from '../macroSim';
+import { processPostGameSeasonWear, processWeeklyInjuryHealing, evaluateAcademicReport } from '../playerEngine';
 import { buildInitialPlayoffBracket, advancePlayoffRound } from '../playoffEngine';
 import { calculateSeasonAwards } from '../awardsEngine';
 import { applyGameResult, simulateRegularSeason } from '../scheduleEngine';
+import { advanceTeamToNextSeason } from '../offseasonEngine';
 import { GameSimulationState } from '../../types/game';
 
 /**
@@ -95,22 +96,9 @@ export function runDynastySimulation(numYears = 3): void {
     const awards = calculateSeasonAwards(calendarYear, districtTeams);
     console.log(`MVP: ${awards.mrFootballStateMVP.player.firstName} ${awards.mrFootballStateMVP.player.lastName} (${awards.mrFootballStateMVP.teamName})`);
 
-    // 4. Off-Season & Graduation
-    const graduated = userTeam.roster.filter((p) => p.classYear === 'Senior');
-    userTeam.roster = userTeam.roster.filter((p) => p.classYear !== 'Senior');
-
-    userTeam.roster.forEach((p) => {
-      if (p.classYear === 'Junior') p.classYear = 'Senior';
-      else if (p.classYear === 'Sophomore') p.classYear = 'Junior';
-      else if (p.classYear === 'Freshman') p.classYear = 'Sophomore';
-
-      processOffSeasonProgression(p, userTeam.staff.strengthCoach.conditioningRating);
-    });
-
-    // Influx Freshmen
-    for (let f = 0; f < graduated.length; f++) {
-      userTeam.roster.push(generateProceduralPlayer('WR', 'Freshman', 2));
-    }
+    // 4. Off-Season & Graduation (every program)
+    districtTeams.forEach((team) => advanceTeamToNextSeason(team));
+    console.log(`Off-season: ${userTeam.name} starters average ${teamStarterRating(userTeam).toFixed(1)} OVR`);
 
     // Reset records
     districtTeams.forEach((t) => {

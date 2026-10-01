@@ -8,6 +8,7 @@ import {
   DefensiveScheme
 } from '../types/game';
 import { calculateGaussianVariance, clamp, randomInt } from '../sim/math/variance';
+import { DEPTH_TEMPLATE, rebuildDepthChart } from '../sim/depthChart';
 
 const FIRST_NAMES = [
   'Marcus', 'Trevor', 'DeShawn', 'Colt', 'Brayden', 'Jalen', 'Cody', 'Ty', 'Elijah', 'Wyatt',
@@ -70,7 +71,7 @@ type SchoolIdentity = (typeof HIGH_SCHOOL_NAMES)[number];
 
 let playerIdCounter = 0;
 
-export function generateProceduralPlayer(position: Position, classYear: PlayerClass, tier: 1 | 2 | 3 = 1): Player {
+export function generateProceduralPlayer(position: Position, classYear: PlayerClass, tier: 1 | 2 | 3 = 1, ovrAdjustment = 0): Player {
   const firstName = FIRST_NAMES[randomInt(0, FIRST_NAMES.length - 1)];
   const lastName = LAST_NAMES[randomInt(0, LAST_NAMES.length - 1)];
 
@@ -107,11 +108,15 @@ export function generateProceduralPlayer(position: Position, classYear: PlayerCl
   // Adjust for tier
   if (tier === 2) ovr = Math.max(40, ovr - randomInt(6, 12));
   if (tier === 3) ovr = Math.max(35, ovr - randomInt(14, 22));
+  ovr = Math.max(35, ovr + ovrAdjustment);
 
   const speed = clamp(Math.floor(ovr + calculateGaussianVariance(0, 5)), 40, 99);
   const strength = clamp(Math.floor(ovr + calculateGaussianVariance(0, 5)), 40, 99);
   const agility = clamp(Math.floor(ovr + calculateGaussianVariance(0, 4)), 40, 99);
   const stamina = clamp(Math.floor(randomInt(70, 95)), 50, 99);
+
+  // Off-position skills scale with overall rating (same averages as before, but better athletes are better everywhere)
+  const secondary = (min: number, max: number) => clamp(randomInt(min, max) + Math.round((ovr - 60) * 0.5), 20, 99);
 
   return {
     id: `ply_${Date.now()}_${++playerIdCounter}`,
@@ -128,17 +133,17 @@ export function generateProceduralPlayer(position: Position, classYear: PlayerCl
       strength,
       agility,
       stamina,
-      passingAccuracy: position === 'QB' ? ovr : randomInt(20, 50),
-      armStrength: position === 'QB' ? ovr : randomInt(25, 55),
-      carrying: position === 'RB' ? ovr : randomInt(30, 60),
-      vision: position === 'RB' || position === 'QB' ? ovr : randomInt(30, 65),
-      routeRunning: position === 'WR' || position === 'TE' ? ovr : randomInt(20, 50),
-      catching: position === 'WR' || position === 'TE' ? ovr : randomInt(30, 60),
-      runBlocking: position === 'OT' || position === 'OG' || position === 'C' ? ovr : randomInt(30, 60),
-      passBlocking: position === 'OT' || position === 'OG' || position === 'C' ? ovr : randomInt(30, 60),
-      passRush: position === 'DE' || position === 'DT' ? ovr : randomInt(25, 55),
-      tackling: position === 'LB' || position === 'DT' || position === 'DE' ? ovr : randomInt(30, 65),
-      coverage: position === 'CB' || position === 'S' ? ovr : randomInt(20, 50),
+      passingAccuracy: position === 'QB' ? ovr : secondary(20, 50),
+      armStrength: position === 'QB' ? ovr : secondary(25, 55),
+      carrying: position === 'RB' ? ovr : secondary(30, 60),
+      vision: position === 'RB' || position === 'QB' ? ovr : secondary(30, 65),
+      routeRunning: position === 'WR' || position === 'TE' ? ovr : secondary(20, 50),
+      catching: position === 'WR' || position === 'TE' ? ovr : secondary(30, 60),
+      runBlocking: position === 'OT' || position === 'OG' || position === 'C' ? ovr : secondary(30, 60),
+      passBlocking: position === 'OT' || position === 'OG' || position === 'C' ? ovr : secondary(30, 60),
+      passRush: position === 'DE' || position === 'DT' ? ovr : secondary(25, 55),
+      tackling: position === 'LB' || position === 'DT' || position === 'DE' ? ovr : secondary(30, 65),
+      coverage: position === 'CB' || position === 'S' ? ovr : secondary(20, 50),
       kickingPower: position === 'K' || position === 'P' ? ovr : randomInt(20, 40),
       kickingAccuracy: position === 'K' || position === 'P' ? ovr : randomInt(20, 40),
       footballIQ: randomInt(45, 88),
@@ -197,26 +202,19 @@ export function generateProceduralPlayer(position: Position, classYear: PlayerCl
 }
 
 export function generateCompleteTeamRoster(): Player[] {
-  const positions: Position[] = [
-    'QB', 'QB',
-    'RB', 'RB', 'RB',
-    'WR', 'WR', 'WR', 'WR',
-    'TE', 'TE',
-    'OT', 'OT', 'OG', 'OG', 'C',
-    'DE', 'DE', 'DT', 'DT',
-    'LB', 'LB', 'LB',
-    'CB', 'CB', 'CB',
-    'S', 'S',
-    'K', 'P'
-  ];
-
   const classes: PlayerClass[] = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
+  const roster: Player[] = [];
 
-  return positions.map((pos, idx) => {
-    const tier: 1 | 2 | 3 = idx % 2 === 0 ? 1 : 2;
-    const cYear = classes[randomInt(0, classes.length - 1)];
-    return generateProceduralPlayer(pos, cYear, tier);
+  // Starter slots roll first-string talent, depth slots roll backups; then the best player at each position starts
+  (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => {
+    const { roster: size, starters } = DEPTH_TEMPLATE[pos];
+    for (let i = 0; i < size; i++) {
+      roster.push(generateProceduralPlayer(pos, classes[randomInt(0, classes.length - 1)], i < starters ? 1 : 2));
+    }
   });
+
+  rebuildDepthChart(roster);
+  return roster;
 }
 
 export function generateDistrictTeams(districtId = 'tx_6a_d26', schools: SchoolIdentity[] = HIGH_SCHOOL_NAMES): Team[] {
