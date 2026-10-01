@@ -1,10 +1,10 @@
-import { generateDistrictTeams, generateProceduralPlayer } from '../../generators/rosterGenerator';
+import { generateDistrictTeams, generateProceduralPlayer, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../../generators/rosterGenerator';
 import { simulateSnap } from '../matchEngine';
 import { simulateMacroMatch } from '../macroSim';
 import { processOffSeasonProgression, processPostGameSeasonWear, processWeeklyInjuryHealing, evaluateAcademicReport } from '../playerEngine';
 import { buildInitialPlayoffBracket, advancePlayoffRound } from '../playoffEngine';
 import { calculateSeasonAwards } from '../awardsEngine';
-import { applyGameResult } from '../scheduleEngine';
+import { applyGameResult, simulateRegularSeason } from '../scheduleEngine';
 import { GameSimulationState } from '../../types/game';
 
 /**
@@ -78,11 +78,15 @@ export function runDynastySimulation(numYears = 3): void {
     console.log(`Regular Season Complete: ${userTeam.name} finished ${userTeam.record.wins}-${userTeam.record.losses}`);
 
     // 2. State Playoffs (Weeks 15 to 18)
-    const districtB = generateDistrictTeams('tx_6a_d27');
-    let playoffBracket = buildInitialPlayoffBracket(districtTeams, districtB);
+    const [districtB, districtC, districtD] = [NEIGHBOR_DISTRICT_SCHOOLS, ...PLAYOFF_REGION_DISTRICT_SCHOOLS].map((schools, i) =>
+      generateDistrictTeams(`tx_6a_d${25 + i}`, schools)
+    );
+    simulateRegularSeason(districtB, districtC, calendarYear);
+    simulateRegularSeason(districtD, [], calendarYear); // district round robin only
+    let playoffBracket = buildInitialPlayoffBracket([districtTeams, districtB, districtC, districtD]);
 
     while (playoffBracket.isPlayoffsActive) {
-      playoffBracket = advancePlayoffRound(playoffBracket, userTeam.id, { homeScore: 28, awayScore: 21 });
+      playoffBracket = advancePlayoffRound(playoffBracket, userTeam.id);
     }
 
     console.log(`Playoffs Finished. State Champion: ${playoffBracket.stateChampionTeamId || 'Decided'}`);

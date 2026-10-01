@@ -29,6 +29,9 @@ function tiedAtEndOfRegulation(): GameSimulationState {
   };
 }
 
+/** The final regulation snap occasionally scores (long TD, pick-six, safety); those games never reach overtime. */
+const reachedOvertime = (state: GameSimulationState) => state.eventLog.some((e) => e.textCommentary.includes('END OF REGULATION'));
+
 function playOut(state: GameSimulationState): GameSimulationState {
   for (let snaps = 0; !state.isGameOver; snaps++) {
     if (snaps > 2000) throw new Error('Overtime never ended');
@@ -39,16 +42,21 @@ function playOut(state: GameSimulationState): GameSimulationState {
 
 describe('Kansas Plan overtime', () => {
   it('always produces a winner when regulation ends tied', () => {
+    let overtimeGames = 0;
     for (let i = 0; i < 300; i++) {
       const state = playOut(tiedAtEndOfRegulation());
+      if (!reachedOvertime(state)) continue;
+      overtimeGames++;
       expect(state.currentQuarter).toBe('OT');
       expect(state.homeScore).not.toBe(state.awayScore);
     }
+    expect(overtimeGames).toBeGreaterThan(250);
   });
 
   it('has no kickoffs or turnover returns, and every possession starts at the 10', () => {
     for (let i = 0; i < 300; i++) {
       const state = playOut(tiedAtEndOfRegulation());
+      if (!reachedOvertime(state)) continue;
       const otEvents = state.eventLog.filter((e) => e.quarter === 'OT');
       const regulationEnd = state.eventLog.find((e) => e.textCommentary.includes('END OF REGULATION'));
 

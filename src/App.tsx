@@ -119,7 +119,7 @@ export const App: React.FC = () => {
             teamMomentum: 0,
             currentQuarter: 1,
             clockSecondsRemaining: 720,
-            possessionTeamId: node.team1.id,
+            possessionTeamId: Math.random() < 0.5 ? node.team1.id : node.team2.id, // opening coin toss
             down: 1,
             distance: 10,
             yardLine: 25,

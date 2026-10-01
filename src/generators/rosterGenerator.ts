@@ -42,6 +42,30 @@ export const NEIGHBOR_DISTRICT_SCHOOLS = [
   { name: 'McNeil', mascot: 'Mavericks', primary: '#00843D', secondary: '#FFFFFF' }
 ];
 
+// Two more Region IV districts that only appear as playoff qualifiers
+export const PLAYOFF_REGION_DISTRICT_SCHOOLS = [
+  [
+    { name: 'Smithson Valley', mascot: 'Rangers', primary: '#002855', secondary: '#C8102E' },
+    { name: 'Steele', mascot: 'Knights', primary: '#4F2683', secondary: '#C0C0C0' },
+    { name: 'Clemens', mascot: 'Buffaloes', primary: '#00205B', secondary: '#FFFFFF' },
+    { name: 'New Braunfels', mascot: 'Unicorns', primary: '#003087', secondary: '#FFFFFF' },
+    { name: 'Canyon', mascot: 'Cougars', primary: '#006747', secondary: '#C4B581' },
+    { name: 'Judson', mascot: 'Rockets', primary: '#4B0082', secondary: '#FFD700' },
+    { name: 'Wagner', mascot: 'Thunderbirds', primary: '#7C2529', secondary: '#B9975B' },
+    { name: 'East Central', mascot: 'Hornets', primary: '#00338D', secondary: '#FFC72C' }
+  ],
+  [
+    { name: 'Johnson', mascot: 'Jaguars', primary: '#00573F', secondary: '#B3A369' },
+    { name: 'Reagan', mascot: 'Rattlers', primary: '#002D72', secondary: '#C8102E' },
+    { name: 'Madison', mascot: 'Mavericks', primary: '#003DA5', secondary: '#FFFFFF' },
+    { name: 'MacArthur', mascot: 'Brahmas', primary: '#6F263D', secondary: '#FFFFFF' },
+    { name: 'Churchill', mascot: 'Chargers', primary: '#002F6C', secondary: '#A2AAAD' },
+    { name: "O'Connor", mascot: 'Panthers', primary: '#000000', secondary: '#C8102E' },
+    { name: 'Brandeis', mascot: 'Broncos', primary: '#00205B', secondary: '#B9975B' },
+    { name: 'Roosevelt', mascot: 'Rough Riders', primary: '#BA0C2F', secondary: '#000000' }
+  ]
+];
+
 type SchoolIdentity = (typeof HIGH_SCHOOL_NAMES)[number];
 
 let playerIdCounter = 0;
@@ -204,7 +228,7 @@ export function generateDistrictTeams(districtId = 'tx_6a_d26', schools: SchoolI
     const prestige = randomInt(68, 92);
 
     return {
-      id: `team_${hs.name.toLowerCase().replace(/\s+/g, '_')}`,
+      id: `team_${hs.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
       name: hs.name,
       mascot: hs.mascot,
       classification: '6A',

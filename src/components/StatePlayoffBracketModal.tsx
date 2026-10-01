@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlayoffBracketState, BracketNode } from '../sim/playoffEngine';
+import { PlayoffBracketState, BracketNode, getRoundNodes } from '../sim/playoffEngine';
 
 interface PlayoffModalProps {
   bracketState: PlayoffBracketState;
@@ -16,13 +16,20 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({
 }) => {
   const { currentRound, bracket, stateChampionTeamId } = bracketState;
 
-  const activeNodes =
-    currentRound === 'BI_DISTRICT' ? bracket.biDistrict.slice(0, 4) :
-    currentRound === 'AREA' ? bracket.area :
-    currentRound === 'REGIONAL' ? bracket.regional :
-    bracket.stateFinal;
+  const activeNodes = getRoundNodes(bracketState);
+  const involvesUser = (n: BracketNode) => n.team1.id === userTeamId || n.team2.id === userTeamId;
+  const userMatchup = activeNodes.find(involvesUser);
+  const userQualified = bracket.biDistrict.some(involvesUser);
+  const finalNode = bracket.stateFinal[0];
+  const champion = finalNode && (finalNode.winnerTeamId === finalNode.team1.id ? finalNode.team1 : finalNode.team2);
 
-  const userMatchup = activeNodes.find((n) => n.team1.id === userTeamId || n.team2.id === userTeamId);
+  let userStatus: string | null = null;
+  if (!userQualified) userStatus = 'Your team did not qualify for the state playoffs.';
+  else if (!userMatchup) userStatus = 'Your season has ended. The tournament continues as you advance the weeks.';
+  else if (userMatchup.winnerTeamId && bracketState.isPlayoffsActive)
+    userStatus = userMatchup.winnerTeamId === userTeamId
+      ? 'Victory! Advance the week to play out the rest of the round.'
+      : 'Your season has ended. The tournament continues as you advance the weeks.';
 
   return (
     <div style={overlayStyle}>
@@ -31,7 +38,7 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({
           <div>
             <h2 style={{ margin: 0, color: '#0F172A' }}>🏆 STATE CHAMPIONSHIP TOURNAMENT</h2>
             <div style={{ fontSize: '13px', color: '#64748B' }}>
-              Current Round: {currentRound.replace('_', ' ')}
+              Current Round: {currentRound.replace('_', ' ')}{bracketState.championshipTitle ? ` · ${bracketState.championshipTitle}` : ''}
             </div>
           </div>
           <button onClick={onClose} style={closeBtnStyle}>✕</button>
@@ -41,8 +48,13 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({
           <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '16px', margin: '16px 0', textAlign: 'center' }}>
             <h2 style={{ margin: '0 0 6px 0', color: '#B45309' }}>👑 STATE CHAMPION CROWNED!</h2>
             <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
-              Congratulations to the State Champions!
+              {champion ? `${champion.name} ${champion.mascot}` : 'Congratulations to the State Champions!'}
             </div>
+            {bracketState.championshipVenue && (
+              <div style={{ fontSize: '13px', color: '#92400E', marginTop: '4px' }}>
+                {finalNode?.team1Score}-{finalNode?.team2Score} in the final at {bracketState.championshipVenue}
+              </div>
+            )}
           </div>
         )}
 
@@ -64,10 +76,16 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({
           </div>
         )}
 
+        {userStatus && (
+          <div style={{ background: '#F1F5F9', borderRadius: '8px', padding: '10px 14px', margin: '12px 0', fontSize: '13px', color: '#334155' }}>
+            {userStatus}
+          </div>
+        )}
+
         {/* Matchup Nodes Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', margin: '16px 0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', margin: '16px 0', maxHeight: '50vh', overflowY: 'auto' }}>
           {activeNodes.map((node) => {
-            const isUserGame = node.team1.id === userTeamId || node.team2.id === userTeamId;
+            const isUserGame = involvesUser(node);
             return (
               <div
                 key={node.matchupId}

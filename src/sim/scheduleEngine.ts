@@ -1,4 +1,5 @@
 import { ScheduledGame, Team } from '../types/game';
+import { simulateMacroMatch } from './macroSim';
 
 // 20-week calendar (design spec 4): weeks 1-4 spring/summer, 5-7 non-district,
 // 8-14 district round robin, 15-18 state playoffs, 19-20 off-season
@@ -117,4 +118,18 @@ export function applyGameResult(home: Team, away: Team, homeScore: number, awayS
 
   apply(home, away, homeScore, awayScore, capped);
   apply(away, home, awayScore, homeScore, -capped);
+}
+
+/**
+ * Plays out a full regular season between two districts in the background
+ * (used for the playoff-only districts so their seeds come from real records).
+ */
+export function simulateRegularSeason(districtA: Team[], districtB: Team[], year: number): void {
+  const teams = [...districtA, ...districtB];
+  for (const game of generateSeasonSchedule(districtA, districtB, year)) {
+    const home = teams.find((t) => t.id === game.homeTeamId)!;
+    const away = teams.find((t) => t.id === game.awayTeamId)!;
+    const box = simulateMacroMatch(game.gameId, game.week, home, away);
+    applyGameResult(home, away, box.homeScore, box.awayScore, game.isDistrictGame);
+  }
 }

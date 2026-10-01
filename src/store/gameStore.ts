@@ -11,8 +11,8 @@ import {
   PlayerRankingsAndStatsState,
   ScheduledGame
 } from '../types/game';
-import { generateDistrictTeams, generateProceduralPlayer, NEIGHBOR_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
-import { applyGameResult, generateSeasonSchedule, getTeamGameForWeek } from '../sim/scheduleEngine';
+import { generateDistrictTeams, generateProceduralPlayer, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
+import { applyGameResult, generateSeasonSchedule, getTeamGameForWeek, simulateRegularSeason } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision } from '../sim/dilemmaEngine';
 import { generateMiddleSchoolProspects, evaluateCollegeScoutExposure } from '../sim/scoutingEngine';
 import { simulateMacroMatch } from '../sim/macroSim';
@@ -22,7 +22,7 @@ import {
   processWeeklyInjuryHealing,
   processOffSeasonProgression
 } from '../sim/playerEngine';
-import { buildInitialPlayoffBracket, advancePlayoffRound, PlayoffBracketState } from '../sim/playoffEngine';
+import { buildInitialPlayoffBracket, advancePlayoffRound, recordPlayoffResult, PlayoffBracketState } from '../sim/playoffEngine';
 import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
@@ -131,6 +131,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         applyGameResult(home, away, box.homeScore, box.awayScore, g.isDistrictGame);
       });
 
+    // Playoff weeks: finish the current round (simulating the user's game if skipped) and seed the next
+    const { playoffBracket } = get();
+    if (playoffBracket?.isPlayoffsActive) {
+      set({ playoffBracket: advancePlayoffRound(playoffBracket, userTeamId) });
+    }
+
     // Check Postseason Trigger (Week 15)
     if (nextWeek === 15) {
       get().startPostseason();
@@ -196,17 +202,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   startPostseason: () => {
-    const { districtTeams, neighborDistrictTeams } = get();
-    const bracket = buildInitialPlayoffBracket(districtTeams, neighborDistrictTeams);
+    const { districtTeams, neighborDistrictTeams, currentYear } = get();
+    // Two more Region IV districts fill out the 16-team bracket; their season is played out in the background
+    const [regionC, regionD] = PLAYOFF_REGION_DISTRICT_SCHOOLS.map((schools, i) => generateDistrictTeams(`tx_6a_d${27 + i}`, schools));
+    simulateRegularSeason(regionC, regionD, currentYear);
+    const bracket = buildInitialPlayoffBracket([districtTeams, neighborDistrictTeams, regionC, regionD]);
     set({ currentWeek: 15, playoffBracket: bracket });
   },
 
+  // Records the user's live playoff result; Advance Week finishes the round
   advancePlayoffGame: (userScore) => {
-    const { playoffBracket, userTeamId, currentWeek } = get();
-    if (!playoffBracket) return;
-
-    const nextBracket = advancePlayoffRound(playoffBracket, userTeamId, userScore);
-    set({ playoffBracket: nextBracket, currentWeek: currentWeek + 1 });
+    const { playoffBracket, userTeamId } = get();
+    if (!playoffBracket || !userScore) return;
+    set({ playoffBracket: recordPlayoffResult(playoffBracket, userTeamId, userScore) });
   },
 
   transitionToNextYear: () => {
