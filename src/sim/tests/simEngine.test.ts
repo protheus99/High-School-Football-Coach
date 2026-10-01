@@ -30,6 +30,8 @@ export function runStatisticalCalibrationTest(iterations = 1000): {
   playsPerTeam: number;
   completionRate: number;
   tieRate: number;
+  closeGameRate: number;
+  blowoutRate: number;
 } {
   let totalYardsAccum = 0;
   let totalPointsAccum = 0;
@@ -39,6 +41,8 @@ export function runStatisticalCalibrationTest(iterations = 1000): {
   let passCompletions = 0;
   let underdogWins = 0;
   let ties = 0;
+  let closeGames = 0;
+  let blowouts = 0;
 
   for (let i = 0; i < iterations; i++) {
     const teams = generateDistrictTeams();
@@ -90,6 +94,9 @@ export function runStatisticalCalibrationTest(iterations = 1000): {
     const favoriteScore = underdog === homeTeam ? gameState.awayScore : gameState.homeScore;
     if (underdogScore > favoriteScore) underdogWins += 1;
     if (underdogScore === favoriteScore) ties += 1;
+    const margin = Math.abs(gameState.homeScore - gameState.awayScore);
+    if (margin <= 8) closeGames += 1;
+    if (margin >= 35) blowouts += 1;
   }
 
   const results = {
@@ -99,7 +106,9 @@ export function runStatisticalCalibrationTest(iterations = 1000): {
     underdogWinRate: Number(((underdogWins / iterations) * 100).toFixed(1)),
     playsPerTeam: Math.round(scrimmagePlaysAccum / iterations / 2),
     completionRate: Number(((passCompletions / (passAttempts || 1)) * 100).toFixed(1)),
-    tieRate: Number(((ties / iterations) * 100).toFixed(1))
+    tieRate: Number(((ties / iterations) * 100).toFixed(1)),
+    closeGameRate: Number(((closeGames / iterations) * 100).toFixed(1)),
+    blowoutRate: Number(((blowouts / iterations) * 100).toFixed(1))
   };
 
   console.log('--- NFHS SIMULATION CALIBRATION REPORT ---');
@@ -111,6 +120,8 @@ export function runStatisticalCalibrationTest(iterations = 1000): {
   console.log(`Scrimmage Plays per Team: ${results.playsPerTeam} (Target: 52-62)`);
   console.log(`Completion Rate: ${results.completionRate}% (Target: 50-55%)`);
   console.log(`Final Score Tied: ${results.tieRate}% (Target: 0 with overtime)`);
+  console.log(`One-Score Games (<=8): ${results.closeGameRate}% (Target: 22%+)`);
+  console.log(`Blowouts (35+): ${results.blowoutRate}% (Target: 15% or less)`);
 
   return results;
 }
@@ -131,5 +142,7 @@ describe('NFHS simulation calibration', () => {
     expect(results.completionRate).toBeGreaterThanOrEqual(50);
     expect(results.completionRate).toBeLessThanOrEqual(55);
     expect(results.tieRate).toBe(0); // regulation ties are decided in overtime
+    expect(results.closeGameRate).toBeGreaterThanOrEqual(22);
+    expect(results.blowoutRate).toBeLessThanOrEqual(15);
   }, 120000);
 });

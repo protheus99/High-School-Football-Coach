@@ -205,17 +205,26 @@ export function evaluateLeverageTrigger(state: GameSimulationState, userTeamId?:
 // ============================================================================
 
 const EXECUTION_STDEV = 12; // N(0, 12) execution roll from the design spec
-const GAME_DAY_FORM_STDEV = 2; // 'Any Given Friday': each team plays above or below its level for a whole game
+const GAME_DAY_FORM_STDEV = 0; // 'Any Given Friday' per-team game form; disabled because it widened margins more than it added upsets
 const EXPLOSIVE_PLAY_QUALITY = 25;
+// League-average matchup delta per concept. Each snap's personnel edge is narrowed around it so better
+// teams stay better without most games snowballing into routs (league averages are unchanged).
+const MATCHUP_BASELINES = { INSIDE_RUN: 3.3, OUTSIDE_RUN: 0, SHORT_PASS: 8.3, DEEP_PASS: 2.1 };
+const MATCHUP_SPREAD_SCALE = 0.5;
+const SCHEME_EFFECT_SCALE = 0.5; // scheme and counter modifiers act all game long, so they are damped
+const PREVENT_DEFENSE_DEFICIT = 15; // 4th-quarter lead at which the defense plays soft coverage
+const PREVENT_DEFENSE_BONUS = 8;
+const RED_ZONE_YARD_LINE = 80;
+const RED_ZONE_BONUS = 6; // short field: offenses finish drives
 const PASS_THRESHOLDS = {
-  SHORT_PASS: { interception: -29, sack: -17, incomplete: 3 },
-  DEEP_PASS: { interception: -24, sack: -16, incomplete: 6 }
+  SHORT_PASS: { interception: -24, sack: -16, incomplete: 4 },
+  DEEP_PASS: { interception: -19, sack: -15, incomplete: 6 }
 };
-const RUN_THRESHOLDS = { fumble: -32, tackleForLoss: -15 };
+const RUN_THRESHOLDS = { fumble: -27, tackleForLoss: -15 };
 const PLAY_CLOCK_RUNOFF = { min: 21, max: 30 }; // running plays & completions
 const INCOMPLETE_RUNOFF = 6;
 const MERCY_RULE_RUNOFF = 45;
-const MAX_FIELD_GOAL_ATTEMPT_YARDS = 42;
+const MAX_FIELD_GOAL_ATTEMPT_YARDS = 47;
 const REST_STARTERS_LEAD = 28; // second-half lead at which a coach pulls his starters
 const KILL_CLOCK_LEAD = 21; // second-half lead at which the offense keeps the ball on the ground
 const BAD_SNAP_OR_BLOCK_CHANCE = 0.03;
@@ -383,7 +392,7 @@ export function resolveKickoff(
   }
 
   const coverageSpeed = getUnitAverage(kicking, ['LB', 'S', 'CB'], 'speed');
-  const returnYards = Math.max(0, Math.round(12 + returner.attributes.speed * 0.15 - coverageSpeed * 0.12 + calculateGaussianVariance(0, 6)));
+  const returnYards = Math.max(0, Math.round(15 + returner.attributes.speed * 0.15 - coverageSpeed * 0.12 + calculateGaussianVariance(0, 6)));
   const spot = clamp(100 - landing + returnYards, 1, 99);
   const fumbleChance = state.weather === 'HEAVY_RAIN' ? 0.05 : 0.025;
 
@@ -402,7 +411,7 @@ function selectAIPlayConcept(state: GameSimulationState, scheme: OffensiveScheme
     const fgDistance = 100 - state.yardLine + 17;
     if (fgDistance <= MAX_FIELD_GOAL_ATTEMPT_YARDS) return 'FIELD_GOAL';
     const goForIt =
-      state.currentQuarter === 'OT' || (state.distance <= 2 && state.yardLine >= 40) || (state.distance <= 4 && state.yardLine >= 60);
+      state.currentQuarter === 'OT' || (state.distance <= 2 && state.yardLine >= 40) || (state.distance <= 4 && state.yardLine >= 55);
     if (!goForIt) return 'PUNT';
   }
 
@@ -595,7 +604,13 @@ export function simulateSnap(
       DEFENSIVE_SCHEME_MODIFIERS[defense.schemeDefense][scrimmageConcept] +
       schemeCounterBonus(offScheme, defense.schemeDefense, isPass) +
       (isPass && state.weather === 'HEAVY_RAIN' && (offScheme === 'AIR_RAID' || offScheme === 'SPREAD') ? -5 : 0);
-    const playQuality = delta + contextMod + variance + form + schemeMod;
+    const offenseLead = isHomeOffense ? state.homeScore - state.awayScore : state.awayScore - state.homeScore;
+    const preventDefense = state.currentQuarter === 4 && offenseLead <= -PREVENT_DEFENSE_DEFICIT ? PREVENT_DEFENSE_BONUS : 0;
+    const redZone = state.yardLine >= RED_ZONE_YARD_LINE ? RED_ZONE_BONUS : 0;
+    const playQuality =
+      MATCHUP_BASELINES[scrimmageConcept] +
+      (delta - MATCHUP_BASELINES[scrimmageConcept]) * MATCHUP_SPREAD_SCALE +
+      contextMod + variance + form + schemeMod * SCHEME_EFFECT_SCALE + preventDefense + redZone;
     const passThresholds = isPass ? PASS_THRESHOLDS[concept as 'SHORT_PASS' | 'DEEP_PASS'] : null;
 
     // Who is involved on this snap (usage shares from design spec 11.1)
@@ -655,7 +670,7 @@ export function simulateSnap(
       }
       // Normal Gain (scaled by execution quality)
       else {
-        if (concept === 'DEEP_PASS') yardsGained = 10 + randomInt(0, 6) + Math.round(Math.max(0, playQuality) / 3);
+        if (concept === 'DEEP_PASS') yardsGained = 9 + randomInt(0, 6) + Math.round(Math.max(0, playQuality) / 3);
         else if (concept === 'SHORT_PASS') yardsGained = 3 + randomInt(0, 4) + Math.round(Math.max(0, playQuality) / 5);
         else yardsGained = Math.max(0, Math.round(2.5 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
         if (playQuality > explosiveThreshold) yardsGained += randomInt(8, 30); // Explosive break
