@@ -164,7 +164,20 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       </div>
 
       {/* Leverage Modal Interrupt */}
-      {leveragePrompt && !gameState.isGameOver && (
+      {leveragePrompt === 'PAT_DECISION' && !gameState.isGameOver && (
+        <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
+          <h3 style={{ margin: '0 0 8px 0', color: '#92400E' }}>⚡ TOUCHDOWN! POINT-AFTER DECISION</h3>
+          <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
+            Kick the extra point, or go for two from the 3-yard line?
+          </p>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => handleDecision('PAT_KICK')} style={btnStyle}>👟 Kick Extra Point</button>
+            <button onClick={() => handleDecision('TWO_POINT_TRY')} style={btnStyle}>✌️ Go for Two</button>
+          </div>
+        </div>
+      )}
+
+      {leveragePrompt && leveragePrompt !== 'PAT_DECISION' && !gameState.isGameOver && (
         <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
           <h3 style={{ margin: '0 0 8px 0', color: '#92400E' }}>⚡ 4th DOWN TACTICAL DECISION</h3>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>

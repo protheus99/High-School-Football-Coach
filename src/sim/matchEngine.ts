@@ -177,14 +177,41 @@ export function evaluateLeverageTrigger(state: GameSimulationState): LeverageTyp
   return null;
 }
 
+
+// ============================================================================
+// CALIBRATION CONSTANTS
+// Tuned against the NFHS benchmark targets in src/sim/tests/simEngine.test.ts
+// ============================================================================
+
+const EXECUTION_STDEV = 12; // N(0, 12) execution roll from the design spec
+const EXPLOSIVE_PLAY_QUALITY = 25;
+const PASS_THRESHOLDS = {
+  SHORT_PASS: { interception: -28, sack: -17, incomplete: 3 },
+  DEEP_PASS: { interception: -23, sack: -16, incomplete: 6 }
+};
+const RUN_THRESHOLDS = { fumble: -32, tackleForLoss: -15 };
+const PLAY_CLOCK_RUNOFF = { min: 22, max: 31 }; // running plays & completions
+const INCOMPLETE_RUNOFF = 6;
+const MERCY_RULE_RUNOFF = 45;
+const MAX_FIELD_GOAL_ATTEMPT_YARDS = 42;
+const BAD_SNAP_OR_BLOCK_CHANCE = 0.03;
+
+const SCRIMMAGE_CONCEPTS: PlayConcept[] = ['INSIDE_RUN', 'OUTSIDE_RUN', 'SHORT_PASS', 'DEEP_PASS'];
+const isPassConcept = (c: PlayConcept) => c === 'SHORT_PASS' || c === 'DEEP_PASS';
+
 /**
  * Resolves Field Goal attempt using NFHS probability formula
+ * (includes the flat 3% bad snap / blocked kick roll).
  */
 export function resolveFieldGoal(
   kicker: Player,
   distanceYards: number,
   windSpeed: number
 ): { isSuccess: boolean; text: string } {
+  if (Math.random() < BAD_SNAP_OR_BLOCK_CHANCE) {
+    return { isSuccess: false, text: `The ${distanceYards}-yard kick by K #${kicker.lastName} is BLOCKED!` };
+  }
+
   const prob = clamp(
     92 - (distanceYards - 20) * 3.2 - windSpeed * 0.75 + kicker.attributes.kickingAccuracy * 0.35,
     5,
@@ -202,6 +229,71 @@ export function resolveFieldGoal(
   };
 }
 
+function setFirstDown(state: GameSimulationState, possessionTeamId: string, yardLine: number) {
+  state.possessionTeamId = possessionTeamId;
+  state.yardLine = yardLine;
+  state.down = 1;
+  state.distance = Math.min(10, 100 - yardLine);
+}
+
+/**
+ * Resolves a kickoff (NFHS kick from the 40, or a free kick from the 20 after a safety)
+ * and hands possession to the receiving team.
+ */
+export function resolveKickoff(
+  state: GameSimulationState,
+  kicking: Team,
+  receiving: Team,
+  kickSpot = 40
+): { text: string; isTurnover: boolean } {
+  const kicker = getActivePlayer(kicking, 'K');
+  const returner = getActivePlayer(receiving, 'RB');
+  const headwind = state.weather === 'HIGH_WIND' ? state.windSpeedMph : 0;
+  const kickDist = Math.round(35 + kicker.attributes.kickingPower * 0.35 + calculateGaussianVariance(0, 4) - headwind * 0.5);
+  const landing = kickSpot + kickDist; // measured from the kicking team's goal line
+
+  if (landing >= 100) {
+    setFirstDown(state, receiving.id, 20);
+    return { text: ` Kickoff by #${kicker.lastName} sails into the end zone for a touchback.`, isTurnover: false };
+  }
+
+  const coverageSpeed = getUnitAverage(kicking, ['LB', 'S', 'CB'], 'speed');
+  const returnYards = Math.max(0, Math.round(12 + returner.attributes.speed * 0.15 - coverageSpeed * 0.12 + calculateGaussianVariance(0, 6)));
+  const spot = clamp(100 - landing + returnYards, 1, 99);
+  const fumbleChance = state.weather === 'HEAVY_RAIN' ? 0.05 : 0.025;
+
+  if (Math.random() < fumbleChance) {
+    setFirstDown(state, kicking.id, 100 - spot);
+    return { text: ` #${returner.lastName} FUMBLES the kickoff return! ${kicking.name} recovers!`, isTurnover: true };
+  }
+
+  setFirstDown(state, receiving.id, spot);
+  return { text: ` #${returner.lastName} returns the kickoff ${returnYards} yds to the ${spot}.`, isTurnover: false };
+}
+
+/** Default AI play selection for the offense. */
+function selectAIPlayConcept(state: GameSimulationState): PlayConcept {
+  if (state.down === 4) {
+    const fgDistance = 100 - state.yardLine + 17;
+    if (fgDistance <= MAX_FIELD_GOAL_ATTEMPT_YARDS) return 'FIELD_GOAL';
+    const goForIt = (state.distance <= 2 && state.yardLine >= 40) || (state.distance <= 4 && state.yardLine >= 60);
+    if (!goForIt) return 'PUNT';
+  }
+
+  const passChance = state.distance >= 8 ? 0.7 : state.distance <= 3 ? 0.25 : 0.45;
+  if (Math.random() < passChance) {
+    return Math.random() < 0.65 ? 'SHORT_PASS' : 'DEEP_PASS';
+  }
+  return Math.random() < 0.55 ? 'INSIDE_RUN' : 'OUTSIDE_RUN';
+}
+
+/** Interception / fumble return yardage (design spec 8.4). */
+function turnoverReturnYards(defender: Player | undefined, offense: Team): number {
+  const defenderSpeed = defender?.attributes.speed ?? 60;
+  const pursuit = getUnitAverage(offense, ['QB', 'RB', 'WR'], 'speed');
+  return Math.max(0, Math.round(defenderSpeed * 0.3 - pursuit * 0.2 + calculateGaussianVariance(0, 8)));
+}
+
 /**
  * Resolves a single play of football and updates state
  */
@@ -209,20 +301,31 @@ export function simulateSnap(
   state: GameSimulationState,
   chosenConcept?: PlayConcept
 ): { state: GameSimulationState; event: PlayEvent } {
+  if (!state.openingPossessionTeamId) {
+    state.openingPossessionTeamId = state.possessionTeamId;
+  }
+
   const isHomeOffense = state.possessionTeamId === state.homeTeam.id;
   const offense = isHomeOffense ? state.homeTeam : state.awayTeam;
   const defense = isHomeOffense ? state.awayTeam : state.homeTeam;
+  const addPoints = (team: Team, points: number) => {
+    if (team.id === state.homeTeam.id) state.homeScore += points;
+    else state.awayScore += points;
+  };
 
-  // Default play concept selection if not forced by user
-  let concept: PlayConcept = chosenConcept || 'INSIDE_RUN';
-  if (!chosenConcept) {
-    if (state.down === 4) {
-      concept = state.yardLine >= 65 ? 'FIELD_GOAL' : 'PUNT';
-    } else if (state.distance > 7) {
-      concept = Math.random() > 0.4 ? 'SHORT_PASS' : 'DEEP_PASS';
-    } else {
-      concept = Math.random() > 0.5 ? 'INSIDE_RUN' : 'OUTSIDE_RUN';
-    }
+  // A touchdown on the previous snap means this snap is the try (PAT kick or 2-point play)
+  const lastEvent = state.eventLog[state.eventLog.length - 1];
+  const isTryDown = lastEvent?.scoreType === 'TOUCHDOWN';
+
+  let concept: PlayConcept;
+  if (isTryDown) {
+    const goForTwo =
+      chosenConcept === 'TWO_POINT_TRY' || (chosenConcept !== undefined && SCRIMMAGE_CONCEPTS.includes(chosenConcept));
+    concept = goForTwo ? 'TWO_POINT_TRY' : 'PAT_KICK';
+  } else {
+    concept = chosenConcept && chosenConcept !== 'PAT_KICK' && chosenConcept !== 'TWO_POINT_TRY'
+      ? chosenConcept
+      : selectAIPlayConcept(state);
   }
 
   const playId = `play_${Date.now()}_${randomInt(100, 999)}`;
@@ -232,156 +335,216 @@ export function simulateSnap(
   let isScore = false;
   let scoreType: PlayEvent['scoreType'];
   let commentary = '';
-  let timeElapsed = state.isMercyRuleActive ? 45 : randomInt(28, 40);
+  let timeElapsed = state.isMercyRuleActive ? MERCY_RULE_RUNOFF : randomInt(PLAY_CLOCK_RUNOFF.min, PLAY_CLOCK_RUNOFF.max);
 
+  // Try after touchdown (untimed down)
+  if (concept === 'PAT_KICK' || concept === 'TWO_POINT_TRY') {
+    timeElapsed = 0;
+    if (concept === 'PAT_KICK') {
+      const kicker = getActivePlayer(offense, 'K');
+      const res = resolveFieldGoal(kicker, 20, state.windSpeedMph);
+      commentary = res.isSuccess ? `K #${kicker.lastName}'s extra point is GOOD.` : `K #${kicker.lastName}'s extra point is NO GOOD!`;
+      if (res.isSuccess) {
+        isScore = true;
+        scoreType = 'PAT';
+        addPoints(offense, 1);
+      }
+    } else {
+      const tryConcept: PlayConcept = Math.random() < 0.5 ? 'INSIDE_RUN' : 'SHORT_PASS';
+      const { delta } = calculateMatchupDelta(tryConcept, offense, defense);
+      const quality = delta + getContextualModifier(state.weather, state.teamMomentum, tryConcept) + calculateGaussianVariance(0, EXECUTION_STDEV);
+      if (quality > 2) {
+        isScore = true;
+        scoreType = 'TWO_POINT';
+        addPoints(offense, 2);
+        commentary = `Two-point try is GOOD! ${offense.name} converts.`;
+      } else {
+        commentary = `Two-point try FAILS! ${defense.name} holds at the goal line.`;
+      }
+    }
+    const kick = resolveKickoff(state, offense, defense);
+    commentary += kick.text;
+    if (kick.isTurnover) {
+      isTurnover = true;
+      turnoverType = 'FUMBLE';
+    }
+  }
   // Field Goal execution
-  if (concept === 'FIELD_GOAL') {
+  else if (concept === 'FIELD_GOAL') {
     const kicker = getActivePlayer(offense, 'K');
     const fgDist = (100 - state.yardLine) + 17; // 17 yards for snap/endzone depth
     const fgRes = resolveFieldGoal(kicker, fgDist, state.windSpeedMph);
+    commentary = fgRes.text;
 
     if (fgRes.isSuccess) {
       isScore = true;
       scoreType = 'FIELD_GOAL';
-      if (isHomeOffense) state.homeScore += 3;
-      else state.awayScore += 3;
-      commentary = fgRes.text;
+      addPoints(offense, 3);
+      const kick = resolveKickoff(state, offense, defense);
+      commentary += kick.text;
+      if (kick.isTurnover) {
+        isTurnover = true;
+        turnoverType = 'FUMBLE';
+      }
     } else {
+      // Opponent takes over at the spot of the kick (or their 20 if the kick was inside the 20)
       isTurnover = true;
       turnoverType = 'DOWNS';
-      commentary = fgRes.text;
+      setFirstDown(state, defense.id, Math.max(20, 100 - (state.yardLine - 7)));
     }
-
-    // Reset possession
-    state.possessionTeamId = defense.id;
-    state.yardLine = clamp(100 - state.yardLine, 20, 80);
-    state.down = 1;
-    state.distance = 10;
   }
   // Punt execution
   else if (concept === 'PUNT') {
     const punter = getActivePlayer(offense, 'P');
-    const gross = Math.floor(22 + punter.attributes.kickingPower * 0.28 + calculateGaussianVariance(0, 5));
-    const netPunt = clamp(gross, 10, 55);
+    const returner = getActivePlayer(defense, 'CB');
+    const canShank = punter.attributes.footballIQ < 50 || state.weather === 'HIGH_WIND';
+    const gross = canShank && Math.random() < 0.04
+      ? randomInt(8, 16)
+      : Math.floor(22 + punter.attributes.kickingPower * 0.28 + calculateGaussianVariance(0, 5));
+    const landing = state.yardLine + gross;
 
-    state.possessionTeamId = defense.id;
-    state.yardLine = clamp(100 - (state.yardLine + netPunt), 10, 90);
-    state.down = 1;
-    state.distance = 10;
-    commentary = `P #${punter.lastName} punts ${netPunt} yds to the opponent ${state.yardLine} yd line.`;
+    if (landing >= 100) {
+      setFirstDown(state, defense.id, 20);
+      commentary = `P #${punter.lastName} punts into the end zone for a touchback.`;
+    } else {
+      const muffChance = clamp(8 - returner.attributes.catching * 0.08 + (state.weather === 'HEAVY_RAIN' ? 4 : 0), 1, 15) / 100;
+      if (Math.random() < muffChance && Math.random() < 0.5) {
+        isTurnover = true;
+        turnoverType = 'FUMBLE';
+        setFirstDown(state, offense.id, landing);
+        commentary = `P #${punter.lastName} punts ${gross} yds... MUFFED by #${returner.lastName}! ${offense.name} recovers!`;
+      } else {
+        setFirstDown(state, defense.id, 100 - landing);
+        commentary = `P #${punter.lastName} punts ${gross} yds to the opponent ${state.yardLine} yd line.`;
+      }
+    }
   }
   // Standard Scrimmage Plays
   else {
     const { delta, passer, ballCarrier, receiver, tackler, sacker } = calculateMatchupDelta(concept, offense, defense);
     const contextMod = getContextualModifier(state.weather, state.teamMomentum, concept);
-    const variance = calculateGaussianVariance(0, 12);
+    const variance = calculateGaussianVariance(0, EXECUTION_STDEV);
     const playQuality = delta + contextMod + variance;
+    const isPass = isPassConcept(concept);
+    const passThresholds = isPass ? PASS_THRESHOLDS[concept as 'SHORT_PASS' | 'DEEP_PASS'] : null;
 
     // Catastrophic Turnover Check
-    if (playQuality < -30) {
+    if (passThresholds ? playQuality < passThresholds.interception : playQuality < RUN_THRESHOLDS.fumble) {
       isTurnover = true;
-      if (concept === 'SHORT_PASS' || concept === 'DEEP_PASS') {
-        turnoverType = 'INTERCEPTION';
-        commentary = `INTERCEPTED! QB #${passer?.lastName} picked off by DB #${tackler?.lastName}!`;
+      turnoverType = isPass ? 'INTERCEPTION' : 'FUMBLE';
+      commentary = isPass
+        ? `INTERCEPTED! QB #${passer?.lastName} picked off by DB #${tackler?.lastName}!`
+        : `FUMBLE! RB #${ballCarrier?.lastName} coughs up the football! Recovered by defense.`;
+
+      const spot = isPass ? clamp(state.yardLine + (concept === 'DEEP_PASS' ? 20 : 6), 1, 99) : state.yardLine;
+      const defenseYardLine = 100 - spot + turnoverReturnYards(tackler, offense);
+      if (defenseYardLine >= 100) {
+        isScore = true;
+        scoreType = 'TOUCHDOWN';
+        addPoints(defense, 6);
+        commentary += ` Returned all the way for a DEFENSIVE TOUCHDOWN!`;
+        setFirstDown(state, defense.id, 97);
       } else {
-        turnoverType = 'FUMBLE';
-        commentary = `FUMBLE! RB #${ballCarrier?.lastName} coughs up the football! Recovered by defense.`;
+        setFirstDown(state, defense.id, clamp(defenseYardLine, 1, 99));
       }
-      state.possessionTeamId = defense.id;
-      state.yardLine = clamp(100 - state.yardLine, 10, 90);
-      state.down = 1;
-      state.distance = 10;
-    }
-    // Sack / TFL
-    else if (playQuality < -15) {
-      yardsGained = -randomInt(2, 6);
-      state.yardLine += yardsGained;
-      commentary =
-        concept === 'SHORT_PASS' || concept === 'DEEP_PASS'
+    } else {
+      // Sack / TFL
+      if (playQuality < (passThresholds ? passThresholds.sack : RUN_THRESHOLDS.tackleForLoss)) {
+        yardsGained = -randomInt(1, isPass ? 8 : 4);
+        commentary = isPass
           ? `SACKED! DE #${sacker?.lastName} drags down QB #${passer?.lastName} for a loss of ${Math.abs(yardsGained)} yds.`
           : `TACKLED FOR LOSS! RB #${ballCarrier?.lastName} stopped behind the line for ${yardsGained} yds.`;
-    }
-    // Incomplete Pass
-    else if ((concept === 'SHORT_PASS' || concept === 'DEEP_PASS') && playQuality < 0) {
-      yardsGained = 0;
-      timeElapsed = 6;
-      commentary = `QB #${passer?.lastName} pass incomplete intended for WR #${receiver?.lastName}.`;
-    }
-    // Normal Gain
-    else {
-      const base = concept === 'DEEP_PASS' ? 14 : 3;
-      yardsGained = base + randomInt(1, 6);
-      if (playQuality > 25) yardsGained += randomInt(15, 35); // Explosive break
-      state.yardLine += yardsGained;
-      commentary =
-        concept === 'SHORT_PASS' || concept === 'DEEP_PASS'
+      }
+      // Incomplete Pass
+      else if (passThresholds && playQuality < passThresholds.incomplete) {
+        timeElapsed = Math.min(timeElapsed, INCOMPLETE_RUNOFF);
+        commentary = `QB #${passer?.lastName} pass incomplete intended for WR #${receiver?.lastName}.`;
+      }
+      // Normal Gain (scaled by execution quality)
+      else {
+        if (concept === 'DEEP_PASS') yardsGained = 12 + randomInt(0, 8) + Math.round(Math.max(0, playQuality) / 3);
+        else if (concept === 'SHORT_PASS') yardsGained = 4 + randomInt(0, 4) + Math.round(Math.max(0, playQuality) / 5);
+        else yardsGained = Math.max(0, Math.round(3.5 + playQuality / 4 + calculateGaussianVariance(0, 1.5)));
+        if (playQuality > EXPLOSIVE_PLAY_QUALITY) yardsGained += randomInt(10, 35); // Explosive break
+        commentary = isPass
           ? `QB #${passer?.lastName} complete to WR #${receiver?.lastName} for ${yardsGained} yds.`
           : `RB #${ballCarrier?.lastName} rushes for ${yardsGained} yds. Tackled by #${tackler?.lastName}.`;
-    }
+      }
 
-    // Check Safety
-    if (state.yardLine <= 0) {
-      isScore = true;
-      scoreType = 'SAFETY';
-      if (isHomeOffense) state.awayScore += 2;
-      else state.homeScore += 2;
-      commentary += ` SAFETY! Tackled in end zone.`;
-      state.possessionTeamId = defense.id;
-      state.yardLine = 35;
-      state.down = 1;
-      state.distance = 10;
-    }
-    // Check Touchdown
-    else if (state.yardLine >= 100) {
-      isScore = true;
-      scoreType = 'TOUCHDOWN';
-      if (isHomeOffense) state.homeScore += 6;
-      else state.awayScore += 6;
-      commentary += ` TOUCHDOWN ${offense.name.toUpperCase()}!`;
-      state.yardLine = 98; // 2-yd line for PAT
-    }
-    // Advance Down & Distance
-    else if (!isTurnover) {
-      if (yardsGained >= state.distance) {
-        state.down = 1;
-        state.distance = 10;
+      yardsGained = Math.min(yardsGained, 100 - state.yardLine);
+      state.yardLine += yardsGained;
+
+      // Check Safety: conceding team free kicks from its own 20
+      if (state.yardLine <= 0) {
+        isScore = true;
+        scoreType = 'SAFETY';
+        addPoints(defense, 2);
+        commentary += ` SAFETY! Tackled in end zone.`;
+        const kick = resolveKickoff(state, offense, defense, 20);
+        commentary += kick.text;
+        if (kick.isTurnover) {
+          isTurnover = true;
+          turnoverType = 'FUMBLE';
+        }
+      }
+      // Check Touchdown: scoring team keeps the ball for the try from the 3
+      else if (state.yardLine >= 100) {
+        isScore = true;
+        scoreType = 'TOUCHDOWN';
+        addPoints(offense, 6);
+        commentary += ` TOUCHDOWN ${offense.name.toUpperCase()}!`;
+        setFirstDown(state, offense.id, 97);
+      }
+      // Advance Down & Distance
+      else if (yardsGained >= state.distance) {
+        setFirstDown(state, offense.id, state.yardLine);
         commentary += ` FIRST DOWN!`;
       } else {
-        state.down += 1;
         state.distance -= yardsGained;
-        if (state.down > 4) {
+        if (state.down === 4) {
           isTurnover = true;
           turnoverType = 'DOWNS';
           commentary += ` Turnover on downs!`;
-          state.possessionTeamId = defense.id;
-          state.yardLine = 100 - state.yardLine;
-          state.down = 1;
-          state.distance = 10;
+          setFirstDown(state, defense.id, 100 - state.yardLine);
+        } else {
+          state.down = (state.down + 1) as 2 | 3 | 4;
         }
       }
     }
   }
 
-  // Clock Management & Quarter Progression
+  // Clock Management & Quarter Progression (a touchdown always gets its try)
   state.clockSecondsRemaining -= timeElapsed;
-  if (state.clockSecondsRemaining <= 0) {
+  if (state.clockSecondsRemaining <= 0 && scoreType !== 'TOUCHDOWN') {
     if (state.currentQuarter === 4) {
       state.isGameOver = true;
     } else if (typeof state.currentQuarter === 'number') {
       state.currentQuarter = (state.currentQuarter + 1) as 1 | 2 | 3 | 4;
       state.clockSecondsRemaining = 720; // 12-min quarters
+
+      // Second-half kickoff: the team that opened with the ball kicks to the other
+      if (state.currentQuarter === 3) {
+        const openedHome = state.openingPossessionTeamId === state.homeTeam.id;
+        const kick = resolveKickoff(
+          state,
+          openedHome ? state.homeTeam : state.awayTeam,
+          openedHome ? state.awayTeam : state.homeTeam
+        );
+        commentary += ` HALFTIME.${kick.text}`;
+      }
     }
   }
+  state.clockSecondsRemaining = Math.max(0, state.clockSecondsRemaining);
 
   // Mercy Rule Check (35+ point differential in 2nd half)
-  if (typeof state.currentQuarter === 'number' && state.currentQuarter >= 3 &&Math.abs(state.homeScore - state.awayScore) >= 35) {
+  if (typeof state.currentQuarter === 'number' && state.currentQuarter >= 3 && Math.abs(state.homeScore - state.awayScore) >= 35) {
     state.isMercyRuleActive = true;
   }
 
   const event: PlayEvent = {
     playId,
     quarter: state.currentQuarter,
-    clockTimeRemainingSeconds: Math.max(0, state.clockSecondsRemaining),
+    clockTimeRemainingSeconds: state.clockSecondsRemaining,
     down: state.down,
     distance: state.distance,
     yardLine: state.yardLine,

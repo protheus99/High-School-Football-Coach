@@ -1,6 +1,17 @@
 import { Team, CompactBoxScore, WeatherType } from '../types/game';
 import { randomInt, clamp } from './math/variance';
 
+// Calibration constants (tuned against src/sim/tests/macroSim.test.ts targets)
+const HOME_FIELD_RATING = 1;
+const DRIVE_DELTA_SCALE = { td: 1.6, fg: 0.5, turnover: 0.6 };
+const BASE_DRIVE_ODDS = { td: 25, fg: 12, turnover: 15 };
+
+/** Average overall rating of a team's first-string players. */
+export function teamStarterRating(team: Team): number {
+  const starters = team.roster.filter((p) => p.depthChartTier === 1);
+  return starters.reduce((sum, p) => sum + p.overallRating, 0) / (starters.length || 1);
+}
+
 /**
  * Fast sub-millisecond AI vs AI background macro match simulation.
  */
@@ -11,9 +22,9 @@ export function simulateMacroMatch(
   awayTeam: Team,
   weather: WeatherType = 'CLEAR'
 ): CompactBoxScore {
-  const homeOvr = homeTeam.prestige;
-  const awayOvr = awayTeam.prestige;
-  const delta = (homeOvr + 3) - awayOvr; // +3 Home Field Advantage
+  const homeOvr = teamStarterRating(homeTeam);
+  const awayOvr = teamStarterRating(awayTeam);
+  const delta = (homeOvr + HOME_FIELD_RATING) - awayOvr;
 
   const totalDrives = 11 + randomInt(-1, 2);
   let homeScore = 0;
@@ -30,44 +41,48 @@ export function simulateMacroMatch(
   for (let i = 0; i < totalDrives; i++) {
     // Home drive
     const homeRoll = Math.random() * 100;
-    const homeTdProb = clamp(22 + delta * 0.8, 5, 45);
-    const homeFgProb = clamp(12 + delta * 0.3, 3, 25);
-    const homeToProb = clamp(10 - delta * 0.4 + (weather === 'HEAVY_RAIN' ? 5 : 0), 4, 20);
+    const homeTdProb = clamp(BASE_DRIVE_ODDS.td + delta * DRIVE_DELTA_SCALE.td, 5, 45);
+    const homeFgProb = clamp(BASE_DRIVE_ODDS.fg + delta * DRIVE_DELTA_SCALE.fg, 3, 25);
+    const homeToProb = clamp(BASE_DRIVE_ODDS.turnover - delta * DRIVE_DELTA_SCALE.turnover + (weather === 'HEAVY_RAIN' ? 5 : 0), 4, 24);
 
     if (homeRoll < homeTdProb) {
       homeScore += 7;
-      homePassYds += randomInt(35, 75);
-      homeRushYds += randomInt(20, 45);
+      homePassYds += randomInt(20, 45);
+      homeRushYds += randomInt(15, 35);
     } else if (homeRoll < homeTdProb + homeFgProb) {
       homeScore += 3;
-      homePassYds += randomInt(20, 40);
-      homeRushYds += randomInt(15, 30);
+      homePassYds += randomInt(15, 30);
+      homeRushYds += randomInt(10, 25);
     } else if (homeRoll < homeTdProb + homeFgProb + homeToProb) {
       homeTO += 1;
+      homePassYds += randomInt(5, 15);
+      homeRushYds += randomInt(0, 10);
     } else {
-      homePassYds += randomInt(5, 20);
-      homeRushYds += randomInt(5, 15);
+      homePassYds += randomInt(3, 10);
+      homeRushYds += randomInt(3, 8);
     }
 
     // Away drive
     const awayRoll = Math.random() * 100;
-    const awayTdProb = clamp(22 - delta * 0.8, 5, 45);
-    const awayFgProb = clamp(12 - delta * 0.3, 3, 25);
-    const awayToProb = clamp(10 + delta * 0.4 + (weather === 'HEAVY_RAIN' ? 5 : 0), 4, 20);
+    const awayTdProb = clamp(BASE_DRIVE_ODDS.td - delta * DRIVE_DELTA_SCALE.td, 5, 45);
+    const awayFgProb = clamp(BASE_DRIVE_ODDS.fg - delta * DRIVE_DELTA_SCALE.fg, 3, 25);
+    const awayToProb = clamp(BASE_DRIVE_ODDS.turnover + delta * DRIVE_DELTA_SCALE.turnover + (weather === 'HEAVY_RAIN' ? 5 : 0), 4, 24);
 
     if (awayRoll < awayTdProb) {
       awayScore += 7;
-      awayPassYds += randomInt(35, 75);
-      awayRushYds += randomInt(20, 45);
+      awayPassYds += randomInt(20, 45);
+      awayRushYds += randomInt(15, 35);
     } else if (awayRoll < awayTdProb + awayFgProb) {
       awayScore += 3;
-      awayPassYds += randomInt(20, 40);
-      awayRushYds += randomInt(15, 30);
+      awayPassYds += randomInt(15, 30);
+      awayRushYds += randomInt(10, 25);
     } else if (awayRoll < awayTdProb + awayFgProb + awayToProb) {
       awayTO += 1;
+      awayPassYds += randomInt(5, 15);
+      awayRushYds += randomInt(0, 10);
     } else {
-      awayPassYds += randomInt(5, 20);
-      awayRushYds += randomInt(5, 15);
+      awayPassYds += randomInt(3, 10);
+      awayRushYds += randomInt(3, 8);
     }
   }
 

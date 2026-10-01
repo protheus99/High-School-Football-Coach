@@ -267,6 +267,7 @@ export interface GameSimulationState {
   isMercyRuleActive: boolean;
   isGameOver: boolean;
   eventLog: PlayEvent[];
+  openingPossessionTeamId?: string; // receives the opening kickoff; kicks off the second half
 }
 
 export interface DilemmaChoice {
