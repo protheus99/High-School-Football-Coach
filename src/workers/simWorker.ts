@@ -2,6 +2,7 @@ import { GameSimulationState, PlayConcept } from '../types/game';
 import { simulateSnap, evaluateLeverageTrigger } from '../sim/matchEngine';
 
 let activeGameState: GameSimulationState | null = null;
+let userTeamId: string | undefined;
 
 self.onmessage = (e: MessageEvent) => {
   const { type, payload } = e.data;
@@ -9,6 +10,7 @@ self.onmessage = (e: MessageEvent) => {
   switch (type) {
     case 'INIT_GAME': {
       activeGameState = payload as GameSimulationState;
+      userTeamId = e.data.userTeamId;
       self.postMessage({ type: 'GAME_INITIALIZED', payload: activeGameState });
       break;
     }
@@ -21,7 +23,7 @@ self.onmessage = (e: MessageEvent) => {
       activeGameState = state;
 
       // Check if next snap hits a leverage prompt
-      const leveragePrompt = evaluateLeverageTrigger(activeGameState);
+      const leveragePrompt = evaluateLeverageTrigger(activeGameState, userTeamId);
       if (leveragePrompt && !activeGameState.isGameOver) {
         self.postMessage({
           type: 'LEVERAGE_MOMENT_PROMPT',

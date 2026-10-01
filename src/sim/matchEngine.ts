@@ -148,9 +148,14 @@ export function getContextualModifier(weather: WeatherType, momentum: number, pl
 }
 
 /**
- * Checks if a snap triggers high-leverage user choice
+ * Checks if a snap triggers high-leverage user choice.
+ * When userTeamId is given, only the user's own possessions prompt; the AI calls its own plays.
  */
-export function evaluateLeverageTrigger(state: GameSimulationState): LeverageType | null {
+export function evaluateLeverageTrigger(state: GameSimulationState, userTeamId?: string): LeverageType | null {
+  if (userTeamId && state.possessionTeamId !== userTeamId) {
+    return null;
+  }
+
   const lastEvent = state.eventLog[state.eventLog.length - 1];
   if (lastEvent?.scoreType === 'TOUCHDOWN') {
     return 'PAT_DECISION';

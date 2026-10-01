@@ -19,22 +19,23 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   const [autoPlay, setAutoPlay] = useState(false);
   const [showBoxScore, setShowBoxScore] = useState(false);
   const [showHalftimeModal, setShowHalftimeModal] = useState(false);
-  const [halftimeHandled, setHalftimeHandled] = useState(false);
+  // A ref (not state) so flipping it doesn't re-run the setup effect and restart the game
+  const halftimeHandledRef = useRef(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     simWorkerBridge.initialize();
-    simWorkerBridge.initGame(initialState);
+    simWorkerBridge.initGame(initialState, userTeamId);
 
     simWorkerBridge.subscribe({
       onPlayResolved: ({ state, event }) => {
         setGameState({ ...state });
 
         // Trigger Halftime Modal at start of Q3
-        if (state.currentQuarter === 3 && !halftimeHandled) {
+        if (state.currentQuarter === 3 && !halftimeHandledRef.current) {
+          halftimeHandledRef.current = true;
           setAutoPlay(false);
           setShowHalftimeModal(true);
-          setHalftimeHandled(true);
         }
 
         if (event?.isScore && event.scoreType === 'TOUCHDOWN') {
@@ -58,7 +59,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         setShowBoxScore(true);
       }
     });
-  }, [initialState, halftimeHandled]);
+  }, [initialState, userTeamId]);
 
   useEffect(() => {
     if (logContainerRef.current) {
@@ -136,7 +137,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       {/* Manual Play Calling Controls */}
       <PlayCallingPanel
         onCallPlay={(concept) => handleDecision(concept)}
-        disabled={autoPlay || gameState.isGameOver}
+        disabled={autoPlay || gameState.isGameOver || gameState.possessionTeamId !== userTeamId}
       />
 
       {/* Play-by-Play Stream */}

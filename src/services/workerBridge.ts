@@ -28,8 +28,8 @@ class WorkerBridge {
     };
   }
 
-  public initGame(state: GameSimulationState): void {
-    this.worker?.postMessage({ type: 'INIT_GAME', payload: state });
+  public initGame(state: GameSimulationState, userTeamId?: string): void {
+    this.worker?.postMessage({ type: 'INIT_GAME', payload: state, userTeamId });
   }
 
   public stepPlay(concept?: PlayConcept): void {
