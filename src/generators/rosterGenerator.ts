@@ -129,7 +129,7 @@ export function generateProceduralPlayer(
   // Adjust for tier
   if (tier === 2) ovr = Math.max(40, ovr - randomInt(6, 12));
   if (tier === 3) ovr = Math.max(35, ovr - randomInt(14, 22));
-  ovr = Math.max(35, ovr + ovrAdjustment);
+  ovr = Math.min(99, Math.max(35, ovr + ovrAdjustment)); // prestige bonuses never push a player past 99
   if (overrides.overall !== undefined) ovr = overrides.overall;
 
   const speed = overrides.speed ?? clamp(Math.floor(ovr + calculateGaussianVariance(0, 5)), 40, 99);

@@ -14,6 +14,7 @@ import {
 } from '../types/game';
 import { calculateGaussianVariance, clamp, randomInt } from './math/variance';
 import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
+import { compareDepth } from './depthChart';
 
 // Teams resting their starters on the current snap (set at the start of each simulateSnap call)
 let restingTeamIds = new Set<string>();
@@ -22,6 +23,7 @@ const isResting = (team: Team, pos: Position) => restingTeamIds.has(team.id) && 
 
 // Helper to safely get starter/sub by position and stamina
 function getActivePlayer(team: Team, pos: Position): Player {
+  // Depth chart tiers decide who starts and who is next up (the calibration relies on roster order among co-starters)
   const eligible = team.roster.filter(
     (p) => (p.position === pos || p.secondaryPosition === pos) && p.academics.isEligible && p.condition.injuryStatus === 'HEALTHY'
   );
@@ -43,8 +45,8 @@ function getActivePlayer(team: Team, pos: Position): Player {
     return tier1;
   }
 
-  const tier2 = eligible.find((p) => p.depthChartTier === 2);
-  if (tier2) return tier2;
+  const nextUp = eligible.find((p) => p.depthChartTier === 2) ?? eligible.find((p) => p.depthChartTier !== 1);
+  if (nextUp) return nextUp;
 
   return tier1 || eligible[0];
 }
@@ -285,7 +287,7 @@ export function selectAIDefensiveCall(state: GameSimulationState): DefensiveCall
 export function getPositionGroup(team: Team, pos: Position): Player[] {
   const group = team.roster
     .filter((p) => p.position === pos && p.academics.isEligible && p.condition.injuryStatus === 'HEALTHY')
-    .sort((a, b) => a.depthChartTier - b.depthChartTier || b.overallRating - a.overallRating);
+    .sort(compareDepth);
   // Blowout: backups take the snaps (and the stats)
   return isResting(team, pos) ? [...group.filter((p) => p.depthChartTier !== 1), ...group.filter((p) => p.depthChartTier === 1)] : group;
 }

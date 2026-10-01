@@ -81,6 +81,7 @@ import { persistSaveGame } from '../services/db';
 import type { GameSaveRecord } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
 import { advanceTeamToNextSeason } from '../sim/offseasonEngine';
+import { moveInDepthChart, setDepthTier } from '../sim/depthChart';
 
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
 const INDUCEMENT_AP_COST = 20;
@@ -275,6 +276,7 @@ interface GameStoreState {
   offerFeederInducement: (prospectId: string) => void; // illegal booster offer: big pull, adds heat
   collegeRecruitAction: (playerId: string, action: CollegeAction) => CollegeActionResult; // promote a player to colleges
   updatePlayerTier: (playerId: string, tier: DepthChartTier) => void;
+  moveDepthChartPlayer: (playerId: string, direction: -1 | 1) => void; // up/down one string in his slot
   togglePlayerStudyHall: (playerId: string) => void;
   startPostseason: () => void;
   advancePlayoffGame: (userScore?: { homeScore: number; awayScore: number }) => void;
@@ -839,11 +841,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const userTeam = districtTeams.find((t) => t.id === userTeamId);
     if (!userTeam) return;
 
-    const ply = userTeam.roster.find((p) => p.id === playerId);
-    if (ply) {
-      ply.depthChartTier = tier;
-      set({ districtTeams: [...districtTeams] });
-    }
+    setDepthTier(userTeam.roster, playerId, tier);
+    set({ districtTeams: [...districtTeams] });
+  },
+
+  moveDepthChartPlayer: (playerId, direction) => {
+    const { districtTeams, leagueTeams, userTeamId } = get();
+    const userTeam = leagueTeams.find((t) => t.id === userTeamId);
+    if (!userTeam || !moveInDepthChart(userTeam.roster, playerId, direction)) return;
+    set({ districtTeams: [...districtTeams], leagueTeams: [...leagueTeams] });
   },
 
   togglePlayerStudyHall: (playerId) => {

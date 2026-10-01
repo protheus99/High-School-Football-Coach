@@ -50,7 +50,7 @@ export const DepthChartEditorModal: React.FC<DepthChartEditorProps> = ({
                   cursor: 'pointer'
                 }}
               >
-                {tier === 1 ? '1st String' : tier === 2 ? '2nd String' : 'Reserve'}
+                {tier === 1 ? '1st String' : tier === 2 ? '2nd String' : '3rd String'}
               </button>
             ))}
           </div>

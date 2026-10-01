@@ -1,6 +1,6 @@
 import { NarrativeDilemma, Team, DilemmaChoice, Player } from '../types/game';
 import { generateProceduralPlayer } from '../generators/rosterGenerator';
-import { rebuildDepthChart } from './depthChart';
+import { promoteToStarter, rebuildDepthChart } from './depthChart';
 import { TEMPLATES, pick, starters } from './dilemmaTemplates';
 
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices (library in dilemmaTemplates.ts)
@@ -58,17 +58,7 @@ export function executeDilemmaDecision(userTeam: Team, choice: DilemmaChoice): v
     }
   }
 
-  if (promoteToStarterPlayerId) {
-    const ply = findPlayer(promoteToStarterPlayerId);
-    if (ply) {
-      // Swap with the weakest starter at his position
-      const demoted = userTeam.roster
-        .filter((p) => p.position === ply.position && p.depthChartTier === 1)
-        .sort((a, b) => a.overallRating - b.overallRating)[0];
-      if (demoted) demoted.depthChartTier = 2;
-      ply.depthChartTier = 1;
-    }
-  }
+  if (promoteToStarterPlayerId) promoteToStarter(userTeam.roster, promoteToStarterPlayerId);
 
   if (addTransfer) {
     const classYear = Math.random() < 0.5 ? 'Junior' : 'Sophomore';

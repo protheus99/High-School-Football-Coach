@@ -140,6 +140,7 @@ export interface Player {
   overallRating: number;
   potential: PotentialGrade;
   depthChartTier: DepthChartTier;
+  depthOrder?: number; // order within the position group (0 = first starter); see sim/depthChart
   attributes: PlayerAttributes;
   condition: PlayerCondition;
   academics: PlayerAcademics;
