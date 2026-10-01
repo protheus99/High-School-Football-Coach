@@ -30,8 +30,23 @@ import {
   runFeederEvent,
   scoutProspect,
   visitProspect,
-  weeklyActionPoints
+  weeklyActionPoints,
+  generateStatewideElite,
+  resolveStatewideElite,
+  RivalSigning
 } from '../sim/feederEngine';
+import {
+  HEAT_DECAY,
+  STRATEGY_FRESHMAN_ADJUSTMENT,
+  RecruitingContext,
+  advanceRivalRecruiting,
+  buildRecruitingContext,
+  chooseFeederStrategy,
+  inducementHeat,
+  initialFeederProfile,
+  weeklyDetectionChance,
+  yearEndDetectionChance
+} from '../sim/feederCompetition';
 import { simulateMacroMatch } from '../sim/macroSim';
 import {
   evaluateAcademicReport,
@@ -48,6 +63,29 @@ import { addPlayerStats } from '../sim/playerStats';
 import { advanceTeamToNextSeason } from '../sim/offseasonEngine';
 
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
+const INDUCEMENT_AP_COST = 20;
+const BAN_HEAT_THRESHOLD = 50; // getting caught with this much evidence brings a postseason ban
+
+const recruitingContext = (state: { league: LeagueStructure | null; leagueTeams: Team[]; userTeamId: string }): RecruitingContext | undefined =>
+  state.league ? buildRecruitingContext(state.league, state.leagueTeams, state.userTeamId) : undefined;
+
+/** A rival program caught breaking recruiting rules: prestige hit, booster fallout, postseason ban. */
+function punishCaughtProgram(team: Team, bannedSeason: number, week: number): NewsArticle {
+  const profile = team.feederProfile!;
+  profile.bannedSeason = bannedSeason;
+  profile.violationHeat = 0;
+  team.prestige = Math.max(40, team.prestige - 8);
+  team.programMeters.boosterApproval = Math.max(0, team.programMeters.boosterApproval - 10);
+  return {
+    id: `news_violation_${team.id}_${bannedSeason}_${week}`,
+    week,
+    outlet: 'STATE_SPORTS_CENTRAL',
+    headline: `${team.name} Banned From ${bannedSeason} Playoffs Over Recruiting Violations`,
+    content: `A state association investigation found ${team.name} boosters made improper offers to recruits. The program loses its postseason eligibility for ${bannedSeason}.`,
+    impactSentiment: 'NEGATIVE',
+    featuredTeamName: team.name
+  };
+}
 
 /** The user's district as team objects (shared with leagueTeams). */
 export function userDistrictTeams(league: LeagueStructure, teams: Team[], userTeamId: string): Team[] {
@@ -81,6 +119,9 @@ interface GameStoreState {
   scoutingPool: FeederProspect[]; // next season's feeder pipeline (15-40 prospects)
   feederEventsThisWeek: FeederEventType[];
   lastFeederResults: FeederOutcome[] | null; // how last year's class turned out
+  statewideRecruits: FeederProspect[]; // elite out-of-area recruits contested by the top AI programs
+  userViolationHeat: number; // hidden evidence of the user's recruiting violations
+  pendingUserBan: boolean; // caught at year end: banned from next season's playoffs
   newsArticles: NewsArticle[];
   polls: StateAndNationalPolls | null;
   playerRankings: PlayerRankingsAndStatsState | null;
@@ -104,6 +145,7 @@ interface GameStoreState {
   scoutFeederProspect: (prospectId: string) => void;
   visitFeederProspect: (prospectId: string) => void;
   pitchFeederStar: (prospectId: string) => void;
+  offerFeederInducement: (prospectId: string) => void; // illegal booster offer: big pull, adds heat
   updatePlayerTier: (playerId: string, tier: DepthChartTier) => void;
   togglePlayerStudyHall: (playerId: string) => void;
   startPostseason: () => void;
@@ -126,6 +168,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   scoutingPool: [],
   feederEventsThisWeek: [],
   lastFeederResults: null,
+  statewideRecruits: [],
+  userViolationHeat: 0,
+  pendingUserBan: false,
   newsArticles: [],
   polls: null,
   playerRankings: null,
@@ -139,6 +184,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { league, teams, userTeamId } = buildTexasLeague();
     const districtTeams = userDistrictTeams(league, teams, userTeamId);
     const userTeam = teams.find((t) => t.id === userTeamId)!;
+    // Every rival program gets a hidden integrity rating and a feeder strategy
+    teams.filter((t) => t.id !== userTeamId).forEach((t) => {
+      t.feederProfile = initialFeederProfile();
+      t.feederProfile.strategy = chooseFeederStrategy(t);
+    });
+    const ctx = buildRecruitingContext(league, teams, userTeamId);
 
     set({
       currentWeek: 1,
@@ -147,7 +198,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       districtTeams,
       seasonSchedule: generateSeasonSchedule(leagueRegionTeams(league, teams), get().currentYear),
       userTeamId,
-      scoutingPool: generateFeederPool(userTeam),
+      scoutingPool: generateFeederPool(userTeam, ctx),
+      statewideRecruits: generateStatewideElite(ctx),
+      userViolationHeat: 0,
+      pendingUserBan: false,
       feederEventsThisWeek: [],
       lastFeederResults: null,
       newsArticles: generateWeeklyNewsStream(1, userTeam),
@@ -187,7 +241,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ coachingAP: weeklyActionPoints(nextWeek), feederEventsThisWeek: [] });
 
     // Families occasionally move into the district during the year
-    const arrival = maybeMoveInArrival(get().scoutingPool, userTeam, nextWeek);
+    const ctx = recruitingContext(get());
+    const arrival = maybeMoveInArrival(get().scoutingPool, userTeam, nextWeek, ctx);
     if (arrival) {
       set({
         scoutingPool: [...get().scoutingPool, arrival],
@@ -204,6 +259,41 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
           ...get().newsArticles
         ]
       });
+    }
+
+    // Rival programs keep working their recruiting targets (and some bend the rules)
+    if (ctx) {
+      set({
+        scoutingPool: advanceRivalRecruiting(get().scoutingPool, ctx, nextWeek),
+        statewideRecruits: advanceRivalRecruiting(get().statewideRecruits, ctx, nextWeek)
+      });
+    }
+
+    // In-season investigations: evidence of recruiting violations can surface any week
+    if (currentWeek <= LAST_REGULAR_SEASON_WEEK) {
+      const year = get().currentYear;
+      const caughtNews = leagueTeams
+        .filter((t) => t.id !== userTeamId && t.feederProfile && t.feederProfile.violationHeat > 0)
+        .filter((t) => Math.random() < weeklyDetectionChance(t.feederProfile!.violationHeat))
+        .map((t) => punishCaughtProgram(t, year, nextWeek));
+      const { userViolationHeat } = get();
+      if (userViolationHeat > 0 && Math.random() < weeklyDetectionChance(userViolationHeat)) {
+        const meters = userTeam.programMeters;
+        meters.complianceScore = Math.max(0, meters.complianceScore - 35);
+        meters.boosterApproval = Math.max(0, meters.boosterApproval - 15);
+        userTeam.prestige = Math.max(40, userTeam.prestige - 6);
+        caughtNews.push({
+          id: `news_user_violation_${year}_${nextWeek}`,
+          week: nextWeek,
+          outlet: 'STATE_SPORTS_CENTRAL',
+          headline: `Investigation Finds ${userTeam.name} Boosters Made Improper Recruiting Offers`,
+          content: `State association investigators uncovered improper offers to recruits.${userViolationHeat >= BAN_HEAT_THRESHOLD ? ' The program is barred from the playoffs this season.' : ' Further violations will bring heavier penalties.'}`,
+          impactSentiment: 'NEGATIVE',
+          featuredTeamName: userTeam.name
+        });
+        set({ userViolationHeat: 0, ...(userViolationHeat >= BAN_HEAT_THRESHOLD && { sanctionLevel: 3 as const }) });
+      }
+      if (caughtNews.length > 0) set({ newsArticles: [...caughtNews, ...get().newsArticles] });
     }
 
     // Playoff weeks: finish the current round (simulating the user's game if skipped) and seed the next
@@ -327,7 +417,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       seasonSchedule,
       dilemmaLog: get().dilemmaLog,
       playoffBracket: get().playoffBracket,
-      sanctionLevel: get().sanctionLevel
+      sanctionLevel: get().sanctionLevel,
+      statewideRecruits: get().statewideRecruits,
+      userViolationHeat: get().userViolationHeat,
+      pendingUserBan: get().pendingUserBan
     });
   },
 
@@ -338,7 +431,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // A postseason ban removes the user's team from seeding; the next team in the standings qualifies
     const bracket = buildPlayoffBracket(
       league.regions.map((region, i) => ({ name: region.name, districts: regionTeams[i] })),
-      { splitDivisions: league.splitDivisions, excludeTeamIds: sanctionLevel >= 3 ? [userTeamId] : [] }
+      {
+        splitDivisions: league.splitDivisions,
+        excludeTeamIds: [
+          ...(sanctionLevel >= 3 ? [userTeamId] : []),
+          ...leagueTeams.filter((t) => t.feederProfile?.bannedSeason === get().currentYear).map((t) => t.id)
+        ]
+      }
     );
     set({ currentWeek: LAST_REGULAR_SEASON_WEEK + 1, playoffBracket: bracket });
   },
@@ -354,12 +453,59 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { districtTeams, leagueTeams, league, userTeamId, currentYear, scoutingPool } = get();
     // Every program graduates seniors, moves classes up, progresses, refills positions and resets its depth chart;
     // the user's signed feeder prospects arrive as freshmen at their projected positions
-    // The user's feeder class decides: some join, others don't play, move away or enroll elsewhere
+    // The user's feeder class decides (rivals compete for many of them); elite recruits pick among top programs
     const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
-    const feederClass = resolveFeederClass(scoutingPool, userTeam);
-    leagueTeams.forEach((team) => {
-      advanceTeamToNextSeason(team, team.id === userTeamId ? feederClass.joined : []);
+    const ctx = recruitingContext(get());
+    const feederClass = resolveFeederClass(scoutingPool, userTeam, ctx);
+    const elite = ctx ? resolveStatewideElite(get().statewideRecruits, ctx) : { signings: [] as RivalSigning[], headlines: [] as string[] };
+    const rivalIncoming = new Map<string, Player[]>();
+    [...feederClass.rivalSignings, ...elite.signings].forEach(({ teamId, player }) => {
+      rivalIncoming.set(teamId, [...(rivalIncoming.get(teamId) ?? []), player]);
     });
+    leagueTeams.forEach((team) => {
+      if (team.id === userTeamId) advanceTeamToNextSeason(team, feederClass.joined);
+      else advanceTeamToNextSeason(team, rivalIncoming.get(team.id) ?? [], STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL']);
+    });
+
+    // Year-end investigations: some programs get caught, the rest see their evidence fade
+    const investigationNews: NewsArticle[] = [];
+    leagueTeams.forEach((team) => {
+      const profile = team.feederProfile;
+      if (!profile || team.id === userTeamId) return;
+      if (profile.violationHeat > 0 && Math.random() < yearEndDetectionChance(profile.violationHeat)) {
+        investigationNews.push(punishCaughtProgram(team, currentYear + 1, 1));
+      } else {
+        profile.violationHeat = Math.round(profile.violationHeat * HEAT_DECAY);
+      }
+      profile.strategy = chooseFeederStrategy(team);
+    });
+    let { userViolationHeat } = get();
+    let pendingUserBan = false;
+    if (userViolationHeat > 0 && Math.random() < yearEndDetectionChance(userViolationHeat)) {
+      pendingUserBan = userViolationHeat >= BAN_HEAT_THRESHOLD;
+      userTeam.programMeters.complianceScore = Math.max(0, userTeam.programMeters.complianceScore - 35);
+      userTeam.prestige = Math.max(40, userTeam.prestige - 6);
+      investigationNews.push({
+        id: `news_user_violation_${currentYear}_offseason`,
+        week: 1,
+        outlet: 'STATE_SPORTS_CENTRAL',
+        headline: `Off-Season Investigation Lands on ${userTeam.name}`,
+        content: `Investigators found improper recruiting offers by ${userTeam.name} boosters.${pendingUserBan ? ' The program is barred from the playoffs next season.' : ''}`,
+        impactSentiment: 'NEGATIVE',
+        featuredTeamName: userTeam.name
+      });
+      userViolationHeat = 0;
+    } else {
+      userViolationHeat = Math.round(userViolationHeat * HEAT_DECAY);
+    }
+    const eliteNews: NewsArticle[] = elite.headlines.map((headline, i) => ({
+      id: `news_elite_${currentYear}_${i}`,
+      week: 1,
+      outlet: 'PREP_GRIDIRON_TALK',
+      headline,
+      content: 'One of the most sought-after newcomers in the state has picked a program.',
+      impactSentiment: 'NEUTRAL'
+    }));
     enforceVarsityRosterLimit(userTeam, feederClass.joined, feederClass.outcomes);
     const joinedCount = feederClass.outcomes.filter((o) => o.outcome === 'JOINED').length;
     const classArticle: NewsArticle = {
@@ -390,15 +536,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       currentYear: currentYear + 1,
       isBanquetActive: false,
       playoffBracket: null,
-      sanctionLevel: 0,
+      sanctionLevel: pendingUserBan ? 3 : 0,
       graduatingSeniors: [],
       polls: newPolls,
       playerRankings: newPlayerRankings,
-      scoutingPool: generateFeederPool(userTeam),
+      scoutingPool: generateFeederPool(userTeam, ctx),
+      statewideRecruits: ctx ? generateStatewideElite(ctx) : [],
+      userViolationHeat,
+      pendingUserBan,
       lastFeederResults: feederClass.outcomes,
       feederEventsThisWeek: [],
       coachingAP: weeklyActionPoints(1),
-      newsArticles: [classArticle, ...get().newsArticles],
+      newsArticles: [classArticle, ...investigationNews, ...eliteNews, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams],
       seasonSchedule: league ? generateSeasonSchedule(leagueRegionTeams(league, leagueTeams), currentYear + 1) : []
@@ -462,7 +611,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const cost = FEEDER_EVENTS[type].cost;
     if (coachingAP < cost || feederEventsThisWeek.includes(type)) return [];
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
-    const result = runFeederEvent(scoutingPool, type, userTeam);
+    const result = runFeederEvent(scoutingPool, type, userTeam, recruitingContext(get()));
     set({ coachingAP: coachingAP - cost, scoutingPool: result.pool, feederEventsThisWeek: [...feederEventsThisWeek, type] });
     return result.discovered;
   },
@@ -482,6 +631,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({
       coachingAP: coachingAP - PROSPECT_ACTION_COSTS.VISIT,
       scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? visitProspect(p) : p))
+    });
+  },
+
+  offerFeederInducement: (prospectId) => {
+    const { coachingAP, scoutingPool, userViolationHeat } = get();
+    const prospect = scoutingPool.find((p) => p.id === prospectId);
+    if (!prospect || prospect.userInducement || coachingAP < INDUCEMENT_AP_COST) return;
+    set({
+      coachingAP: coachingAP - INDUCEMENT_AP_COST,
+      userViolationHeat: userViolationHeat + inducementHeat(prospect),
+      scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? { ...p, userInducement: true } : p))
     });
   },
 

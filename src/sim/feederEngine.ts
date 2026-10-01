@@ -1,6 +1,7 @@
 import { FeederOutcome, FeederOutcomeType, FeederProspect, Player, PlayerClass, Position, PotentialGrade, ProspectSource, Team } from '../types/game';
 import { generateProceduralPlayer, rollTalent } from '../generators/rosterGenerator';
-import { randomPlayerName } from '../generators/names';
+import { NameProfile, randomPlayerName } from '../generators/names';
+import { RecruitingContext, assignSuitors, choiceShares, pickHomeRival, rollPriorities } from './feederCompetition';
 import { clamp, randomInt } from './math/variance';
 
 // ============================================================================
@@ -20,6 +21,7 @@ export const SOURCE_LABELS: Record<ProspectSource, string> = {
   SEVEN_ON_SEVEN: '7-on-7 Athletes',
   MOVE_IN: 'Move-Ins',
   STAR_RECRUIT: 'Out-of-Area Stars',
+  OUT_OF_DISTRICT: 'Out-of-District',
   TRYOUT: 'Tryout Walk-Ons'
 };
 
@@ -75,8 +77,19 @@ function weightedPosition(): Position {
 
 let prospectCounter = 0;
 
-/** Creates one prospect from a source profile (hidden ratings, starting interest, departure risk). */
-export function createProspect(source: ProspectSource, team: Team, takenNames: Set<string> = new Set()): FeederProspect {
+/** Who a prospect is generated for: the program's prestige and its regional name mix. */
+export interface ProspectOwner {
+  prestige: number;
+  nameProfile?: NameProfile;
+}
+
+/** Creates one prospect from a source profile (hidden ratings, starting interest, departure risk, priorities). */
+export function createProspect(
+  source: ProspectSource,
+  team: ProspectOwner,
+  takenNames: Set<string> = new Set(),
+  homeTeam?: { id: string; name: string }
+): FeederProspect {
   const prestigeLean = (team.prestige - 75) / 2;
   const talent = rollTalent();
   let position = weightedPosition();
@@ -118,6 +131,16 @@ export function createProspect(source: ProspectSource, team: Team, takenNames: S
       speedBonus = randomInt(0, 6);
       transferRisk = 0;
       break;
+    case 'OUT_OF_DISTRICT': {
+      // A rival's zoned player worth chasing: usually better than the typical prospect
+      const best = Math.max(talent.ovr, rollTalent().ovr);
+      incomingClass = pick<PlayerClass>(['Freshman', 'Freshman', 'Sophomore']);
+      overall = best - (incomingClass === 'Freshman' ? randomInt(3, 7) : randomInt(0, 3));
+      interest = randomInt(5, 25) + Math.max(0, prestigeLean / 2);
+      origin = homeTeam ? `Zoned to ${homeTeam.name}` : 'Neighboring district';
+      transferRisk = 0.05;
+      break;
+    }
     case 'TRYOUT':
     default:
       incomingClass = pick<PlayerClass>(['Freshman', 'Freshman', 'Sophomore', 'Junior']);
@@ -148,22 +171,36 @@ export function createProspect(source: ProspectSource, team: Team, takenNames: S
     scoutedStrength: null,
     interestScore: clamp(Math.round(interest), 0, 100),
     coachContacts: 0,
-    isTransferRisk: Math.random() < transferRisk
+    isTransferRisk: Math.random() < transferRisk,
+    priorities: rollPriorities(source),
+    suitors: [],
+    ...(homeTeam && { homeTeamId: homeTeam.id })
   };
 }
 
-/** Next season's pool (15-40): bigger and richer for higher-prestige programs; stars only for top programs. */
-export function generateFeederPool(team: Team): FeederProspect[] {
+/** Creates a prospect and, when a league context is available, attaches rival suitors. */
+function createCompetedProspect(source: ProspectSource, team: Team, takenNames: Set<string>, ctx?: RecruitingContext): FeederProspect {
+  if (!ctx) return createProspect(source, team, takenNames);
+  const home = source === 'OUT_OF_DISTRICT' ? pickHomeRival(ctx) : undefined;
+  return assignSuitors(createProspect(source, team, takenNames, home), ctx);
+}
+
+/**
+ * Next season's pool (15-40): bigger and richer for higher-prestige programs; stars only for top programs.
+ * With a league context, rival programs attach to prospects and out-of-district players join the pool.
+ */
+export function generateFeederPool(team: Team, ctx?: RecruitingContext): FeederProspect[] {
   const counts: [ProspectSource, number][] = [
     ['FEEDER_MIDDLE_SCHOOL', 9 + Math.round(team.prestige / 10) + randomInt(-2, 2)],
     ['SEVEN_ON_SEVEN', randomInt(3, 6)],
     ['MOVE_IN', randomInt(1, 3)],
     ['STAR_RECRUIT', team.prestige >= STAR_RECRUIT_MIN_PRESTIGE ? randomInt(1, 3) : 0],
-    ['TRYOUT', randomInt(2, 4)]
+    ['TRYOUT', randomInt(2, 4)],
+    ['OUT_OF_DISTRICT', ctx ? randomInt(2, 4) : 0]
   ];
   const names = new Set<string>();
-  const pool = counts.flatMap(([source, n]) => Array.from({ length: n }, () => createProspect(source, team, names)));
-  while (pool.length < MIN_POOL_SIZE) pool.push(createProspect('FEEDER_MIDDLE_SCHOOL', team, names));
+  const pool = counts.flatMap(([source, n]) => Array.from({ length: n }, () => createCompetedProspect(source, team, names, ctx)));
+  while (pool.length < MIN_POOL_SIZE) pool.push(createCompetedProspect('FEEDER_MIDDLE_SCHOOL', team, names, ctx));
   return pool.slice(0, MAX_POOL_SIZE);
 }
 
@@ -188,17 +225,22 @@ export function visitProspect(p: FeederProspect): FeederProspect {
 /** The full recruiting pitch to an out-of-area star: expensive and a long shot. */
 export function pitchStarRecruit(p: FeederProspect, team: Team): FeederProspect {
   if (p.source !== 'STAR_RECRUIT') return p;
-  const gain = Math.round(randomInt(3, 9) * (team.prestige >= 92 ? 1.25 : 1));
+  const gain = Math.max(1, Math.round((randomInt(2, 6) - Math.floor(p.coachContacts / 4)) * (team.prestige >= 92 ? 1.25 : 1)));
   return { ...p, interestScore: clamp(p.interestScore + gain, 0, 100), coachContacts: p.coachContacts + 1 };
 }
 
 /** Runs an off-season program event; returns the updated pool and any newly discovered prospects. */
-export function runFeederEvent(pool: FeederProspect[], type: FeederEventType, team: Team): { pool: FeederProspect[]; discovered: FeederProspect[] } {
+export function runFeederEvent(
+  pool: FeederProspect[],
+  type: FeederEventType,
+  team: Team,
+  ctx?: RecruitingContext
+): { pool: FeederProspect[]; discovered: FeederProspect[] } {
   const room = () => MAX_POOL_SIZE - pool.length - discovered.length;
   const discovered: FeederProspect[] = [];
   const names = new Set(pool.map((p) => p.name));
   const discover = (source: ProspectSource, count: number) => {
-    for (let i = 0; i < count && room() > 0; i++) discovered.push(createProspect(source, team, names));
+    for (let i = 0; i < count && room() > 0; i++) discovered.push(createCompetedProspect(source, team, names, ctx));
   };
 
   if (type === 'YOUTH_CLINIC') {
@@ -218,9 +260,9 @@ export function runFeederEvent(pool: FeederProspect[], type: FeederEventType, te
 }
 
 /** Families occasionally move into the district during the year. */
-export function maybeMoveInArrival(pool: FeederProspect[], team: Team, week: number): FeederProspect | null {
+export function maybeMoveInArrival(pool: FeederProspect[], team: Team, week: number, ctx?: RecruitingContext): FeederProspect | null {
   if (week > 12 || pool.length >= MAX_POOL_SIZE || Math.random() > 0.12) return null;
-  return createProspect('MOVE_IN', team, new Set(pool.map((p) => p.name)));
+  return createCompetedProspect('MOVE_IN', team, new Set(pool.map((p) => p.name)), ctx);
 }
 
 /** Chance a prospect comes out for the team next season. */
@@ -236,6 +278,8 @@ export function joinChance(p: FeederProspect, prestige: number): number {
       return clamp(0.35 + 0.35 * interest + prestigeBonus, 0.05, 0.95);
     case 'STAR_RECRUIT':
       return clamp((p.interestScore - 55) / 100, 0, 0.45); // a long shot even when they love you
+    case 'OUT_OF_DISTRICT':
+      return clamp((p.interestScore - 40) / 100, 0, 0.5); // pulling a kid from his zoned school is rare
     case 'TRYOUT':
     default:
       return clamp(0.6 + 0.2 * interest, 0, 0.9);
@@ -252,11 +296,40 @@ function missedOutcome(source: ProspectSource): FeederOutcomeType {
     case 'MOVE_IN':
       return r < 0.5 ? 'OTHER_SCHOOL' : r < 0.8 ? 'LEFT_AREA' : 'NOT_PLAYING';
     case 'STAR_RECRUIT':
+    case 'OUT_OF_DISTRICT':
       return 'OTHER_SCHOOL';
     case 'TRYOUT':
     default:
       return 'NOT_PLAYING';
   }
+}
+
+/**
+ * Chance a prospect plays football at all once they pick a school. Stars and out-of-district players will
+ * play somewhere (their question is where); for everyone else coaching interest drives it.
+ */
+function playsFootballChance(p: FeederProspect, prestige: number): number {
+  if (p.source === 'STAR_RECRUIT') return 0.95;
+  if (p.source === 'OUT_OF_DISTRICT') return 0.9;
+  return joinChance(p, prestige);
+}
+
+const RIVAL_FOLLOW_THROUGH = 0.85; // a prospect leaning to a rival still sometimes skips football
+
+/** Chance the prospect ends up on the user's team: their share of the decision times the chance they play. */
+export function userJoinProbability(p: FeederProspect, prestige: number, ctx?: RecruitingContext): number {
+  if (!ctx) return joinChance(p, prestige);
+  const userShare = choiceShares(p, ctx).find((c) => c.teamId === ctx.userTeamId)?.share ?? 0;
+  return userShare * playsFootballChance(p, prestige);
+}
+
+function pickShare<T extends { share: number }>(shares: T[]): T {
+  let roll = Math.random();
+  for (const s of shares) {
+    roll -= s.share;
+    if (roll <= 0) return s;
+  }
+  return shares[shares.length - 1];
 }
 
 /** Turns a committed prospect into a player who keeps their name and true ratings. */
@@ -288,26 +361,80 @@ export function enforceVarsityRosterLimit(team: Team, newcomers: Player[], outco
   return toJV;
 }
 
-/** End of year: every prospect decides. Returns the newcomers and what happened to everyone. */
-export function resolveFeederClass(pool: FeederProspect[], team: Team): { joined: Player[]; outcomes: FeederOutcome[] } {
-  const joined: Player[] = [];
-  const outcomes: FeederOutcome[] = pool.map((p) => {
-    let outcome: FeederOutcomeType;
-    if (p.isTransferRisk && Math.random() < 0.5) outcome = 'LEFT_AREA';
-    else if (Math.random() < joinChance(p, team.prestige)) outcome = 'JOINED';
-    else outcome = missedOutcome(p.source);
+/** A prospect who signed with a rival program (the player joins that team's roster). */
+export interface RivalSigning {
+  teamId: string;
+  player: Player;
+}
 
-    const player = outcome === 'JOINED' ? prospectToPlayer(p) : undefined;
-    if (player) joined.push(player);
-    return {
-      prospectId: p.id,
-      ...(player && { playerId: player.id }),
-      prospectName: p.name,
-      source: p.source,
-      position: p.projectedPosition,
-      outcome,
-      ...(outcome === 'JOINED' && { overall: p.trueOverall })
-    };
+/**
+ * End of year: every prospect decides. Without a league context each prospect only weighs the user's
+ * program; with one, rival suitors (and a zoned school or staying home) compete for them.
+ */
+export function resolveFeederClass(
+  pool: FeederProspect[],
+  team: Team,
+  ctx?: RecruitingContext
+): { joined: Player[]; rivalSignings: RivalSigning[]; outcomes: FeederOutcome[] } {
+  const joined: Player[] = [];
+  const rivalSignings: RivalSigning[] = [];
+  const outcomes: FeederOutcome[] = pool.map((p) => {
+    const base = { prospectId: p.id, prospectName: p.name, source: p.source, position: p.projectedPosition };
+    if (p.isTransferRisk && Math.random() < 0.5) return { ...base, outcome: 'LEFT_AREA' as FeederOutcomeType };
+
+    if (!ctx) {
+      if (Math.random() < joinChance(p, team.prestige)) {
+        const player = prospectToPlayer(p);
+        joined.push(player);
+        return { ...base, outcome: 'JOINED' as FeederOutcomeType, playerId: player.id, overall: p.trueOverall };
+      }
+      return { ...base, outcome: missedOutcome(p.source) };
+    }
+
+    const choice = pickShare(choiceShares(p, ctx));
+    if (choice.teamId === ctx.userTeamId) {
+      if (Math.random() < playsFootballChance(p, team.prestige)) {
+        const player = prospectToPlayer(p);
+        joined.push(player);
+        return { ...base, outcome: 'JOINED' as FeederOutcomeType, playerId: player.id, overall: p.trueOverall };
+      }
+      const missed = missedOutcome(p.source);
+      return { ...base, outcome: missed === 'OTHER_SCHOOL' ? ('NOT_PLAYING' as FeederOutcomeType) : missed };
+    }
+    if (choice.teamId === null) return { ...base, outcome: 'OTHER_SCHOOL' as FeederOutcomeType, destinationName: 'Stayed home' };
+    if (Math.random() < RIVAL_FOLLOW_THROUGH) {
+      rivalSignings.push({ teamId: choice.teamId, player: prospectToPlayer(p) });
+      return { ...base, outcome: 'OTHER_SCHOOL' as FeederOutcomeType, destinationTeamId: choice.teamId, destinationName: choice.name };
+    }
+    return { ...base, outcome: 'NOT_PLAYING' as FeederOutcomeType };
   });
-  return { joined, outcomes };
+  return { joined, rivalSignings, outcomes };
+}
+
+// ---------------------------------------------------------------------------
+// Statewide elite recruits: out-of-area stars contested among the top AI programs
+// ---------------------------------------------------------------------------
+
+export const STATEWIDE_ELITE_COUNT = 10;
+
+export function generateStatewideElite(ctx: RecruitingContext): FeederProspect[] {
+  const names = new Set<string>();
+  return Array.from({ length: STATEWIDE_ELITE_COUNT }, () => assignSuitors(createProspect('STAR_RECRUIT', { prestige: 80 }, names), ctx)).filter(
+    (p) => p.suitors.length > 0
+  );
+}
+
+/** Resolves the elite list among its AI suitors; winners join those programs. */
+export function resolveStatewideElite(elite: FeederProspect[], ctx: RecruitingContext): { signings: RivalSigning[]; headlines: string[] } {
+  const signings: RivalSigning[] = [];
+  const headlines: string[] = [];
+  [...elite]
+    .sort((a, b) => b.trueOverall - a.trueOverall)
+    .forEach((p) => {
+      const choice = pickShare(choiceShares(p, ctx, false));
+      if (choice.teamId === null) return;
+      signings.push({ teamId: choice.teamId, player: prospectToPlayer(p) });
+      if (headlines.length < 3) headlines.push(`${choice.name} lands ${p.incomingClass.toLowerCase()} ${p.projectedPosition} ${p.name} (${p.middleSchool})`);
+    });
+  return { signings, headlines };
 }

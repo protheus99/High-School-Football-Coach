@@ -22,6 +22,9 @@ export interface GameSaveRecord {
   leagueTeams?: Team[];
   playoffBracket?: PlayoffBracketState | null;
   sanctionLevel?: 0 | 1 | 2 | 3;
+  statewideRecruits?: FeederProspect[];
+  userViolationHeat?: number;
+  pendingUserBan?: boolean;
   seasonSchedule?: ScheduledGame[];
   dilemmaLog?: DilemmaRecord[];
 }

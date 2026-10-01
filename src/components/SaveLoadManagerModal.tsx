@@ -8,7 +8,7 @@ import { generateFeederPool } from '../sim/feederEngine';
 import { Team } from '../types/game';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { districtTeams, league, leagueTeams, seasonSchedule, playoffBracket, sanctionLevel, dilemmaLog, currentWeek, currentYear, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
+  const { districtTeams, league, leagueTeams, seasonSchedule, playoffBracket, sanctionLevel, statewideRecruits, userViolationHeat, pendingUserBan, dilemmaLog, currentWeek, currentYear, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
   const [importText, setImportText] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [leagueIndex, setLeagueIndex] = useState<LeagueIndexEntry[]>([]);
@@ -43,7 +43,10 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
       seasonSchedule,
       dilemmaLog,
       playoffBracket,
-      sanctionLevel
+      sanctionLevel,
+      statewideRecruits,
+      userViolationHeat,
+      pendingUserBan
     });
     setFeedback('Game successfully saved to IndexedDB!');
   };
@@ -64,6 +67,9 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
         seasonSchedule: save.league && save.seasonSchedule ? save.seasonSchedule : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
         playoffBracket: save.league ? save.playoffBracket ?? null : null,
         sanctionLevel: save.sanctionLevel ?? 0,
+        statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
+        userViolationHeat: save.userViolationHeat ?? 0,
+        pendingUserBan: save.pendingUserBan ?? false,
         dilemmaLog: save.dilemmaLog ?? [],
         currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, 14),
         userTeamId: save.userTeamId,
@@ -71,7 +77,7 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
         practiceIntensity: save.practiceIntensity,
         activeDilemma: save.activeDilemma,
         // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
-        scoutingPool: save.scoutingPool.every((p) => 'source' in p)
+        scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p)
           ? save.scoutingPool
           : generateFeederPool(world.teams.find((t) => t.id === save.userTeamId) ?? world.teams[0])
       });

@@ -180,6 +180,7 @@ export interface Team {
   state?: string; // e.g. 'Texas'; ranking engines default to Texas when unset
   enrollment?: number; // drives the UIL 6A Division 1 / Division 2 playoff split
   nameProfile?: 'DEFAULT' | 'BORDER'; // regional name mix for generated players
+  feederProfile?: FeederProfile;
   districtId: string;
   primaryColor: string;
   secondaryColor: string;
@@ -345,7 +346,19 @@ export type ProspectSource =
   | 'SEVEN_ON_SEVEN' // good athletes from 7-on-7 clubs who don't play tackle yet
   | 'MOVE_IN' // families relocating into the district
   | 'STAR_RECRUIT' // elite out-of-area talent; only top programs can try to coax them in
+  | 'OUT_OF_DISTRICT' // players zoned to a rival program that you can try to pull away
   | 'TRYOUT'; // general students who come out for the team
+
+/** What a prospect weighs when choosing a program; every prospect weights these differently. */
+export type RecruitingFactor = 'PLAYING_TIME' | 'WINNING' | 'HOME' | 'RELATIONSHIP' | 'BOOSTERS';
+
+/** A rival program recruiting a prospect. */
+export interface ProspectSuitor {
+  teamId: string;
+  teamName: string;
+  effort: number; // 0-100 relationship built by that program's coaches
+  inducement: boolean; // boosters made an illegal offer
+}
 
 export interface FeederProspect {
   id: string;
@@ -364,6 +377,10 @@ export interface FeederProspect {
   interestScore: number; // 0-100: how likely they are to come play for the program
   coachContacts: number; // visits / pitches so far (diminishing returns)
   isTransferRisk: boolean; // family may leave the area before next season
+  priorities: Record<RecruitingFactor, number>; // weights summing to 1
+  suitors: ProspectSuitor[]; // rival programs also recruiting this player
+  homeTeamId?: string; // the school the player is zoned to, when it isn't the user's
+  userInducement?: boolean; // the user's boosters made an illegal offer
 }
 
 export type FeederOutcomeType = 'JOINED' | 'JV_TEAM' | 'NOT_PLAYING' | 'LEFT_AREA' | 'OTHER_SCHOOL';
@@ -377,6 +394,18 @@ export interface FeederOutcome {
   position: Position;
   outcome: FeederOutcomeType;
   overall?: number; // revealed for players who joined
+  destinationTeamId?: string; // OTHER_SCHOOL: the program they chose, when known
+  destinationName?: string;
+}
+
+/** An AI program's feeder approach and hidden integrity (no prospect lists are kept for AI teams). */
+export type FeederStrategy = 'BUILD_LOCAL' | 'CHASE_TRANSFERS' | 'RECRUIT_STARS' | 'STAND_PAT';
+
+export interface FeederProfile {
+  strategy: FeederStrategy;
+  ethics: number; // 0-100 hidden; low-ethics programs make illegal recruiting offers
+  violationHeat: number; // accumulated evidence of recruiting violations; fades slowly
+  bannedSeason?: number; // year the program is barred from the playoffs after getting caught
 }
 
 // ============================================================================

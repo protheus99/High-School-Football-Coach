@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { FeederOutcomeType, FeederProspect, ProspectSource } from '../types/game';
 import {
@@ -8,15 +8,17 @@ import {
   PROSPECT_ACTION_COSTS,
   SOURCE_LABELS,
   interestLabel,
-  joinChance,
+  userJoinProbability,
   weeklyActionPoints
 } from '../sim/feederEngine';
+import { FACTOR_LABELS, RecruitingContext, buildRecruitingContext, choiceShares, topPriority } from '../sim/feederCompetition';
 
 const SOURCE_COLORS: Record<ProspectSource, string> = {
   FEEDER_MIDDLE_SCHOOL: '#2563EB',
   SEVEN_ON_SEVEN: '#7C3AED',
   MOVE_IN: '#0F766E',
   STAR_RECRUIT: '#D97706',
+  OUT_OF_DISTRICT: '#BE123C',
   TRYOUT: '#64748B'
 };
 
@@ -47,8 +49,13 @@ export const FeedersScoutingView: React.FC = () => {
     runFeederEvent,
     scoutFeederProspect,
     visitFeederProspect,
-    pitchFeederStar
+    pitchFeederStar,
+    offerFeederInducement,
+    statewideRecruits,
+    league,
+    leagueTeams
   } = useGameStore();
+  const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
   const [filter, setFilter] = useState<ProspectSource | 'ALL'>('ALL');
   const [feedback, setFeedback] = useState<string | null>(null);
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
@@ -100,6 +107,15 @@ export const FeedersScoutingView: React.FC = () => {
               .map((r) => `${r.prospectName} (${r.position}, ${r.overall})`)
               .join(', ') || 'none'}
           </div>
+          {lastFeederResults.some((r) => r.destinationTeamId) && (
+            <div style={{ marginTop: '4px', color: '#9F1239' }}>
+              Lost to rivals:{' '}
+              {lastFeederResults
+                .filter((r) => r.destinationTeamId)
+                .map((r) => `${r.prospectName} → ${r.destinationName}`)
+                .join(', ')}
+            </div>
+          )}
         </div>
       )}
 
@@ -137,15 +153,18 @@ export const FeedersScoutingView: React.FC = () => {
           <ProspectCard
             key={p.id}
             prospect={p}
-            chance={joinChance(p, userTeam.prestige)}
+            chance={userJoinProbability(p, userTeam.prestige, ctx)}
             coachingAP={coachingAP}
             onScout={() => scoutFeederProspect(p.id)}
             onVisit={() => visitFeederProspect(p.id)}
             onPitch={() => pitchFeederStar(p.id)}
+            onInduce={() => offerFeederInducement(p.id)}
           />
         ))}
         {shown.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No prospects in this group.</div>}
       </div>
+
+      {ctx && statewideRecruits.length > 0 && <StatewideElitePanel recruits={statewideRecruits} ctx={ctx} />}
     </div>
   );
 };
@@ -157,13 +176,15 @@ const ProspectCard: React.FC<{
   onScout: () => void;
   onVisit: () => void;
   onPitch: () => void;
-}> = ({ prospect: p, chance, coachingAP, onScout, onVisit, onPitch }) => {
+  onInduce: () => void;
+}> = ({ prospect: p, chance, coachingAP, onScout, onVisit, onPitch, onInduce }) => {
   const scouted = p.revealedPotential !== 'UNKNOWN';
   const look = outlook(chance);
   const notes: string[] = [];
   if (p.source === 'SEVEN_ON_SEVEN') notes.push("Doesn't play tackle yet");
   if (p.source === 'STAR_RECRUIT') notes.push('Long shot: elite talent from out of area');
   if (p.source === 'TRYOUT') notes.push('General student trying out');
+  if (p.source === 'OUT_OF_DISTRICT') notes.push('Pulling a player from his zoned school is a long shot');
   if (p.isTransferRisk) notes.push('Family may relocate');
 
   return (
@@ -189,6 +210,13 @@ const ProspectCard: React.FC<{
         <span>Interest: {interestLabel(p.interestScore)} ({p.interestScore})</span>
         <span style={{ color: look.color, fontWeight: 'bold' }}>{look.label}</span>
       </div>
+      <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>Cares most about: {FACTOR_LABELS[topPriority(p)]}</div>
+      {p.suitors.length > 0 && (
+        <div style={{ fontSize: '11px', color: '#9F1239', marginTop: '2px' }}>
+          Also recruiting: {p.suitors.map((s) => `${s.teamName} (${interestLabel(s.effort)})${s.inducement ? ' 🚩' : ''}`).join(', ')}
+          {p.suitors.some((s) => s.inducement) && <span> · 🚩 rumored booster money</span>}
+        </div>
+      )}
       {notes.length > 0 && <div style={{ fontSize: '11px', color: '#92400E', marginTop: '4px' }}>{notes.join(' · ')}</div>}
       <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
         <button onClick={onScout} disabled={scouted || coachingAP < PROSPECT_ACTION_COSTS.SCOUT} style={actionBtn('#475569', scouted || coachingAP < PROSPECT_ACTION_COSTS.SCOUT)}>
@@ -202,10 +230,49 @@ const ProspectCard: React.FC<{
             Full Recruiting Pitch ({PROSPECT_ACTION_COSTS.PITCH_STAR} AP)
           </button>
         )}
+        {p.source !== 'TRYOUT' &&
+          (p.userInducement ? (
+            <span style={{ fontSize: '11px', color: '#B91C1C', fontWeight: 'bold', alignSelf: 'center' }}>⚠️ Booster offer made</span>
+          ) : (
+            <button
+              onClick={onInduce}
+              disabled={coachingAP < 20}
+              title="Illegal: boosters make an improper offer. Big pull on this player, but it builds evidence that may surface for years."
+              style={actionBtn('#7F1D1D', coachingAP < 20)}
+            >
+              Booster Offer (illegal, 20 AP)
+            </button>
+          ))}
       </div>
     </div>
   );
 };
+
+/** Elite out-of-area recruits contested among the state's top programs. */
+const StatewideElitePanel: React.FC<{ recruits: FeederProspect[]; ctx: RecruitingContext }> = ({ recruits, ctx }) => (
+  <div style={{ marginTop: '20px' }}>
+    <h3 style={{ margin: '0 0 6px 0', fontSize: '15px' }}>Statewide Elite Recruits</h3>
+    <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#64748B' }}>Top out-of-area talent being fought over by the state&apos;s powerhouse programs this year.</p>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '8px' }}>
+      {recruits.map((p) => {
+        const leader = [...choiceShares(p, ctx, false)].sort((a, b) => b.share - a.share)[0];
+        return (
+          <div key={p.id} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '8px', padding: '10px', fontSize: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <strong>{p.name}</strong>
+              <span>{p.incomingClass} {p.projectedPosition}</span>
+            </div>
+            <div style={{ color: '#6B7280' }}>{p.middleSchool}</div>
+            <div style={{ marginTop: '4px' }}>
+              Suitors: {p.suitors.map((s) => `${s.teamName}${s.inducement ? ' 🚩' : ''}`).join(', ')}
+            </div>
+            {leader && <div style={{ color: '#92400E', fontWeight: 'bold' }}>Leaning: {leader.name}</div>}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
 
 const pillStyle = (background: string, color: string): React.CSSProperties => ({ background, color, padding: '5px 12px', borderRadius: '6px' });
 
