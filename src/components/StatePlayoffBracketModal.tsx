@@ -16,9 +16,11 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({
 }) => {
   const { currentRound, bracket, stateChampionTeamId } = bracketState;
 
-  const activeNodes = currentRound === 'BI_DISTRICT' ? bracket.biDistrict.slice(0, 4) :
-                      currentRound === 'AREA' ? bracket.area :
-                      currentRound === 'REGIONAL' ? bracket.regional : bracket.stateFinal;
+  const activeNodes =
+    currentRound === 'BI_DISTRICT' ? bracket.biDistrict.slice(0, 4) :
+    currentRound === 'AREA' ? bracket.area :
+    currentRound === 'REGIONAL' ? bracket.regional :
+    bracket.stateFinal;
 
   const userMatchup = activeNodes.find((n) => n.team1.id === userTeamId || n.team2.id === userTeamId);
 
@@ -28,7 +30,9 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
           <div>
             <h2 style={{ margin: 0, color: '#0F172A' }}>🏆 STATE CHAMPIONSHIP TOURNAMENT</h2>
-            <div style={{ fontSize: '13px', color: '#64748B' }}>Current Round: {currentRound.replace('_', ' ')}</div>
+            <div style={{ fontSize: '13px', color: '#64748B' }}>
+              Current Round: {currentRound.replace('_', ' ')}
+            </div>
           </div>
           <button onClick={onClose} style={closeBtnStyle}>✕</button>
         </div>
@@ -42,7 +46,7 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({
           </div>
         )}
 
-        {/* User Game Alert */}
+        {/* User Playoff Game Launch Banner */}
         {userMatchup && !userMatchup.winnerTeamId && (
           <div style={{ background: '#F0FDF4', border: '1px solid #86EFAC', padding: '14px', borderRadius: '8px', margin: '16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
@@ -60,7 +64,7 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({
           </div>
         )}
 
-        {/* Active Round Matchup Cards */}
+        {/* Matchup Nodes Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', margin: '16px 0' }}>
           {activeNodes.map((node) => {
             const isUserGame = node.team1.id === userTeamId || node.team2.id === userTeamId;

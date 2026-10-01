@@ -1,0 +1,54 @@
+import { GameSimulationState, PlayConcept, PlayEvent, LeverageType } from '../types/game';
+
+export type WorkerEventCallback = (data: {
+  state: GameSimulationState;
+  event?: PlayEvent;
+  leverageType?: LeverageType;
+}) => void;
+
+class WorkerBridge {
+  private worker: Worker | null = null;
+  private onPlayResolvedCb: WorkerEventCallback | null = null;
+  private onLeveragePromptCb: WorkerEventCallback | null = null;
+  private onGameOverCb: WorkerEventCallback | null = null;
+
+  public initialize(): void {
+    if (typeof window === 'undefined') return;
+    this.worker = new Worker(new URL('../workers/simWorker.ts', import.meta.url), { type: 'module' });
+
+    this.worker.onmessage = (e: MessageEvent) => {
+      const { type, payload } = e.data;
+      if (type === 'PLAY_RESOLVED' && this.onPlayResolvedCb) {
+        this.onPlayResolvedCb(payload);
+      } else if (type === 'LEVERAGE_MOMENT_PROMPT' && this.onLeveragePromptCb) {
+        this.onLeveragePromptCb(payload);
+      } else if (type === 'GAME_COMPLETED' && this.onGameOverCb) {
+        this.onGameOverCb(payload);
+      }
+    };
+  }
+
+  public initGame(state: GameSimulationState): void {
+    this.worker?.postMessage({ type: 'INIT_GAME', payload: state });
+  }
+
+  public stepPlay(concept?: PlayConcept): void {
+    this.worker?.postMessage({ type: 'SIMULATE_NEXT_PLAY', payload: { chosenConcept: concept } });
+  }
+
+  public simToEnd(): void {
+    this.worker?.postMessage({ type: 'SIMULATE_ENTIRE_GAME' });
+  }
+
+  public subscribe(callbacks: {
+    onPlayResolved: WorkerEventCallback;
+    onLeveragePrompt: WorkerEventCallback;
+    onGameOver: WorkerEventCallback;
+  }): void {
+    this.onPlayResolvedCb = callbacks.onPlayResolved;
+    this.onLeveragePromptCb = callbacks.onLeveragePrompt;
+    this.onGameOverCb = callbacks.onGameOver;
+  }
+}
+
+export const simWorkerBridge = new WorkerBridge();

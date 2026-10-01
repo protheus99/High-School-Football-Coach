@@ -5,21 +5,28 @@ import { RosterDepthChartView } from './components/RosterDepthChartView';
 import { DistrictStandingsView } from './components/DistrictStandingsView';
 import { FeedersScoutingView } from './components/FeedersScoutingView';
 import { CoachesOfficeView } from './components/CoachesOfficeView';
+import { NewsMediaView } from './components/NewsMediaView';
+import { RankingsView } from './components/RankingsView';
+import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
+import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { LiveMatchScreen } from './components/LiveMatchScreen';
 import { SaveLoadManagerModal } from './components/SaveLoadManagerModal';
 import { StatePlayoffBracketModal } from './components/StatePlayoffBracketModal';
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
 import { AllStateAwardsModal } from './components/AllStateAwardsModal';
 import { HallOfFameTrophyModal } from './components/HallOfFameTrophyModal';
+import { PlayerDrillsModal } from './components/PlayerDrillsModal';
 import { calculateSeasonAwards, SeasonAwardsRecord } from './sim/awardsEngine';
-import { GameSimulationState } from './types/game';
+import { GameSimulationState, Player } from './types/game';
 
 export const App: React.FC = () => {
-  const [tab, setTab] = useState<'DASHBOARD' | 'ROSTER' | 'DISTRICT' | 'FEEDERS' | 'OFFICE'>('DASHBOARD');
+  const [tab, setTab] = useState<'DASHBOARD' | 'ROSTER' | 'DISTRICT' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS' | 'OFFICE'>('DASHBOARD');
   const [activeMatch, setActiveMatch] = useState<GameSimulationState | null>(null);
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [showBracketModal, setShowBracketModal] = useState(false);
   const [showTrophyModal, setShowTrophyModal] = useState(false);
+  const [showDrillsModal, setShowDrillsModal] = useState(false);
+  const [selectedPlayerDetail, setSelectedPlayerDetail] = useState<Player | null>(null);
   const [awardsRecord, setAwardsRecord] = useState<SeasonAwardsRecord | null>(null);
 
   const {
@@ -28,6 +35,9 @@ export const App: React.FC = () => {
     userTeamId,
     currentWeek,
     currentYear,
+    newsArticles,
+    polls,
+    playerRankings,
     playoffBracket,
     isBanquetActive,
     graduatingSeniors,
@@ -69,7 +79,6 @@ export const App: React.FC = () => {
     setActiveMatch(newGame);
   };
 
-  // Trigger End of Season Awards at Week 19
   useEffect(() => {
     if (currentWeek === 19 && !awardsRecord && districtTeams.length > 0) {
       const calculated = calculateSeasonAwards(currentYear, districtTeams);
@@ -154,6 +163,9 @@ export const App: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
       {showSaveLoadModal && <SaveLoadManagerModal onClose={() => setShowSaveLoadModal(false)} />}
+      {showDrillsModal && userTeam && (
+        <PlayerDrillsModal roster={userTeam.roster} onClose={() => setShowDrillsModal(false)} />
+      )}
       {showTrophyModal && userTeam && (
         <HallOfFameTrophyModal
           trophies={[{ year: currentYear - 1, type: 'DISTRICT_TITLE', name: 'District 26-6A Trophy' }]}
@@ -162,8 +174,11 @@ export const App: React.FC = () => {
           onClose={() => setShowTrophyModal(false)}
         />
       )}
+      {selectedPlayerDetail && (
+        <PlayerDetailModal player={selectedPlayerDetail} onClose={() => setSelectedPlayerDetail(null)} />
+      )}
 
-      {/* Top Header */}
+      {/* Top Navigation Bar */}
       <div style={{ background: '#0F172A', color: '#fff', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <span style={{ fontWeight: 'bold', fontSize: '18px' }}>🏈 HIGH SCHOOL FOOTBALL HEAD COACH</span>
@@ -171,17 +186,23 @@ export const App: React.FC = () => {
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
+            onClick={() => setShowDrillsModal(true)}
+            style={{ padding: '6px 12px', background: '#10B981', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+          >
+            🏋️ Drills
+          </button>
+          <button
             onClick={() => setShowTrophyModal(true)}
             style={{ padding: '6px 12px', background: '#D97706', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
           >
-            🏆 Trophy Case
+            🏆 Trophies
           </button>
           {playoffBracket && (
             <button
               onClick={() => setShowBracketModal(true)}
               style={{ padding: '6px 12px', background: '#F59E0B', color: '#000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
             >
-              🏆 Playoff Bracket
+              🏆 Bracket
             </button>
           )}
           <button
@@ -193,21 +214,33 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Viewport */}
+      {/* Main Viewport Container */}
       <div style={{ flex: 1, paddingBottom: '60px' }}>
         {tab === 'DASHBOARD' && <DashboardView onLaunchGame={handleLaunchMatch} />}
         {tab === 'ROSTER' && <RosterDepthChartView />}
         {tab === 'DISTRICT' && <DistrictStandingsView />}
+        {tab === 'RANKINGS' && polls && <RankingsView polls={polls} userTeamId={userTeamId} />}
+        {tab === 'LEADERS' && playerRankings && (
+          <PlayerLeaderboardView
+            rankingsState={playerRankings}
+            userTeamId={userTeamId}
+            onSelectPlayer={(entry) => setSelectedPlayerDetail(entry.player)}
+          />
+        )}
         {tab === 'FEEDERS' && <FeedersScoutingView />}
+        {tab === 'NEWS' && <NewsMediaView articles={newsArticles} />}
         {tab === 'OFFICE' && <CoachesOfficeView />}
       </div>
 
-      {/* Bottom Sticky Navigation */}
+      {/* Persistent Bottom Tab Navigation */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#fff', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-around', padding: '10px 0', zIndex: 100 }}>
         <button onClick={() => setTab('DASHBOARD')} style={navBtnStyle(tab === 'DASHBOARD')}>📊 Dashboard</button>
         <button onClick={() => setTab('ROSTER')} style={navBtnStyle(tab === 'ROSTER')}>📋 Roster</button>
         <button onClick={() => setTab('DISTRICT')} style={navBtnStyle(tab === 'DISTRICT')}>🏆 District</button>
+        <button onClick={() => setTab('RANKINGS')} style={navBtnStyle(tab === 'RANKINGS')}>🥇 Polls</button>
+        <button onClick={() => setTab('LEADERS')} style={navBtnStyle(tab === 'LEADERS')}>🌟 Leaders</button>
         <button onClick={() => setTab('FEEDERS')} style={navBtnStyle(tab === 'FEEDERS')}>🔍 Feeders</button>
+        <button onClick={() => setTab('NEWS')} style={navBtnStyle(tab === 'NEWS')}>📰 News</button>
         <button onClick={() => setTab('OFFICE')} style={navBtnStyle(tab === 'OFFICE')}>🏢 Office</button>
       </div>
     </div>
@@ -220,5 +253,5 @@ const navBtnStyle = (active: boolean): React.CSSProperties => ({
   fontWeight: active ? 'bold' : 'normal',
   color: active ? '#2563EB' : '#64748B',
   cursor: 'pointer',
-  fontSize: '14px'
+  fontSize: '13px'
 });

@@ -174,6 +174,7 @@ export interface Team {
   name: string;
   mascot: string;
   classification: '1A' | '2A' | '3A' | '4A' | '5A' | '6A';
+  state?: string; // e.g. 'Texas'; ranking engines default to Texas when unset
   districtId: string;
   primaryColor: string;
   secondaryColor: string;
@@ -193,7 +194,7 @@ export interface PlayEvent {
   clockTimeRemainingSeconds: number;
   down: 1 | 2 | 3 | 4;
   distance: number;
-  yardLine: number;
+  yardLine: number; // 1 to 99 relative to offense goal line
   possessionTeamId: string;
   playConcept: PlayConcept;
   yardsGained: number;
@@ -301,4 +302,117 @@ export interface FeederProspect {
   scoutedStrength: number | null;
   interestScore: number;
   isTransferRisk: boolean;
+}
+
+// ============================================================================
+// STATE CHAMPIONSHIP RULES
+// ============================================================================
+
+export type StateGoverningBody =
+  | 'UIL'      // Texas
+  | 'FHSAA'    // Florida
+  | 'GHSA'     // Georgia
+  | 'CIF'      // California
+  | 'OHSAA'    // Ohio
+  | 'PIAA'     // Pennsylvania
+  | 'MPSSAA'   // Maryland
+  | 'LHSAA'    // Louisiana
+  | 'AHSAA'    // Alabama
+  | 'NJSIAA'   // New Jersey
+  | 'NCHSAA'   // North Carolina
+  | 'TSSAA';   // Tennessee
+
+export type PostseasonFormatType =
+  | 'SPLIT_ENROLLMENT_D1_D2'     // Texas (Top 4 qualifiers split into D1 Big & D2 Small)
+  | 'SELECT_NON_SELECT_SPLIT'    // Louisiana (Public vs Private/Charter separate brackets)
+  | 'COMPETITIVE_EQUITY_BOWLS'   // California (Power rank placement -> State Bowl)
+  | 'HARBIN_POINT_REGIONAL_16'   // Ohio (Level 1/2 computer points -> 4 16-team regions)
+  | 'DISTRICT_CHAMP_AT_LARGE_PR' // Florida (District Champs 1-4 + MaxPreps PR Wildcards 5-8)
+  | 'EAST_WEST_REGIONAL_BRACKET' // North Carolina & Pennsylvania
+  | 'QUADRANT_REGION_32'         // Georgia & Tennessee (8 regions, 4 quadrants)
+  | 'FOUR_REGION_FIXED_16'       // Alabama (4 8-team regions, 1v4/2v3 crossovers)
+  | 'NON_PUBLIC_SUPER_GROUP';    // New Jersey (Non-Public A statewide + Group 5 Sections)
+
+export interface StateChampionshipConfig {
+  governingBody: StateGoverningBody;
+  stateName: string;
+  classificationName: string;
+  formatType: PostseasonFormatType;
+  championshipVenueName: string; // e.g. "AT&T Stadium (Arlington, TX)"
+  championshipTrophyTitle: string; // e.g. "UIL 6A Division 1 State Championship"
+  totalQualifyingTeams: number;
+  hasSplitDivisionBrackets: boolean;
+  seedingMethod: 'DISTRICT_FINISH' | 'HARBIN_POINTS' | 'POWER_RANKING_HYBRID' | 'COMPETITIVE_EQUITY';
+}
+
+// ============================================================================
+// TEAM POLLS (NATIONAL TOP 25 & STATE RANKINGS)
+// ============================================================================
+
+export type RankMovement = 'UP' | 'DOWN' | 'UNCHANGED' | 'NEW_ENTRY' | 'UNRANKED';
+
+export interface RankedTeamEntry {
+  rank: number;
+  previousRank: number | null; // null if unranked previously
+  movement: RankMovement;
+  movementDelta: number; // e.g. +3, -2, 0
+  teamId: string;
+  teamName: string;
+  mascot: string;
+  state: string;
+  classification: string;
+  record: { wins: number; losses: number };
+  pollPoints: number; // Composite rating score
+  strengthOfSchedule: number; // 0 - 100
+  firstPlaceVotes: number;
+  qualityWinsCount: number;
+}
+
+export interface StateAndNationalPolls {
+  week: number;
+  nationalTop25: RankedTeamEntry[];
+  stateRankings: Record<string, RankedTeamEntry[]>; // StateName -> Top 10/25
+  bubbleTeams: RankedTeamEntry[]; // "Others Receiving Votes"
+}
+
+// ============================================================================
+// PLAYER LEADERBOARDS & PROSPECT RANKINGS
+// ============================================================================
+
+export interface RankedPlayerEntry {
+  rank: number;
+  player: Player;
+  teamId: string;
+  teamName: string;
+  state: string;
+  classification: string;
+  primaryStatLine: string;
+  compositeRecruitScore: number; // 0 to 1000
+}
+
+export type StatCategory =
+  | 'PASS_YARDS'
+  | 'PASS_TDS'
+  | 'RUSH_YARDS'
+  | 'RUSH_TDS'
+  | 'REC_YARDS'
+  | 'TACKLES'
+  | 'SACKS'
+  | 'INTERCEPTIONS';
+
+export interface PositionalProspectGroup {
+  position: Position;
+  nationalRankings: RankedPlayerEntry[];
+  stateRankings: Record<string, RankedPlayerEntry[]>; // StateName -> RankedPlayerEntry[]
+}
+
+export interface PlayerRankingsAndStatsState {
+  week: number;
+  // 1. Stat Leaderboards
+  nationalStatLeaders: Record<StatCategory, RankedPlayerEntry[]>;
+  stateStatLeaders: Record<string, Record<StatCategory, RankedPlayerEntry[]>>; // StateName -> Category -> Entries
+
+  // 2. Positional Prospect Rankings
+  positionalProspects: Record<Position, PositionalProspectGroup>;
+  nationalOverallTop100: RankedPlayerEntry[];
 }

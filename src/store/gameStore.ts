@@ -6,14 +6,25 @@ import {
   FeederProspect,
   DilemmaChoice,
   DepthChartTier,
-  Player
+  Player,
+  StateAndNationalPolls,
+  PlayerRankingsAndStatsState
 } from '../types/game';
 import { generateDistrictTeams, generateProceduralPlayer } from '../generators/rosterGenerator';
 import { generateWeeklyDilemma, executeDilemmaDecision } from '../sim/dilemmaEngine';
 import { generateMiddleSchoolProspects, evaluateCollegeScoutExposure } from '../sim/scoutingEngine';
 import { simulateMacroMatch } from '../sim/macroSim';
-import { evaluateAcademicReport, processPostGameSeasonWear, processWeeklyInjuryHealing, processOffSeasonProgression } from '../sim/playerEngine';
+import {
+  evaluateAcademicReport,
+  processPostGameSeasonWear,
+  processWeeklyInjuryHealing,
+  processOffSeasonProgression
+} from '../sim/playerEngine';
 import { buildInitialPlayoffBracket, advancePlayoffRound, PlayoffBracketState } from '../sim/playoffEngine';
+import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
+import { processStateRealignment } from '../sim/realignmentEngine';
+import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
+import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
 
 interface GameStoreState {
@@ -24,6 +35,9 @@ interface GameStoreState {
   activeGame: GameSimulationState | null;
   activeDilemma: NarrativeDilemma | null;
   scoutingPool: FeederProspect[];
+  newsArticles: NewsArticle[];
+  polls: StateAndNationalPolls | null;
+  playerRankings: PlayerRankingsAndStatsState | null;
   coachingAP: number;
   practiceIntensity: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT';
 
@@ -54,6 +68,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   activeGame: null,
   activeDilemma: null,
   scoutingPool: [],
+  newsArticles: [],
+  polls: null,
+  playerRankings: null,
   coachingAP: 100,
   practiceIntensity: 'STANDARD',
   playoffBracket: null,
@@ -63,11 +80,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   startNewSeason: () => {
     const teams = generateDistrictTeams();
     const prospects = generateMiddleSchoolProspects(10);
+    const initialNews = generateWeeklyNewsStream(1, teams[0]);
+    const initialPolls = generateNationalAndStatePolls(teams, null, 1);
+    const initialPlayerRankings = generatePlayerRankingsAndLeaderboards(teams, 1);
+
     set({
       currentWeek: 1,
       districtTeams: teams,
       userTeamId: teams[0].id,
       scoutingPool: prospects,
+      newsArticles: initialNews,
+      polls: initialPolls,
+      playerRankings: initialPlayerRankings,
       coachingAP: 100,
       activeGame: null,
       activeDilemma: null,
@@ -78,44 +102,75 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   advanceWeek: () => {
-    const { currentWeek, districtTeams, userTeamId, practiceIntensity } = get();
+    const { currentWeek, districtTeams, userTeamId, practiceIntensity, newsArticles, polls } = get();
     const nextWeek = currentWeek + 1;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
 
-    // Check for Postseason Trigger at Week 15
+    // Check Postseason Trigger (Week 15)
     if (nextWeek === 15) {
       get().startPostseason();
       return;
     }
 
-    // Check for Offseason Banquet at Week 19
+    // Check Offseason Banquet Trigger (Week 19)
     if (nextWeek >= 19) {
       const seniors = userTeam.roster.filter((p) => p.classYear === 'Senior');
       set({ currentWeek: nextWeek, graduatingSeniors: seniors, isBanquetActive: true });
       return;
     }
 
-    // Standard Regular Season Routine
+    // 1. Weekly Triage & Health Updates
     userTeam.roster.forEach((p) => {
       processWeeklyInjuryHealing(p);
       processPostGameSeasonWear(p, p.depthChartTier === 1 ? 52 : 12, practiceIntensity);
       if (nextWeek % 3 === 0) evaluateAcademicReport(p);
     });
 
+    // 2. Simulate other district matches
     for (let i = 1; i < districtTeams.length; i += 2) {
       if (districtTeams[i] && districtTeams[i + 1]) {
         simulateMacroMatch(`ai_gm_${nextWeek}_${i}`, nextWeek, districtTeams[i], districtTeams[i + 1]);
       }
     }
 
+    // 3. Recalculate National & State Team Polls
+    const updatedPolls = generateNationalAndStatePolls(districtTeams, polls, nextWeek);
+
+    // 4. Recalculate Player Stats Leaderboards & Positional Prospect Rankings
+    const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(districtTeams, nextWeek);
+
+    // 5. College Scout Exposure & Weekly Dilemma
     evaluateCollegeScoutExposure(userTeam, nextWeek);
     const dilemma = generateWeeklyDilemma(nextWeek, userTeam);
 
-    set({
+    // 6. Generate Weekly Press Articles
+    const newArticles = generateWeeklyNewsStream(nextWeek, userTeam, undefined, dilemma?.title);
+
+    const updatedState = {
       currentWeek: nextWeek,
       activeDilemma: dilemma,
       coachingAP: 100,
+      polls: updatedPolls,
+      playerRankings: updatedPlayerRankings,
+      newsArticles: [...newArticles, ...newsArticles],
       districtTeams: [...districtTeams]
+    };
+
+    set(updatedState);
+
+    // Auto-save state to IndexedDB in background
+    persistSaveGame({
+      id: 'current_save',
+      saveName: `Week ${nextWeek} - ${userTeam.name}`,
+      timestamp: Date.now(),
+      currentWeek: nextWeek,
+      userTeamId,
+      coachingAP: 100,
+      practiceIntensity,
+      districtTeams: updatedState.districtTeams,
+      activeDilemma: dilemma,
+      scoutingPool: get().scoutingPool,
+      history: []
     });
   },
 
@@ -138,7 +193,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { districtTeams, userTeamId, currentYear, scoutingPool } = get();
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
 
-    // 1. Purge Seniors & advance classes
+    // Purge Seniors & advance student-athlete classes
     userTeam.roster = userTeam.roster.filter((p) => p.classYear !== 'Senior');
     userTeam.roster.forEach((p) => {
       if (p.classYear === 'Junior') p.classYear = 'Senior';
@@ -148,13 +203,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       processOffSeasonProgression(p, userTeam.staff.strengthCoach.conditioningRating);
     });
 
-    // 2. Influx scouted Freshmen
+    // Influx Freshmen
     scoutingPool.forEach((prospect) => {
       const newFreshman = generateProceduralPlayer(prospect.projectedPosition, 'Freshman', 2);
       userTeam.roster.push(newFreshman);
     });
 
-    // 3. Reset records
+    if (currentYear % 2 === 0) {
+      processStateRealignment(districtTeams);
+    }
+
     districtTeams.forEach((t) => {
       t.record = {
         wins: 0,
@@ -168,12 +226,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       };
     });
 
+    const newPolls = generateNationalAndStatePolls(districtTeams, null, 1);
+    const newPlayerRankings = generatePlayerRankingsAndLeaderboards(districtTeams, 1);
+
     set({
       currentWeek: 1,
       currentYear: currentYear + 1,
       isBanquetActive: false,
       playoffBracket: null,
       graduatingSeniors: [],
+      polls: newPolls,
+      playerRankings: newPlayerRankings,
       scoutingPool: generateMiddleSchoolProspects(10),
       districtTeams: [...districtTeams]
     });

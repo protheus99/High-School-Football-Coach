@@ -1,5 +1,4 @@
 import { Team } from '../types/game';
-import { randomInt } from './math/variance';
 
 /**
  * State Athletic Association 2-Year Realignment & Reclassification Engine.

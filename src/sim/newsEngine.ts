@@ -1,5 +1,4 @@
-import { Team, Player, WeatherType } from '../types/game';
-import { randomInt } from './math/variance';
+import { Team } from '../types/game';
 
 export interface NewsArticle {
   id: string;

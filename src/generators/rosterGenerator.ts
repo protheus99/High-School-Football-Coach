@@ -1,0 +1,231 @@
+import {
+  Player,
+  Position,
+  PlayerClass,
+  PotentialGrade,
+  Team,
+  OffensiveScheme,
+  DefensiveScheme
+} from '../types/game';
+import { calculateGaussianVariance, clamp, randomInt } from '../sim/math/variance';
+
+const FIRST_NAMES = [
+  'Marcus', 'Trevor', 'DeShawn', 'Colt', 'Brayden', 'Jalen', 'Cody', 'Ty', 'Elijah', 'Wyatt',
+  'Austin', 'Kevon', 'Garrett', 'Malik', 'Brock', 'Dante', 'Tanner', 'Zion', 'Hunter', 'Kaden'
+];
+
+const LAST_NAMES = [
+  'Miller', 'Washington', 'Johnson', 'McCoy', 'Williams', 'Strickland', 'Vance', 'Carter',
+  'Holloway', 'Beckham', 'Bradford', 'Singleton', 'Odom', 'Broussard', 'Chambers', 'Landry'
+];
+
+const HIGH_SCHOOL_NAMES = [
+  { name: 'Westlake', mascot: 'Chaparrals', primary: '#002D62', secondary: '#C4D600' },
+  { name: 'Lake Travis', mascot: 'Cavaliers', primary: '#0C2340', secondary: '#BA0C2F' },
+  { name: 'Bowie', mascot: 'Bulldogs', primary: '#8B0000', secondary: '#000000' },
+  { name: 'Del Valle', mascot: 'Cardinals', primary: '#C8102E', secondary: '#FFFFFF' },
+  { name: 'Austin High', mascot: 'Maroons', primary: '#500000', secondary: '#FFFFFF' },
+  { name: 'Akins', mascot: 'Eagles', primary: '#003366', secondary: '#D4AF37' },
+  { name: 'Anderson', mascot: 'Trojans', primary: '#000080', secondary: '#FFD700' },
+  { name: 'Lehman', mascot: 'Lobos', primary: '#004D40', secondary: '#FFB300' }
+];
+
+let playerIdCounter = 0;
+
+export function generateProceduralPlayer(position: Position, classYear: PlayerClass, tier: 1 | 2 | 3 = 1): Player {
+  const firstName = FIRST_NAMES[randomInt(0, FIRST_NAMES.length - 1)];
+  const lastName = LAST_NAMES[randomInt(0, LAST_NAMES.length - 1)];
+
+  // Age based on class
+  const ageMap: Record<PlayerClass, number> = {
+    Freshman: 14,
+    Sophomore: 15,
+    Junior: 16,
+    Senior: 17
+  };
+
+  // Pareto Distribution base overall
+  const baseRoll = Math.random();
+  let ovr = 55;
+  let potential: PotentialGrade = 'C';
+
+  if (baseRoll > 0.98) {
+    ovr = randomInt(88, 96); // 5-Star Phenom
+    potential = 'A+';
+  } else if (baseRoll > 0.90) {
+    ovr = randomInt(78, 87); // 4-Star All-State
+    potential = 'A';
+  } else if (baseRoll > 0.70) {
+    ovr = randomInt(68, 77); // 3-Star Starter
+    potential = 'B';
+  } else if (baseRoll > 0.30) {
+    ovr = randomInt(52, 67); // Rotational Player
+    potential = 'C';
+  } else {
+    ovr = randomInt(40, 51); // Depth / JV
+    potential = 'D';
+  }
+
+  // Adjust for tier
+  if (tier === 2) ovr = Math.max(40, ovr - randomInt(6, 12));
+  if (tier === 3) ovr = Math.max(35, ovr - randomInt(14, 22));
+
+  const speed = clamp(Math.floor(ovr + calculateGaussianVariance(0, 5)), 40, 99);
+  const strength = clamp(Math.floor(ovr + calculateGaussianVariance(0, 5)), 40, 99);
+  const agility = clamp(Math.floor(ovr + calculateGaussianVariance(0, 4)), 40, 99);
+  const stamina = clamp(Math.floor(randomInt(70, 95)), 50, 99);
+
+  return {
+    id: `ply_${Date.now()}_${++playerIdCounter}`,
+    firstName,
+    lastName,
+    position,
+    classYear,
+    age: ageMap[classYear],
+    overallRating: ovr,
+    potential,
+    depthChartTier: tier,
+    attributes: {
+      speed,
+      strength,
+      agility,
+      stamina,
+      passingAccuracy: position === 'QB' ? ovr : randomInt(20, 50),
+      armStrength: position === 'QB' ? ovr : randomInt(25, 55),
+      carrying: position === 'RB' ? ovr : randomInt(30, 60),
+      vision: position === 'RB' || position === 'QB' ? ovr : randomInt(30, 65),
+      routeRunning: position === 'WR' || position === 'TE' ? ovr : randomInt(20, 50),
+      catching: position === 'WR' || position === 'TE' ? ovr : randomInt(30, 60),
+      runBlocking: position === 'OT' || position === 'OG' || position === 'C' ? ovr : randomInt(30, 60),
+      passBlocking: position === 'OT' || position === 'OG' || position === 'C' ? ovr : randomInt(30, 60),
+      passRush: position === 'DE' || position === 'DT' ? ovr : randomInt(25, 55),
+      tackling: position === 'LB' || position === 'DT' || position === 'DE' ? ovr : randomInt(30, 65),
+      coverage: position === 'CB' || position === 'S' ? ovr : randomInt(20, 50),
+      kickingPower: position === 'K' || position === 'P' ? ovr : randomInt(20, 40),
+      kickingAccuracy: position === 'K' || position === 'P' ? ovr : randomInt(20, 40),
+      footballIQ: randomInt(45, 88),
+      discipline: randomInt(50, 92),
+      ego: randomInt(30, 90),
+      leadership: classYear === 'Senior' ? randomInt(65, 95) : randomInt(35, 70),
+      clutch: randomInt(40, 90)
+    },
+    condition: {
+      inGameStamina: 100,
+      seasonWear: 0,
+      injuryStatus: 'HEALTHY',
+      injuryWeeksRemaining: 0,
+      isHot: false,
+      isCold: false
+    },
+    academics: {
+      gpa: Number((Math.random() * 1.8 + 2.2).toFixed(2)),
+      isEligible: true,
+      consecutiveFailingWeeks: 0,
+      studyHallAssigned: false
+    },
+    stats: {
+      gamesPlayed: 0,
+      passAttempts: 0,
+      passCompletions: 0,
+      passYards: 0,
+      passTDs: 0,
+      interceptionsThrown: 0,
+      rushAttempts: 0,
+      rushYards: 0,
+      rushTDs: 0,
+      fumblesLost: 0,
+      receptions: 0,
+      receivingYards: 0,
+      receivingTDs: 0,
+      tackles: 0,
+      tacklesForLoss: 0,
+      sacks: 0,
+      interceptionsCaught: 0,
+      fieldGoalsAttempted: 0,
+      fieldGoalsMade: 0
+    },
+    recruiting: {
+      starRating: ovr >= 90 ? 5 : ovr >= 82 ? 4 : ovr >= 74 ? 3 : ovr >= 66 ? 2 : 0,
+      offers: [],
+      isNationalLetterOfIntentSigned: false
+    },
+    parent: {
+      sentiment: randomInt(65, 90),
+      isBoosterDonor: Math.random() > 0.85,
+      archetype: Math.random() > 0.7 ? 'HELICOPTER' : Math.random() > 0.85 ? 'DEMANDING_BOOSTER' : 'SUPPORTIVE',
+      activeComplaint: null
+    }
+  };
+}
+
+export function generateCompleteTeamRoster(): Player[] {
+  const positions: Position[] = [
+    'QB', 'QB',
+    'RB', 'RB', 'RB',
+    'WR', 'WR', 'WR', 'WR',
+    'TE', 'TE',
+    'OT', 'OT', 'OG', 'OG', 'C',
+    'DE', 'DE', 'DT', 'DT',
+    'LB', 'LB', 'LB',
+    'CB', 'CB', 'CB',
+    'S', 'S',
+    'K', 'P'
+  ];
+
+  const classes: PlayerClass[] = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
+
+  return positions.map((pos, idx) => {
+    const tier: 1 | 2 | 3 = idx % 2 === 0 ? 1 : 2;
+    const cYear = classes[randomInt(0, classes.length - 1)];
+    return generateProceduralPlayer(pos, cYear, tier);
+  });
+}
+
+export function generateDistrictTeams(districtId = 'tx_6a_d26'): Team[] {
+  const schemesOffense: OffensiveScheme[] = ['TRIPLE_OPTION', 'AIR_RAID', 'POWER_I', 'SPREAD'];
+  const schemesDefense: DefensiveScheme[] = ['FOUR_THREE', 'FOUR_FOUR', 'THREE_THREE_FIVE', 'DROP_EIGHT'];
+
+  return HIGH_SCHOOL_NAMES.map((hs, i) => {
+    const roster = generateCompleteTeamRoster();
+    const prestige = randomInt(68, 92);
+
+    return {
+      id: `team_${hs.name.toLowerCase().replace(/\s+/g, '_')}`,
+      name: hs.name,
+      mascot: hs.mascot,
+      classification: '6A',
+      districtId,
+      primaryColor: hs.primary,
+      secondaryColor: hs.secondary,
+      prestige,
+      playbookFamiliarity: randomInt(70, 90),
+      schemeOffense: schemesOffense[i % schemesOffense.length],
+      schemeDefense: schemesDefense[i % schemesDefense.length],
+      programMeters: {
+        schoolBoardTrust: randomInt(75, 90),
+        boosterApproval: randomInt(70, 92),
+        lockerRoomDiscipline: randomInt(68, 88),
+        complianceScore: randomInt(85, 98)
+      },
+      staff: {
+        headCoachId: `coach_${i}`,
+        headCoachName: `Coach ${LAST_NAMES[i]}`,
+        reputation: prestige - randomInt(0, 10),
+        offensiveCoordinator: { name: `OC ${LAST_NAMES[(i + 1) % LAST_NAMES.length]}`, playCalling: randomInt(65, 88), qbWhispering: randomInt(60, 85) },
+        defensiveCoordinator: { name: `DC ${LAST_NAMES[(i + 2) % LAST_NAMES.length]}`, schemeDiscipline: randomInt(65, 88), tacklingTech: randomInt(60, 85) },
+        strengthCoach: { name: `Trainer ${LAST_NAMES[(i + 3) % LAST_NAMES.length]}`, conditioningRating: randomInt(70, 90) }
+      },
+      roster,
+      record: {
+        wins: 0,
+        losses: 0,
+        districtWins: 0,
+        districtLosses: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        districtPointDifferential: 0,
+        headToHeadHistory: {}
+      }
+    };
+  });
+}

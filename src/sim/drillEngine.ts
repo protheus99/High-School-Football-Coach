@@ -1,4 +1,4 @@
-import { Player, Position } from '../types/game';
+import { Player } from '../types/game';
 import { clamp, randomInt } from './math/variance';
 
 export type DrillType =
@@ -21,7 +21,7 @@ export interface DrillResult {
  */
 export function executePositionDrill(player: Player, drill: DrillType): DrillResult {
   let primaryAttribute = '';
-  let gain = randomInt(1, 2);
+  const gain = randomInt(1, 2);
 
   switch (drill) {
     case 'QB_FILM_AND_READS':

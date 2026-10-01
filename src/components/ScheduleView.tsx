@@ -13,7 +13,7 @@ export const ScheduleView: React.FC = () => {
   const schedule = Array.from({ length: 20 }, (_, i) => {
     const weekNum = i + 1;
     let type = 'REGULAR_SEASON';
-    let opponent = opponentList[(weekNum - 1) % opponentList.length];
+    const opponent = opponentList[(weekNum - 1) % opponentList.length];
 
     if (weekNum <= 2) type = 'SPRING_EVALUATION';
     else if (weekNum <= 4) type = 'SUMMER_CAMP';

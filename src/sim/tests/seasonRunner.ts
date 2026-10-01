@@ -4,7 +4,7 @@ import { simulateMacroMatch } from '../macroSim';
 import { processOffSeasonProgression, processPostGameSeasonWear, processWeeklyInjuryHealing, evaluateAcademicReport } from '../playerEngine';
 import { buildInitialPlayoffBracket, advancePlayoffRound } from '../playoffEngine';
 import { calculateSeasonAwards } from '../awardsEngine';
-import { GameSimulationState, Team } from '../../types/game';
+import { GameSimulationState } from '../../types/game';
 
 /**
  * Headless Multi-Season Dynasty Simulation Runner.
@@ -16,7 +16,7 @@ export function runDynastySimulation(numYears = 3): void {
   console.log(`=======================================================`);
 
   const districtTeams = generateDistrictTeams();
-  let userTeam = districtTeams[0];
+  const userTeam = districtTeams[0];
 
   for (let year = 1; year <= numYears; year++) {
     const calendarYear = 2026 + year - 1;

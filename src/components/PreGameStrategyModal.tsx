@@ -21,7 +21,7 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({
   onCancel
 }) => {
   const [offScheme, setOffScheme] = useState<OffensiveScheme>(userTeam.schemeOffense);
-  const [defScheme, setDefScheme] = useState<DefensiveScheme>(userTeam.schemeDefense);
+  const [defScheme] = useState<DefensiveScheme>(userTeam.schemeDefense);
   const [focus, setFocus] = useState<'STOP_RUN' | 'STOP_PASS' | 'BALANCED'>('BALANCED');
 
   const getSchemeMatchupTip = () => {
