@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict } from '../sim/league';
+import { AllDistrictsStandingsView } from './AllDistrictsStandingsView';
 
 export const DistrictStandingsView: React.FC = () => {
   const { districtTeams, league, userTeamId } = useGameStore();
+  const [showAll, setShowAll] = useState(false);
   const standings = calculateDistrictStandings(districtTeams);
   const districtName = (league && findDistrict(league, userTeamId)?.name) ?? 'District';
   const districtCount = league?.regions.reduce((n, r) => n + r.districts.length, 0) ?? 4;
@@ -13,9 +15,21 @@ export const DistrictStandingsView: React.FC = () => {
     ? `Top 4 teams qualify; they are split by enrollment into the Division 1 and Division 2 ${bracketSize}-team state brackets.`
     : `Top 4 teams qualify for the ${bracketSize}-team state tournament.`;
 
+  if (showAll) return <AllDistrictsStandingsView onBack={() => setShowAll(false)} />;
+
   return (
     <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <h2>{districtName} Standings</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <h2 style={{ margin: '16px 0 8px 0' }}>{districtName} Standings</h2>
+        {league && league.regions.some((r) => r.districts.length > 1) && (
+          <button
+            onClick={() => setShowAll(true)}
+            style={{ background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', padding: 0 }}
+          >
+            View all district standings →
+          </button>
+        )}
+      </div>
       <p style={{ color: '#6B7280', fontSize: '13px' }}>{qualifyText} Tiebreakers cap point differentials at &plusmn;17 per game.</p>
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
         <thead>
