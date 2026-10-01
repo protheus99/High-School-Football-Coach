@@ -15,6 +15,11 @@ import {
 import { calculateGaussianVariance, clamp, randomInt } from './math/variance';
 import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 
+// Teams resting their starters on the current snap (set at the start of each simulateSnap call)
+let restingTeamIds = new Set<string>();
+const NEVER_RESTED: Position[] = ['K', 'P'];
+const isResting = (team: Team, pos: Position) => restingTeamIds.has(team.id) && !NEVER_RESTED.includes(pos);
+
 // Helper to safely get starter/sub by position and stamina
 function getActivePlayer(team: Team, pos: Position): Player {
   const eligible = team.roster.filter(
@@ -24,6 +29,12 @@ function getActivePlayer(team: Team, pos: Position): Player {
   if (eligible.length === 0) {
     // Return highest overall fallback
     return team.roster[0];
+  }
+
+  // Blowout: second string plays where available
+  if (isResting(team, pos)) {
+    const backup = eligible.find((p) => p.depthChartTier !== 1);
+    if (backup) return backup;
   }
 
   // Priority 1st string unless stamina < 60
@@ -205,6 +216,8 @@ const PLAY_CLOCK_RUNOFF = { min: 21, max: 30 }; // running plays & completions
 const INCOMPLETE_RUNOFF = 6;
 const MERCY_RULE_RUNOFF = 45;
 const MAX_FIELD_GOAL_ATTEMPT_YARDS = 42;
+const REST_STARTERS_LEAD = 28; // second-half lead at which a coach pulls his starters
+const KILL_CLOCK_LEAD = 21; // second-half lead at which the offense keeps the ball on the ground
 const BAD_SNAP_OR_BLOCK_CHANCE = 0.03;
 
 const SCRIMMAGE_CONCEPTS: PlayConcept[] = ['INSIDE_RUN', 'OUTSIDE_RUN', 'SHORT_PASS', 'DEEP_PASS'];
@@ -261,9 +274,11 @@ export function selectAIDefensiveCall(state: GameSimulationState): DefensiveCall
 
 /** Healthy, eligible players at a position: first string first, then by overall. */
 export function getPositionGroup(team: Team, pos: Position): Player[] {
-  return team.roster
+  const group = team.roster
     .filter((p) => p.position === pos && p.academics.isEligible && p.condition.injuryStatus === 'HEALTHY')
     .sort((a, b) => a.depthChartTier - b.depthChartTier || b.overallRating - a.overallRating);
+  // Blowout: backups take the snaps (and the stats)
+  return isResting(team, pos) ? [...group.filter((p) => p.depthChartTier !== 1), ...group.filter((p) => p.depthChartTier === 1)] : group;
 }
 
 /** Weighted pick among [player, weight] options, skipping positions with nobody available. */
@@ -382,7 +397,7 @@ export function resolveKickoff(
 }
 
 /** Default AI play selection for the offense. */
-function selectAIPlayConcept(state: GameSimulationState, scheme: OffensiveScheme): PlayConcept {
+function selectAIPlayConcept(state: GameSimulationState, scheme: OffensiveScheme, offenseLead = 0): PlayConcept {
   if (state.down === 4) {
     const fgDistance = 100 - state.yardLine + 17;
     if (fgDistance <= MAX_FIELD_GOAL_ATTEMPT_YARDS) return 'FIELD_GOAL';
@@ -392,7 +407,11 @@ function selectAIPlayConcept(state: GameSimulationState, scheme: OffensiveScheme
   }
 
   const style = OFFENSIVE_SCHEME_STYLE[scheme];
-  const passChance = Math.min(0.9, (state.distance >= 8 ? 0.7 : state.distance <= 3 ? 0.25 : 0.45) * style.passRate);
+  const secondHalf = typeof state.currentQuarter === 'number' && state.currentQuarter >= 3;
+  const lateComeback = state.currentQuarter === 4 && offenseLead <= -9;
+  let passChance = Math.min(0.9, (state.distance >= 8 ? 0.7 : state.distance <= 3 ? 0.25 : 0.45) * style.passRate);
+  if (secondHalf && offenseLead >= KILL_CLOCK_LEAD) passChance *= 0.3; // grind the clock
+  else if (lateComeback) passChance = Math.min(0.9, passChance * 1.4); // need points fast
   if (Math.random() < passChance) {
     return Math.random() < style.deepShare ? 'DEEP_PASS' : 'SHORT_PASS';
   }
@@ -429,6 +448,11 @@ export function simulateSnap(
   if (!state.openingPossessionTeamId) {
     state.openingPossessionTeamId = state.possessionTeamId;
   }
+  // Coaches empty the bench in second-half blowouts (and under the mercy-rule running clock)
+  const margin = state.homeScore - state.awayScore;
+  const secondHalfBlowout = typeof state.currentQuarter === 'number' && state.currentQuarter >= 3 && Math.abs(margin) >= REST_STARTERS_LEAD;
+  restingTeamIds = new Set(secondHalfBlowout || state.isMercyRuleActive ? [margin > 0 ? state.homeTeam.id : state.awayTeam.id] : []);
+
   state.gameDayForm ??= {
     [state.homeTeam.id]: calculateGaussianVariance(0, GAME_DAY_FORM_STDEV),
     [state.awayTeam.id]: calculateGaussianVariance(0, GAME_DAY_FORM_STDEV)
@@ -455,7 +479,11 @@ export function simulateSnap(
   } else {
     concept = chosenConcept && chosenConcept !== 'PAT_KICK' && chosenConcept !== 'TWO_POINT_TRY'
       ? chosenConcept
-      : selectAIPlayConcept(state, offensiveSchemeOf(state, offense));
+      : selectAIPlayConcept(
+          state,
+          offensiveSchemeOf(state, offense),
+          isHomeOffense ? state.homeScore - state.awayScore : state.awayScore - state.homeScore
+        );
   }
 
   const playId = `play_${Date.now()}_${randomInt(100, 999)}`;
