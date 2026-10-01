@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { Team, NarrativeDilemma, FeederProspect, CompactBoxScore, ScheduledGame } from '../types/game';
+import { Team, NarrativeDilemma, FeederProspect, CompactBoxScore, ScheduledGame, DilemmaRecord } from '../types/game';
 
 export interface GameSaveRecord {
   id: string; // 'current_save' or custom profile ID
@@ -17,6 +17,7 @@ export interface GameSaveRecord {
   currentYear?: number;
   neighborDistrictTeams?: Team[];
   seasonSchedule?: ScheduledGame[];
+  dilemmaLog?: DilemmaRecord[];
 }
 
 export class GameDatabase extends Dexie {

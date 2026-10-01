@@ -56,7 +56,7 @@ describe('Per-player game stats', () => {
 
   it('spreads the ball around instead of crediting one receiver and one runner', () => {
     const [home, away] = generateDistrictTeams();
-    const state = newGame(home, away);
+    const state = { ...newGame(home, away), offensiveGamePlan: { [home.id]: 'SPREAD' as const } }; // a passing offense
     while (!state.isGameOver) simulateSnap(state);
     const lines = state.playerGameStats ?? {};
     const receivers = home.roster.filter((p) => (lines[p.id]?.receptions ?? 0) > 0);

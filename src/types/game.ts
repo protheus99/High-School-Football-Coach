@@ -298,6 +298,16 @@ export interface ScheduledGame {
   awayScore?: number;
 }
 
+/** A resolved dilemma; risky/corrupt choices may be exposed by a whistleblower in a later week. */
+export interface DilemmaRecord {
+  templateId: string;
+  title: string;
+  year: number;
+  week: number;
+  tier: DilemmaChoice['tier'];
+  exposureWeek?: number;
+}
+
 export interface DilemmaChoice {
   id: string;
   label: string;
@@ -309,11 +319,16 @@ export interface DilemmaChoice {
     lockerRoomDisciplineDelta: number;
     complianceScoreDelta: number;
     playerAvailabilityOverride?: { playerId: string; isEligible: boolean };
+    sidelinePlayer?: { playerId: string; weeks: number }; // held out (injury protocol, suspension)
+    promoteToStarterPlayerId?: string;
+    addTransfer?: { position: Position; overallRating: number; name: string };
+    injuryRisk?: { chance: number; weeks: number }; // a random first-string player may get hurt
   };
 }
 
 export interface NarrativeDilemma {
   id: string;
+  templateId?: string; // which scenario template produced it (drives repeat cooldowns)
   weekTriggered: number;
   title: string;
   scenario: string;

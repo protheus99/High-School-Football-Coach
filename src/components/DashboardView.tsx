@@ -12,6 +12,8 @@ const PHASE_MESSAGES: Record<string, string> = {
   OFF_SEASON: "Off-season: graduation, awards and next year's planning."
 };
 
+const TIER_COLORS: Record<string, string> = { GOOD: '#059669', COMPROMISE: '#2563EB', RISKY: '#D97706', CORRUPT: '#DC2626' };
+
 export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
 
 export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void }> = ({ onLaunchGame }) => {
@@ -90,7 +92,12 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
                 onClick={() => resolveDilemma(c)}
                 style={{ textAlign: 'left', padding: '10px 14px', background: '#fff', border: '1px solid #D1D5DB', borderRadius: '6px', cursor: 'pointer' }}
               >
-                <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.label}</div>
+                <div style={{ fontWeight: 'bold', fontSize: '13px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#fff', background: TIER_COLORS[c.tier], borderRadius: '3px', padding: '1px 6px', marginRight: '8px' }}>
+                    {c.tier}
+                  </span>
+                  {c.label}
+                </div>
                 <div style={{ fontSize: '12px', color: '#6B7280' }}>{c.description}</div>
               </button>
             ))}

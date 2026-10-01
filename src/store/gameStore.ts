@@ -9,11 +9,13 @@ import {
   Player,
   StateAndNationalPolls,
   PlayerRankingsAndStatsState,
-  ScheduledGame
+  ScheduledGame,
+  DilemmaRecord
 } from '../types/game';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { applyGameResult, generateSeasonSchedule, getTeamGameForWeek, simulateRegularSeason } from '../sim/scheduleEngine';
-import { generateWeeklyDilemma, executeDilemmaDecision } from '../sim/dilemmaEngine';
+import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
+import { randomInt } from '../sim/math/variance';
 import { generateMiddleSchoolProspects, evaluateCollegeScoutExposure } from '../sim/scoutingEngine';
 import { simulateMacroMatch } from '../sim/macroSim';
 import {
@@ -39,6 +41,7 @@ interface GameStoreState {
   seasonSchedule: ScheduledGame[];
   activeGame: GameSimulationState | null;
   activeDilemma: NarrativeDilemma | null;
+  dilemmaLog: DilemmaRecord[];
   scoutingPool: FeederProspect[];
   newsArticles: NewsArticle[];
   polls: StateAndNationalPolls | null;
@@ -75,6 +78,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   seasonSchedule: [],
   activeGame: null,
   activeDilemma: null,
+  dilemmaLog: [],
   scoutingPool: [],
   newsArticles: [],
   polls: null,
@@ -113,7 +117,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   advanceWeek: () => {
-    const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId, practiceIntensity, newsArticles, polls } = get();
+    const { currentWeek, districtTeams, neighborDistrictTeams, seasonSchedule, userTeamId, practiceIntensity, polls } = get();
     const nextWeek = currentWeek + 1;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
 
@@ -136,6 +140,26 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (playoffBracket?.isPlayoffsActive) {
       set({ playoffBracket: advancePlayoffRound(playoffBracket, userTeamId) });
     }
+
+    // Whistleblowers: risky/corrupt decisions can surface in a later week (design spec 12.1)
+    const { dilemmaLog, currentYear } = get();
+    const exposures = dilemmaLog.filter((r) => r.year === currentYear && r.exposureWeek === nextWeek);
+    const exposureArticles: NewsArticle[] = exposures.map((r) => {
+      const meters = userTeam.programMeters;
+      meters.complianceScore = Math.max(0, meters.complianceScore - 15);
+      meters.schoolBoardTrust = Math.max(0, meters.schoolBoardTrust - 10);
+      meters.boosterApproval = Math.max(0, meters.boosterApproval - 5);
+      return {
+        id: `news_exposed_${r.templateId}_${nextWeek}`,
+        week: nextWeek,
+        outlet: 'TOWN_JOURNAL',
+        headline: `State Association Opens Inquiry Into ${userTeam.name} Football`,
+        content: `A whistleblower has come forward about the program's handling of "${r.title}" in Week ${r.week}. Compliance officials are reviewing the decision.`,
+        impactSentiment: 'NEGATIVE',
+        featuredTeamName: userTeam.name
+      };
+    });
+    if (exposureArticles.length > 0) set({ newsArticles: [...exposureArticles, ...get().newsArticles] });
 
     // Check Postseason Trigger (Week 15)
     if (nextWeek === 15) {
@@ -165,7 +189,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // 4. College Scout Exposure & Weekly Dilemma
     evaluateCollegeScoutExposure(userTeam, nextWeek);
-    const dilemma = generateWeeklyDilemma(nextWeek, userTeam);
+    const recentTemplates = dilemmaLog
+      .filter((r) => r.year === currentYear && nextWeek - r.week < DILEMMA_COOLDOWN_WEEKS)
+      .map((r) => r.templateId);
+    const dilemma = generateWeeklyDilemma(nextWeek, userTeam, recentTemplates);
+
 
     // 5. Generate Weekly Press Articles
     const newArticles = generateWeeklyNewsStream(nextWeek, userTeam, undefined, dilemma?.title);
@@ -176,7 +204,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       coachingAP: 100,
       polls: updatedPolls,
       playerRankings: updatedPlayerRankings,
-      newsArticles: [...newArticles, ...newsArticles],
+      newsArticles: [...newArticles, ...get().newsArticles],
       districtTeams: [...districtTeams]
     };
 
@@ -197,7 +225,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       history: [],
       currentYear: get().currentYear,
       neighborDistrictTeams,
-      seasonSchedule
+      seasonSchedule,
+      dilemmaLog: get().dilemmaLog
     });
   },
 
@@ -262,10 +291,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   resolveDilemma: (choice) => {
-    const { districtTeams, userTeamId } = get();
+    const { districtTeams, userTeamId, activeDilemma, dilemmaLog, currentWeek, currentYear } = get();
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     executeDilemmaDecision(userTeam, choice);
-    set({ activeDilemma: null, districtTeams: [...districtTeams] });
+
+    const record: DilemmaRecord = {
+      templateId: activeDilemma?.templateId ?? activeDilemma?.id ?? 'UNKNOWN',
+      title: activeDilemma?.title ?? choice.label,
+      year: currentYear,
+      week: currentWeek,
+      tier: choice.tier,
+      ...(Math.random() < EXPOSURE_CHANCE[choice.tier] && { exposureWeek: currentWeek + randomInt(1, 3) })
+    };
+    set({ activeDilemma: null, districtTeams: [...districtTeams], dilemmaLog: [...dilemmaLog, record] });
   },
 
   setPracticeIntensity: (mode) => set({ practiceIntensity: mode }),

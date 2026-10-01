@@ -6,7 +6,7 @@ import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS } from '../generators/
 import { generateSeasonSchedule } from '../sim/scheduleEngine';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { districtTeams, neighborDistrictTeams, seasonSchedule, currentWeek, currentYear, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
+  const { districtTeams, neighborDistrictTeams, seasonSchedule, dilemmaLog, currentWeek, currentYear, userTeamId, coachingAP, practiceIntensity, activeDilemma, scoutingPool } = useGameStore();
   const [importText, setImportText] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -25,7 +25,8 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
       history: [],
       currentYear,
       neighborDistrictTeams,
-      seasonSchedule
+      seasonSchedule,
+      dilemmaLog
     });
     setFeedback('Game successfully saved to IndexedDB!');
   };
@@ -40,6 +41,7 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
         currentYear: year,
         neighborDistrictTeams: neighborTeams,
         seasonSchedule: save.seasonSchedule ?? generateSeasonSchedule(save.districtTeams, neighborTeams, year),
+        dilemmaLog: save.dilemmaLog ?? [],
         currentWeek: save.currentWeek,
         userTeamId: save.userTeamId,
         coachingAP: save.coachingAP,
