@@ -1,5 +1,5 @@
 import React from 'react';
-import { readableOnWhite } from '../utils/color';
+import { luminance, readableOnWhite } from '../utils/color';
 
 interface FieldVisualizerProps {
   yardLine: number; // 1 to 99 relative to offensive goal line
@@ -7,6 +7,11 @@ interface FieldVisualizerProps {
   possessionTeamName: string;
   possessionColor: string;
   possessionSecondaryColor?: string;
+  /** Home team drives right to left, the visitors left to right. */
+  possessionIsHome: boolean;
+  homeTeamName: string;
+  homeColor: string;
+  homeSecondaryColor?: string;
 }
 
 export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
@@ -14,12 +19,28 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
   distance,
   possessionTeamName,
   possessionColor,
-  possessionSecondaryColor
+  possessionSecondaryColor,
+  possessionIsHome,
+  homeTeamName,
+  homeColor,
+  homeSecondaryColor
 }) => {
-  // SVG coordinates: 0 to 120 (10 yd end zones on each side)
-  // Field runs from x = 10 (Own 0-yd line) to x = 110 (Opponent Goal Line)
-  const ballX = 10 + yardLine;
-  const lineToGainX = Math.min(110, ballX + distance);
+  // SVG coordinates: 0 to 120 (10-yard end zones on each side, goal lines at x = 10 and x = 110).
+  // yardLine is measured from the offense's own goal line: the visitors' own goal is on the left,
+  // the home team's own goal is on the right, so the home team attacks right to left.
+  const dir = possessionIsHome ? -1 : 1;
+  const ownGoalX = possessionIsHome ? 110 : 10;
+  const ballX = ownGoalX + dir * yardLine;
+  const lineToGainX = Math.max(10, Math.min(110, ballX + dir * distance));
+
+  // End zones painted in the home team's color with the name in whichever text color reads best
+  const endZoneFill = homeColor || '#1B5E20';
+  const fillLum = luminance(endZoneFill) ?? 0;
+  const secondaryLum = homeSecondaryColor ? luminance(homeSecondaryColor) : undefined;
+  // Lettering in the school's second color when it stands out, otherwise white or dark text
+  const endZoneText =
+    homeSecondaryColor && secondaryLum !== undefined && Math.abs(secondaryLum - fillLum) > 0.4 ? homeSecondaryColor : fillLum > 0.45 ? '#0F172A' : '#FFFFFF';
+  const endZoneLabel = homeTeamName.toUpperCase();
 
   return (
     <div style={{ background: '#1B4D3E', borderRadius: '8px', padding: '12px', marginBottom: '12px', border: '2px solid #2E7D32' }}>
@@ -27,9 +48,31 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
         {/* Field Grass Background */}
         <rect x="0" y="0" width="120" height="40" fill="#2E7D32" />
 
-        {/* End Zones */}
-        <rect x="0" y="0" width="10" height="40" fill="#1B5E20" />
-        <rect x="110" y="0" width="10" height="40" fill="#1B5E20" />
+        {/* End Zones: home colors with the home team's name running vertically */}
+        <rect x="0" y="0" width="10" height="40" fill={endZoneFill} />
+        <rect x="110" y="0" width="10" height="40" fill={endZoneFill} />
+        <text
+          transform="translate(5.9 20) rotate(-90)"
+          fill={endZoneText}
+          fontSize="3.6"
+          fontWeight="bold"
+          textAnchor="middle"
+          textLength={Math.min(36, endZoneLabel.length * 2.6)}
+          lengthAdjust="spacingAndGlyphs"
+        >
+          {endZoneLabel}
+        </text>
+        <text
+          transform="translate(114.1 20) rotate(90)"
+          fill={endZoneText}
+          fontSize="3.6"
+          fontWeight="bold"
+          textAnchor="middle"
+          textLength={Math.min(36, endZoneLabel.length * 2.6)}
+          lengthAdjust="spacingAndGlyphs"
+        >
+          {endZoneLabel}
+        </text>
 
         {/* Yard Lines (every 10 yards) */}
         {[20, 30, 40, 50, 60, 70, 80, 90, 100].map((x) => (
@@ -59,14 +102,15 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
 
         {/* Drive Direction Arrow */}
         <polygon
-          points={`${ballX + 3},20 ${ballX + 1},18.5 ${ballX + 1},21.5`}
+          points={`${ballX + dir * 3},20 ${ballX + dir * 1},18.5 ${ballX + dir * 1},21.5`}
           fill={possessionColor || '#F59E0B'}
         />
       </svg>
 
       {/* Possession on a white strip so the school color is readable; down and distance live in the scoreboard */}
       <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 10px', marginTop: '8px', fontSize: '13px', color: '#334155' }}>
-        🏈 <strong style={{ color: readableOnWhite(possessionColor, possessionSecondaryColor) }}>{possessionTeamName}</strong> ball
+        🏈 <strong style={{ color: readableOnWhite(possessionColor, possessionSecondaryColor) }}>{possessionTeamName}</strong> ball{' '}
+        <span style={{ color: '#64748B' }}>{possessionIsHome ? '← driving left' : 'driving right →'}</span>
       </div>
     </div>
   );

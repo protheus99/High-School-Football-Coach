@@ -159,6 +159,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         possessionTeamName={currentPossTeam.name}
         possessionColor={currentPossTeam.primaryColor}
         possessionSecondaryColor={currentPossTeam.secondaryColor}
+        possessionIsHome={gameState.possessionTeamId === gameState.homeTeam.id}
+        homeTeamName={gameState.homeTeam.name}
+        homeColor={gameState.homeTeam.primaryColor}
+        homeSecondaryColor={gameState.homeTeam.secondaryColor}
       />
 
       {/* Manual Play Calling Controls */}
