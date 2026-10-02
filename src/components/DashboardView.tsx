@@ -124,7 +124,7 @@ export const DashboardView: React.FC<{
         game={
           game && opponent
             ? {
-                opponentName: opponent.name,
+                opponentName: `${opponent.name} (${opponent.record.wins}-${opponent.record.losses})`,
                 isHome,
                 isPlayed,
                 result: isPlayed ? `${userScore! > opponentScore! ? 'Won' : 'Lost'} ${userScore}-${opponentScore} ${isHome ? 'vs' : 'at'} ${opponent.name}` : undefined

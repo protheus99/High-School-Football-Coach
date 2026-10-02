@@ -35,6 +35,8 @@ export const ScoreboardView: React.FC = () => {
   }, [week]);
 
   const names = useMemo(() => new Map(leagueTeams.map((t) => [t.id, t.name])), [leagueTeams]);
+  // Current overall record (regular season), shown next to every team
+  const records = useMemo(() => new Map(leagueTeams.map((t) => [t.id, `${t.record.wins}-${t.record.losses}`])), [leagueTeams]);
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
   const isPlayoffWeek = week > LAST_REGULAR_SEASON_WEEK;
@@ -118,11 +120,11 @@ export const ScoreboardView: React.FC = () => {
           {shown.map((r) => {
             const final = r.homeScore !== undefined && r.awayScore !== undefined;
             const isUser = r.homeId === userTeamId || r.awayId === userTeamId;
-            const line = (name: string, score: number | undefined, won: boolean, home: boolean) => (
+            const line = (name: string, teamId: string, score: number | undefined, won: boolean, home: boolean) => (
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontWeight: won ? 'bold' : 'normal', color: final && !won ? '#64748B' : '#0F172A' }}>
                 <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {home && <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>@ </span>}
-                  {name}
+                  {name} <span style={{ color: '#94A3B8', fontWeight: 'normal', fontSize: '12px' }}>({records.get(teamId)})</span>
                 </span>
                 <span style={{ fontVariantNumeric: 'tabular-nums' }}>{final ? score : ''}</span>
               </div>
@@ -132,8 +134,8 @@ export const ScoreboardView: React.FC = () => {
                 key={r.id}
                 style={{ background: isUser ? '#EFF6FF' : '#fff', border: `1px solid ${isUser ? '#93C5FD' : '#E2E8F0'}`, borderRadius: '8px', padding: '10px 12px', fontSize: '14px' }}
               >
-                {line(r.awayName, r.awayScore, final && r.awayScore! > r.homeScore!, false)}
-                {line(r.homeName, r.homeScore, final && r.homeScore! > r.awayScore!, true)}
+                {line(r.awayName, r.awayId, r.awayScore, final && r.awayScore! > r.homeScore!, false)}
+                {line(r.homeName, r.homeId, r.homeScore, final && r.homeScore! > r.awayScore!, true)}
                 <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
                   {final ? 'Final' : 'Upcoming'}
                   {r.tag ? ` · ${r.tag}` : ''}
