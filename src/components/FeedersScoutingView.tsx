@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
 import { FeederOutcomeType, FeederProspect, ProspectSource } from '../types/game';
 import {
   FEEDER_EVENTS,
@@ -8,8 +9,7 @@ import {
   PROSPECT_ACTION_COSTS,
   SOURCE_LABELS,
   interestLabel,
-  userJoinProbability,
-  weeklyActionPoints
+  userJoinProbability
 } from '../sim/feederEngine';
 import { FACTOR_LABELS, RecruitingContext, buildRecruitingContext, choiceShares, topPriority } from '../sim/feederCompetition';
 
@@ -40,7 +40,8 @@ function outlook(chance: number): { label: string; color: string } {
 export const FeedersScoutingView: React.FC = () => {
   const {
     scoutingPool,
-    coachingAP,
+    coachPoints,
+    coachTalents,
     currentWeek,
     districtTeams,
     userTeamId,
@@ -61,7 +62,8 @@ export const FeedersScoutingView: React.FC = () => {
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   if (!userTeam) return null;
 
-  const maxAP = weeklyActionPoints(currentWeek);
+  const weeklyIncome = weeklyCpIncome(currentWeek, coachTalents);
+  const eventCost = (type: FeederEventType) => feederEventCost(FEEDER_EVENTS[type].cost, coachTalents);
   const sources = Object.keys(SOURCE_LABELS) as ProspectSource[];
   const shown = scoutingPool.filter((p) => filter === 'ALL' || p.source === filter);
 
@@ -79,14 +81,14 @@ export const FeedersScoutingView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
         <h2 style={{ margin: 0 }}>Feeder Pipeline</h2>
         <div style={{ display: 'flex', gap: '8px', fontSize: '13px', fontWeight: 'bold' }}>
-          <span style={pillStyle('#DBEAFE', '#1E40AF')}>AP: {coachingAP} / {maxAP}</span>
+          <span style={pillStyle('#DBEAFE', '#1E40AF')}>CP {coachPoints} · +{weeklyIncome}/wk</span>
           <span style={pillStyle('#F1F5F9', '#334155')}>Program Prestige: {userTeam.prestige}</span>
           <span style={pillStyle('#F1F5F9', '#334155')}>Pool: {scoutingPool.length} / {MAX_POOL_SIZE}</span>
         </div>
       </div>
       <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#64748B' }}>
         Next season&apos;s newcomers come from this pool. Not everyone will come out: your clinics, events and personal visits decide
-        who does. {maxAP < 100 && 'During the season your AP budget is limited; spring and summer are the time to build the pipeline.'}
+        who does. {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; spring and summer are the time to build the pipeline.'}
       </p>
 
       {feedback && <div style={{ background: '#EEF2FF', color: '#3730A3', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', marginBottom: '12px' }}>{feedback}</div>}
@@ -129,8 +131,8 @@ export const FeedersScoutingView: React.FC = () => {
             <div key={type} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px' }}>
               <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{event.label}</div>
               <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 8px' }}>{event.description}</div>
-              <button onClick={() => handleEvent(type)} disabled={done || coachingAP < event.cost} style={actionBtn('#0F766E', done || coachingAP < event.cost)}>
-                {done ? 'Held this week' : `Host (${event.cost} AP)`}
+              <button onClick={() => handleEvent(type)} disabled={done || coachPoints < eventCost(type)} style={actionBtn('#0F766E', done || coachPoints < eventCost(type))}>
+                {done ? 'Held this week' : `Host (${eventCost(type)} CP)`}
               </button>
             </div>
           );
@@ -154,7 +156,7 @@ export const FeedersScoutingView: React.FC = () => {
             key={p.id}
             prospect={p}
             chance={userJoinProbability(p, userTeam.prestige, ctx)}
-            coachingAP={coachingAP}
+            coachPoints={coachPoints}
             onScout={() => scoutFeederProspect(p.id)}
             onVisit={() => visitFeederProspect(p.id)}
             onPitch={() => pitchFeederStar(p.id)}
@@ -172,12 +174,12 @@ export const FeedersScoutingView: React.FC = () => {
 const ProspectCard: React.FC<{
   prospect: FeederProspect;
   chance: number;
-  coachingAP: number;
+  coachPoints: number;
   onScout: () => void;
   onVisit: () => void;
   onPitch: () => void;
   onInduce: () => void;
-}> = ({ prospect: p, chance, coachingAP, onScout, onVisit, onPitch, onInduce }) => {
+}> = ({ prospect: p, chance, coachPoints, onScout, onVisit, onPitch, onInduce }) => {
   const scouted = p.revealedPotential !== 'UNKNOWN';
   const look = outlook(chance);
   const notes: string[] = [];
@@ -219,15 +221,15 @@ const ProspectCard: React.FC<{
       )}
       {notes.length > 0 && <div style={{ fontSize: '12px', color: '#92400E', marginTop: '4px' }}>{notes.join(' · ')}</div>}
       <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
-        <button onClick={onScout} disabled={scouted || coachingAP < PROSPECT_ACTION_COSTS.SCOUT} style={actionBtn('#475569', scouted || coachingAP < PROSPECT_ACTION_COSTS.SCOUT)}>
-          {scouted ? 'Evaluated' : `Evaluate (${PROSPECT_ACTION_COSTS.SCOUT} AP)`}
+        <button onClick={onScout} disabled={scouted || coachPoints < PROSPECT_ACTION_COSTS.SCOUT} style={actionBtn('#475569', scouted || coachPoints < PROSPECT_ACTION_COSTS.SCOUT)}>
+          {scouted ? 'Evaluated' : `Evaluate (${PROSPECT_ACTION_COSTS.SCOUT} CP)`}
         </button>
-        <button onClick={onVisit} disabled={coachingAP < PROSPECT_ACTION_COSTS.VISIT} style={actionBtn('#2563EB', coachingAP < PROSPECT_ACTION_COSTS.VISIT)}>
-          {p.source === 'STAR_RECRUIT' ? 'Call' : 'Home Visit'} ({PROSPECT_ACTION_COSTS.VISIT} AP)
+        <button onClick={onVisit} disabled={coachPoints < PROSPECT_ACTION_COSTS.VISIT} style={actionBtn('#2563EB', coachPoints < PROSPECT_ACTION_COSTS.VISIT)}>
+          {p.source === 'STAR_RECRUIT' ? 'Call' : 'Home Visit'} ({PROSPECT_ACTION_COSTS.VISIT} CP)
         </button>
         {p.source === 'STAR_RECRUIT' && (
-          <button onClick={onPitch} disabled={coachingAP < PROSPECT_ACTION_COSTS.PITCH_STAR} style={actionBtn('#D97706', coachingAP < PROSPECT_ACTION_COSTS.PITCH_STAR)}>
-            Full Recruiting Pitch ({PROSPECT_ACTION_COSTS.PITCH_STAR} AP)
+          <button onClick={onPitch} disabled={coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR} style={actionBtn('#D97706', coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR)}>
+            Full Recruiting Pitch ({PROSPECT_ACTION_COSTS.PITCH_STAR} CP)
           </button>
         )}
         {p.source !== 'TRYOUT' &&
@@ -236,11 +238,11 @@ const ProspectCard: React.FC<{
           ) : (
             <button
               onClick={onInduce}
-              disabled={coachingAP < 20}
+              disabled={coachPoints < 20}
               title="Illegal: boosters make an improper offer. Big pull on this player, but it builds evidence that may surface for years."
-              style={actionBtn('#7F1D1D', coachingAP < 20)}
+              style={actionBtn('#7F1D1D', coachPoints < 20)}
             >
-              Booster Offer (illegal, 20 AP)
+              Booster Offer (illegal, 20 CP)
             </button>
           ))}
       </div>

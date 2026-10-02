@@ -146,8 +146,8 @@ export function assistantDrillTargets(roster: Player[], focus: DrillFocus, count
 }
 
 /** One week of assistant-run drills; returns a short report line per player. */
-export function runAssistantDrills(roster: Player[], focus: DrillFocus): string[] {
-  return assistantDrillTargets(roster, focus).map((p) => {
+export function runAssistantDrills(roster: Player[], focus: DrillFocus, count = ASSISTANT_DRILLS_PER_WEEK): string[] {
+  return assistantDrillTargets(roster, focus, count).map((p) => {
     const result = executePositionDrill(p, DRILL_FOR_POSITION[p.position]);
     return `${p.position} ${p.firstName} ${p.lastName}: +${result.pointsAwarded} ${result.primaryAttributeGained}`;
   });

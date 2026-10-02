@@ -25,10 +25,6 @@ export const SOURCE_LABELS: Record<ProspectSource, string> = {
   TRYOUT: 'Tryout Walk-Ons'
 };
 
-/** Coach AP: full budget during spring and summer, a smaller in-season budget. */
-export function weeklyActionPoints(week: number): number {
-  return week <= 4 ? 100 : 40;
-}
 
 export const PROSPECT_ACTION_COSTS = { SCOUT: 10, VISIT: 15, PITCH_STAR: 40 };
 

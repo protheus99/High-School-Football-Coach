@@ -1,6 +1,7 @@
 import Dexie, { Table } from 'dexie';
 import type { Difficulty, LeagueStructure } from '../sim/league';
 import type { DrillFocus } from '../sim/drillEngine';
+import type { TalentId } from '../sim/coachPoints';
 import { SAVE_FORMAT_GZIP, canCompressSaves, compressText, decompressText } from './saveCodec';
 import type { PlayoffBracketState } from '../sim/playoffEngine';
 import { Team, NarrativeDilemma, FeederProspect, CompactBoxScore, ScheduledGame, DilemmaRecord } from '../types/game';
@@ -11,7 +12,9 @@ export interface GameSaveRecord {
   timestamp: number;
   currentWeek: number;
   userTeamId: string;
-  coachingAP: number;
+  coachPoints?: number; // Coach Points (older saves: coachingAP)
+  coachingAP?: number; // legacy action points
+  coachTalents?: TalentId[];
   practiceIntensity: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT';
   districtTeams: Team[];
   activeDilemma: NarrativeDilemma | null;

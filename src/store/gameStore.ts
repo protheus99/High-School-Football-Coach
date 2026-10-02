@@ -49,7 +49,6 @@ import {
   runFeederEvent,
   scoutProspect,
   visitProspect,
-  weeklyActionPoints,
   generateStatewideElite,
   resolveStatewideElite,
   RivalSigning
@@ -83,10 +82,24 @@ import type { GameSaveRecord } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
 import { advanceTeamToNextSeason } from '../sim/offseasonEngine';
 import { moveInDepthChart, setDepthTier } from '../sim/depthChart';
-import { DrillFocus, runAssistantDrills } from '../sim/drillEngine';
+import { ASSISTANT_DRILLS_PER_WEEK, DrillFocus, runAssistantDrills } from '../sim/drillEngine';
+import {
+  COACH_TALENTS,
+  PLAYOFF_WIN_CP_BONUS,
+  STARTING_COACH_POINTS,
+  TalentId,
+  WIN_CP_BONUS,
+  addCoachPoints,
+  collegeActionCost,
+  drillsPerWeek,
+  feederEventCost,
+  offseasonConditioningBonus,
+  talentBlocker,
+  weeklyCpIncome
+} from '../sim/coachPoints';
 
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
-const INDUCEMENT_AP_COST = 20;
+const INDUCEMENT_CP_COST = 20;
 const BAN_HEAT_THRESHOLD = 50; // getting caught with this much evidence brings a postseason ban
 
 const MID_SEASON_STAR_UPDATE_WEEK = 8;
@@ -191,7 +204,8 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     timestamp: Date.now(),
     currentWeek: state.currentWeek,
     userTeamId: state.userTeamId,
-    coachingAP: state.coachingAP,
+    coachPoints: state.coachPoints,
+    coachTalents: state.coachTalents,
     practiceIntensity: state.practiceIntensity,
     drillFocus: state.drillFocus,
     districtTeams: state.districtTeams,
@@ -253,7 +267,8 @@ interface GameStoreState {
   newsArticles: NewsArticle[];
   polls: StateAndNationalPolls | null;
   playerRankings: PlayerRankingsAndStatsState | null;
-  coachingAP: number;
+  coachPoints: number; // Coach Points: the one currency (see sim/coachPoints)
+  coachTalents: TalentId[]; // skill-tree talents bought with CP
   practiceIntensity: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT';
   drillFocus: DrillFocus; // assistants run position drills each week with this focus
   lastDrillReport: string[]; // who the assistants worked with last week
@@ -273,7 +288,7 @@ interface GameStoreState {
   setPracticeIntensity: (mode: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT') => void;
   setActiveGame: (game: GameSimulationState | null) => void;
   recordUserGame: (finalState: GameSimulationState) => void;
-  spendAP: (amount: number) => boolean;
+  unlockTalent: (id: TalentId) => string | null; // null on success, otherwise why not
   runFeederEvent: (type: FeederEventType) => FeederProspect[]; // returns newly discovered prospects
   scoutFeederProspect: (prospectId: string) => void;
   visitFeederProspect: (prospectId: string) => void;
@@ -312,7 +327,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   newsArticles: [],
   polls: null,
   playerRankings: null,
-  coachingAP: 100,
+  coachPoints: STARTING_COACH_POINTS,
+  coachTalents: [],
   practiceIntensity: 'STANDARD',
   drillFocus: 'BALANCED',
   lastDrillReport: [],
@@ -348,7 +364,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       newsArticles: generateWeeklyNewsStream(1, userTeam),
       polls: generateNationalAndStatePolls(teams, null, 1),
       playerRankings: generatePlayerRankingsAndLeaderboards(teams, 1),
-      coachingAP: weeklyActionPoints(1),
+      coachPoints: STARTING_COACH_POINTS,
+      coachTalents: [],
       activeGame: null,
       activeDilemma: null,
       dilemmaLog: [],
@@ -386,7 +403,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       dilemmaLog: save.dilemmaLog ?? [],
       currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
       userTeamId: userTeam.id,
-      coachingAP: save.coachingAP,
+      coachPoints: save.coachPoints ?? save.coachingAP ?? STARTING_COACH_POINTS,
+      coachTalents: save.coachTalents ?? [],
       practiceIntensity: save.practiceIntensity,
       drillFocus: save.drillFocus ?? 'BALANCED',
       lastDrillReport: [],
@@ -430,8 +448,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         applyGameResult(home, away, box.homeScore, box.awayScore, g.isDistrictGame);
       });
 
-    // Coach AP refreshes each week (full budget in spring/summer); program events can run once per week
-    set({ coachingAP: weeklyActionPoints(nextWeek), feederEventsThisWeek: [] });
+    // Coach Points: the weekly allowance plus a bonus for a regular-season win; unspent CP carries over up to the cap.
+    // Program events can run once per week.
+    const userGame = getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
+    const userWon =
+      userGame?.homeScore !== undefined &&
+      (userGame.homeTeamId === userTeamId ? userGame.homeScore > userGame.awayScore! : userGame.awayScore! > userGame.homeScore);
+    const { coachTalents } = get();
+    set({ coachPoints: addCoachPoints(get().coachPoints, weeklyCpIncome(nextWeek, coachTalents) + (userWon ? WIN_CP_BONUS : 0), coachTalents), feederEventsThisWeek: [] });
 
     // Families occasionally move into the district during the year
     const ctx = recruitingContext(get());
@@ -492,7 +516,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // Playoff weeks: finish the current round (simulating the user's game if skipped) and seed the next
     const { playoffBracket } = get();
     if (playoffBracket?.isPlayoffsActive) {
+      const userNode = findUserNode(playoffBracket, userTeamId)?.node;
       set({ playoffBracket: advancePlayoffRound(playoffBracket) });
+      if (userNode?.winnerTeamId === userTeamId) set({ coachPoints: addCoachPoints(get().coachPoints, PLAYOFF_WIN_CP_BONUS, get().coachTalents) });
     }
 
     // Whistleblowers: risky/corrupt decisions can surface in a later week (design spec 12.1)
@@ -565,7 +591,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       if (nextWeek % 3 === 0) evaluateAcademicReport(p);
     });
     // Assistants run this week's position drills with the coach's focus
-    const lastDrillReport = runAssistantDrills(userTeam.roster, get().drillFocus);
+    const lastDrillReport = runAssistantDrills(userTeam.roster, get().drillFocus, drillsPerWeek(ASSISTANT_DRILLS_PER_WEEK, get().coachTalents));
 
     // 2. Recalculate National & State Team Polls
     const updatedPolls = generateNationalAndStatePolls(leagueTeams, polls, nextWeek);
@@ -643,7 +669,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       rivalIncoming.set(teamId, [...(rivalIncoming.get(teamId) ?? []), player]);
     });
     leagueTeams.forEach((team) => {
-      if (team.id === userTeamId) advanceTeamToNextSeason(team, feederClass.joined);
+      if (team.id === userTeamId) advanceTeamToNextSeason(team, feederClass.joined, 0, offseasonConditioningBonus(get().coachTalents));
       else advanceTeamToNextSeason(team, rivalIncoming.get(team.id) ?? [], STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL']);
     });
     // New recruiting cycle: offers carry over, exposure and calls reset, stars re-evaluated after progression
@@ -729,7 +755,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       pendingUserBan,
       lastFeederResults: feederClass.outcomes,
       feederEventsThisWeek: [],
-      coachingAP: weeklyActionPoints(1),
+      coachPoints: addCoachPoints(get().coachPoints, weeklyCpIncome(1, get().coachTalents), get().coachTalents),
       newsArticles: [classArticle, ...investigationNews, ...eliteNews, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams],
@@ -780,72 +806,76 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     set({ districtTeams: [...districtTeams], leagueTeams: [...leagueTeams], seasonSchedule: [...seasonSchedule] });
   },
-  spendAP: (amount) => {
-    const { coachingAP } = get();
-    if (coachingAP >= amount) {
-      set({ coachingAP: coachingAP - amount });
-      return true;
-    }
-    return false;
+  unlockTalent: (id) => {
+    const { coachPoints, coachTalents, districtTeams, userTeamId } = get();
+    const blocker = talentBlocker(id, coachTalents, coachPoints);
+    if (blocker) return blocker;
+    const talent = COACH_TALENTS.find((t) => t.id === id)!;
+    // Politician talents pay off immediately
+    const meters = districtTeams.find((t) => t.id === userTeamId)?.programMeters;
+    if (meters && id === 'BOARD_ROOM_SHIELD') meters.schoolBoardTrust = Math.min(100, meters.schoolBoardTrust + 15);
+    if (meters && id === 'BOOSTER_BREAKFASTS') meters.boosterApproval = Math.min(100, meters.boosterApproval + 10);
+    set({ coachPoints: coachPoints - talent.cost, coachTalents: [...coachTalents, id], districtTeams: [...districtTeams] });
+    return null;
   },
 
   runFeederEvent: (type) => {
-    const { coachingAP, feederEventsThisWeek, scoutingPool, districtTeams, userTeamId } = get();
-    const cost = FEEDER_EVENTS[type].cost;
-    if (coachingAP < cost || feederEventsThisWeek.includes(type)) return [];
+    const { coachPoints, feederEventsThisWeek, scoutingPool, districtTeams, userTeamId } = get();
+    const cost = feederEventCost(FEEDER_EVENTS[type].cost, get().coachTalents);
+    if (coachPoints < cost || feederEventsThisWeek.includes(type)) return [];
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     const result = runFeederEvent(scoutingPool, type, userTeam, recruitingContext(get()));
-    set({ coachingAP: coachingAP - cost, scoutingPool: result.pool, feederEventsThisWeek: [...feederEventsThisWeek, type] });
+    set({ coachPoints: coachPoints - cost, scoutingPool: result.pool, feederEventsThisWeek: [...feederEventsThisWeek, type] });
     return result.discovered;
   },
 
   collegeRecruitAction: (playerId, action) => {
-    const { coachingAP, leagueTeams, userTeamId, currentWeek, currentYear, districtTeams } = get();
-    const cost = COLLEGE_ACTION_COSTS[action];
-    if (coachingAP < cost) return { ok: false, message: 'Not enough AP' };
+    const { coachPoints, leagueTeams, userTeamId, currentWeek, currentYear, districtTeams } = get();
+    const cost = collegeActionCost(COLLEGE_ACTION_COSTS[action], get().coachTalents);
+    if (coachPoints < cost) return { ok: false, message: 'Not enough CP' };
     const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
     const player = userTeam.roster.find((p) => p.id === playerId);
     if (!player) return { ok: false, message: 'Player not found' };
     const result = performCollegeAction(player, userTeam, action, currentWeek, currentYear, classCounts(leagueTeams));
-    if (result.ok) set({ coachingAP: coachingAP - cost, districtTeams: [...districtTeams], leagueTeams: [...leagueTeams] });
+    if (result.ok) set({ coachPoints: coachPoints - cost, districtTeams: [...districtTeams], leagueTeams: [...leagueTeams] });
     return result;
   },
 
   scoutFeederProspect: (prospectId) => {
-    const { coachingAP, scoutingPool } = get();
-    if (coachingAP < PROSPECT_ACTION_COSTS.SCOUT) return;
+    const { coachPoints, scoutingPool } = get();
+    if (coachPoints < PROSPECT_ACTION_COSTS.SCOUT) return;
     set({
-      coachingAP: coachingAP - PROSPECT_ACTION_COSTS.SCOUT,
+      coachPoints: coachPoints - PROSPECT_ACTION_COSTS.SCOUT,
       scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? scoutProspect(p) : p))
     });
   },
 
   visitFeederProspect: (prospectId) => {
-    const { coachingAP, scoutingPool } = get();
-    if (coachingAP < PROSPECT_ACTION_COSTS.VISIT) return;
+    const { coachPoints, scoutingPool } = get();
+    if (coachPoints < PROSPECT_ACTION_COSTS.VISIT) return;
     set({
-      coachingAP: coachingAP - PROSPECT_ACTION_COSTS.VISIT,
+      coachPoints: coachPoints - PROSPECT_ACTION_COSTS.VISIT,
       scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? visitProspect(p) : p))
     });
   },
 
   offerFeederInducement: (prospectId) => {
-    const { coachingAP, scoutingPool, userViolationHeat } = get();
+    const { coachPoints, scoutingPool, userViolationHeat } = get();
     const prospect = scoutingPool.find((p) => p.id === prospectId);
-    if (!prospect || prospect.userInducement || coachingAP < INDUCEMENT_AP_COST) return;
+    if (!prospect || prospect.userInducement || coachPoints < INDUCEMENT_CP_COST) return;
     set({
-      coachingAP: coachingAP - INDUCEMENT_AP_COST,
+      coachPoints: coachPoints - INDUCEMENT_CP_COST,
       userViolationHeat: userViolationHeat + inducementHeat(prospect),
       scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? { ...p, userInducement: true } : p))
     });
   },
 
   pitchFeederStar: (prospectId) => {
-    const { coachingAP, scoutingPool, districtTeams, userTeamId } = get();
-    if (coachingAP < PROSPECT_ACTION_COSTS.PITCH_STAR) return;
+    const { coachPoints, scoutingPool, districtTeams, userTeamId } = get();
+    if (coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR) return;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     set({
-      coachingAP: coachingAP - PROSPECT_ACTION_COSTS.PITCH_STAR,
+      coachPoints: coachPoints - PROSPECT_ACTION_COSTS.PITCH_STAR,
       scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? pitchStarRecruit(p, userTeam) : p))
     });
   },

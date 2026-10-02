@@ -29,7 +29,7 @@ export const CoachesOfficeView: React.FC = () => {
         </button>
       </div>
       <button className="ui-btn ui-btn-block" style={{ background: '#4F46E5', borderColor: '#4F46E5', color: '#fff', marginBottom: '16px' }} onClick={() => setShowSkillTree(true)}>
-        🎖️ Coach Skill Tree
+        🎖️ Coach Talents (spend CP)
       </button>
 
       {subTab === 'TROPHIES' ? (

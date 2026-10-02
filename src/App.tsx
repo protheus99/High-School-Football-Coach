@@ -10,6 +10,7 @@ import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { LiveMatchScreen } from './components/LiveMatchScreen';
 import { SaveLoadManagerModal } from './components/SaveLoadManagerModal';
+import { CoachRPGSkillTreeModal } from './components/CoachRPGSkillTreeModal';
 import { SplashScreen } from './components/SplashScreen';
 import { StatePlayoffBracketModal } from './components/StatePlayoffBracketModal';
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
@@ -35,6 +36,7 @@ export const App: React.FC = () => {
   const [activeMatch, setActiveMatch] = useState<GameSimulationState | null>(null);
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [showBracketModal, setShowBracketModal] = useState(false);
+  const [showTalents, setShowTalents] = useState(false);
   const [selectedPlayerDetail, setSelectedPlayerDetail] = useState<Player | null>(null);
   const [awardsRecord, setAwardsRecord] = useState<SeasonAwardsRecord | null>(null);
   const [awardsShownForYear, setAwardsShownForYear] = useState<number | null>(null);
@@ -47,6 +49,7 @@ export const App: React.FC = () => {
     seasonSchedule,
     userTeamId,
     currentWeek,
+    coachPoints,
     currentYear,
     newsArticles,
     playerRankings,
@@ -184,10 +187,23 @@ export const App: React.FC = () => {
         />
       )}
 
+      {showTalents && <CoachRPGSkillTreeModal onClose={() => setShowTalents(false)} />}
+
       {/* Top Navigation Bar */}
       <div className="app-topbar">
-        <div style={{ fontSize: '14px', color: '#CBD5E1', fontWeight: 'bold' }}>
-          {currentYear} Season · Week {currentWeek}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+          <div style={{ fontSize: '14px', color: '#CBD5E1', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+            {currentYear} · Wk {currentWeek}
+          </div>
+          {/* Coach Points: the one currency. Tap to spend it on coach talents. */}
+          <button
+            onClick={() => setShowTalents(true)}
+            aria-label={`Coach Points: ${coachPoints}. Open coach talents`}
+            title="Coach Points"
+            style={{ ...topBtn('#FACC15'), color: '#0F172A', padding: '6px 10px', whiteSpace: 'nowrap' }}
+          >
+            CP {coachPoints}
+          </button>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button onClick={() => setTab('NEWS')} aria-label="News" title="News" style={topBtn(tab === 'NEWS' ? '#2563EB' : '#334155')}>

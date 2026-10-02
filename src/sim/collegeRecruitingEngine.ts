@@ -491,7 +491,7 @@ export function resetSeasonRecruiting(teams: Team[]): void {
 }
 
 // ---------------------------------------------------------------------------
-// Head coach actions (user team only; paid with the shared coaching AP)
+// Head coach actions (user team only; paid with Coach Points)
 // ---------------------------------------------------------------------------
 
 export type CollegeAction = 'FILM' | 'CALL' | 'CAMP';
@@ -502,7 +502,7 @@ export interface CollegeActionResult {
   offer?: CollegeOffer;
 }
 
-/** Whether an action is available for this player now (ignores AP). */
+/** Whether an action is available for this player now (ignores CP). */
 export function collegeActionBlocker(player: Player, action: CollegeAction, week: number, year: number): string | null {
   const r = player.recruiting;
   if (player.classYear !== 'Senior' && player.classYear !== 'Junior') return 'Only juniors and seniors are recruited';

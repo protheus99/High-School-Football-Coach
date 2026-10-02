@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { collegeActionCost } from '../sim/coachPoints';
 import { Player, Team } from '../types/game';
 import { DataList } from './ui/DataList';
 import {
@@ -47,7 +48,7 @@ const byStock = (a: Player, b: Player) => b.recruiting.starRating - a.recruiting
 const stars = (n: number) => (n > 0 ? '★'.repeat(n) : '—');
 
 export const CollegeRecruitingView: React.FC = () => {
-  const { leagueTeams, userTeamId, coachingAP, currentWeek, currentYear, collegeRecruitAction } = useGameStore();
+  const { leagueTeams, userTeamId, coachPoints, currentWeek, currentYear, collegeRecruitAction } = useGameStore();
   const [message, setMessage] = useState<{
     text: string;
     good: boolean;
@@ -116,7 +117,7 @@ export const CollegeRecruitingView: React.FC = () => {
             flexWrap: 'wrap'
           }}
         >
-          <span style={pill('#EEF2FF', '#3730A3')}>AP: {coachingAP}</span>
+          <span style={pill('#EEF2FF', '#3730A3')}>CP {coachPoints}</span>
           <span style={pill('#ECFDF5', '#065F46')}>Committed: {committed}</span>
           <span style={pill('#EFF6FF', '#1E40AF')}>With D-I offers: {d1Offers}</span>
           <span style={pill(currentWeek <= CAMP_WEEKS ? '#FEF3C7' : '#F1F5F9', currentWeek <= CAMP_WEEKS ? '#92400E' : '#64748B')}>
@@ -149,7 +150,7 @@ export const CollegeRecruitingView: React.FC = () => {
             team={userTeam}
             week={currentWeek}
             year={currentYear}
-            coachingAP={coachingAP}
+            coachPoints={coachPoints}
             expanded={expanded === p.id}
             onToggle={() => setExpanded(expanded === p.id ? null : p.id)}
             onAction={(a) => act(p, a)}
@@ -196,11 +197,12 @@ const RecruitRow: React.FC<{
   team: Team;
   week: number;
   year: number;
-  coachingAP: number;
+  coachPoints: number;
   expanded: boolean;
   onToggle: () => void;
   onAction: (action: CollegeAction) => void;
-}> = ({ player: p, team, week, year, coachingAP, expanded, onToggle, onAction }) => {
+}> = ({ player: p, team, week, year, coachPoints, expanded, onToggle, onAction }) => {
+  const coachTalents = useGameStore((s) => s.coachTalents);
   const r = p.recruiting;
   const status = recruitingStatus(p);
   const exposure = Math.round(r.visibility ?? baselineVisibility(team));
@@ -269,11 +271,11 @@ const RecruitRow: React.FC<{
         </div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {ACTIONS.map(({ action, label, color, help }) => {
-            const cost = COLLEGE_ACTION_COSTS[action];
-            const blocker = collegeActionBlocker(p, action, week, year) ?? (coachingAP < cost ? 'Not enough AP' : null);
+            const cost = collegeActionCost(COLLEGE_ACTION_COSTS[action], coachTalents);
+            const blocker = collegeActionBlocker(p, action, week, year) ?? (coachPoints < cost ? 'Not enough CP' : null);
             return (
               <button key={action} onClick={() => onAction(action)} disabled={!!blocker} title={blocker ?? help} style={btn(color, !!blocker)}>
-                {label} ({cost})
+                {label} ({cost} CP)
               </button>
             );
           })}

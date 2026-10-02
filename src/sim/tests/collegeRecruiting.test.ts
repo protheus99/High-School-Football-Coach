@@ -173,9 +173,9 @@ describe('Head coach actions', () => {
     const { leagueTeams, userTeamId } = store.getState();
     const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
     const senior = userTeam.roster.find((p) => p.classYear === 'Senior')!;
-    const ap = store.getState().coachingAP;
+    const ap = store.getState().coachPoints;
     expect(store.getState().collegeRecruitAction(senior.id, 'CAMP').ok).toBe(true);
-    expect(store.getState().coachingAP).toBe(ap - 20);
+    expect(store.getState().coachPoints).toBe(ap - 20);
 
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
     store

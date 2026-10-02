@@ -12,9 +12,9 @@ import {
   resolveFeederClass,
   runFeederEvent,
   scoutProspect,
-  visitProspect,
-  weeklyActionPoints
+  visitProspect
 } from '../feederEngine';
+import { BASE_CP_CAP, STARTING_COACH_POINTS, weeklyCoachPoints } from '../coachPoints';
 import { FeederOutcome, Team } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -158,22 +158,23 @@ describe('Year-end decisions', () => {
 });
 
 describe('Feeder pipeline through the store', () => {
-  it('spends AP, limits events to once a week, and turns the pool into next year\'s class', () => {
+  it('spends CP, limits events to once a week, and turns the pool into next year\'s class', () => {
     const store = useGameStore;
     store.getState().startNewSeason();
-    expect(store.getState().coachingAP).toBe(weeklyActionPoints(1));
+    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS);
     const pool = store.getState().scoutingPool;
 
     store.getState().runFeederEvent('YOUTH_CLINIC');
-    expect(store.getState().coachingAP).toBe(100 - 50);
+    expect(store.getState().coachPoints).toBe(100 - 50);
     store.getState().runFeederEvent('YOUTH_CLINIC'); // already held this week
-    expect(store.getState().coachingAP).toBe(50);
+    expect(store.getState().coachPoints).toBe(50);
     store.getState().visitFeederProspect(pool[0].id);
     expect(store.getState().scoutingPool.find((p) => p.id === pool[0].id)!.coachContacts).toBe(1);
 
     while (store.getState().currentWeek < 5) store.getState().advanceWeek();
-    expect(store.getState().coachingAP).toBe(weeklyActionPoints(5));
-    expect(weeklyActionPoints(5)).toBeLessThan(weeklyActionPoints(1));
+    // Unspent CP carries over: 35 left + three 100-CP summer weeks + week 5, banked up to the cap
+    expect(store.getState().coachPoints).toBe(BASE_CP_CAP);
+    expect(weeklyCoachPoints(5)).toBeLessThan(weeklyCoachPoints(1));
 
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
     const finalPool = store.getState().scoutingPool;

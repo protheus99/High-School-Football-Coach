@@ -28,13 +28,14 @@ const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior
 export function advanceTeamToNextSeason(
   team: Team,
   incomingPlayers: Player[] = [],
-  freshmanAdjustment = 0 // AI feeder strategy: stronger or weaker generated freshman classes
+  freshmanAdjustment = 0, // AI feeder strategy: stronger or weaker generated freshman classes
+  conditioningBonus = 0 // the user's Weight Room Fanatic talent
 ): { graduated: Player[]; freshmen: Player[] } {
   const graduated = team.roster.filter((p) => p.classYear === 'Senior');
   team.roster = team.roster.filter((p) => p.classYear !== 'Senior');
 
   team.roster.forEach((p) => {
-    processOffSeasonProgression(p, team.staff.strengthCoach.conditioningRating);
+    processOffSeasonProgression(p, team.staff.strengthCoach.conditioningRating + conditioningBonus);
     p.classYear = NEXT_CLASS[p.classYear as keyof typeof NEXT_CLASS];
     p.age += 1;
     p.stats = createEmptyPlayerStats();

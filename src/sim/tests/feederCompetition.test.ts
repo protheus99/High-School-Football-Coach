@@ -140,9 +140,9 @@ describe('Competition through the store', () => {
 
     // User inducement: costs AP and adds hidden heat
     const prospect = store.getState().scoutingPool.find((p) => p.source !== 'TRYOUT')!;
-    const ap = store.getState().coachingAP;
+    const ap = store.getState().coachPoints;
     store.getState().offerFeederInducement(prospect.id);
-    expect(store.getState().coachingAP).toBe(ap - 20);
+    expect(store.getState().coachPoints).toBe(ap - 20);
     expect(store.getState().userViolationHeat).toBeGreaterThan(0);
     expect(store.getState().scoutingPool.find((p) => p.id === prospect.id)!.userInducement).toBe(true);
 
