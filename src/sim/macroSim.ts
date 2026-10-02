@@ -95,13 +95,36 @@ function distributeMacroStats(
     if (defender) addPlayerStats(defender.stats, { interceptionsCaught: 1 });
   }
 
-  team.roster.filter((p) => p.depthChartTier === 1).forEach((p) => (p.stats.gamesPlayed += 1));
+  gameDayLineup(team).forEach((p) => p && (p.stats.gamesPlayed += 1));
 }
 
-/** Average overall rating of a team's first-string players. */
-export function teamStarterRating(team: Team): number {
+/** Can play this week: academically eligible and healthy (same rule as the live engine). */
+export const isAvailable = (p: Player) => p.academics.isEligible && p.condition.injuryStatus === 'HEALTHY';
+
+// A first-string slot nobody can fill is played by a walk-on
+const EMPTY_SLOT_RATING = 40;
+
+/**
+ * The team that actually takes the field: each first-stringer who is injured or ineligible is replaced
+ * by the next available player at his position (2nd string first, then the best rated).
+ */
+export function gameDayLineup(team: Team): (Player | undefined)[] {
+  const used = new Set<string>();
   const starters = team.roster.filter((p) => p.depthChartTier === 1);
-  return starters.reduce((sum, p) => sum + p.overallRating, 0) / (starters.length || 1);
+  return starters.map((starter) => {
+    if (isAvailable(starter)) return starter;
+    const sub = team.roster
+      .filter((p) => p.depthChartTier !== 1 && !used.has(p.id) && isAvailable(p) && (p.position === starter.position || p.secondaryPosition === starter.position))
+      .sort((a, b) => a.depthChartTier - b.depthChartTier || b.overallRating - a.overallRating)[0];
+    if (sub) used.add(sub.id);
+    return sub;
+  });
+}
+
+/** Average overall rating of the game-day lineup (first string, with backups in for missing starters). */
+export function teamStarterRating(team: Team): number {
+  const lineup = gameDayLineup(team);
+  return lineup.reduce((sum, p) => sum + (p?.overallRating ?? EMPTY_SLOT_RATING), 0) / (lineup.length || 1);
 }
 
 /**
