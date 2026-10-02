@@ -11,6 +11,7 @@ import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { LiveMatchScreen } from './components/LiveMatchScreen';
 import { SaveLoadManagerModal } from './components/SaveLoadManagerModal';
 import { CoachRPGSkillTreeModal } from './components/CoachRPGSkillTreeModal';
+import { formatCP } from './sim/coachPoints';
 import { SplashScreen } from './components/SplashScreen';
 import { StatePlayoffBracketModal } from './components/StatePlayoffBracketModal';
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
@@ -202,8 +203,17 @@ export const App: React.FC = () => {
             title="Coach Points"
             style={{ ...topBtn('#FACC15'), color: '#0F172A', padding: '6px 10px', whiteSpace: 'nowrap' }}
           >
-            ₡{coachPoints}
+            {formatCP(coachPoints)}
           </button>
+          {userTeam && (
+            <span
+              title="Program prestige"
+              aria-label={`Prestige ${userTeam.prestige}`}
+              style={{ display: 'inline-flex', alignItems: 'center', minHeight: '40px', padding: '0 8px', borderRadius: '6px', background: '#334155', color: '#fff', fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap' }}
+            >
+              ⭐ {userTeam.prestige}
+            </span>
+          )}
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button onClick={() => setTab('NEWS')} aria-label="News" title="News" style={topBtn(tab === 'NEWS' ? '#2563EB' : '#334155')}>

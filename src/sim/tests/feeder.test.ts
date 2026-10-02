@@ -14,7 +14,7 @@ import {
   scoutProspect,
   visitProspect
 } from '../feederEngine';
-import { BASE_CP_CAP, STARTING_COACH_POINTS, weeklyCoachPoints } from '../coachPoints';
+import { STARTING_COACH_POINTS, weeklyCoachPoints } from '../coachPoints';
 import { FeederOutcome, Team } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -172,8 +172,8 @@ describe('Feeder pipeline through the store', () => {
     expect(store.getState().scoutingPool.find((p) => p.id === pool[0].id)!.coachContacts).toBe(1);
 
     while (store.getState().currentWeek < 5) store.getState().advanceWeek();
-    // Unspent CP carries over: 35 left + three 100-CP summer weeks + week 5, banked up to the cap
-    expect(store.getState().coachPoints).toBe(BASE_CP_CAP);
+    // Unspent CP carries over: 35 left + three 100-CP summer weeks + week 5, plus any win bonuses
+    expect(store.getState().coachPoints).toBeGreaterThanOrEqual(35 + 3 * weeklyCoachPoints(2) + weeklyCoachPoints(5));
     expect(weeklyCoachPoints(5)).toBeLessThan(weeklyCoachPoints(1));
 
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();

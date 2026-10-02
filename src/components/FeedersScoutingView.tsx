@@ -242,7 +242,7 @@ const ProspectCard: React.FC<{
               title="Illegal: boosters make an improper offer. Big pull on this player, but it builds evidence that may surface for years."
               style={actionBtn('#7F1D1D', coachPoints < 20)}
             >
-              Booster Offer (illegal, ₡20)
+              Booster Offer (₡20)
             </button>
           ))}
       </div>

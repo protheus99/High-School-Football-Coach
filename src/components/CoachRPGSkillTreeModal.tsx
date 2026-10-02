@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sheet } from './ui/Sheet';
 import { useGameStore } from '../store/gameStore';
-import { COACH_TALENTS, TALENT_BRANCH_LABELS, TalentBranch, cpCap, talentBlocker } from '../sim/coachPoints';
+import { COACH_TALENTS, TALENT_BRANCH_LABELS, TalentBranch, formatCP, talentBlocker } from '../sim/coachPoints';
 
 /** Coach talents: permanent upgrades bought with Coach Points. */
 export const CoachRPGSkillTreeModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -18,13 +18,13 @@ export const CoachRPGSkillTreeModal: React.FC<{ onClose: () => void }> = ({ onCl
       title="🎖️ Coach Talents"
       subtitle={
         <>
-          Coach Points: <strong style={{ color: '#2563EB' }}>{coachPoints}</strong> / {cpCap(coachTalents)}
+          Coach Points: <strong style={{ color: '#2563EB' }}>{formatCP(coachPoints)}</strong>
         </>
       }
       onClose={onClose}
     >
       <p className="ui-muted" style={{ margin: '0 0 12px 0', fontSize: '13px' }}>
-        Talents are permanent. Unlock the first talent in a branch to open the second.
+        Talents are permanent and change how your program runs, so they take seasons of saving. Unlock the first talent in a branch to open the second.
       </p>
       {flash && (
         <div role="status" style={{ background: '#EEF2FF', color: '#3730A3', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', marginBottom: '12px' }}>
@@ -52,7 +52,7 @@ export const CoachRPGSkillTreeModal: React.FC<{ onClose: () => void }> = ({ onCl
                     ) : (
                       <>
                         <button className="ui-btn ui-btn-primary" onClick={() => handleUnlock(t.id, t.name)} disabled={!!blocker}>
-                          Unlock (₡{t.cost})
+                          Unlock ({formatCP(t.cost)})
                         </button>
                         {blocker && <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>{blocker}</div>}
                       </>

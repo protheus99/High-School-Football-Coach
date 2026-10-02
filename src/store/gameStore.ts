@@ -85,17 +85,15 @@ import { moveInDepthChart, setDepthTier } from '../sim/depthChart';
 import { ASSISTANT_DRILLS_PER_WEEK, DrillFocus, runAssistantDrills } from '../sim/drillEngine';
 import {
   COACH_TALENTS,
-  PLAYOFF_WIN_CP_BONUS,
   STARTING_COACH_POINTS,
   TalentId,
-  WIN_CP_BONUS,
-  addCoachPoints,
   collegeActionCost,
   drillsPerWeek,
   feederEventCost,
   offseasonConditioningBonus,
   talentBlocker,
-  weeklyCpIncome
+  weeklyCpIncome,
+  winBonus
 } from '../sim/coachPoints';
 
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
@@ -448,14 +446,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         applyGameResult(home, away, box.homeScore, box.awayScore, g.isDistrictGame);
       });
 
-    // Coach Points: the weekly allowance plus a bonus for a regular-season win; unspent CP carries over up to the cap.
+    // Coach Points: the weekly allowance plus a bonus for a regular-season win; unspent CP carries over.
     // Program events can run once per week.
     const userGame = getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
     const userWon =
       userGame?.homeScore !== undefined &&
       (userGame.homeTeamId === userTeamId ? userGame.homeScore > userGame.awayScore! : userGame.awayScore! > userGame.homeScore);
     const { coachTalents } = get();
-    set({ coachPoints: addCoachPoints(get().coachPoints, weeklyCpIncome(nextWeek, coachTalents) + (userWon ? WIN_CP_BONUS : 0), coachTalents), feederEventsThisWeek: [] });
+    set({ coachPoints: get().coachPoints + weeklyCpIncome(nextWeek, coachTalents) + (userWon ? winBonus(false, coachTalents) : 0), feederEventsThisWeek: [] });
 
     // Families occasionally move into the district during the year
     const ctx = recruitingContext(get());
@@ -518,7 +516,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (playoffBracket?.isPlayoffsActive) {
       const userNode = findUserNode(playoffBracket, userTeamId)?.node;
       set({ playoffBracket: advancePlayoffRound(playoffBracket) });
-      if (userNode?.winnerTeamId === userTeamId) set({ coachPoints: addCoachPoints(get().coachPoints, PLAYOFF_WIN_CP_BONUS, get().coachTalents) });
+      if (userNode?.winnerTeamId === userTeamId) set({ coachPoints: get().coachPoints + winBonus(true, get().coachTalents) });
     }
 
     // Whistleblowers: risky/corrupt decisions can surface in a later week (design spec 12.1)
@@ -755,7 +753,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       pendingUserBan,
       lastFeederResults: feederClass.outcomes,
       feederEventsThisWeek: [],
-      coachPoints: addCoachPoints(get().coachPoints, weeklyCpIncome(1, get().coachTalents), get().coachTalents),
+      coachPoints: get().coachPoints + weeklyCpIncome(1, get().coachTalents),
       newsArticles: [classArticle, ...investigationNews, ...eliteNews, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams],
