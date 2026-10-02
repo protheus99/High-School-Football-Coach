@@ -60,7 +60,13 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   const [playAlert, setPlayAlert] = useState<PlayAlertData | null>(null);
   const simmingToEndRef = useRef(false);
   // The game just before the current snap, so alerts can credit the right team
-  const preSnapRef = useRef<PreSnap>({ possessionTeamId: initialState.possessionTeamId, homeScore: initialState.homeScore, awayScore: initialState.awayScore });
+  const preSnapRef = useRef<PreSnap>({
+    possessionTeamId: initialState.possessionTeamId,
+    homeScore: initialState.homeScore,
+    awayScore: initialState.awayScore,
+    down: initialState.down,
+    distance: initialState.distance
+  });
   const clearPlayAlert = useCallback(() => setPlayAlert(null), []);
 
   useEffect(() => {
@@ -74,7 +80,13 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         setLeveragePrompt(null);
         const alert = event && !simmingToEndRef.current ? alertForPlay(event, preSnapRef.current, state) : null;
         if (alert) setPlayAlert(alert);
-        preSnapRef.current = { possessionTeamId: state.possessionTeamId, homeScore: state.homeScore, awayScore: state.awayScore };
+        preSnapRef.current = {
+          possessionTeamId: state.possessionTeamId,
+          homeScore: state.homeScore,
+          awayScore: state.awayScore,
+          down: state.down,
+          distance: state.distance
+        };
 
         // Trigger Halftime Modal at start of Q3
         if (state.currentQuarter === 3 && !halftimeHandledRef.current) {

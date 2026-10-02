@@ -34,9 +34,15 @@ describe('Game alerts', () => {
     for (let g = 0; g < 6; g++) {
       const state = freshGame();
       for (let snap = 0; snap < 400 && !state.isGameOver; snap++) {
-        const before = { possession: state.possessionTeamId, home: state.homeScore, away: state.awayScore };
+        const before = { possession: state.possessionTeamId, home: state.homeScore, away: state.awayScore, down: state.down, distance: state.distance };
         const { event } = simulateSnap(state);
-        const alert = alertForPlay(event, { possessionTeamId: before.possession, homeScore: before.home, awayScore: before.away }, state);
+        const alert = alertForPlay(
+          event,
+          { possessionTeamId: before.possession, homeScore: before.home, awayScore: before.away, down: before.down, distance: before.distance },
+          state
+        );
+        // Every play the engine calls a first down gets the banner (unless it scored)
+        if (/FIRST DOWN/i.test(event.textCommentary) && !event.isScore) expect(alert?.kind).toBe('FIRST_DOWN');
         if (!alert) continue;
         seen.set(alert.kind, (seen.get(alert.kind) ?? 0) + 1);
         const other = before.possession === state.homeTeam.id ? state.awayTeam.id : state.homeTeam.id;
@@ -45,7 +51,7 @@ describe('Game alerts', () => {
           expect(state.down).toBe(1);
         }
         if (alert.kind === 'INTERCEPTION') expect(alert.team.id).toBe(other);
-        if (alert.kind === 'FUMBLE') expect(alert.team.id).toBe(state.possessionTeamId); // includes muffed punts recovered by the kicking team
+        if (alert.kind === 'FUMBLE') expect(alert.team.id).toBe(event.turnoverType === 'MUFFED_PUNT' ? before.possession : other);
         if (alert.kind === 'TOUCHDOWN') {
           // The team credited with the touchdown is the one whose score went up
           const homeScored = state.homeScore > before.home;
