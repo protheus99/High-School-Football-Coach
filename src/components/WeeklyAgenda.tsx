@@ -6,6 +6,7 @@ import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, 
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { Player } from '../types/game';
+import { dilemmaChoiceCosts } from '../sim/dilemmaEngine';
 
 /** Screens the agenda can send the coach to. */
 export type AgendaTab = 'ROSTER' | 'PRACTICE' | 'COLLEGE' | 'OFFICE' | 'FEEDERS' | 'DISTRICT';
@@ -25,6 +26,7 @@ interface AgendaItem {
   tone: 'urgent' | 'todo' | 'info' | 'done';
   actions?: AgendaAction[];
   link?: { label: string; onClick: () => void };
+  content?: React.ReactNode; // custom body (the week's dilemma)
 }
 
 const TONES: Record<AgendaItem['tone'], { border: string; background: string }> = {
@@ -58,6 +60,7 @@ export const WeeklyAgenda: React.FC<{
     coachPoints,
     coachTalents,
     activeDilemma,
+    resolveDilemma,
     feederEventsThisWeek,
     runFeederEvent,
     collegeRecruitAction,
@@ -80,11 +83,28 @@ export const WeeklyAgenda: React.FC<{
     items.push({
       id: 'dilemma',
       icon: '⚠️',
-      title: `Decision needed: ${activeDilemma.title}`,
+      title: activeDilemma.title,
       tone: 'urgent',
-      actions: [
-        { label: 'Decide now', primary: true, onClick: () => document.getElementById('weekly-dilemma')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
-      ]
+      content: (
+        <div>
+          <p style={{ margin: '4px 0 8px 0', fontSize: '13px', color: '#334155' }}>{activeDilemma.scenario}</p>
+          <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>What do you do?</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {activeDilemma.choices.map((c) => {
+              const costs = dilemmaChoiceCosts(c, team);
+              return (
+                <button key={c.id} onClick={() => resolveDilemma(c)} style={choiceBtn}>
+                  <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.label}</div>
+                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>{c.description}</div>
+                  {costs.length > 0 && (
+                    <div style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 'bold', marginTop: '4px' }}>Cost: {costs.join(' · ')}</div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )
     });
   }
 
@@ -249,6 +269,7 @@ export const WeeklyAgenda: React.FC<{
               )}
             </div>
             {item.detail && <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>{item.detail}</div>}
+            {item.content}
             {item.actions && item.actions.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
                 {item.actions.map((a) => (
@@ -266,6 +287,18 @@ export const WeeklyAgenda: React.FC<{
       </button>
     </section>
   );
+};
+
+const choiceBtn: React.CSSProperties = {
+  textAlign: 'left',
+  width: '100%',
+  minHeight: '44px',
+  padding: '10px 12px',
+  background: '#fff',
+  border: '1px solid #CBD5E1',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  color: '#0F172A'
 };
 
 const linkBtn: React.CSSProperties = {

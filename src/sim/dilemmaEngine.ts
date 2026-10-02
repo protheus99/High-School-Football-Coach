@@ -35,6 +35,34 @@ export function generateWeeklyDilemma(week: number, userTeam: Team, recentTempla
 
 const clampMeter = (value: number) => Math.min(100, Math.max(0, value));
 
+/**
+ * What a choice costs, in plain words: meter drops and player consequences. Shown under each answer so
+ * the price of a decision is clear (the choice's hidden tier is never shown).
+ */
+export function dilemmaChoiceCosts(choice: DilemmaChoice, userTeam: Team): string[] {
+  const { impact } = choice;
+  const name = (id: string) => {
+    const p = userTeam.roster.find((pl) => pl.id === id);
+    return p ? `${p.firstName.charAt(0)}. ${p.lastName}` : 'A player';
+  };
+  const costs: string[] = [];
+  const meters: [number, string][] = [
+    [impact.schoolBoardTrustDelta, 'Board Trust'],
+    [impact.boosterApprovalDelta, 'Booster Approval'],
+    [impact.lockerRoomDisciplineDelta, 'Discipline'],
+    [impact.complianceScoreDelta, 'Compliance']
+  ];
+  meters.forEach(([delta, label]) => delta < 0 && costs.push(`−${-delta} ${label}`));
+  if (impact.playerAvailabilityOverride && !impact.playerAvailabilityOverride.isEligible) costs.push(`${name(impact.playerAvailabilityOverride.playerId)} ruled ineligible`);
+  if (impact.sidelinePlayer) {
+    const w = impact.sidelinePlayer.weeks;
+    costs.push(`${name(impact.sidelinePlayer.playerId)} out ${w} week${w === 1 ? '' : 's'}`);
+  }
+  if (impact.removePlayerId) costs.push(`${name(impact.removePlayerId)} leaves the program`);
+  if (impact.injuryRisk) costs.push(`${Math.round(impact.injuryRisk.chance * 100)}% chance a starter is hurt for ${impact.injuryRisk.weeks} weeks`);
+  return costs;
+}
+
 export function executeDilemmaDecision(userTeam: Team, choice: DilemmaChoice): void {
   const meters = userTeam.programMeters;
   meters.schoolBoardTrust = clampMeter(meters.schoolBoardTrust + choice.impact.schoolBoardTrustDelta);

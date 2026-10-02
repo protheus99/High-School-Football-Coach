@@ -17,15 +17,13 @@ const PHASE_MESSAGES: Record<string, string> = {
   OFF_SEASON: 'Off season: last chance to grow the feeder pipeline. Advance Week to graduate the seniors and start next season.'
 };
 
-const TIER_COLORS: Record<string, string> = { GOOD: '#059669', COMPROMISE: '#2563EB', RISKY: '#D97706', CORRUPT: '#DC2626' };
-
 export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
 
 export const DashboardView: React.FC<{
   onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
   onNavigate: (tab: AgendaTab) => void;
 }> = ({ onLaunchGame, onNavigate }) => {
-  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, activeDilemma, resolveDilemma, advanceWeek, sanctionLevel } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, sanctionLevel } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
   const [showSimWarning, setShowSimWarning] = useState(false);
@@ -154,31 +152,6 @@ export const DashboardView: React.FC<{
           <strong>⚖️ STATE ASSOCIATION SANCTIONS:</strong>{' '}
           {['', 'Public reprimand issued.', 'A district win has been forfeited.', 'Program banned from the state playoffs.'][sanctionLevel]}{' '}
           {sanctionLevel < 3 && 'Raise Compliance above 40 to stop further penalties.'}
-        </div>
-      )}
-
-      {/* Active Dilemma Banner */}
-      {activeDilemma && (
-        <div id="weekly-dilemma" style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '8px', padding: '16px', marginBottom: '24px', scrollMarginTop: '12px' }}>
-          <h3 style={{ margin: '0 0 6px 0', color: '#B45309' }}>⚠️ THURSDAY DILEMMA: {activeDilemma.title}</h3>
-          <p style={{ margin: '0 0 14px 0', fontSize: '14px', color: '#4B5563' }}>{activeDilemma.scenario}</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {activeDilemma.choices.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => resolveDilemma(c)}
-                style={{ textAlign: 'left', padding: '10px 14px', background: '#fff', border: '1px solid #D1D5DB', borderRadius: '6px', cursor: 'pointer' }}
-              >
-                <div style={{ fontWeight: 'bold', fontSize: '13px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff', background: TIER_COLORS[c.tier], borderRadius: '3px', padding: '1px 6px', marginRight: '8px' }}>
-                    {c.tier}
-                  </span>
-                  {c.label}
-                </div>
-                <div style={{ fontSize: '12px', color: '#6B7280' }}>{c.description}</div>
-              </button>
-            ))}
-          </div>
         </div>
       )}
 
