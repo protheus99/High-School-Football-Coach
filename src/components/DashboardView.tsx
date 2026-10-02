@@ -115,9 +115,6 @@ export const DashboardView: React.FC<{
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <div style={{ background: '#EEF2FF', color: '#4F46E5', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold' }}>
-            WEEK {currentWeek} OF {totalWeeks}
-          </div>
           <button className="ui-btn ui-btn-dark" onClick={handleAdvanceWeek}>
             ⏭️ Advance Week
           </button>
@@ -140,6 +137,7 @@ export const DashboardView: React.FC<{
         onAutoSim={advanceWeek}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}
+        totalWeeks={totalWeeks}
       />
 
       {/* Program Meters */}

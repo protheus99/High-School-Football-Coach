@@ -48,7 +48,8 @@ export const WeeklyAgenda: React.FC<{
   onAutoSim: () => void;
   onAdvanceWeek: () => void;
   onNavigate: (tab: AgendaTab) => void;
-}> = ({ game, onPlayGame, onAutoSim, onAdvanceWeek, onNavigate }) => {
+  totalWeeks: number;
+}> = ({ game, onPlayGame, onAutoSim, onAdvanceWeek, onNavigate, totalWeeks }) => {
   const {
     leagueTeams,
     userTeamId,
@@ -217,9 +218,12 @@ export const WeeklyAgenda: React.FC<{
 
   return (
     <section aria-labelledby="this-week-title" style={{ marginBottom: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px 12px' }}>
         <h2 id="this-week-title" style={{ margin: '0 0 4px 0' }}>
-          This Week
+          This Week{' '}
+          <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>
+            | Week {currentWeek} of {totalWeeks}
+          </span>
         </h2>
         <span style={{ fontSize: '13px', color: '#64748B' }}>
           ₡{coachPoints} <span style={{ color: '#94A3B8' }}>· +₡{weeklyCpIncome(currentWeek + 1, coachTalents)} next week</span>
