@@ -48,8 +48,8 @@ export const WeeklyAgenda: React.FC<{
   onAutoSim: () => void;
   onAdvanceWeek: () => void;
   onNavigate: (tab: AgendaTab) => void;
-  totalWeeks: number;
-}> = ({ game, onPlayGame, onAutoSim, onAdvanceWeek, onNavigate, totalWeeks }) => {
+  phaseLabel: string; // e.g. Pre Season, Regular Season District
+}> = ({ game, onPlayGame, onAutoSim, onAdvanceWeek, onNavigate, phaseLabel }) => {
   const {
     leagueTeams,
     userTeamId,
@@ -221,9 +221,7 @@ export const WeeklyAgenda: React.FC<{
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px 12px' }}>
         <h2 id="this-week-title" style={{ margin: '0 0 4px 0' }}>
           This Week{' '}
-          <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>
-            | Week {currentWeek} of {totalWeeks}
-          </span>
+          <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
         </h2>
         <span style={{ fontSize: '13px', color: '#64748B' }}>
           ₡{coachPoints} <span style={{ color: '#94A3B8' }}>· +₡{weeklyCpIncome(currentWeek + 1, coachTalents)} next week</span>

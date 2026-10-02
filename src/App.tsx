@@ -57,7 +57,7 @@ export const App: React.FC = () => {
     playoffBracket,
     isBanquetActive,
     graduatingSeniors,
-    transitionToNextYear,
+    finishBanquet,
     advancePlayoffGame,
     recordUserGame
   } = useGameStore();
@@ -153,7 +153,7 @@ export const App: React.FC = () => {
         graduatingSeniors={graduatingSeniors}
         onStartNextYear={() => {
           setAwardsRecord(null);
-          transitionToNextYear();
+          finishBanquet();
         }}
       />
     );

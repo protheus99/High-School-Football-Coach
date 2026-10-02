@@ -2,13 +2,24 @@ import { ScheduledGame, Team } from '../types/game';
 import { simulateMacroMatch } from './macroSim';
 
 // Season calendar (design spec 4): weeks 1-4 spring/summer, 5-7 non-district, 8-14 district round robin,
-// then one week per playoff round (six for Texas 6A) and the banquet week
+// then one week per playoff round (six for Texas 6A), the banquet week (post season) and an off-season week
 export const FIRST_NON_DISTRICT_WEEK = 5;
 export const FIRST_DISTRICT_WEEK = 8;
 export const LAST_REGULAR_SEASON_WEEK = 14;
 const DISTRICT_POINT_DIFFERENTIAL_CAP = 17;
 
-export type SeasonPhase = 'SPRING_EVALUATION' | 'SUMMER_CAMP' | 'NON_DISTRICT' | 'DISTRICT_PLAY' | 'STATE_PLAYOFFS' | 'OFF_SEASON';
+export type SeasonPhase = 'SPRING_EVALUATION' | 'SUMMER_CAMP' | 'NON_DISTRICT' | 'DISTRICT_PLAY' | 'STATE_PLAYOFFS' | 'POST_SEASON' | 'OFF_SEASON';
+
+/** What each part of the calendar is called on screen. */
+export const SEASON_PHASE_LABELS: Record<SeasonPhase, string> = {
+  SPRING_EVALUATION: 'Pre Season',
+  SUMMER_CAMP: 'Training Camp',
+  NON_DISTRICT: 'Regular Season Non District',
+  DISTRICT_PLAY: 'Regular Season District',
+  STATE_PLAYOFFS: 'Playoffs',
+  POST_SEASON: 'Post Season',
+  OFF_SEASON: 'Off Season'
+};
 
 export function getSeasonPhase(week: number, playoffRounds = 6): SeasonPhase {
   if (week <= 2) return 'SPRING_EVALUATION';
@@ -16,6 +27,7 @@ export function getSeasonPhase(week: number, playoffRounds = 6): SeasonPhase {
   if (week < FIRST_DISTRICT_WEEK) return 'NON_DISTRICT';
   if (week <= LAST_REGULAR_SEASON_WEEK) return 'DISTRICT_PLAY';
   if (week <= LAST_REGULAR_SEASON_WEEK + playoffRounds) return 'STATE_PLAYOFFS';
+  if (week === LAST_REGULAR_SEASON_WEEK + playoffRounds + 1) return 'POST_SEASON'; // the banquet and signing day
   return 'OFF_SEASON';
 }
 

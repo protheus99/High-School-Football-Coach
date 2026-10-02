@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
-import { getSeasonPhase, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
+import { getSeasonPhase, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
 import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
 import { ROUND_LABELS } from '../sim/playoffEngine';
 import { Team } from '../types/game';
@@ -80,7 +80,7 @@ export const ScheduleView: React.FC = () => {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'nowrap' }}>
               <span style={{ fontSize: '14px' }}>
-                <strong>Week {game.week}</strong> <span style={{ color: '#64748B', fontSize: '13px' }}>· {game.label ?? game.type.replace(/_/g, ' ')}</span>
+                <strong>Week {game.week}</strong> <span style={{ color: '#64748B', fontSize: '13px' }}>· {game.label ?? SEASON_PHASE_LABELS[game.type]}</span>
               </span>
               {game.result && <strong style={{ color: game.result.startsWith('W') ? '#059669' : '#DC2626', fontSize: '14px' }}>{game.result}</strong>}
             </div>

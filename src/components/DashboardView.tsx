@@ -5,15 +5,16 @@ import { PreGameStrategyModal } from './PreGameStrategyModal';
 import { Sheet } from './ui/Sheet';
 import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
 import { FilmStudyModal } from './FilmStudyModal';
-import { getSeasonPhase } from '../sim/scheduleEngine';
+import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
 import { getUserMatchup } from '../sim/userMatchup';
-import { findDistrict, findRegion, playoffRoundCount, seasonLength } from '../sim/league';
+import { findDistrict, findRegion, playoffRoundCount } from '../sim/league';
 
 const PHASE_MESSAGES: Record<string, string> = {
   SPRING_EVALUATION: 'Spring evaluation: scout 8th-grade feeders and run 7-on-7 drills. No game this week.',
   SUMMER_CAMP: 'Summer two-a-days: install schemes and build conditioning. No game this week.',
   STATE_PLAYOFFS: 'Your playoff run is over. Follow the rest of the tournament in the Bracket.',
-  OFF_SEASON: "Off-season: graduation, awards and next year's planning."
+  POST_SEASON: 'Post season: awards banquet and signing day.',
+  OFF_SEASON: 'Off season: last chance to grow the feeder pipeline. Advance Week to graduate the seniors and start next season.'
 };
 
 const TIER_COLORS: Record<string, string> = { GOOD: '#059669', COMPROMISE: '#2563EB', RISKY: '#D97706', CORRUPT: '#DC2626' };
@@ -38,7 +39,6 @@ export const DashboardView: React.FC<{
   const opponentScore = isHome ? game?.awayScore : game?.homeScore;
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
-  const totalWeeks = league ? seasonLength(league) : 20;
 
   if (!userTeam) return <div>Loading Program Dashboard...</div>;
 
@@ -137,7 +137,7 @@ export const DashboardView: React.FC<{
         onAutoSim={advanceWeek}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}
-        totalWeeks={totalWeeks}
+        phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek, league ? playoffRoundCount(league) : 6)]}
       />
 
       {/* Program Meters */}

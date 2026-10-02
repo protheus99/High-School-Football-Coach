@@ -18,7 +18,7 @@ import {
   buildTexasLeague,
   Difficulty,
   findDistrict,
-  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty } from '../sim/league';
+  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, playoffRoundCount } from '../sim/league';
 import { applyGameResult, forfeitMostRecentDistrictWin, generateSeasonSchedule, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
 import { randomInt } from '../sim/math/variance';
@@ -300,6 +300,7 @@ interface GameStoreState {
   assignStudyHallToAtRisk: () => number; // study hall for every struggling student not already assigned; returns how many
   startPostseason: () => void;
   advancePlayoffGame: (userScore?: { homeScore: number; awayScore: number }) => void;
+  finishBanquet: () => void; // banquet done: on to the off-season week
   transitionToNextYear: () => void;
 }
 
@@ -428,7 +429,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   advanceWeek: () => {
-    const { currentWeek, districtTeams, leagueTeams, seasonSchedule, userTeamId, practiceIntensity, polls } = get();
+    const { currentWeek, districtTeams, leagueTeams, seasonSchedule, userTeamId, practiceIntensity, polls, league } = get();
+    // Advancing out of the off-season week starts next year
+    if (league && currentWeek > LAST_REGULAR_SEASON_WEEK + playoffRoundCount(league) + 1) {
+      get().transitionToNextYear();
+      return;
+    }
     const nextWeek = currentWeek + 1;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
 
@@ -651,6 +657,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { playoffBracket, userTeamId } = get();
     if (!playoffBracket || !userScore) return;
     set({ playoffBracket: recordPlayoffResult(playoffBracket, userTeamId, userScore) });
+  },
+
+  finishBanquet: () => {
+    const { currentWeek, coachPoints, coachTalents } = get();
+    set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents) });
   },
 
   transitionToNextYear: () => {

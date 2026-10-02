@@ -232,5 +232,5 @@ export function playoffRoundCount(league: LeagueStructure): number {
 
 /** Regular season + playoff rounds + the banquet week. */
 export function seasonLength(league: LeagueStructure): number {
-  return LAST_REGULAR_SEASON_WEEK + playoffRoundCount(league) + 1;
+  return LAST_REGULAR_SEASON_WEEK + playoffRoundCount(league) + 2; // + post-season (banquet) week + off-season week
 }
