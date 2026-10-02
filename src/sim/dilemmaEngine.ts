@@ -49,7 +49,7 @@ export function dilemmaChoiceCosts(choice: DilemmaChoice, userTeam: Team): strin
   const meters: [number, string][] = [
     [impact.schoolBoardTrustDelta, 'Board Trust'],
     [impact.boosterApprovalDelta, 'Booster Approval'],
-    [impact.lockerRoomDisciplineDelta, 'Discipline'],
+    [impact.lockerRoomDisciplineDelta, 'Morale'],
     [impact.complianceScoreDelta, 'Compliance']
   ];
   meters.forEach(([delta, label]) => delta < 0 && costs.push(`−${-delta} ${label}`));

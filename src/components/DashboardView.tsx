@@ -150,10 +150,10 @@ export const DashboardView: React.FC<{
         />
         <MeterCard label="Booster Approval" val={userTeam.programMeters.boosterApproval} color="#F59E0B" hint="Helps win over feeder recruits." />
         <MeterCard
-          label="Discipline"
+          label="Morale"
           val={userTeam.programMeters.lockerRoomDiscipline}
           color="#3B82F6"
-          hint={`Low discipline means more turnovers${userTeam.programMeters.lockerRoomDiscipline < SUSPENSION_DISCIPLINE ? ' and suspensions' : `; under ${SUSPENSION_DISCIPLINE}, suspensions`}. Full Contact practice builds it.`}
+          hint={`Low morale means more turnovers${userTeam.programMeters.lockerRoomDiscipline < SUSPENSION_DISCIPLINE ? ' and suspensions' : `; under ${SUSPENSION_DISCIPLINE}, suspensions`}. Full Contact practice builds it.`}
           warn={userTeam.programMeters.lockerRoomDiscipline < SUSPENSION_DISCIPLINE}
         />
         <MeterCard

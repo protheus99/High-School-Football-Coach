@@ -3,8 +3,8 @@ import { Player, Team } from '../types/game';
 // ---------------------------------------------------------------------------
 // What the program meters do (Compliance sanctions and Booster Approval live in their own engines).
 //
-// Discipline  - sloppy teams turn the ball over more (live and simulated games), and below 50 starters
-//               start getting suspended. Full-contact practices build it; walkthroughs let it slip.
+// Morale      - (stored as lockerRoomDiscipline) low-morale teams turn the ball over more (live and simulated
+//               games), and below 50 starters get suspended. Full-contact practices build it; walkthroughs let it slip.
 // Board Trust - the board decides how much of your time goes to football: it raises or cuts the weekly
 //               Coach Points income. Wins build it, losses cost it. Under 35 at season's end puts you on
 //               the hot seat; two such seasons in a row and you are fired.

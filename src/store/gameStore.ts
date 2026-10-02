@@ -634,7 +634,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
             week: nextWeek,
             outlet: 'TOWN_JOURNAL',
             headline: `${userTeam.name} Suspends ${suspended.position} ${suspended.firstName} ${suspended.lastName}`,
-            content: `A breakdown in team discipline (Discipline ${meters.lockerRoomDiscipline}) costs ${userTeam.name} a starter: ${suspended.lastName} sits this week's game.`,
+            content: `Sagging locker-room morale (Morale ${meters.lockerRoomDiscipline}) costs ${userTeam.name} a starter: ${suspended.lastName} sits this week's game.`,
             impactSentiment: 'NEGATIVE',
             featuredTeamName: userTeam.name
           },

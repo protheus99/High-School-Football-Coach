@@ -190,7 +190,7 @@ export const WeeklyAgenda: React.FC<{
     items.push({
       id: 'college',
       icon: '🎓',
-      title: 'Get your top prospects seen by colleges',
+      title: 'Help your players with College recruiting',
       detail: prospects.map((p) => `${p.position} ${shortName(p)} (${p.recruiting.starRating}★)`).join(', '),
       tone: 'todo',
       actions: collegeActions,
