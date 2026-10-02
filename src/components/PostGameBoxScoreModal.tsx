@@ -36,7 +36,7 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
       width="wide"
       footer={
         <button className="ui-btn ui-btn-primary ui-btn-block" onClick={onClose}>
-          Back to Dashboard
+          Back to Hub
         </button>
       }
     >

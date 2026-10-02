@@ -27,7 +27,7 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({ bracketS
   const userNode = findUserNode(bracketState, userTeamId)?.node;
   let userStatus: string;
   if (userDivision === undefined) userStatus = 'Your team did not qualify for the state playoffs.';
-  else if (isPlayoffsActive && userNode && !userNode.winnerTeamId) userStatus = 'Your game this week is ready: set your gameplan on the Dashboard.';
+  else if (isPlayoffsActive && userNode && !userNode.winnerTeamId) userStatus = 'Your game this week is ready: set your gameplan on the Hub.';
   else if (isPlayoffsActive && userNode?.winnerTeamId === userTeamId) userStatus = 'Victory! Advance the week to play out the rest of the round.';
   else if (divisions[userDivision].championTeamId === userTeamId) userStatus = '🏆 STATE CHAMPIONS!';
   else userStatus = 'Your season has ended. The tournament continues as you advance the weeks.';

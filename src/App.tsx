@@ -24,7 +24,7 @@ type AppTab = 'DASHBOARD' | 'TEAM' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS'
 
 /** Bottom tab bar (News lives in the top bar). */
 const NAV_TABS: { id: AppTab; icon: string; label: string }[] = [
-  { id: 'DASHBOARD', icon: '📊', label: 'Dashboard' },
+  { id: 'DASHBOARD', icon: '🧭', label: 'Hub' },
   { id: 'TEAM', icon: '🧢', label: 'Team' },
   { id: 'RANKINGS', icon: '🏆', label: 'Rankings' },
   { id: 'LEADERS', icon: '🌟', label: 'Leaders' },
@@ -222,18 +222,21 @@ export const App: React.FC = () => {
             onClick={() => setShowTalents(true)}
             aria-label={`Coach Points: ${coachPoints}. Open coach talents`}
             title="Coach Points"
-            style={{ ...topBtn('#FACC15'), color: '#0F172A', padding: '6px 10px', whiteSpace: 'nowrap' }}
+            style={{ ...topBtn('#FACC15'), ...statStack, color: '#0F172A', padding: '2px 5px' }}
           >
             {formatCP(coachPoints)}
+            <span style={statLabel}>Coach PTS</span>
           </button>
           {userTeam && (
-            <span title="Program prestige" aria-label={`Prestige ${userTeam.prestige}`} style={topPill}>
+            <span title="Program prestige" aria-label={`Prestige ${userTeam.prestige}`} style={{ ...topPill, ...statStack }}>
               ⭐ {userTeam.prestige}
+              <span style={statLabel}>Prestige</span>
             </span>
           )}
           {userTeam && (
-            <span title="Program rating" aria-label={`Rating ${programRating(userTeam)}`} style={topPill}>
+            <span title="Program rating" aria-label={`Rating ${programRating(userTeam)}`} style={{ ...topPill, ...statStack }}>
               📊 {programRating(userTeam)}
+              <span style={statLabel}>Rating</span>
             </span>
           )}
         </div>
@@ -256,7 +259,7 @@ export const App: React.FC = () => {
       </div>
 
       {/* Main Viewport Container */}
-      <div style={{ flex: 1, paddingBottom: '72px' }}>
+      <div style={{ flex: 1, paddingBottom: '88px' }}>
         {tab === 'DASHBOARD' && (
           <DashboardView
             onLaunchGame={handleLaunchMatch}
@@ -302,11 +305,15 @@ export const App: React.FC = () => {
   );
 };
 
+// Header stats: the value with a small label underneath
+const statStack: React.CSSProperties = { display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.1, whiteSpace: 'nowrap' };
+const statLabel: React.CSSProperties = { fontSize: '9px', fontWeight: 'bold', opacity: 0.85 };
+
 const topPill: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   minHeight: '40px',
-  padding: '0 6px',
+  padding: '0 5px',
   borderRadius: '6px',
   background: '#334155',
   color: '#fff',
@@ -329,9 +336,10 @@ const topBtn = (background: string): React.CSSProperties => ({
 });
 
 const navBtnStyle = (active: boolean): React.CSSProperties => ({
-  background: 'none',
-  border: 'none',
-  fontWeight: active ? 'bold' : 'normal',
-  color: active ? '#2563EB' : '#64748B',
+  background: active ? '#EFF6FF' : '#F8FAFC',
+  border: `${active ? 2 : 1}px solid ${active ? '#2563EB' : '#CBD5E1'}`,
+  borderRadius: '10px',
+  fontWeight: active ? 'bold' : 600,
+  color: active ? '#1D4ED8' : '#334155',
   cursor: 'pointer'
 });
