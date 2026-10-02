@@ -177,6 +177,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
                   <span style={teamNameStyle(readableOnWhite(team.primaryColor, team.secondaryColor))}>{team.name}</span>
                   {i === 0 && gameState.possessionTeamId === team.id && <span style={{ flex: '0 0 auto' }} aria-label="has the ball">🏈</span>}
                 </div>
+                {/* Record coming into the game */}
+                <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>
+                  ({team.record.wins}-{team.record.losses})
+                </div>
                 <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1, color: '#0F172A' }}>{i === 0 ? gameState.homeScore : gameState.awayScore}</div>
               </div>
             ) : (
