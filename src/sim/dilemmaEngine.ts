@@ -43,7 +43,7 @@ export function dilemmaChoiceCosts(choice: DilemmaChoice, userTeam: Team): strin
   const { impact } = choice;
   const name = (id: string) => {
     const p = userTeam.roster.find((pl) => pl.id === id);
-    return p ? `${p.firstName.charAt(0)}. ${p.lastName}` : 'A player';
+    return p ? `${p.position} #${p.lastName}(${p.overallRating})` : 'A player';
   };
   const costs: string[] = [];
   const meters: [number, string][] = [

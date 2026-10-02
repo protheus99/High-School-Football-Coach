@@ -97,7 +97,7 @@ export const WeeklyAgenda: React.FC<{
                   <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.label}</div>
                   <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>{c.description}</div>
                   {costs.length > 0 && (
-                    <div style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 'bold', marginTop: '4px' }}>Cost: {costs.join(' · ')}</div>
+                    <div style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 'bold', marginTop: '4px' }}>{costs.join(' · ')}</div>
                   )}
                 </button>
               );
