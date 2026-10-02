@@ -481,6 +481,8 @@ export function simulateSnap(
   // A touchdown on the previous snap means this snap is the try (PAT kick or 2-point play)
   const lastEvent = state.eventLog[state.eventLog.length - 1];
   const isTryDown = lastEvent?.scoreType === 'TOUCHDOWN';
+  // The situation at the snap, recorded on the event for the play-by-play (state changes below)
+  const snap = { down: state.down, distance: state.distance, yardLine: state.yardLine };
 
   let concept: PlayConcept;
   if (isTryDown) {
@@ -805,6 +807,10 @@ export function simulateSnap(
     down: state.down,
     distance: state.distance,
     yardLine: state.yardLine,
+    snapDown: snap.down,
+    snapDistance: snap.distance,
+    snapYardLine: snap.yardLine,
+    ...(isTryDown && { isTry: true }),
     possessionTeamId: state.possessionTeamId,
     playConcept: concept,
     yardsGained,

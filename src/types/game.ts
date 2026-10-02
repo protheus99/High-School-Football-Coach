@@ -210,9 +210,13 @@ export interface PlayEvent {
   playId: string;
   quarter: 1 | 2 | 3 | 4 | 'OT';
   clockTimeRemainingSeconds: number;
-  down: 1 | 2 | 3 | 4;
-  distance: number;
-  yardLine: number; // 1 to 99 relative to offense goal line
+  down: 1 | 2 | 3 | 4; // after the play
+  distance: number; // after the play
+  yardLine: number; // 1 to 99 relative to offense goal line (after the play)
+  snapDown?: 1 | 2 | 3 | 4; // down, distance and spot when the ball was snapped (for the play-by-play)
+  snapDistance?: number;
+  snapYardLine?: number;
+  isTry?: boolean; // the snap was a PAT or two-point try
   possessionTeamId: string;
   playConcept: PlayConcept;
   yardsGained: number;

@@ -63,4 +63,15 @@ describe('Game alerts', () => {
     expect(seen.get('TOUCHDOWN') ?? 0).toBeGreaterThan(3);
     expect((seen.get('INTERCEPTION') ?? 0) + (seen.get('FUMBLE') ?? 0)).toBeGreaterThan(0);
   });
+
+  it('every play records the down and distance at the snap for the play-by-play', () => {
+    const state = freshGame();
+    for (let snap = 0; snap < 400 && !state.isGameOver; snap++) {
+      const before = { down: state.down, distance: state.distance, yardLine: state.yardLine };
+      const { event } = simulateSnap(state);
+      expect(event.snapDown).toBe(before.down);
+      expect(event.snapDistance).toBe(before.distance);
+      expect(event.snapYardLine).toBe(before.yardLine);
+    }
+  });
 });

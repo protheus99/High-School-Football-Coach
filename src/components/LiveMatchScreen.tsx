@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GameSimulationState, PlayConcept, LeverageType, DefensiveCall } from '../types/game';
+import { GameSimulationState, PlayConcept, LeverageType, DefensiveCall, PlayEvent } from '../types/game';
 import { simWorkerBridge } from '../services/workerBridge';
 import { soundFx } from '../utils/soundEngine';
 import { PostGameBoxScoreModal } from './PostGameBoxScoreModal';
@@ -255,7 +255,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
                 ? 'OT'
                 : `Q${ev.quarter} - ${Math.floor(ev.clockTimeRemainingSeconds / 60)}:${(ev.clockTimeRemainingSeconds % 60).toString().padStart(2, '0')}`}]
             </span>{' '}
-            {ev.textCommentary}
+            {snapLabel(ev) && <strong style={{ color: '#1D4ED8' }}>{snapLabel(ev)}</strong>} {ev.textCommentary}
           </div>
         ))}
       </div>
@@ -353,6 +353,14 @@ const btnStyle: React.CSSProperties = {
 
 const ORDINAL: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
 const LOG_OPEN_KEY = 'hsfhc.playByPlayOpen';
+
+/** "1st & 10", "3rd & Goal", or "Try" for a PAT / two-point attempt (blank for events saved before this was recorded). */
+function snapLabel(ev: PlayEvent): string {
+  if (ev.isTry) return 'Try';
+  if (!ev.snapDown || ev.snapDistance === undefined) return '';
+  const toGo = ev.snapYardLine !== undefined && ev.snapYardLine + ev.snapDistance >= 100 ? 'Goal' : `${ev.snapDistance}`;
+  return `${ev.snapDown}${ORDINAL[ev.snapDown] ?? 'th'} & ${toGo}`;
+}
 
 const teamNameStyle = (color: string): React.CSSProperties => ({
   minWidth: 0,
