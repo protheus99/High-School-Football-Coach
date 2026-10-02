@@ -1,6 +1,6 @@
 import React from 'react';
 import { Player, Position, Team } from '../types/game';
-import { PHONE_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
+import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
 import { DEPTH_ROWS, DEPTH_TEMPLATE, SLOT_LABELS, depthChartName, depthGroup } from '../sim/depthChart';
 
 /** A slot on the board: a position and which starter column it is (e.g. OT column 0 = LT). */
@@ -83,7 +83,7 @@ export const DepthChartBoard: React.FC<{
   onMove: (playerId: string, direction: -1 | 1) => void;
   onSelect?: (player: Player) => void;
 }> = ({ team, onMove, onSelect }) => {
-  const isPhone = useMediaQuery(PHONE_QUERY);
+  const isPhone = !useMediaQuery(DESKTOP_QUERY); // mobile-first: the grid is the default layout
   const groups = new Map((Object.keys(DEPTH_TEMPLATE) as Position[]).map((pos) => [pos, depthGroup(team.roster, pos)]));
 
   const card = ([position, column]: Slot) => {

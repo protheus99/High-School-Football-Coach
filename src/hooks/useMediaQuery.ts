@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 
-/** Phone-width breakpoint shared with the stylesheet's media queries. */
-export const PHONE_QUERY = '(max-width: 720px)';
+/**
+ * Desktop breakpoint shared with the stylesheet. The game is mobile-first: phone layout is the default,
+ * desktop layout applies only when this matches (and where matchMedia is unavailable, phone layout wins).
+ */
+export const DESKTOP_QUERY = '(min-width: 721px)';
 
 /** True while the media query matches; updates on resize/rotation. */
 export function useMediaQuery(query: string): boolean {
