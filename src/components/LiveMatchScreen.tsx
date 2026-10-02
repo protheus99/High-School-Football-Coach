@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GameSimulationState, PlayConcept, LeverageType, DefensiveCall } from '../types/game';
 import { simWorkerBridge } from '../services/workerBridge';
 import { soundFx } from '../utils/soundEngine';
 import { PostGameBoxScoreModal } from './PostGameBoxScoreModal';
 import { HalftimeSpeechModal } from './HalftimeSpeechModal';
 import { FieldVisualizer } from './FieldVisualizer';
+import { PlayAlert } from './PlayAlert';
+import { PlayAlertData, PreSnap, alertForPlay } from '../sim/playAlerts';
 import { readableOnWhite } from '../utils/color';
 import { PlayCallingPanel } from './PlayCallingPanel';
 
@@ -37,6 +39,12 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   // A ref (not state) so flipping it doesn't re-run the setup effect and restart the game
   const halftimeHandledRef = useRef(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
+  // Flashing banner for big moments; muted while fast-forwarding to the final
+  const [playAlert, setPlayAlert] = useState<PlayAlertData | null>(null);
+  const simmingToEndRef = useRef(false);
+  // The game just before the current snap, so alerts can credit the right team
+  const preSnapRef = useRef<PreSnap>({ possessionTeamId: initialState.possessionTeamId, homeScore: initialState.homeScore, awayScore: initialState.awayScore });
+  const clearPlayAlert = useCallback(() => setPlayAlert(null), []);
 
   useEffect(() => {
     simWorkerBridge.initialize();
@@ -45,6 +53,11 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     simWorkerBridge.subscribe({
       onPlayResolved: ({ state, event }) => {
         setGameState({ ...state });
+        // A decision prompt only applies to the snap it was asked about (e.g. Next Snap was pressed instead)
+        setLeveragePrompt(null);
+        const alert = event && !simmingToEndRef.current ? alertForPlay(event, preSnapRef.current, state) : null;
+        if (alert) setPlayAlert(alert);
+        preSnapRef.current = { possessionTeamId: state.possessionTeamId, homeScore: state.homeScore, awayScore: state.awayScore };
 
         // Trigger Halftime Modal at start of Q3
         if (state.currentQuarter === 3 && !halftimeHandledRef.current) {
@@ -109,6 +122,8 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       {showBoxScore && (
         <PostGameBoxScoreModal gameState={gameState} onClose={() => { setShowBoxScore(false); onExit(gameState); }} />
       )}
+
+      <PlayAlert alert={playAlert} onDone={clearPlayAlert} />
 
       {showHalftimeModal && (
         <HalftimeSpeechModal
@@ -257,7 +272,14 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
             <button onClick={() => setAutoPlay(!autoPlay)} style={controlBtnStyle}>
               {autoPlay ? '⏸️ Pause' : '▶️ Auto-Sim'}
             </button>
-            <button onClick={() => simWorkerBridge.simToEnd()} style={controlBtnStyle}>
+            <button
+              onClick={() => {
+                simmingToEndRef.current = true;
+                setPlayAlert(null);
+                simWorkerBridge.simToEnd();
+              }}
+              style={controlBtnStyle}
+            >
               ⏩ Sim to Final
             </button>
           </>

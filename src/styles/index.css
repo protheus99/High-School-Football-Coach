@@ -568,3 +568,80 @@ h3 {
     max-width: 900px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Game alerts: flashing banners for first downs, touchdowns, turnovers
+   --------------------------------------------------------------------------- */
+.play-alert-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: none; /* never blocks the play-calling buttons */
+}
+
+.play-alert {
+  width: 100%;
+  max-width: 520px;
+  text-align: center;
+  padding: 18px 16px;
+  border-radius: 14px;
+  border: 4px solid;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.45);
+  animation: play-alert-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both, play-alert-flash 0.45s ease-in-out 0.35s 3;
+}
+
+.play-alert-big {
+  padding: 28px 16px;
+  animation: play-alert-pop 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both, play-alert-flash 0.4s ease-in-out 0.4s 5;
+}
+
+.play-alert-title {
+  font-size: clamp(32px, 11vw, 56px);
+  font-weight: 900;
+  letter-spacing: 1px;
+  line-height: 1.05;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.play-alert-big .play-alert-title {
+  font-size: clamp(40px, 14vw, 72px);
+}
+
+.play-alert-team {
+  font-size: 15px;
+  font-weight: bold;
+  margin-top: 4px;
+  opacity: 0.95;
+}
+
+@keyframes play-alert-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes play-alert-flash {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-alert,
+  .play-alert-big {
+    animation: none;
+  }
+}
