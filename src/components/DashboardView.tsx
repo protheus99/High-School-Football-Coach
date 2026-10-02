@@ -6,7 +6,7 @@ import { Sheet } from './ui/Sheet';
 import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
 import { FilmStudyModal } from './FilmStudyModal';
 import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
-import { HOT_SEAT_TRUST, SUSPENSION_DISCIPLINE, boardCpModifier } from '../sim/programMeters';
+import { programRating, ratingAlerts } from '../sim/programMeters';
 import { getUserMatchup } from '../sim/userMatchup';
 import { findDistrict, findRegion, playoffRoundCount } from '../sim/league';
 
@@ -139,30 +139,31 @@ export const DashboardView: React.FC<{
         phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek, league ? playoffRoundCount(league) : 6)]}
       />
 
-      {/* Program Meters */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-        <MeterCard
-          label="Board Trust"
-          val={userTeam.programMeters.schoolBoardTrust}
-          color="#10B981"
-          hint={`${boardCpModifier(userTeam.programMeters.schoolBoardTrust) >= 0 ? '+' : '−'}₡${Math.abs(boardCpModifier(userTeam.programMeters.schoolBoardTrust))} a week. Wins raise it; under ${HOT_SEAT_TRUST} at season's end is the hot seat.${onHotSeat ? ' You are on the hot seat.' : ''}`}
-          warn={onHotSeat || userTeam.programMeters.schoolBoardTrust < HOT_SEAT_TRUST}
-        />
-        <MeterCard label="Booster Approval" val={userTeam.programMeters.boosterApproval} color="#F59E0B" hint="Helps win over feeder recruits." />
-        <MeterCard
-          label="Morale"
-          val={userTeam.programMeters.lockerRoomDiscipline}
-          color="#3B82F6"
-          hint={`Low morale means more turnovers${userTeam.programMeters.lockerRoomDiscipline < SUSPENSION_DISCIPLINE ? ' and suspensions' : `; under ${SUSPENSION_DISCIPLINE}, suspensions`}. Full Contact practice builds it.`}
-          warn={userTeam.programMeters.lockerRoomDiscipline < SUSPENSION_DISCIPLINE}
-        />
-        <MeterCard
-          label="Compliance"
-          val={userTeam.programMeters.complianceScore}
-          color="#EC4899"
-          hint="Under 40, the state association hands out penalties."
-          warn={userTeam.programMeters.complianceScore < 40}
-        />
+      {/* Program Rating: the average of the background meters, with plain-word alerts */}
+      <div
+        style={{
+          background: ratingAlerts(userTeam, onHotSeat).length ? '#FEF2F2' : '#F9FAFB',
+          border: `1px solid ${ratingAlerts(userTeam, onHotSeat).length ? '#FCA5A5' : '#E5E7EB'}`,
+          borderRadius: '8px',
+          padding: '12px',
+          marginBottom: '24px'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <div style={{ fontSize: '13px', color: '#6B7280', fontWeight: 'bold' }}>📊 Program Rating</div>
+          <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#2563EB' }}>{programRating(userTeam)}</div>
+        </div>
+        <div style={{ background: '#E5E7EB', height: '6px', borderRadius: '3px', marginTop: '6px' }}>
+          <div style={{ background: '#2563EB', width: `${programRating(userTeam)}%`, height: '100%', borderRadius: '3px' }} />
+        </div>
+        <div style={{ fontSize: '12px', color: '#64748B', marginTop: '6px' }}>
+          How the school board, boosters, locker room and state association see your program. Wins and good decisions raise it.
+        </div>
+        {ratingAlerts(userTeam, onHotSeat).map((a) => (
+          <div key={a} style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 'bold', marginTop: '4px' }}>
+            ⚠️ {a}
+          </div>
+        ))}
       </div>
 
       {/* State Association Sanctions */}
@@ -170,7 +171,7 @@ export const DashboardView: React.FC<{
         <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', fontSize: '13px', color: '#991B1B' }}>
           <strong>⚖️ STATE ASSOCIATION SANCTIONS:</strong>{' '}
           {['', 'Public reprimand issued.', 'A district win has been forfeited.', 'Program banned from the state playoffs.'][sanctionLevel]}{' '}
-          {sanctionLevel < 3 && 'Raise Compliance above 40 to stop further penalties.'}
+          {sanctionLevel < 3 && 'Run a clean program to stop further penalties.'}
         </div>
       )}
 
@@ -216,13 +217,3 @@ export const DashboardView: React.FC<{
   );
 };
 
-const MeterCard: React.FC<{ label: string; val: number; color: string; hint?: string; warn?: boolean }> = ({ label, val, color, hint, warn }) => (
-  <div style={{ background: warn ? '#FEF2F2' : '#F9FAFB', border: `1px solid ${warn ? '#FCA5A5' : '#E5E7EB'}`, borderRadius: '8px', padding: '12px' }}>
-    <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '4px' }}>{label}</div>
-    <div style={{ fontSize: '20px', fontWeight: 'bold', color }}>{val}%</div>
-    <div style={{ background: '#E5E7EB', height: '6px', borderRadius: '3px', marginTop: '6px' }}>
-      <div style={{ background: color, width: `${val}%`, height: '100%', borderRadius: '3px' }} />
-    </div>
-    {hint && <div style={{ fontSize: '12px', color: warn ? '#B91C1C' : '#64748B', marginTop: '6px', lineHeight: 1.35 }}>{hint}</div>}
-  </div>
-);

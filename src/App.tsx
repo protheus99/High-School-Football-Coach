@@ -12,6 +12,7 @@ import { LiveMatchScreen } from './components/LiveMatchScreen';
 import { SaveLoadManagerModal } from './components/SaveLoadManagerModal';
 import { CoachRPGSkillTreeModal } from './components/CoachRPGSkillTreeModal';
 import { formatCP } from './sim/coachPoints';
+import { programRating } from './sim/programMeters';
 import { SplashScreen } from './components/SplashScreen';
 import { StatePlayoffBracketModal } from './components/StatePlayoffBracketModal';
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
@@ -132,7 +133,7 @@ export const App: React.FC = () => {
         <div style={{ fontSize: '48px' }}>📉</div>
         <h1 style={{ margin: '8px 0', fontSize: '26px' }}>You&apos;ve been fired</h1>
         <p style={{ color: '#475569', fontSize: '15px' }}>
-          After a second straight season with Board Trust under 35, the {firedFrom} school board has decided to make a change. Thank you for your service, Coach.
+          After a second straight season without the board's confidence, the {firedFrom} school board has decided to make a change. Thank you for your service, Coach.
         </p>
         <button className="ui-btn ui-btn-primary ui-btn-block" style={{ marginTop: '16px', minHeight: '50px' }} onClick={() => setShowMenu(true)}>
           Back to the main menu
@@ -209,9 +210,12 @@ export const App: React.FC = () => {
 
       {/* Top Navigation Bar */}
       <div className="app-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          <div style={{ fontSize: '14px', color: '#CBD5E1', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-            {currentYear} · Wk {currentWeek}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+          {/* Year over week keeps the bar to one row on phones */}
+          <div style={{ fontSize: '12px', color: '#CBD5E1', fontWeight: 'bold', whiteSpace: 'nowrap', lineHeight: 1.2, textAlign: 'center' }}>
+            {currentYear}
+            <br />
+            Wk {currentWeek}
           </div>
           {/* Coach Points: the one currency. Tap to spend it on coach talents. */}
           <button
@@ -223,16 +227,17 @@ export const App: React.FC = () => {
             {formatCP(coachPoints)}
           </button>
           {userTeam && (
-            <span
-              title="Program prestige"
-              aria-label={`Prestige ${userTeam.prestige}`}
-              style={{ display: 'inline-flex', alignItems: 'center', minHeight: '40px', padding: '0 8px', borderRadius: '6px', background: '#334155', color: '#fff', fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap' }}
-            >
+            <span title="Program prestige" aria-label={`Prestige ${userTeam.prestige}`} style={topPill}>
               ⭐ {userTeam.prestige}
             </span>
           )}
+          {userTeam && (
+            <span title="Program rating" aria-label={`Rating ${programRating(userTeam)}`} style={topPill}>
+              📊 {programRating(userTeam)}
+            </span>
+          )}
         </div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           <button onClick={() => setTab('NEWS')} aria-label="News" title="News" style={topBtn(tab === 'NEWS' ? '#2563EB' : '#334155')}>
             📰 <span className="hide-sm">News</span>
           </button>
@@ -295,6 +300,19 @@ export const App: React.FC = () => {
       </nav>
     </div>
   );
+};
+
+const topPill: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: '40px',
+  padding: '0 6px',
+  borderRadius: '6px',
+  background: '#334155',
+  color: '#fff',
+  fontSize: '13px',
+  fontWeight: 'bold',
+  whiteSpace: 'nowrap'
 };
 
 const topBtn = (background: string): React.CSSProperties => ({

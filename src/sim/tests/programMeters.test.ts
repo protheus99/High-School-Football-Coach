@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { simulateMacroMatch } from '../macroSim';
-import { boardCpModifier, boardReview, pickSuspension, suspensionChance } from '../programMeters';
+import { boardCpModifier, boardReview, pickSuspension, programRating, ratingAlerts, suspensionChance } from '../programMeters';
+import { dilemmaChoiceCosts } from '../dilemmaEngine';
 import { weeklyCpIncome } from '../coachPoints';
 import { useGameStore } from '../../store/gameStore';
 
@@ -57,4 +58,21 @@ describe('Board Trust', () => {
     expect(store.getState().firedFrom).toBe(team().name);
     expect(store.getState().currentYear).toBe(year); // no new season
   }, 60000);
+});
+
+describe('Rating', () => {
+  it('is the average of the four background meters, with plain-word alerts and Rating costs', () => {
+    const [team] = generateDistrictTeams();
+    Object.assign(team.programMeters, { schoolBoardTrust: 80, boosterApproval: 60, lockerRoomDiscipline: 70, complianceScore: 90 });
+    expect(programRating(team)).toBe(75);
+    expect(ratingAlerts(team, false)).toEqual([]);
+    team.programMeters.lockerRoomDiscipline = 30;
+    expect(ratingAlerts(team, true).join(' ')).toMatch(/hot seat.*morale/i);
+
+    const costs = dilemmaChoiceCosts(
+      { id: 'c', label: '', description: '', tier: 'CORRUPT', impact: { schoolBoardTrustDelta: -8, boosterApprovalDelta: 8, lockerRoomDisciplineDelta: -4, complianceScoreDelta: -20 } },
+      team
+    );
+    expect(costs).toEqual(['−6 Rating', 'could draw an investigation']);
+  });
 });

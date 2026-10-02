@@ -634,7 +634,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
             week: nextWeek,
             outlet: 'TOWN_JOURNAL',
             headline: `${userTeam.name} Suspends ${suspended.position} ${suspended.firstName} ${suspended.lastName}`,
-            content: `Sagging locker-room morale (Morale ${meters.lockerRoomDiscipline}) costs ${userTeam.name} a starter: ${suspended.lastName} sits this week's game.`,
+            content: `Sagging locker-room morale costs ${userTeam.name} a starter: ${suspended.lastName} sits this week's game.`,
             impactSentiment: 'NEGATIVE',
             featuredTeamName: userTeam.name
           },
@@ -733,7 +733,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
               week: 1,
               outlet: 'TOWN_JOURNAL',
               headline: `School Board Puts ${userTeam.name} Coach on the Hot Seat`,
-              content: `Board members say confidence in the program is low (Board Trust ${userTeam.programMeters.schoolBoardTrust}). Another season like this one and the board will make a change.`,
+              content: `Board members say confidence in the program is low. Another season like this one and the board will make a change.`,
               impactSentiment: 'NEGATIVE',
               featuredTeamName: userTeam.name
             }

@@ -46,13 +46,10 @@ export function dilemmaChoiceCosts(choice: DilemmaChoice, userTeam: Team): strin
     return p ? `${p.position} #${p.lastName}(${p.overallRating})` : 'A player';
   };
   const costs: string[] = [];
-  const meters: [number, string][] = [
-    [impact.schoolBoardTrustDelta, 'Board Trust'],
-    [impact.boosterApprovalDelta, 'Booster Approval'],
-    [impact.lockerRoomDisciplineDelta, 'Morale'],
-    [impact.complianceScoreDelta, 'Compliance']
-  ];
-  meters.forEach(([delta, label]) => delta < 0 && costs.push(`−${-delta} ${label}`));
+  // Rating is the average of the four background meters
+  const ratingChange = Math.round((impact.schoolBoardTrustDelta + impact.boosterApprovalDelta + impact.lockerRoomDisciplineDelta + impact.complianceScoreDelta) / 4);
+  if (ratingChange < 0) costs.push(`−${-ratingChange} Rating`);
+  if (impact.complianceScoreDelta <= -10) costs.push('could draw an investigation');
   if (impact.playerAvailabilityOverride && !impact.playerAvailabilityOverride.isEligible) costs.push(`${name(impact.playerAvailabilityOverride.playerId)} ruled ineligible`);
   if (impact.sidelinePlayer) {
     const w = impact.sidelinePlayer.weeks;

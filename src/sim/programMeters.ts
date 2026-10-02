@@ -10,6 +10,27 @@ import { Player, Team } from '../types/game';
 //               the hot seat; two such seasons in a row and you are fired.
 // ---------------------------------------------------------------------------
 
+/**
+ * The program's Rating: the average of the four background meters (Board Trust, Booster Approval,
+ * Morale, Compliance). The meters keep their own effects; the coach sees only this number.
+ */
+export function programRating(team: Team): number {
+  const m = team.programMeters;
+  return Math.round((m.schoolBoardTrust + m.boosterApproval + m.lockerRoomDiscipline + m.complianceScore) / 4);
+}
+
+/** Problems worth telling the coach about, in plain words (the meters themselves stay hidden). */
+export function ratingAlerts(team: Team, onHotSeat: boolean): string[] {
+  const m = team.programMeters;
+  const alerts: string[] = [];
+  if (onHotSeat) alerts.push('You are on the hot seat: another bad season and the board will make a change.');
+  else if (m.schoolBoardTrust < HOT_SEAT_TRUST) alerts.push('The school board is losing patience. Win games to win it back.');
+  if (m.lockerRoomDiscipline < SUSPENSION_DISCIPLINE) alerts.push('Locker-room morale is low: expect sloppy play and suspensions.');
+  if (m.complianceScore < 40) alerts.push('The state association is watching the program closely.');
+  if (m.boosterApproval < 50) alerts.push('Boosters are unhappy, which hurts feeder recruiting.');
+  return alerts;
+}
+
 /** Discipline where a team plays clean, average football (the typical AI program). */
 export const NEUTRAL_DISCIPLINE = 78;
 

@@ -59,12 +59,12 @@ export const COACH_TALENTS: CoachTalent[] = [
     cost: 12000,
     requires: 'ASSISTANT_UPGRADE'
   },
-  { id: 'BOARD_ROOM_SHIELD', branch: 'POLITICIAN', name: 'Board Room Shield', description: '+15 School Board Trust right away.', cost: 6000 },
+  { id: 'BOARD_ROOM_SHIELD', branch: 'POLITICIAN', name: 'Board Room Shield', description: 'Win over the school board: Rating up right away, and the board is more patient.', cost: 6000 },
   {
     id: 'BOOSTER_BREAKFASTS',
     branch: 'POLITICIAN',
     name: 'Booster Breakfasts',
-    description: '+10 Booster Approval right away.',
+    description: 'Win over the boosters: Rating up right away, and feeder recruiting gets a lift.',
     cost: 12000,
     requires: 'BOARD_ROOM_SHIELD'
   },
