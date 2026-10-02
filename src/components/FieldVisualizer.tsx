@@ -1,12 +1,11 @@
 import React from 'react';
-import { luminance, readableOnWhite } from '../utils/color';
+import { luminance } from '../utils/color';
 
 interface FieldVisualizerProps {
   yardLine: number; // 1 to 99 relative to offensive goal line
   distance: number;
-  possessionTeamName: string;
   possessionColor: string;
-  possessionSecondaryColor?: string;
+  caption?: React.ReactNode;
   /** Home team drives right to left, the visitors left to right. */
   possessionIsHome: boolean;
   homeTeamName: string;
@@ -17,9 +16,8 @@ interface FieldVisualizerProps {
 export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
   yardLine,
   distance,
-  possessionTeamName,
   possessionColor,
-  possessionSecondaryColor,
+  caption,
   possessionIsHome,
   homeTeamName,
   homeColor,
@@ -107,10 +105,8 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
         />
       </svg>
 
-      {/* Possession on a white strip so the school color is readable; down and distance live in the scoreboard */}
-      <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 10px', marginTop: '8px', fontSize: '13px', color: '#334155' }}>
-        🏈 <strong style={{ color: readableOnWhite(possessionColor, possessionSecondaryColor) }}>{possessionTeamName}</strong> ball
-      </div>
+      {/* Message strip under the field: the latest play, or a flashing banner for big moments */}
+      {caption && <div style={{ marginTop: '8px' }}>{caption}</div>}
     </div>
   );
 };

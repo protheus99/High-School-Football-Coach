@@ -24,31 +24,29 @@ const DURATION: Record<PlayAlertKind, number> = {
 };
 
 /**
- * A flashing banner over the field for big moments. It ignores taps (the game stays playable underneath)
- * and dismisses itself.
+ * A flashing banner for big moments, shown in the message strip under the field. It dismisses itself
+ * and never covers the scoreboard or the play-calling buttons.
  */
-export const PlayAlert: React.FC<{ alert: PlayAlertData | null; onDone: () => void }> = ({ alert, onDone }) => {
+export const PlayAlert: React.FC<{ alert: PlayAlertData; onDone: () => void }> = ({ alert, onDone }) => {
   useEffect(() => {
-    if (!alert) return;
     const timer = setTimeout(onDone, DURATION[alert.kind]);
     return () => clearTimeout(timer);
   }, [alert, onDone]);
 
-  if (!alert) return null;
   const color = alert.team.primaryColor || '#0F172A';
   const text = (luminance(color) ?? 0) > 0.45 ? '#0F172A' : '#FFFFFF';
   const big = alert.kind === 'TOUCHDOWN';
 
   return (
-    <div className="play-alert-layer" role="status" aria-live="assertive">
-      <div
-        key={alert.id}
-        className={`play-alert${big ? ' play-alert-big' : ''}`}
-        style={{ background: color, color: text, borderColor: alert.team.secondaryColor || '#FACC15' }}
-      >
-        <div className="play-alert-title">{LABELS[alert.kind]}</div>
-        <div className="play-alert-team">{alert.team.name}</div>
-      </div>
+    <div
+      key={alert.id}
+      role="status"
+      aria-live="assertive"
+      className={`play-alert${big ? ' play-alert-big' : ''}`}
+      style={{ background: color, color: text, borderColor: alert.team.secondaryColor || '#FACC15' }}
+    >
+      <span className="play-alert-title">{LABELS[alert.kind]}</span>
+      <span className="play-alert-team">{alert.team.name}</span>
     </div>
   );
 };

@@ -123,8 +123,6 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         <PostGameBoxScoreModal gameState={gameState} onClose={() => { setShowBoxScore(false); onExit(gameState); }} />
       )}
 
-      <PlayAlert alert={playAlert} onDone={clearPlayAlert} />
-
       {showHalftimeModal && (
         <HalftimeSpeechModal
           gameState={gameState}
@@ -171,9 +169,16 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       <FieldVisualizer
         yardLine={gameState.yardLine}
         distance={gameState.distance}
-        possessionTeamName={currentPossTeam.name}
         possessionColor={currentPossTeam.primaryColor}
-        possessionSecondaryColor={currentPossTeam.secondaryColor}
+        caption={
+          playAlert ? (
+            <PlayAlert alert={playAlert} onDone={clearPlayAlert} />
+          ) : (
+            <div className="play-latest" aria-live="polite">
+              {gameState.eventLog[gameState.eventLog.length - 1]?.textCommentary ?? 'Kickoff! The game is under way.'}
+            </div>
+          )
+        }
         possessionIsHome={gameState.possessionTeamId === gameState.homeTeam.id}
         homeTeamName={gameState.homeTeam.name}
         homeColor={gameState.homeTeam.primaryColor}
