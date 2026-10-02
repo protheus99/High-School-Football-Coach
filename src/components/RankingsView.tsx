@@ -24,7 +24,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
       return <span style={{ color: '#DC2626', fontWeight: 'bold', fontSize: '12px' }}>▼ {entry.movementDelta}</span>;
     }
     if (entry.movement === 'NEW_ENTRY') {
-      return <span style={{ background: '#2563EB', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>NEW</span>;
+      return <span style={{ background: '#2563EB', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>NEW</span>;
     }
     return <span style={{ color: '#94A3B8', fontSize: '12px' }}>—</span>;
   };

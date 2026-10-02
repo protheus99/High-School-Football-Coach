@@ -50,7 +50,7 @@ export const DashboardView: React.FC<{
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div className="ui-screen" style={{ maxWidth: '1000px' }}>
       {showFilmModal && opponent && (
         <FilmStudyModal opponent={opponent} onClose={() => setShowFilmModal(false)} />
       )}
@@ -119,10 +119,7 @@ export const DashboardView: React.FC<{
           <div style={{ background: '#EEF2FF', color: '#4F46E5', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold' }}>
             WEEK {currentWeek} OF {totalWeeks}
           </div>
-          <button
-            onClick={handleAdvanceWeek}
-            style={{ padding: '8px 14px', background: '#334155', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
-          >
+          <button className="ui-btn ui-btn-dark" onClick={handleAdvanceWeek}>
             ⏭️ Advance Week
           </button>
         </div>
@@ -177,7 +174,7 @@ export const DashboardView: React.FC<{
                 style={{ textAlign: 'left', padding: '10px 14px', background: '#fff', border: '1px solid #D1D5DB', borderRadius: '6px', cursor: 'pointer' }}
               >
                 <div style={{ fontWeight: 'bold', fontSize: '13px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#fff', background: TIER_COLORS[c.tier], borderRadius: '3px', padding: '1px 6px', marginRight: '8px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff', background: TIER_COLORS[c.tier], borderRadius: '3px', padding: '1px 6px', marginRight: '8px' }}>
                     {c.tier}
                   </span>
                   {c.label}
@@ -211,18 +208,17 @@ export const DashboardView: React.FC<{
             <p style={{ margin: '0 0 16px 0', color: '#94A3B8' }}>
               {game.label} · {isHome ? 'vs.' : 'at'} {opponent.name} {opponent.mascot} ({opponent.record.wins}-{opponent.record.losses})
             </p>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+            {/* Primary action first and full width on phones */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
               <button
-                onClick={() => setShowFilmModal(true)}
-                style={{ padding: '10px 20px', background: '#475569', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
-              >
-                🎥 Study Opponent Film
-              </button>
-              <button
+                className="ui-btn"
+                style={{ background: '#10B981', borderColor: '#10B981', color: '#fff', minHeight: '48px', fontSize: '15px' }}
                 onClick={() => setShowPreGameModal(true)}
-                style={{ padding: '10px 24px', background: '#10B981', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
               >
-                🏈 Set Gameplan & Kick Off
+                🏈 Set Game Plan &amp; Kick Off
+              </button>
+              <button className="ui-btn" style={{ background: '#475569', borderColor: '#475569', color: '#fff' }} onClick={() => setShowFilmModal(true)}>
+                🎥 Study Opponent Film
               </button>
             </div>
           </>

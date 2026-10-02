@@ -12,21 +12,25 @@ export const PlayCallingPanel: React.FC<PlayCallingPanelProps> = ({ side, onCall
   if (side === 'DEFENSE') {
     return (
       <div style={{ background: '#3B1D1D', borderRadius: '8px', padding: '12px', margin: '12px 0' }}>
-        <div style={{ color: '#FCA5A5', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase' }}>
-          Defensive Play-Calling Panel
+        <div style={{ color: '#FCA5A5', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase' }}>
+          Call the defense
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(76px, 1fr))', gap: '6px' }}>
-          <button onClick={() => onCallDefense('BASE')} disabled={disabled} style={playBtnStyle('#94A3B8')} title="Balanced front and coverage">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
+          <button onClick={() => onCallDefense('BASE')} disabled={disabled} style={playBtnStyle('#94A3B8')}>
             🛡️ Base
+            <span style={hintStyle}>Balanced front</span>
           </button>
-          <button onClick={() => onCallDefense('RUN_BLITZ')} disabled={disabled} style={playBtnStyle('#F97316')} title="Stack the box: stops runs, vulnerable to passes">
+          <button onClick={() => onCallDefense('RUN_BLITZ')} disabled={disabled} style={playBtnStyle('#F97316')}>
             🧱 Run Blitz
+            <span style={hintStyle}>Stops runs, weak vs. pass</span>
           </button>
-          <button onClick={() => onCallDefense('PASS_COVERAGE')} disabled={disabled} style={playBtnStyle('#3B82F6')} title="Extra DBs: stops passes, vulnerable to runs">
+          <button onClick={() => onCallDefense('PASS_COVERAGE')} disabled={disabled} style={playBtnStyle('#3B82F6')}>
             🕸️ Pass Coverage
+            <span style={hintStyle}>Stops passes, weak vs. run</span>
           </button>
-          <button onClick={() => onCallDefense('BLITZ')} disabled={disabled} style={playBtnStyle('#EF4444')} title="All-out pressure: sacks and turnovers, but big plays allowed">
+          <button onClick={() => onCallDefense('BLITZ')} disabled={disabled} style={playBtnStyle('#EF4444')}>
             ⚡ All-Out Blitz
+            <span style={hintStyle}>Sacks and turnovers, risky</span>
           </button>
         </div>
       </div>
@@ -35,10 +39,10 @@ export const PlayCallingPanel: React.FC<PlayCallingPanelProps> = ({ side, onCall
 
   return (
     <div style={{ background: '#1E293B', borderRadius: '8px', padding: '12px', margin: '12px 0' }}>
-      <div style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase' }}>
-        Tactical Play-Calling Panel
+      <div style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase' }}>
+        Call the play
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(76px, 1fr))', gap: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
         <button onClick={() => onCallPlay('INSIDE_RUN')} disabled={disabled} style={playBtnStyle('#3B82F6')}>
           🏈 Inside Power
         </button>
@@ -56,16 +60,20 @@ export const PlayCallingPanel: React.FC<PlayCallingPanelProps> = ({ side, onCall
   );
 };
 
+const hintStyle: React.CSSProperties = { display: 'block', fontSize: '12px', fontWeight: 'normal', color: '#CBD5E1', marginTop: '2px' };
+
 const playBtnStyle = (accentColor: string): React.CSSProperties => ({
-  padding: '8px 4px',
+  minHeight: '56px', // big, thumb-friendly targets: this panel is tapped every snap
+  padding: '8px 10px',
+  textAlign: 'left',
   background: '#334155',
   borderLeft: `4px solid ${accentColor}`,
   borderTop: 'none',
   borderRight: 'none',
   borderBottom: 'none',
   color: '#fff',
-  borderRadius: '4px',
-  fontSize: '11px',
+  borderRadius: '8px',
+  fontSize: '14px',
   fontWeight: 'bold',
   cursor: 'pointer'
 });

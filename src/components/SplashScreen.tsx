@@ -216,7 +216,7 @@ const saveRow: React.CSSProperties = {
 const badge = (background: string, color: string): React.CSSProperties => ({
   background,
   color,
-  fontSize: '11px',
+  fontSize: '12px',
   fontWeight: 'bold',
   padding: '2px 6px',
   borderRadius: '4px',
@@ -224,7 +224,8 @@ const badge = (background: string, color: string): React.CSSProperties => ({
 });
 
 const smallBtn = (background: string, color: string): React.CSSProperties => ({
-  padding: '6px 12px',
+  minHeight: '40px', // comfortable tap target
+  padding: '8px 12px',
   background,
   color,
   border: 'none',

@@ -120,26 +120,26 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         />
       )}
 
-      {/* Scoreboard Header */}
-      <div style={{ background: '#111827', color: '#fff', borderRadius: '8px', padding: '16px', marginBottom: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ margin: 0, color: gameState.homeTeam.primaryColor }}>{gameState.homeTeam.name}</h2>
-            <div style={{ fontSize: '32px', fontWeight: 'bold' }}>{gameState.homeScore}</div>
+      {/* Scoreboard: compact three-column layout that fits a phone */}
+      <div style={{ background: '#111827', color: '#fff', borderRadius: '10px', padding: '12px', marginBottom: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', alignItems: 'center', gap: '8px' }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={teamNameStyle(gameState.homeTeam.primaryColor)}>{gameState.homeTeam.name}</div>
+            <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1 }}>{gameState.homeScore}</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#F59E0B' }}>
+            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#F59E0B' }}>
               {gameState.currentQuarter === 'OT'
-                ? `OVERTIME ${gameState.overtime?.period ?? 1}`
-                : `Q${gameState.currentQuarter} - ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}`}
+                ? `OT ${gameState.overtime?.period ?? 1}`
+                : `Q${gameState.currentQuarter} ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}`}
             </div>
-            <div style={{ fontSize: '13px', color: '#9CA3AF' }}>
-              BALL ON: {gameState.yardLine} YD | DOWN: {gameState.down} & {gameState.distance}
+            <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
+              {gameState.down} &amp; {gameState.distance} · {gameState.yardLine} yd
             </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <h2 style={{ margin: 0, color: gameState.awayTeam.primaryColor }}>{gameState.awayTeam.name}</h2>
-            <div style={{ fontSize: '32px', fontWeight: 'bold' }}>{gameState.awayScore}</div>
+          <div style={{ minWidth: 0, textAlign: 'right' }}>
+            <div style={teamNameStyle(gameState.awayTeam.primaryColor)}>{gameState.awayTeam.name}</div>
+            <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1 }}>{gameState.awayScore}</div>
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         style={{
           background: '#F3F4F6',
           borderRadius: '8px',
-          height: '240px',
+          height: '200px',
           overflowY: 'auto',
           padding: '12px',
           border: '1px solid #E5E7EB',
@@ -224,19 +224,34 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         </div>
       )}
 
-      {/* Sim Controls */}
-      <div style={{ display: 'flex', gap: '8px' }}>
+      {/* Sim controls: pinned to the bottom of the screen so they're always under your thumb */}
+      <div
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          display: 'flex',
+          gap: '8px',
+          background: '#F8FAFC',
+          padding: '10px 0',
+          paddingBottom: 'calc(10px + env(safe-area-inset-bottom))',
+          zIndex: 20
+        }}
+      >
         {!gameState.isGameOver ? (
           <>
-            <button onClick={() => simWorkerBridge.stepPlay()} disabled={autoPlay} style={controlBtnStyle}>Next Snap</button>
+            <button onClick={() => simWorkerBridge.stepPlay()} disabled={autoPlay} style={controlBtnStyle}>
+              Next Snap
+            </button>
             <button onClick={() => setAutoPlay(!autoPlay)} style={controlBtnStyle}>
               {autoPlay ? '⏸️ Pause' : '▶️ Auto-Sim'}
             </button>
-            <button onClick={() => simWorkerBridge.simToEnd()} style={controlBtnStyle}>⏩ Sim to Final</button>
+            <button onClick={() => simWorkerBridge.simToEnd()} style={controlBtnStyle}>
+              ⏩ Sim to Final
+            </button>
           </>
         ) : (
           <button onClick={() => setShowBoxScore(true)} style={{ ...controlBtnStyle, background: '#10B981', color: '#fff' }}>
-            📊 View Final Box Score & Stats
+            📊 Final Box Score
           </button>
         )}
       </div>
@@ -254,7 +269,17 @@ const btnStyle: React.CSSProperties = {
   fontWeight: 'bold'
 };
 
+const teamNameStyle = (color: string): React.CSSProperties => ({
+  fontSize: '14px',
+  fontWeight: 'bold',
+  color,
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis'
+});
+
 const controlBtnStyle: React.CSSProperties = {
+  minHeight: '48px',
   flex: '1 1 0', // share the row evenly so labels fit on phones
   padding: '10px 8px',
   background: '#3B82F6',

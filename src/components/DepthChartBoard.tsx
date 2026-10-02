@@ -102,7 +102,7 @@ export const DepthChartBoard: React.FC<{
       const p = group[i];
       const out = unavailable(p);
       return (
-        <div key={p.id} style={{ ...lineStyle, fontWeight: row === 0 ? 'bold' : 'normal', fontSize: row === 0 ? '13px' : '12px' }}>
+        <div key={p.id} style={{ ...lineStyle, minHeight: isPhone ? '44px' : '22px', fontWeight: row === 0 ? 'bold' : 'normal', fontSize: isPhone ? '14px' : row === 0 ? '13px' : '12px' }}>
           <button
             onClick={() => onSelect?.(p)}
             style={{ ...nameBtn, color: out ? '#B91C1C' : row === 0 ? '#0F172A' : '#475569' }}
@@ -111,14 +111,14 @@ export const DepthChartBoard: React.FC<{
             {depthChartName(p)}
             {out && '*'}
           </button>
-          <span style={{ display: 'flex', gap: '2px' }}>
-            <button onClick={() => onMove(p.id, -1)} disabled={i - k < 0} style={arrowBtn(i - k < 0)} aria-label={`Move ${p.lastName} up`}>
+          <span style={{ display: 'flex', gap: isPhone ? '6px' : '2px' }}>
+            <button onClick={() => onMove(p.id, -1)} disabled={i - k < 0} style={arrowBtn(i - k < 0, isPhone)} aria-label={`Move ${p.lastName} up`}>
               ▲
             </button>
             <button
               onClick={() => onMove(p.id, 1)}
               disabled={i + k >= group.length}
-              style={arrowBtn(i + k >= group.length)}
+              style={arrowBtn(i + k >= group.length, isPhone)}
               aria-label={`Move ${p.lastName} down`}
             >
               ▼
@@ -134,7 +134,7 @@ export const DepthChartBoard: React.FC<{
           {rows.map((i, r) => line(i, r))}
           {reserves.length > 0 && (
             <div style={{ borderTop: '1px dashed #E2E8F0', marginTop: '2px', paddingTop: '2px' }}>
-              <div style={{ fontSize: '10px', color: '#94A3B8' }}>Reserves</div>
+              <div style={{ fontSize: '12px', color: '#94A3B8' }}>Reserves</div>
               {reserves.map((i) => line(i, DEPTH_ROWS))}
             </div>
           )}
@@ -151,8 +151,8 @@ export const DepthChartBoard: React.FC<{
     <div style={{ marginBottom: '18px' }}>
       <h3 style={sectionTitle}>{title}</h3>
       {isPhone ? (
-        // Phones: slot cards two to a row, in formation order (left to right, front to back)
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: `${GAP}px` }}>
+        // Phones: one slot card per row (two on larger phones), in formation order, with thumb-sized arrows
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: `${GAP}px` }}>
           {rows.flatMap((row) => [...(row.left ?? []), ...(row.center ?? []), ...(row.right ?? [])]).map(card)}
         </div>
       ) : (
@@ -174,7 +174,7 @@ export const DepthChartBoard: React.FC<{
         {section('DEFENSE', DEFENSE)}
         {section('OFFENSE', OFFENSE)}
         {section('SPECIALISTS', SPECIALISTS)}
-        <div style={{ fontSize: '11px', color: '#64748B', textAlign: 'center' }}>
+        <div style={{ fontSize: '12px', color: '#64748B', textAlign: 'center' }}>
           Bold = starter. ▲▼ swaps a player with the one above or below him in that slot. <span style={{ color: '#B91C1C' }}>*</span> injured or
           ineligible (the next man up plays).
         </div>
@@ -235,12 +235,13 @@ const nameBtn: React.CSSProperties = {
   flex: 1
 };
 
-const arrowBtn = (disabled: boolean): React.CSSProperties => ({
-  width: '20px',
-  height: '20px',
+/** Arrow buttons: thumb-sized on phones, compact in the desktop formation view. */
+const arrowBtn = (disabled: boolean, phone: boolean): React.CSSProperties => ({
+  width: phone ? '40px' : '22px',
+  height: phone ? '36px' : '22px',
   padding: 0,
-  fontSize: '10px',
-  lineHeight: '20px',
+  fontSize: phone ? '14px' : '12px',
+  lineHeight: 1,
   border: '1px solid #CBD5E1',
   borderRadius: '3px',
   background: disabled ? '#F8FAFC' : '#EFF6FF',

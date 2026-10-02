@@ -277,7 +277,8 @@ const linkBtn: React.CSSProperties = {
 };
 
 const actionBtn = (primary: boolean, disabled: boolean): React.CSSProperties => ({
-  padding: '6px 10px',
+  minHeight: '40px', // comfortable tap target
+  padding: '8px 12px',
   borderRadius: '5px',
   border: primary ? 'none' : '1px solid #CBD5E1',
   background: disabled ? '#E2E8F0' : primary ? '#2563EB' : '#fff',

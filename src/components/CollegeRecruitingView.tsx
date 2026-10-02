@@ -82,14 +82,7 @@ export const CollegeRecruitingView: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        padding: '20px',
-        maxWidth: '1100px',
-        margin: '0 auto',
-        fontFamily: 'sans-serif'
-      }}
-    >
+    <div className="ui-screen">
       <div
         style={{
           display: 'flex',
@@ -332,7 +325,8 @@ const pill = (background: string, color: string): React.CSSProperties => ({
   borderRadius: '6px'
 });
 const btn = (color: string, disabled: boolean): React.CSSProperties => ({
-  padding: '5px 10px',
+  minHeight: '40px', // comfortable tap target
+  padding: '8px 12px',
   background: disabled ? '#CBD5E1' : color,
   color: '#fff',
   border: 'none',

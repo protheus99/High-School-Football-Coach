@@ -12,33 +12,21 @@ export const CoachesOfficeView: React.FC = () => {
   if (!userTeam) return null;
 
   return (
-    <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div className="ui-screen" style={{ maxWidth: '900px' }}>
       {showSkillTree && <CoachRPGSkillTreeModal onClose={() => setShowSkillTree(false)} />}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h2 style={{ margin: 0 }}>Head Coach Office & Strategy</h2>
-        <button
-          onClick={() => setShowSkillTree(true)}
-          style={{ padding: '8px 16px', background: '#4F46E5', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
-        >
-          🎖️ Coach Skill Tree & RPG
+      <h2 style={{ margin: '0 0 10px 0' }}>Coach&apos;s Office</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+        <button className={`ui-btn${subTab === 'STRATEGY' ? ' ui-btn-primary' : ''}`} aria-pressed={subTab === 'STRATEGY'} onClick={() => setSubTab('STRATEGY')}>
+          Strategy &amp; Staff
+        </button>
+        <button className={`ui-btn${subTab === 'SCHEDULE' ? ' ui-btn-primary' : ''}`} aria-pressed={subTab === 'SCHEDULE'} onClick={() => setSubTab('SCHEDULE')}>
+          Schedule
         </button>
       </div>
-
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        <button
-          onClick={() => setSubTab('STRATEGY')}
-          style={{ padding: '6px 14px', background: subTab === 'STRATEGY' ? '#2563EB' : '#E5E7EB', color: subTab === 'STRATEGY' ? '#fff' : '#374151', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
-        >
-          Strategy & Staff
-        </button>
-        <button
-          onClick={() => setSubTab('SCHEDULE')}
-          style={{ padding: '6px 14px', background: subTab === 'SCHEDULE' ? '#2563EB' : '#E5E7EB', color: subTab === 'SCHEDULE' ? '#fff' : '#374151', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
-        >
-          Season Schedule & Film
-        </button>
-      </div>
+      <button className="ui-btn ui-btn-block" style={{ background: '#4F46E5', borderColor: '#4F46E5', color: '#fff', marginBottom: '16px' }} onClick={() => setShowSkillTree(true)}>
+        🎖️ Coach Skill Tree
+      </button>
 
       {subTab === 'SCHEDULE' ? (
         <ScheduleView />
@@ -47,27 +35,20 @@ export const CoachesOfficeView: React.FC = () => {
           {/* Practice Plan Settings */}
           <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
             <h3 style={{ margin: '0 0 10px 0' }}>Weekly Practice Intensity</h3>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
               {(['WALKTHROUGH', 'STANDARD', 'CONTACT'] as const).map((mode) => (
                 <button
                   key={mode}
+                  className={`ui-btn${practiceIntensity === mode ? ' ui-btn-primary' : ''}`}
+                  aria-pressed={practiceIntensity === mode}
                   onClick={() => setPracticeIntensity(mode)}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: practiceIntensity === mode ? '#2563EB' : '#fff',
-                    color: practiceIntensity === mode ? '#fff' : '#374151',
-                    border: '1px solid #D1D5DB',
-                    borderRadius: '6px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
-                  }}
+                  style={{ paddingLeft: '4px', paddingRight: '4px' }}
                 >
-                  {mode}
+                  {mode === 'WALKTHROUGH' ? 'Walkthrough' : mode === 'STANDARD' ? 'Standard' : 'Contact'}
                 </button>
               ))}
             </div>
-            <p style={{ fontSize: '12px', color: '#6B7280', marginTop: '8px' }}>
+            <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '8px' }}>
               {practiceIntensity === 'WALKTHROUGH' && 'Walkthrough: +15% Stamina Recovery, +3 Football IQ, 0% Injury Risk.'}
               {practiceIntensity === 'STANDARD' && 'Standard: Balanced development reps, baseline fatigue.'}
               {practiceIntensity === 'CONTACT' && 'Full Pads Contact: +15% Physical Progression, -10% Stamina, 3% Injury Risk.'}

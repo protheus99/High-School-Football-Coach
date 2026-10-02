@@ -63,7 +63,7 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
         />
       </svg>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#E2E8F0', fontSize: '11px', marginTop: '6px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#E2E8F0', fontSize: '12px', marginTop: '6px' }}>
         <span><strong>Possession:</strong> <span style={{ color: possessionColor || '#60A5FA' }}>{possessionTeamName}</span></span>
         <span><strong>Ball On:</strong> {yardLine > 50 ? `Opp ${100 - yardLine}` : `Own ${yardLine}`} | <strong>{down}{down === 1 ? 'st' : down === 2 ? 'nd' : down === 3 ? 'rd' : 'th'} & {distance}</strong></span>
       </div>

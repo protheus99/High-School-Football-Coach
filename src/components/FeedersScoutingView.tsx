@@ -75,7 +75,7 @@ export const FeedersScoutingView: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div className="ui-screen" style={{ maxWidth: '1000px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
         <h2 style={{ margin: 0 }}>Feeder Pipeline</h2>
         <div style={{ display: 'flex', gap: '8px', fontSize: '13px', fontWeight: 'bold' }}>
@@ -210,14 +210,14 @@ const ProspectCard: React.FC<{
         <span>Interest: {interestLabel(p.interestScore)} ({p.interestScore})</span>
         <span style={{ color: look.color, fontWeight: 'bold' }}>{look.label}</span>
       </div>
-      <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>Cares most about: {FACTOR_LABELS[topPriority(p)]}</div>
+      <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>Cares most about: {FACTOR_LABELS[topPriority(p)]}</div>
       {p.suitors.length > 0 && (
-        <div style={{ fontSize: '11px', color: '#9F1239', marginTop: '2px' }}>
+        <div style={{ fontSize: '12px', color: '#9F1239', marginTop: '2px' }}>
           Also recruiting: {p.suitors.map((s) => `${s.teamName} (${interestLabel(s.effort)})${s.inducement ? ' 🚩' : ''}`).join(', ')}
           {p.suitors.some((s) => s.inducement) && <span> · 🚩 rumored booster money</span>}
         </div>
       )}
-      {notes.length > 0 && <div style={{ fontSize: '11px', color: '#92400E', marginTop: '4px' }}>{notes.join(' · ')}</div>}
+      {notes.length > 0 && <div style={{ fontSize: '12px', color: '#92400E', marginTop: '4px' }}>{notes.join(' · ')}</div>}
       <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
         <button onClick={onScout} disabled={scouted || coachingAP < PROSPECT_ACTION_COSTS.SCOUT} style={actionBtn('#475569', scouted || coachingAP < PROSPECT_ACTION_COSTS.SCOUT)}>
           {scouted ? 'Evaluated' : `Evaluate (${PROSPECT_ACTION_COSTS.SCOUT} AP)`}
@@ -232,7 +232,7 @@ const ProspectCard: React.FC<{
         )}
         {p.source !== 'TRYOUT' &&
           (p.userInducement ? (
-            <span style={{ fontSize: '11px', color: '#B91C1C', fontWeight: 'bold', alignSelf: 'center' }}>⚠️ Booster offer made</span>
+            <span style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 'bold', alignSelf: 'center' }}>⚠️ Booster offer made</span>
           ) : (
             <button
               onClick={onInduce}
@@ -277,7 +277,8 @@ const StatewideElitePanel: React.FC<{ recruits: FeederProspect[]; ctx: Recruitin
 const pillStyle = (background: string, color: string): React.CSSProperties => ({ background, color, padding: '5px 12px', borderRadius: '6px' });
 
 const tabStyle = (active: boolean): React.CSSProperties => ({
-  padding: '5px 10px',
+  minHeight: '40px', // comfortable tap target
+  padding: '8px 12px',
   borderRadius: '6px',
   border: '1px solid #CBD5E1',
   background: active ? '#0F172A' : '#fff',
@@ -288,7 +289,8 @@ const tabStyle = (active: boolean): React.CSSProperties => ({
 });
 
 const actionBtn = (color: string, disabled: boolean): React.CSSProperties => ({
-  padding: '5px 10px',
+  minHeight: '40px', // comfortable tap target
+  padding: '8px 12px',
   background: disabled ? '#CBD5E1' : color,
   color: '#fff',
   border: 'none',

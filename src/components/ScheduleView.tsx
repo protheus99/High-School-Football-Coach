@@ -61,44 +61,42 @@ export const ScheduleView: React.FC = () => {
   });
 
   return (
-    <div style={{ padding: '20px', maxWidth: '850px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <h2>{totalWeeks}-Week Season Schedule & Film Room</h2>
-      <p style={{ color: '#64748B', fontSize: '13px' }}>Track your path through Spring Drills, Non-District tune-ups, the {districtName ?? 'district'} race, and the State Tournament.</p>
+    <div style={{ maxWidth: '850px', margin: '0 auto' }}>
+      <h3 style={{ margin: '0 0 4px 0', fontSize: '17px' }}>{totalWeeks}-week schedule</h3>
+      <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
+        Spring drills, non-district tune-ups, the {districtName ?? 'district'} race and the state playoffs.
+      </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {schedule.map((game) => (
           <div
             key={game.week}
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px 16px',
+              padding: '10px 12px',
               background: game.isCurrent ? '#EFF6FF' : '#fff',
               border: game.isCurrent ? '2px solid #3B82F6' : '1px solid #E2E8F0',
-              borderRadius: '8px'
+              borderRadius: '10px'
             }}
           >
-            <div>
-              <span style={{ fontWeight: 'bold', fontSize: '14px', marginRight: '10px' }}>Week {game.week}</span>
-              <span style={{ fontSize: '12px', background: '#F1F5F9', padding: '2px 8px', borderRadius: '4px', color: '#475569' }}>
-                {game.label ?? game.type.replace(/_/g, ' ')}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'nowrap' }}>
+              <span style={{ fontSize: '14px' }}>
+                <strong>Week {game.week}</strong> <span style={{ color: '#64748B', fontSize: '13px' }}>· {game.label ?? game.type.replace(/_/g, ' ')}</span>
               </span>
+              {game.result && <strong style={{ color: game.result.startsWith('W') ? '#059669' : '#DC2626', fontSize: '14px' }}>{game.result}</strong>}
             </div>
-
-            <div style={{ textAlign: 'right', fontSize: '13px' }}>
-              {game.opponent ? (
-                <div>
-                  {game.isHome ? 'vs.' : 'at'} <strong style={{ color: game.opponent.primaryColor }}>{game.opponent.name} {game.opponent.mascot}</strong>
-                  {game.result && (
-                    <strong style={{ marginLeft: '8px', color: game.result.startsWith('W') ? '#059669' : '#DC2626' }}>{game.result}</strong>
-                  )}
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>Record: {game.opponent.record.wins}-{game.opponent.record.losses} | Scheme: {game.opponent.schemeOffense.replace('_', ' ')}</div>
+            {game.opponent ? (
+              <div style={{ fontSize: '14px', marginTop: '2px' }}>
+                {game.isHome ? 'vs.' : 'at'}{' '}
+                <strong style={{ color: game.opponent.primaryColor }}>
+                  {game.opponent.name} {game.opponent.mascot}
+                </strong>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>
+                  {game.opponent.record.wins}-{game.opponent.record.losses} · {game.opponent.schemeOffense.replace(/_/g, ' ')} offense
                 </div>
-              ) : (
-                <span style={{ color: '#94A3B8' }}>Practice / Internal Preparation</span>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div style={{ color: '#94A3B8', fontSize: '13px', marginTop: '2px' }}>Practice and preparation</div>
+            )}
           </div>
         ))}
       </div>

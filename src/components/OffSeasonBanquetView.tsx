@@ -20,17 +20,17 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
   const d1Count = signees.filter((p) => isDivisionOne(p.recruiting.signedTier)).length;
 
   return (
-    <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div className="ui-screen" style={{ maxWidth: '800px', paddingBottom: '96px' }}>
       {/* Banquet Header */}
-      <div style={{ background: '#0F172A', color: '#fff', padding: '24px', borderRadius: '12px', textAlign: 'center', marginBottom: '24px' }}>
-        <h1 style={{ margin: 0, color: '#F59E0B' }}>🎓 ANNUAL FOOTBALL BANQUET</h1>
+      <div style={{ background: '#0F172A', color: '#fff', padding: '20px 16px', borderRadius: '12px', textAlign: 'center', marginBottom: '16px' }}>
+        <h1 style={{ margin: 0, color: '#F59E0B' }}>🎓 Football Banquet</h1>
         <p style={{ margin: '8px 0 0 0', color: '#94A3B8' }}>
           Celebrating the graduating senior class of {userTeam.name} and looking ahead to next season
         </p>
       </div>
 
       {/* National Signing Day (NLI) Showcase */}
-      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
+      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
         <h3 style={{ margin: '0 0 4px 0', color: '#1E293B' }}>✍️ National Signing Day (NLI)</h3>
         <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#64748B' }}>
           {signees.length} senior{signees.length === 1 ? '' : 's'} signed to play in college ({d1Count} Division I). Every Division I signee builds the
@@ -50,7 +50,7 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
                   <div style={{ color: '#2563EB', fontSize: '13px', fontWeight: 'bold' }}>
                     Signed with: {senior.recruiting.committedCollege}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#475569' }}>{TIER_LABELS[tier]}</div>
+                  <div style={{ fontSize: '13px', color: '#475569' }}>{TIER_LABELS[tier]}</div>
                   <div style={{ fontSize: '12px', color: '#64748B' }}>
                     Rating: {senior.overallRating} OVR ({senior.recruiting.starRating}★)
                   </div>
@@ -64,35 +64,24 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
       </div>
 
       {/* Graduating Senior Class Farewells */}
-      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
+      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
         <h3 style={{ margin: '0 0 12px 0', color: '#1E293B' }}>Graduating Senior Class ({graduatingSeniors.length})</h3>
-        <div style={{ maxHeight: '180px', overflowY: 'auto', fontSize: '13px' }}>
+        <div style={{ fontSize: '14px' }}>
           {graduatingSeniors.map((s) => (
-            <div key={s.id} style={{ padding: '6px 0', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between' }}>
+            <div key={s.id} style={{ padding: '8px 0', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'nowrap' }}>
               <span><strong>{s.firstName} {s.lastName}</strong> ({s.position})</span>
-              <span style={{ color: '#64748B' }}>Peak Overall: {s.overallRating} OVR</span>
+              <span style={{ color: '#64748B', flex: '0 0 auto' }}>{s.overallRating} OVR</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Begin Next Season Action Button */}
-      <button
-        onClick={onStartNextYear}
-        style={{
-          width: '100%',
-          padding: '14px',
-          background: '#10B981',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '8px',
-          fontWeight: 'bold',
-          fontSize: '16px',
-          cursor: 'pointer'
-        }}
-      >
-        🚀 Advance to Next Season (Promote Classes & Influx Freshmen)
-      </button>
+      {/* Next season: pinned to the bottom of the screen on phones */}
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', background: '#fff', borderTop: '1px solid #E2E8F0', zIndex: 50 }}>
+        <button className="ui-btn ui-btn-block" style={{ background: '#10B981', borderColor: '#10B981', color: '#fff', minHeight: '50px', fontSize: '16px', maxWidth: '800px', margin: '0 auto', display: 'block' }} onClick={onStartNextYear}>
+          🚀 Start next season
+        </button>
+      </div>
     </div>
   );
 };
