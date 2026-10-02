@@ -5,6 +5,7 @@ import { soundFx } from '../utils/soundEngine';
 import { PostGameBoxScoreModal } from './PostGameBoxScoreModal';
 import { HalftimeSpeechModal } from './HalftimeSpeechModal';
 import { FieldVisualizer } from './FieldVisualizer';
+import { readableOnWhite } from '../utils/color';
 import { PlayCallingPanel } from './PlayCallingPanel';
 
 interface LiveMatchProps {
@@ -120,37 +121,44 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         />
       )}
 
-      {/* Scoreboard: compact three-column layout that fits a phone */}
-      <div style={{ background: '#111827', color: '#fff', borderRadius: '10px', padding: '12px', marginBottom: '10px' }}>
+      {/* Scoreboard: light background so every school color reads; the ball marks who has possession */}
+      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', alignItems: 'center', gap: '8px' }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={teamNameStyle(gameState.homeTeam.primaryColor)}>{gameState.homeTeam.name}</div>
-            <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1 }}>{gameState.homeScore}</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#F59E0B' }}>
-              {gameState.currentQuarter === 'OT'
-                ? `OT ${gameState.overtime?.period ?? 1}`
-                : `Q${gameState.currentQuarter} ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}`}
-            </div>
-            <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
-              {gameState.down} &amp; {gameState.distance} · {gameState.yardLine} yd
-            </div>
-          </div>
-          <div style={{ minWidth: 0, textAlign: 'right' }}>
-            <div style={teamNameStyle(gameState.awayTeam.primaryColor)}>{gameState.awayTeam.name}</div>
-            <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1 }}>{gameState.awayScore}</div>
-          </div>
+          {[gameState.homeTeam, null, gameState.awayTeam].map((team, i) =>
+            team ? (
+              <div key={team.id} style={{ minWidth: 0, textAlign: i === 0 ? 'left' : 'right' }}>
+                <div style={teamNameStyle(readableOnWhite(team.primaryColor, team.secondaryColor))}>
+                  {i === 2 && gameState.possessionTeamId === team.id && <span aria-label="has the ball">🏈 </span>}
+                  {team.name}
+                  {i === 0 && gameState.possessionTeamId === team.id && <span aria-label="has the ball"> 🏈</span>}
+                </div>
+                <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1, color: '#0F172A' }}>{i === 0 ? gameState.homeScore : gameState.awayScore}</div>
+              </div>
+            ) : (
+              <div key="clock" style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#B45309' }}>
+                  {gameState.currentQuarter === 'OT'
+                    ? `OT ${gameState.overtime?.period ?? 1}`
+                    : `Q${gameState.currentQuarter} ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}`}
+                </div>
+                <div style={{ fontSize: '13px', color: '#334155', fontWeight: 'bold' }}>
+                  {gameState.down}
+                  {ORDINAL[gameState.down] ?? 'th'} &amp; {gameState.distance}
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>{gameState.yardLine > 50 ? `Opp ${100 - gameState.yardLine}` : `Own ${gameState.yardLine}`}</div>
+              </div>
+            )
+          )}
         </div>
       </div>
 
       {/* 2D SVG Interactive Field Visualizer */}
       <FieldVisualizer
         yardLine={gameState.yardLine}
-        down={gameState.down}
         distance={gameState.distance}
         possessionTeamName={currentPossTeam.name}
         possessionColor={currentPossTeam.primaryColor}
+        possessionSecondaryColor={currentPossTeam.secondaryColor}
       />
 
       {/* Manual Play Calling Controls */}
@@ -268,6 +276,8 @@ const btnStyle: React.CSSProperties = {
   cursor: 'pointer',
   fontWeight: 'bold'
 };
+
+const ORDINAL: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
 
 const teamNameStyle = (color: string): React.CSSProperties => ({
   fontSize: '14px',

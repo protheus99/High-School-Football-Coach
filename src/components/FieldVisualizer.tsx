@@ -1,19 +1,20 @@
 import React from 'react';
+import { readableOnWhite } from '../utils/color';
 
 interface FieldVisualizerProps {
   yardLine: number; // 1 to 99 relative to offensive goal line
-  down: number;
   distance: number;
   possessionTeamName: string;
   possessionColor: string;
+  possessionSecondaryColor?: string;
 }
 
 export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
   yardLine,
-  down,
   distance,
   possessionTeamName,
-  possessionColor
+  possessionColor,
+  possessionSecondaryColor
 }) => {
   // SVG coordinates: 0 to 120 (10 yd end zones on each side)
   // Field runs from x = 10 (Own 0-yd line) to x = 110 (Opponent Goal Line)
@@ -63,9 +64,9 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
         />
       </svg>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#E2E8F0', fontSize: '12px', marginTop: '6px' }}>
-        <span><strong>Possession:</strong> <span style={{ color: possessionColor || '#60A5FA' }}>{possessionTeamName}</span></span>
-        <span><strong>Ball On:</strong> {yardLine > 50 ? `Opp ${100 - yardLine}` : `Own ${yardLine}`} | <strong>{down}{down === 1 ? 'st' : down === 2 ? 'nd' : down === 3 ? 'rd' : 'th'} & {distance}</strong></span>
+      {/* Possession on a white strip so the school color is readable; down and distance live in the scoreboard */}
+      <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 10px', marginTop: '8px', fontSize: '13px', color: '#334155' }}>
+        🏈 <strong style={{ color: readableOnWhite(possessionColor, possessionSecondaryColor) }}>{possessionTeamName}</strong> ball
       </div>
     </div>
   );
