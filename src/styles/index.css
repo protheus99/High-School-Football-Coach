@@ -206,3 +206,293 @@ h3 {
     font-size: inherit;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   UI kit (mobile-first): screens, buttons, sheets, data lists
+   --------------------------------------------------------------------------- */
+.ui-screen {
+  padding: 16px 16px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ui-muted {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ui-btn {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #0f172a;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.ui-btn-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.ui-btn-dark {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+.ui-btn:disabled {
+  background: #e2e8f0;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  cursor: default;
+}
+
+.ui-btn-block {
+  width: 100%;
+}
+
+/* Form fields: 16px text so phones don't zoom in on focus */
+.ui-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  font: inherit;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.ui-label {
+  display: block;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.ui-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Chips: a sideways-scrolling row of large toggle buttons (tabs, filters) */
+.ui-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ui-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.ui-chip {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ui-chip[aria-pressed='true'] {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+.ui-chip:disabled {
+  color: #cbd5e1;
+  cursor: default;
+}
+
+/* Sheet: bottom sheet on phones */
+.ui-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ui-sheet {
+  background: #fff;
+  width: 100%;
+  max-height: 92vh;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.ui-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: nowrap;
+}
+
+.ui-sheet-title {
+  margin: 0;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.ui-sheet-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.ui-sheet-close {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  margin: -6px -8px 0 0;
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #334155;
+}
+
+.ui-sheet-body {
+  padding: 14px 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ui-sheet-footer {
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Data list: cards on phones */
+.ui-cardlist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ui-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+}
+
+.ui-card-button {
+  cursor: pointer;
+}
+
+.ui-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.ui-card-title {
+  font-weight: bold;
+  font-size: 15px;
+  min-width: 0;
+}
+
+.ui-card-badge {
+  flex: 0 0 auto;
+  font-weight: bold;
+  color: #2563eb;
+  font-size: 14px;
+}
+
+.ui-card-pairs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+  margin: 6px 0 0;
+}
+
+.ui-card-pairs dt {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.ui-card-pairs dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Data list: table on desktop */
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.ui-table th {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 10px;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 12px;
+}
+
+.ui-table td {
+  padding: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+@media (min-width: 721px) {
+  .ui-screen {
+    padding: 24px 24px 32px;
+  }
+
+  .ui-btn {
+    min-height: 36px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .ui-sheet-backdrop {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .ui-sheet {
+    max-width: 560px;
+    max-height: 85vh;
+    border-radius: 12px;
+  }
+
+  .ui-sheet-wide {
+    max-width: 900px;
+  }
+}

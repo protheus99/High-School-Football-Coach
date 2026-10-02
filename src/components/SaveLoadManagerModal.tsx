@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { Sheet } from './ui/Sheet';
 import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueImporter';
 import { AUTOSAVE_ID, loadSaveGame } from '../services/db';
 import { buildCustomLeague, buildStateLeague, buildTexasLeague, GameWorld, nearestDistrictIndexes, StateDistrictFile } from '../sim/league';
@@ -89,70 +90,78 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   };
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ margin: 0 }}>Save / Load & League Modding</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+    <Sheet title="Save / Load" subtitle="Save your game, or start in another district" onClose={onClose}>
+      {feedback && (
+        <div role="status" style={{ background: '#EEF2FF', color: '#4338CA', padding: '10px 12px', borderRadius: '8px', marginBottom: '12px', fontSize: '14px' }}>
+          {feedback}
         </div>
+      )}
 
-        {feedback && (
-          <div style={{ background: '#EEF2FF', color: '#4338CA', padding: '8px 12px', borderRadius: '4px', marginBottom: '12px', fontSize: '13px' }}>
-            {feedback}
-          </div>
-        )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', marginBottom: '18px' }}>
+        <button className="ui-btn ui-btn-primary" onClick={handleSaveToBrowser}>
+          💾 Save game
+        </button>
+        <button className="ui-btn" onClick={handleLoadFromBrowser}>
+          📂 Load autosave
+        </button>
+        <button className="ui-btn" onClick={handleExportJSON}>
+          📤 Export district
+        </button>
+      </div>
 
-        {/* Local Storage Controls */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          <button onClick={handleSaveToBrowser} style={actionBtn}>💾 Save to Browser</button>
-          <button onClick={handleLoadFromBrowser} style={actionBtn}>📂 Load Save</button>
-          <button onClick={handleExportJSON} style={actionBtn}>📤 Export JSON</button>
-        </div>
-
-        {/* Real State Districts */}
-        {leagueIndex.length > 0 && (
-          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px', marginBottom: '12px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>
-              Coach a Real State District:
-            </label>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <select
-                value={selectedState}
-                onChange={(e) => { setSelectedState(e.target.value); setSelectedDistrictFile(''); }}
-                style={selectStyle}
-              >
-                <option value="">State…</option>
-                {leagueIndex.map((s) => <option key={s.state} value={s.state}>{s.state}</option>)}
-              </select>
-              <select value={selectedDistrictFile} onChange={(e) => setSelectedDistrictFile(e.target.value)} disabled={!selectedState} style={{ ...selectStyle, flex: 1, minWidth: '200px' }}>
-                <option value="">District…</option>
-                {stateDistricts.map((d) => <option key={d.file} value={d.file}>{d.name} ({d.schools} schools)</option>)}
-              </select>
-              <button onClick={handleLoadStateDistrict} disabled={!selectedDistrictFile} style={{ ...actionBtn, background: '#0F766E', color: '#fff' }}>
-                🏟️ Load District
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Custom JSON Importer */}
-        <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px' }}>
-          <label style={{ display: 'block', fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>
-            Import Custom District (JSON):
+      {leagueIndex.length > 0 && (
+        <div className="ui-stack" style={{ borderTop: '1px solid #E2E8F0', paddingTop: '14px', marginBottom: '18px' }}>
+          <label className="ui-label" htmlFor="state-select">
+            Coach a real state district
           </label>
-          <textarea
-            rows={4}
-            value={importText}
-            onChange={(e) => setImportText(e.target.value)}
-            placeholder='Paste custom district JSON schema here...'
-            style={{ width: '100%', boxSizing: 'border-box', padding: '8px', fontFamily: 'monospace', fontSize: '12px', borderRadius: '4px', border: '1px solid #CBD5E1' }}
-          />
-          <button onClick={handleImportJSON} style={{ ...actionBtn, marginTop: '8px', background: '#4F46E5', color: '#fff' }}>
-            📥 Load Custom District
+          <select
+            id="state-select"
+            className="ui-input"
+            value={selectedState}
+            onChange={(e) => {
+              setSelectedState(e.target.value);
+              setSelectedDistrictFile('');
+            }}
+          >
+            <option value="">Choose a state…</option>
+            {leagueIndex.map((s) => (
+              <option key={s.state} value={s.state}>
+                {s.state}
+              </option>
+            ))}
+          </select>
+          <select className="ui-input" aria-label="District" value={selectedDistrictFile} onChange={(e) => setSelectedDistrictFile(e.target.value)} disabled={!selectedState}>
+            <option value="">Choose a district…</option>
+            {stateDistricts.map((d) => (
+              <option key={d.file} value={d.file}>
+                {d.name} ({d.schools} schools)
+              </option>
+            ))}
+          </select>
+          <button className="ui-btn" style={{ background: '#0F766E', borderColor: '#0F766E', color: '#fff' }} onClick={handleLoadStateDistrict} disabled={!selectedDistrictFile}>
+            🏟️ Start in this district
           </button>
         </div>
+      )}
+
+      <div className="ui-stack" style={{ borderTop: '1px solid #E2E8F0', paddingTop: '14px' }}>
+        <label className="ui-label" htmlFor="custom-json">
+          Import a custom district (JSON)
+        </label>
+        <textarea
+          id="custom-json"
+          className="ui-input"
+          rows={4}
+          value={importText}
+          onChange={(e) => setImportText(e.target.value)}
+          placeholder="Paste custom district JSON here…"
+          style={{ fontFamily: 'monospace', fontSize: '14px' }}
+        />
+        <button className="ui-btn" style={{ background: '#4F46E5', borderColor: '#4F46E5', color: '#fff' }} onClick={handleImportJSON}>
+          📥 Load custom district
+        </button>
       </div>
-    </div>
+    </Sheet>
   );
 };
 
@@ -160,42 +169,3 @@ interface LeagueIndexEntry {
   state: string;
   districts: { name: string; file: string; schools: number }[];
 }
-
-const selectStyle: React.CSSProperties = {
-  padding: '6px 8px',
-  borderRadius: '4px',
-  border: '1px solid #CBD5E1',
-  fontSize: '13px'
-};
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: 'rgba(15, 23, 42, 0.65)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1200
-};
-
-const modalStyle: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: '8px',
-  padding: '20px',
-  width: '90%',
-  maxWidth: '520px'
-};
-
-const actionBtn: React.CSSProperties = {
-  flex: 1,
-  padding: '8px',
-  background: '#F1F5F9',
-  border: '1px solid #CBD5E1',
-  borderRadius: '4px',
-  fontSize: '12px',
-  fontWeight: 'bold',
-  cursor: 'pointer'
-};

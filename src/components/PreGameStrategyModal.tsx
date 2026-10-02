@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Team, OffensiveScheme, DefensiveScheme, WeatherType } from '../types/game';
+import { Sheet } from './ui/Sheet';
 
 interface PreGameStrategyModalProps {
   userTeam: Team;
@@ -34,123 +35,68 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({
     return 'Opponent runs balanced Spread. Maintain fundamental gap discipline.';
   };
 
+  const label = (text: string) => text.replace(/_/g, ' ');
+
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
-          <div>
-            <h2 style={{ margin: 0, color: '#0F172A' }}>GAME NIGHT STRATEGY ROOM</h2>
-            <div style={{ fontSize: '13px', color: '#64748B' }}>
-              Matchup: {userTeam.name} vs. {opponentTeam.name} ({opponentTeam.mascot})
-            </div>
-          </div>
-          <button onClick={onCancel} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
-        </div>
-
-        {/* Scouting & Weather Report */}
-        <div style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '14px', margin: '16px 0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span><strong>Opponent Scheme:</strong> {opponentTeam.schemeOffense.replace('_', ' ')} / {opponentTeam.schemeDefense.replace('_', ' ')}</span>
-            <span><strong>Weather:</strong> {forecast.weather.replace('_', ' ')} ({forecast.temp}°F, {forecast.wind} mph)</span>
-          </div>
-          <div style={{ fontSize: '12px', color: '#1E40AF', background: '#EFF6FF', padding: '8px', borderRadius: '4px' }}>
-            💡 <strong>Scouting Intel:</strong> {getSchemeMatchupTip()}
-          </div>
-        </div>
-
-        {/* Offensive Scheme Selection */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>Offensive Playbook Installation:</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-            {(['SPREAD', 'AIR_RAID', 'POWER_I', 'TRIPLE_OPTION'] as const).map((scheme) => (
-              <button
-                key={scheme}
-                onClick={() => setOffScheme(scheme)}
-                style={schemeBtnStyle(offScheme === scheme)}
-              >
-                {scheme.replace('_', ' ')}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Defensive Scheme & Focus */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>Defensive Matchup Assignment:</label>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {(['BALANCED', 'STOP_RUN', 'STOP_PASS'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFocus(f)}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  background: focus === f ? '#0F172A' : '#F1F5F9',
-                  color: focus === f ? '#fff' : '#334155',
-                  border: '1px solid #CBD5E1',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
-              >
-                {f.replace('_', ' ')}
-              </button>
-            ))}
-          </div>
-        </div>
-
+    <Sheet
+      title="Game Night Strategy Room"
+      subtitle={`${userTeam.name} vs. ${opponentTeam.name} ${opponentTeam.mascot}`}
+      onClose={onCancel}
+      footer={
         <button
+          className="ui-btn ui-btn-block"
+          style={{ background: '#10B981', borderColor: '#10B981', color: '#fff', minHeight: '50px', fontSize: '15px' }}
           onClick={() => onKickoff({ selectedOffScheme: offScheme, selectedDefScheme: defScheme, focusTarget: focus })}
-          style={kickoffBtnStyle}
         >
-          🏈 Confirm Strategy & Take the Field
+          🏈 Take the Field
         </button>
+      }
+    >
+      <div style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '10px', padding: '12px', marginBottom: '16px' }}>
+        <dl className="ui-card-pairs" style={{ marginTop: 0 }}>
+          <div>
+            <dt>Their offense</dt>
+            <dd>{label(opponentTeam.schemeOffense)}</dd>
+          </div>
+          <div>
+            <dt>Their defense</dt>
+            <dd>{label(opponentTeam.schemeDefense)}</dd>
+          </div>
+          <div>
+            <dt>Weather</dt>
+            <dd>
+              {label(forecast.weather)}, {forecast.temp}°F
+            </dd>
+          </div>
+          <div>
+            <dt>Wind</dt>
+            <dd>{forecast.wind} mph</dd>
+          </div>
+        </dl>
+        <div style={{ fontSize: '13px', color: '#1E40AF', background: '#EFF6FF', padding: '8px 10px', borderRadius: '8px', marginTop: '10px' }}>
+          💡 <strong>Scouting intel:</strong> {getSchemeMatchupTip()}
+        </div>
       </div>
-    </div>
+
+      <h3 style={sectionTitle}>Offensive playbook</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginBottom: '16px' }}>
+        {(['SPREAD', 'AIR_RAID', 'POWER_I', 'TRIPLE_OPTION'] as const).map((scheme) => (
+          <button key={scheme} className={`ui-btn${offScheme === scheme ? ' ui-btn-primary' : ''}`} aria-pressed={offScheme === scheme} onClick={() => setOffScheme(scheme)}>
+            {label(scheme)}
+          </button>
+        ))}
+      </div>
+
+      <h3 style={sectionTitle}>Defensive focus</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
+        {(['BALANCED', 'STOP_RUN', 'STOP_PASS'] as const).map((f) => (
+          <button key={f} className={`ui-btn${focus === f ? ' ui-btn-dark' : ''}`} aria-pressed={focus === f} onClick={() => setFocus(f)}>
+            {label(f)}
+          </button>
+        ))}
+      </div>
+    </Sheet>
   );
 };
 
-const schemeBtnStyle = (active: boolean): React.CSSProperties => ({
-  padding: '10px',
-  background: active ? '#2563EB' : '#F8FAFC',
-  color: active ? '#fff' : '#334155',
-  border: active ? '2px solid #1D4ED8' : '1px solid #CBD5E1',
-  borderRadius: '6px',
-  fontWeight: 'bold',
-  fontSize: '12px',
-  cursor: 'pointer'
-});
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: 'rgba(15, 23, 42, 0.75)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1300
-};
-
-const modalStyle: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: '12px',
-  padding: '24px',
-  width: '90%',
-  maxWidth: '580px'
-};
-
-const kickoffBtnStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '12px',
-  background: '#10B981',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '8px',
-  fontWeight: 'bold',
-  fontSize: '15px',
-  cursor: 'pointer'
-};
+const sectionTitle: React.CSSProperties = { margin: '0 0 8px 0', fontSize: '15px', color: '#0F172A' };

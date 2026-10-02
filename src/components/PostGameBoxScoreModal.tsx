@@ -1,6 +1,7 @@
 import React from 'react';
 import { GameSimulationState, Player, PlayerStats, Team } from '../types/game';
 import { addPlayerStats, createEmptyPlayerStats } from '../sim/playerStats';
+import { Sheet } from './ui/Sheet';
 
 interface BoxScoreProps {
   gameState: GameSimulationState;
@@ -21,71 +22,54 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
   const away = teamTotals(awayTeam);
   const turnovers = (t: PlayerStats) => t.interceptionsThrown + t.fumblesLost;
 
+  const metrics: [string, string, string, boolean?][] = [
+    ['Total yards', `${home.passYards + home.rushYards}`, `${away.passYards + away.rushYards}`],
+    ['Passing', `${home.passYards} (${home.passCompletions}/${home.passAttempts})`, `${away.passYards} (${away.passCompletions}/${away.passAttempts})`],
+    ['Rushing', `${home.rushYards} (${home.rushAttempts} car)`, `${away.rushYards} (${away.rushAttempts} car)`],
+    ['Turnovers', `${turnovers(home)}`, `${turnovers(away)}`, true]
+  ];
+
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
-          <h2 style={{ margin: 0, color: '#0F172A' }}>FINAL BOX SCORE</h2>
-          <button onClick={onClose} style={closeBtnStyle}>✕</button>
+    <Sheet
+      title="Final Box Score"
+      onClose={onClose}
+      width="wide"
+      footer={
+        <button className="ui-btn ui-btn-primary ui-btn-block" onClick={onClose}>
+          Back to Dashboard
+        </button>
+      }
+    >
+      {/* Final score */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', background: '#F8FAFC', padding: '14px 10px', borderRadius: '10px', marginBottom: '14px', textAlign: 'center' }}>
+        <div>
+          <div style={{ fontWeight: 'bold', fontSize: '14px', color: homeTeam.primaryColor }}>{homeTeam.name}</div>
+          <div style={{ fontSize: '34px', fontWeight: 'bold' }}>{homeScore}</div>
         </div>
-
-        {/* Final Score Banner */}
-        <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: '#F8FAFC', padding: '16px', borderRadius: '8px', margin: '16px 0' }}>
-          <div style={{ textAlign: 'center' }}>
-            <h3 style={{ margin: 0, color: homeTeam.primaryColor }}>{homeTeam.name}</h3>
-            <div style={{ fontSize: '36px', fontWeight: 'bold' }}>{homeScore}</div>
-          </div>
-          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#94A3B8' }}>FINAL</div>
-          <div style={{ textAlign: 'center' }}>
-            <h3 style={{ margin: 0, color: awayTeam.primaryColor }}>{awayTeam.name}</h3>
-            <div style={{ fontSize: '36px', fontWeight: 'bold' }}>{awayScore}</div>
-          </div>
+        <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#94A3B8' }}>FINAL</div>
+        <div>
+          <div style={{ fontWeight: 'bold', fontSize: '14px', color: awayTeam.primaryColor }}>{awayTeam.name}</div>
+          <div style={{ fontSize: '34px', fontWeight: 'bold' }}>{awayScore}</div>
         </div>
-
-        {/* Team Comparison Matrix */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '13px', marginBottom: '20px' }}>
-            <thead>
-              <tr style={{ background: '#F1F5F9', borderBottom: '2px solid #CBD5E1' }}>
-                <th style={{ padding: '8px', textAlign: 'left' }}>Team Metric</th>
-                <th style={{ padding: '8px' }}>{homeTeam.name}</th>
-                <th style={{ padding: '8px' }}>{awayTeam.name}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Total Yards</td>
-                <td>{home.passYards + home.rushYards}</td>
-                <td>{away.passYards + away.rushYards}</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Passing Yards</td>
-                <td>{home.passYards} ({home.passCompletions}/{home.passAttempts})</td>
-                <td>{away.passYards} ({away.passCompletions}/{away.passAttempts})</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Rushing Yards</td>
-                <td>{home.rushYards} ({home.rushAttempts} car)</td>
-                <td>{away.rushYards} ({away.rushAttempts} car)</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Turnovers Lost</td>
-                <td style={{ color: turnovers(home) > 0 ? '#DC2626' : '#059669' }}>{turnovers(home)}</td>
-                <td style={{ color: turnovers(away) > 0 ? '#DC2626' : '#059669' }}>{turnovers(away)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Individual Player Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '20px', maxHeight: '260px', overflowY: 'auto' }}>
-          <TeamPlayerStats team={homeTeam} gameStats={gameStats} />
-          <TeamPlayerStats team={awayTeam} gameStats={gameStats} />
-        </div>
-
-        <button onClick={onClose} style={confirmBtnStyle}>Return to Team Dashboard</button>
       </div>
-    </div>
+
+      {/* Team comparison: metric in the middle, each team on its side */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', rowGap: '6px', columnGap: '10px', fontSize: '14px', marginBottom: '18px' }}>
+        {metrics.map(([label, h, a, lowerIsBetter]) => (
+          <React.Fragment key={label}>
+            <div style={{ textAlign: 'right', color: lowerIsBetter && Number(h) > 0 ? '#DC2626' : undefined }}>{h}</div>
+            <div style={{ textAlign: 'center', color: '#64748B', fontSize: '12px', alignSelf: 'center' }}>{label}</div>
+            <div style={{ textAlign: 'left', color: lowerIsBetter && Number(a) > 0 ? '#DC2626' : undefined }}>{a}</div>
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Player stats: one team after the other on phones, side by side on desktop */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+        <TeamPlayerStats team={homeTeam} gameStats={gameStats} />
+        <TeamPlayerStats team={awayTeam} gameStats={gameStats} />
+      </div>
+    </Sheet>
   );
 };
 
@@ -109,55 +93,14 @@ const TeamPlayerStats: React.FC<{ team: Team; gameStats: Record<string, PlayerSt
   ];
 
   return (
-    <div style={{ fontSize: '12px', color: '#334155' }}>
-      <div style={{ fontWeight: 'bold', color: team.primaryColor, borderBottom: '1px solid #E2E8F0', marginBottom: '6px' }}>{team.name}</div>
+    <div style={{ fontSize: '13px', color: '#334155' }}>
+      <div style={{ fontWeight: 'bold', fontSize: '15px', color: team.primaryColor, borderBottom: '1px solid #E2E8F0', marginBottom: '6px', paddingBottom: '4px' }}>{team.name}</div>
       {sections.filter((sec) => sec.rows.length > 0).map((sec) => (
         <div key={sec.title} style={{ marginBottom: '6px' }}>
-          <div style={{ fontWeight: 'bold', color: '#64748B', fontSize: '11px', textTransform: 'uppercase' }}>{sec.title}</div>
+          <div style={{ fontWeight: 'bold', color: '#64748B', fontSize: '12px', textTransform: 'uppercase' }}>{sec.title}</div>
           {sec.rows.map((row) => <div key={row}>{row}</div>)}
         </div>
       ))}
     </div>
   );
-};
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: 'rgba(15, 23, 42, 0.75)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1000
-};
-
-const modalStyle: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: '12px',
-  padding: '24px',
-  width: '90%',
-  maxWidth: '600px',
-  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
-};
-
-const closeBtnStyle: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  fontSize: '18px',
-  cursor: 'pointer',
-  color: '#64748B'
-};
-
-const confirmBtnStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '12px',
-  background: '#2563EB',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '6px',
-  fontWeight: 'bold',
-  cursor: 'pointer'
 };

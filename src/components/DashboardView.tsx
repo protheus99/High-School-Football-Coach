@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { OffensiveScheme } from '../types/game';
 import { PreGameStrategyModal } from './PreGameStrategyModal';
+import { Sheet } from './ui/Sheet';
 import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
 import { FilmStudyModal } from './FilmStudyModal';
 import { getSeasonPhase } from '../sim/scheduleEngine';
@@ -55,40 +56,40 @@ export const DashboardView: React.FC<{
       )}
 
       {showSimWarning && opponent && (
-        <div style={overlayStyle} onClick={() => setShowSimWarning(false)}>
-          <div style={dialogStyle} role="dialog" aria-modal="true" aria-labelledby="sim-warning-title" onClick={(e) => e.stopPropagation()}>
-            <h3 id="sim-warning-title" style={{ margin: '0 0 8px 0', color: '#0F172A' }}>
-              Game Not Played Yet
-            </h3>
-            <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#475569' }}>
-              You haven&apos;t played this week&apos;s game {isHome ? 'vs' : 'at'} <strong>{opponent.name}</strong>. If you advance now, the game will be
-              auto-simulated and the result will count.
-            </p>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-              <button onClick={() => setShowSimWarning(false)} style={dialogBtn('#fff', '#334155', '1px solid #CBD5E1')}>
-                Cancel
-              </button>
+        <Sheet
+          title="Game not played yet"
+          onClose={() => setShowSimWarning(false)}
+          footer={
+            <div className="ui-stack">
               <button
+                className="ui-btn ui-btn-primary"
                 onClick={() => {
                   setShowSimWarning(false);
                   setShowPreGameModal(true);
                 }}
-                style={dialogBtn('#2563EB', '#fff')}
               >
                 🏈 Play the Game
               </button>
               <button
+                className="ui-btn ui-btn-dark"
                 onClick={() => {
                   setShowSimWarning(false);
                   advanceWeek();
                 }}
-                style={dialogBtn('#334155', '#fff')}
               >
                 ⏭️ Auto-Sim &amp; Advance
               </button>
+              <button className="ui-btn" onClick={() => setShowSimWarning(false)}>
+                Cancel
+              </button>
             </div>
-          </div>
-        </div>
+          }
+        >
+          <p style={{ margin: 0, fontSize: '15px', color: '#475569' }}>
+            You haven&apos;t played this week&apos;s game {isHome ? 'vs' : 'at'} <strong>{opponent.name}</strong>. If you advance now, the game will be
+            auto-simulated and the result will count.
+          </p>
+        </Sheet>
       )}
 
       {showPreGameModal && opponent && (
@@ -240,35 +241,3 @@ const MeterCard: React.FC<{ label: string; val: number; color: string }> = ({ la
     </div>
   </div>
 );
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(15, 23, 42, 0.55)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 1000,
-  padding: '16px'
-};
-
-const dialogStyle: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: '10px',
-  padding: '20px',
-  maxWidth: '440px',
-  width: '100%',
-  boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-  fontFamily: 'sans-serif'
-};
-
-const dialogBtn = (background: string, color: string, border = 'none'): React.CSSProperties => ({
-  padding: '8px 14px',
-  background,
-  color,
-  border,
-  borderRadius: '6px',
-  fontWeight: 'bold',
-  fontSize: '13px',
-  cursor: 'pointer'
-});

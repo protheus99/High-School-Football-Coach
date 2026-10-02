@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Sheet } from './ui/Sheet';
 
 export interface CoachTalent {
   id: string;
@@ -30,69 +31,35 @@ export const CoachRPGSkillTreeModal: React.FC<{ onClose: () => void }> = ({ onCl
   };
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <h2 style={{ margin: 0 }}>🎖️ HEAD COACH TALENT TREE</h2>
-            <div style={{ fontSize: '13px', color: '#64748B' }}>Available Skill Points: <strong style={{ color: '#2563EB' }}>{skillPoints}</strong></div>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
-        </div>
-
-        {/* 4-Branch Talent Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-          {(['TACTICIAN', 'MOTIVATOR', 'DEVELOPER', 'POLITICIAN'] as const).map((branch) => (
-            <div key={branch} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px' }}>
-              <h4 style={{ margin: '0 0 8px 0', color: '#1E293B', fontSize: '13px' }}>{branch} BRANCH</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {talents.filter((t) => t.branch === branch).map((t) => (
-                  <div key={t.id} style={{ background: t.unlocked ? '#F0FDF4' : '#fff', border: t.unlocked ? '1px solid #86EFAC' : '1px solid #CBD5E1', borderRadius: '6px', padding: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ fontSize: '12px' }}>{t.name}</strong>
-                      {t.unlocked ? (
-                        <span style={{ fontSize: '11px', color: '#16A34A', fontWeight: 'bold' }}>✓ Unlocked</span>
-                      ) : (
-                        <button
-                          onClick={() => handleUnlock(t)}
-                          disabled={skillPoints < t.cost}
-                          style={{ padding: '3px 8px', background: skillPoints >= t.cost ? '#2563EB' : '#94A3B8', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
-                        >
-                          Unlock ({t.cost} SP)
-                        </button>
-                      )}
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>{t.description}</div>
+    <Sheet title="🎖️ Head Coach Talent Tree" subtitle={<>Skill points available: <strong style={{ color: '#2563EB' }}>{skillPoints}</strong></>} onClose={onClose}>
+      {/* One branch per row on phones; two columns on wider screens */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+        {(['TACTICIAN', 'MOTIVATOR', 'DEVELOPER', 'POLITICIAN'] as const).map((branch) => (
+          <div key={branch} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#1E293B', fontSize: '14px' }}>{branch.charAt(0) + branch.slice(1).toLowerCase()} branch</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {talents
+                .filter((t) => t.branch === branch)
+                .map((t) => (
+                  <div
+                    key={t.id}
+                    style={{ background: t.unlocked ? '#F0FDF4' : '#fff', border: t.unlocked ? '1px solid #86EFAC' : '1px solid #CBD5E1', borderRadius: '8px', padding: '10px' }}
+                  >
+                    <strong style={{ fontSize: '14px' }}>{t.name}</strong>
+                    <div style={{ fontSize: '13px', color: '#64748B', margin: '2px 0 8px' }}>{t.description}</div>
+                    {t.unlocked ? (
+                      <span style={{ fontSize: '13px', color: '#16A34A', fontWeight: 'bold' }}>✓ Unlocked</span>
+                    ) : (
+                      <button className="ui-btn ui-btn-primary" onClick={() => handleUnlock(t)} disabled={skillPoints < t.cost}>
+                        Unlock ({t.cost} SP)
+                      </button>
+                    )}
                   </div>
                 ))}
-              </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    </div>
+    </Sheet>
   );
-};
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: 'rgba(15, 23, 42, 0.7)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1250
-};
-
-const modalStyle: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: '12px',
-  padding: '24px',
-  width: '90%',
-  maxWidth: '680px',
-  maxHeight: '85vh',
-  overflowY: 'auto'
 };
