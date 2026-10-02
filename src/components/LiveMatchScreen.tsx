@@ -39,6 +39,23 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   // A ref (not state) so flipping it doesn't re-run the setup effect and restart the game
   const halftimeHandledRef = useRef(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
+  // Play-by-play starts collapsed (the strip under the field shows the latest play); the choice is remembered
+  const [logOpen, setLogOpen] = useState(() => {
+    try {
+      return localStorage.getItem(LOG_OPEN_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const toggleLog = () =>
+    setLogOpen((open) => {
+      try {
+        localStorage.setItem(LOG_OPEN_KEY, open ? '0' : '1');
+      } catch {
+        // storage unavailable (private mode): the toggle still works for this session
+      }
+      return !open;
+    });
   // Flashing banner for big moments; muted while fast-forwarding to the final
   const [playAlert, setPlayAlert] = useState<PlayAlertData | null>(null);
   const simmingToEndRef = useRef(false);
@@ -93,7 +110,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     if (logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
-  }, [gameState.eventLog.length]);
+  }, [gameState.eventLog.length, logOpen]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -140,10 +157,11 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           {[gameState.homeTeam, null, gameState.awayTeam].map((team, i) =>
             team ? (
               <div key={team.id} style={{ minWidth: 0, textAlign: i === 0 ? 'left' : 'right' }}>
-                <div style={teamNameStyle(readableOnWhite(team.primaryColor, team.secondaryColor))}>
-                  {i === 2 && gameState.possessionTeamId === team.id && <span aria-label="has the ball">🏈 </span>}
-                  {team.name}
-                  {i === 0 && gameState.possessionTeamId === team.id && <span aria-label="has the ball"> 🏈</span>}
+                {/* The ball icon sits outside the truncated name so long school names never hide it */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: i === 0 ? 'flex-start' : 'flex-end', minWidth: 0 }}>
+                  {i === 2 && gameState.possessionTeamId === team.id && <span style={{ flex: '0 0 auto' }} aria-label="has the ball">🏈</span>}
+                  <span style={teamNameStyle(readableOnWhite(team.primaryColor, team.secondaryColor))}>{team.name}</span>
+                  {i === 0 && gameState.possessionTeamId === team.id && <span style={{ flex: '0 0 auto' }} aria-label="has the ball">🏈</span>}
                 </div>
                 <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1, color: '#0F172A' }}>{i === 0 ? gameState.homeScore : gameState.awayScore}</div>
               </div>
@@ -193,8 +211,20 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         disabled={autoPlay || gameState.isGameOver || leveragePrompt !== null}
       />
 
-      {/* Play-by-Play Stream */}
+      {/* Play-by-Play Stream (collapsible) */}
+      <button
+        className="ui-btn ui-btn-block"
+        onClick={toggleLog}
+        aria-expanded={logOpen}
+        aria-controls="play-by-play-log"
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: logOpen ? '8px' : '16px' }}
+      >
+        <span>📜 Play-by-play ({gameState.eventLog.length})</span>
+        <span aria-hidden="true">{logOpen ? '▴' : '▾'}</span>
+      </button>
+      {logOpen && (
       <div
+        id="play-by-play-log"
         ref={logContainerRef}
         style={{
           background: '#F3F4F6',
@@ -217,6 +247,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           </div>
         ))}
       </div>
+      )}
 
       {/* Leverage Modal Interrupt */}
       {leveragePrompt === 'PAT_DECISION' && !gameState.isGameOver && (
@@ -309,8 +340,10 @@ const btnStyle: React.CSSProperties = {
 };
 
 const ORDINAL: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
+const LOG_OPEN_KEY = 'hsfhc.playByPlayOpen';
 
 const teamNameStyle = (color: string): React.CSSProperties => ({
+  minWidth: 0,
   fontSize: '14px',
   fontWeight: 'bold',
   color,
