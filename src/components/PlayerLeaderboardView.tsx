@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DataList } from './ui/DataList';
 import {
   PlayerRankingsAndStatsState,
   StatCategory,
@@ -50,203 +51,97 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
     return '★'.repeat(stars) + '☆'.repeat(5 - stars);
   };
 
+  const isProspects = activeTab === 'PROSPECT_RANKINGS';
+  const entries = isProspects ? activeProspectEntries : activeStatEntries;
+  const STAT_CATEGORIES: { cat: StatCategory; label: string }[] = [
+    { cat: 'PASS_YARDS', label: 'Pass yds' },
+    { cat: 'PASS_TDS', label: 'Pass TD' },
+    { cat: 'RUSH_YARDS', label: 'Rush yds' },
+    { cat: 'RUSH_TDS', label: 'Rush TD' },
+    { cat: 'REC_YARDS', label: 'Rec yds' },
+    { cat: 'TACKLES', label: 'Tackles' },
+    { cat: 'SACKS', label: 'Sacks' },
+    { cat: 'INTERCEPTIONS', label: 'INT' }
+  ];
+
   return (
-    <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      {/* Top Header & Mode Toggle */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <div>
-          <h2 style={{ margin: 0, color: '#0F172A' }}>
-            🌟 {activeTab === 'PROSPECT_RANKINGS' ? 'HIGH SCHOOL PROSPECT RANKINGS' : 'STATISTICAL LEADERBOARDS'}
-          </h2>
-          <div style={{ fontSize: '13px', color: '#64748B' }}>
-            Week {rankingsState.week} Official Player Scouting Database
-          </div>
-        </div>
+    <div className="ui-screen" style={{ maxWidth: '1000px' }}>
+      <h2 style={{ margin: '0 0 4px 0' }}>🌟 {isProspects ? 'Prospect Rankings' : 'Stat Leaders'}</h2>
+      <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
+        Week {rankingsState.week} · tap a player for his profile
+      </p>
 
-        {/* State / National Scope Selector */}
-        <select
-          value={scope}
-          onChange={(e) => setScope(e.target.value)}
-          style={{
-            padding: '8px 14px',
-            borderRadius: '6px',
-            border: '1px solid #CBD5E1',
-            background: '#fff',
-            fontWeight: 'bold',
-            fontSize: '13px',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="NATIONAL">🇺🇸 Nationwide</option>
-          {availableStates.map((st) => (
-            <option key={st} value={st}>
-              📍 {st}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Mode Navigation Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        <button
-          onClick={() => setActiveTab('PROSPECT_RANKINGS')}
-          style={{
-            flex: 1,
-            padding: '10px',
-            background: activeTab === 'PROSPECT_RANKINGS' ? '#2563EB' : '#F1F5F9',
-            color: activeTab === 'PROSPECT_RANKINGS' ? '#fff' : '#475569',
-            border: 'none',
-            borderRadius: '6px',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-        >
-          🎓 Positional Prospect Rankings (Scouting Board)
+      {/* Mode switch */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+        <button className={`ui-btn${isProspects ? ' ui-btn-primary' : ''}`} aria-pressed={isProspects} onClick={() => setActiveTab('PROSPECT_RANKINGS')}>
+          🎓 Prospects
         </button>
-        <button
-          onClick={() => setActiveTab('STAT_LEADERS')}
-          style={{
-            flex: 1,
-            padding: '10px',
-            background: activeTab === 'STAT_LEADERS' ? '#2563EB' : '#F1F5F9',
-            color: activeTab === 'STAT_LEADERS' ? '#fff' : '#475569',
-            border: 'none',
-            borderRadius: '6px',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-        >
-          📊 Stat Leaders (Yards / TDs / Tackles / Sacks)
+        <button className={`ui-btn${!isProspects ? ' ui-btn-primary' : ''}`} aria-pressed={!isProspects} onClick={() => setActiveTab('STAT_LEADERS')}>
+          📊 Stat leaders
         </button>
       </div>
 
-      {/* Tab 1: Positional Prospect Filter Bar */}
-      {activeTab === 'PROSPECT_RANKINGS' && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-          <button
-            onClick={() => setSelectedPosition('OVERALL_TOP_100')}
-            style={pillBtnStyle(selectedPosition === 'OVERALL_TOP_100')}
-          >
-            🔥 Top 100 (Overall)
+      <div className="ui-chips" role="group" aria-label="Scope" style={{ marginBottom: '6px' }}>
+        <button className="ui-chip" aria-pressed={scope === 'NATIONAL'} onClick={() => setScope('NATIONAL')}>
+          Nationwide
+        </button>
+        {availableStates.map((st) => (
+          <button key={st} className="ui-chip" aria-pressed={scope === st} onClick={() => setScope(st)}>
+            {st}
+          </button>
+        ))}
+      </div>
+
+      {isProspects ? (
+        <div className="ui-chips" role="group" aria-label="Position" style={{ marginBottom: '12px' }}>
+          <button className="ui-chip" aria-pressed={selectedPosition === 'OVERALL_TOP_100'} onClick={() => setSelectedPosition('OVERALL_TOP_100')}>
+            🔥 Top 100
           </button>
           {(['QB', 'RB', 'WR', 'TE', 'OT', 'OG', 'C', 'DE', 'DT', 'LB', 'CB', 'S', 'K', 'P'] as Position[]).map((pos) => (
-            <button
-              key={pos}
-              onClick={() => setSelectedPosition(pos)}
-              style={pillBtnStyle(selectedPosition === pos)}
-            >
+            <button key={pos} className="ui-chip" aria-pressed={selectedPosition === pos} onClick={() => setSelectedPosition(pos)}>
               {pos}
             </button>
           ))}
         </div>
-      )}
-
-      {/* Tab 2: Statistical Category Filter Bar */}
-      {activeTab === 'STAT_LEADERS' && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-          {[
-            { cat: 'PASS_YARDS', label: 'Passing Yds' },
-            { cat: 'PASS_TDS', label: 'Passing TDs' },
-            { cat: 'RUSH_YARDS', label: 'Rushing Yds' },
-            { cat: 'RUSH_TDS', label: 'Rushing TDs' },
-            { cat: 'REC_YARDS', label: 'Receiving Yds' },
-            { cat: 'TACKLES', label: 'Total Tackles' },
-            { cat: 'SACKS', label: 'Sacks' },
-            { cat: 'INTERCEPTIONS', label: 'Interceptions' }
-          ].map((item) => (
-            <button
-              key={item.cat}
-              onClick={() => setSelectedStatCat(item.cat as StatCategory)}
-              style={pillBtnStyle(selectedStatCat === item.cat)}
-            >
+      ) : (
+        <div className="ui-chips" role="group" aria-label="Stat" style={{ marginBottom: '12px' }}>
+          {STAT_CATEGORIES.map((item) => (
+            <button key={item.cat} className="ui-chip" aria-pressed={selectedStatCat === item.cat} onClick={() => setSelectedStatCat(item.cat)}>
               {item.label}
             </button>
           ))}
         </div>
       )}
 
-      {/* Main Leaderboard Table */}
-      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-            <thead>
-              <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0', color: '#475569' }}>
-                <th style={{ padding: '12px 10px', width: '50px' }}>Rank</th>
-                <th style={{ padding: '12px 10px' }}>Student-Athlete</th>
-                <th style={{ padding: '12px 10px' }}>Pos / Class</th>
-                <th style={{ padding: '12px 10px' }}>High School</th>
-                <th style={{ padding: '12px 10px' }}>State / Class</th>
-                <th style={{ padding: '12px 10px', textAlign: 'center' }}>
-                  {activeTab === 'PROSPECT_RANKINGS' ? 'Stars' : 'Season Production'}
-                </th>
-                <th style={{ padding: '12px 10px', textAlign: 'center' }}>
-                  {activeTab === 'PROSPECT_RANKINGS' ? 'Recruit Grade' : 'OVR'}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {(activeTab === 'PROSPECT_RANKINGS' ? activeProspectEntries : activeStatEntries).map((entry) => {
-                const isUserTeam = entry.teamId === userTeamId;
-                return (
-                  <tr
-                    key={entry.player.id}
-                    onClick={() => onSelectPlayer(entry)}
-                    style={{
-                      borderBottom: '1px solid #F1F5F9',
-                      background: isUserTeam ? '#EFF6FF' : 'transparent',
-                      borderLeft: isUserTeam ? '4px solid #2563EB' : 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <td style={{ padding: '10px', fontWeight: 'bold', fontSize: '14px', color: entry.rank <= 3 ? '#D97706' : '#1E293B' }}>
-                      #{entry.rank}
-                    </td>
-                    <td style={{ padding: '10px' }}>
-                      <div style={{ fontWeight: 'bold', color: isUserTeam ? '#1D4ED8' : '#0F172A' }}>
-                        {entry.player.firstName} {entry.player.lastName}
-                      </div>
-                    </td>
-                    <td style={{ padding: '10px', color: '#475569' }}>
-                      #{entry.player.position} ({entry.player.classYear})
-                    </td>
-                    <td style={{ padding: '10px', fontWeight: '500' }}>
-                      {entry.teamName}
-                    </td>
-                    <td style={{ padding: '10px', color: '#64748B' }}>
-                      {entry.state} ({entry.classification})
-                    </td>
-                    <td style={{ padding: '10px', textAlign: 'center' }}>
-                      {activeTab === 'PROSPECT_RANKINGS' ? (
-                        <span style={{ color: '#D97706', fontSize: '12px' }}>
-                          {renderStarBadges(entry.player.recruiting.starRating)}
-                        </span>
-                      ) : (
-                        <span style={{ fontWeight: 'bold', color: '#0F172A' }}>
-                          {entry.primaryStatLine}
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#2563EB' }}>
-                      {activeTab === 'PROSPECT_RANKINGS' ? `${entry.compositeRecruitScore} pts` : isUserTeam ? `${entry.player.overallRating}` : '—'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataList
+        rows={entries}
+        rowKey={(e) => e.player.id}
+        onRowClick={onSelectPlayer}
+        rowTone={(e) => (e.teamId === userTeamId ? '#EFF6FF' : undefined)}
+        empty="No players in this list yet."
+        columns={[
+          { key: 'rank', label: 'Rank', badge: true, render: (e) => <span style={{ color: e.rank <= 3 ? '#D97706' : '#1E293B' }}>#{e.rank}</span> },
+          {
+            key: 'name',
+            label: 'Player',
+            primary: true,
+            render: (e) => (
+              <span style={{ color: e.teamId === userTeamId ? '#1D4ED8' : '#0F172A' }}>
+                {e.player.firstName} {e.player.lastName}
+              </span>
+            )
+          },
+          { key: 'pos', label: 'Pos / Class', render: (e) => `${e.player.position} · ${e.player.classYear}` },
+          { key: 'school', label: 'School', render: (e) => e.teamName },
+          { key: 'state', label: 'State', desktopOnly: true, render: (e) => `${e.state} (${e.classification})` },
+          isProspects
+            ? { key: 'stars', label: 'Stars', render: (e) => <span style={{ color: '#D97706' }}>{renderStarBadges(e.player.recruiting.starRating)}</span> }
+            : { key: 'stat', label: 'Production', render: (e) => <strong>{e.primaryStatLine}</strong> },
+          isProspects
+            ? { key: 'grade', label: 'Recruit grade', render: (e) => <strong style={{ color: '#2563EB' }}>{e.compositeRecruitScore} pts</strong> }
+            : { key: 'ovr', label: 'OVR', desktopOnly: true, render: (e) => (e.teamId === userTeamId ? e.player.overallRating : '—') }
+        ]}
+      />
     </div>
   );
 };
-
-const pillBtnStyle = (active: boolean): React.CSSProperties => ({
-  padding: '6px 12px',
-  background: active ? '#0F172A' : '#F1F5F9',
-  color: active ? '#fff' : '#334155',
-  border: '1px solid #CBD5E1',
-  borderRadius: '20px',
-  fontSize: '12px',
-  fontWeight: 'bold',
-  cursor: 'pointer'
-});

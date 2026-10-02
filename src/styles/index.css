@@ -450,6 +450,69 @@ h3 {
   font-size: 13px;
 }
 
+/* Standings: compact one-line rows on phones */
+.ui-standings {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ui-standings-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+
+.ui-standings-row:first-child {
+  border-top: none;
+}
+
+.ui-standings-seed {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-standings-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-standings-record {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.ui-standings-record small {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: normal;
+}
+
+.ui-desktop-only {
+  display: none;
+}
+
 /* Data list: table on desktop */
 .ui-table {
   width: 100%;
@@ -471,6 +534,15 @@ h3 {
 }
 
 @media (min-width: 721px) {
+  .ui-desktop-only {
+    display: block;
+  }
+
+  .ui-mobile-only,
+  .ui-standings {
+    display: none;
+  }
+
   .ui-screen {
     padding: 24px 24px 32px;
   }

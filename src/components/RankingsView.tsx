@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StateAndNationalPolls, RankedTeamEntry } from '../types/game';
+import { DataList } from './ui/DataList';
 
 interface RankingsViewProps {
   polls: StateAndNationalPolls;
@@ -23,130 +24,107 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
       return <span style={{ color: '#DC2626', fontWeight: 'bold', fontSize: '12px' }}>▼ {entry.movementDelta}</span>;
     }
     if (entry.movement === 'NEW_ENTRY') {
-      return <span style={{ background: '#2563EB', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>NEW</span>;
+      return <span style={{ background: '#2563EB', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>NEW</span>;
     }
     return <span style={{ color: '#94A3B8', fontSize: '12px' }}>—</span>;
   };
 
+  const title = selectedView === 'NATIONAL' ? 'National Super 25' : `${selectedView} Top 25`;
+
   return (
-    <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      {/* Poll Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <div>
-          <h2 style={{ margin: 0, color: '#0F172A' }}>
-            🏆 {selectedView === 'NATIONAL' ? 'NATIONAL SUPER 25 POLL' : `${selectedView.toUpperCase()} STATE TOP 25`}
-          </h2>
-          <div style={{ fontSize: '13px', color: '#64748B' }}>
-            Week {polls.week} Official Rankings | Composite Strength & Quality Wins
-          </div>
-        </div>
+    <div className="ui-screen" style={{ maxWidth: '1000px' }}>
+      <h2 style={{ margin: '0 0 4px 0' }}>🏆 {title}</h2>
+      <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
+        Week {polls.week} rankings · composite strength and quality wins
+      </p>
 
-        {/* View Switcher Dropdown */}
-        <select
-          value={selectedView}
-          onChange={(e) => setSelectedView(e.target.value)}
-          style={{
-            padding: '8px 14px',
-            borderRadius: '6px',
-            border: '1px solid #CBD5E1',
-            background: '#fff',
-            fontWeight: 'bold',
-            fontSize: '13px',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="NATIONAL">🇺🇸 National Super 25</option>
-          {availableStates.map((st) => (
-            <option key={st} value={st}>
-              📍 {st} Top 25
-            </option>
-          ))}
-        </select>
+      <div className="ui-chips" role="group" aria-label="Poll" style={{ marginBottom: '12px' }}>
+        <button className="ui-chip" aria-pressed={selectedView === 'NATIONAL'} onClick={() => setSelectedView('NATIONAL')}>
+          National
+        </button>
+        {availableStates.map((st) => (
+          <button key={st} className="ui-chip" aria-pressed={selectedView === st} onClick={() => setSelectedView(st)}>
+            {st}
+          </button>
+        ))}
       </div>
 
-      {/* Rankings Table */}
-      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-            <thead>
-              <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0', color: '#475569' }}>
-                <th style={{ padding: '12px 10px', width: '60px' }}>Rank</th>
-                <th style={{ padding: '12px 10px', width: '50px' }}>Move</th>
-                <th style={{ padding: '12px 10px' }}>School & Mascot</th>
-                <th style={{ padding: '12px 10px' }}>State / Class</th>
-                <th style={{ padding: '12px 10px', textAlign: 'center' }}>Record</th>
-                <th style={{ padding: '12px 10px', textAlign: 'center' }}>Points</th>
-                <th style={{ padding: '12px 10px', textAlign: 'center' }}>SoS</th>
-                <th style={{ padding: '12px 10px', textAlign: 'center' }}>Q-Wins</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeEntries.map((entry) => {
-                const isUserTeam = entry.teamId === userTeamId;
-                return (
-                  <tr
-                    key={entry.teamId}
-                    style={{
-                      borderBottom: '1px solid #F1F5F9',
-                      background: isUserTeam ? '#EFF6FF' : 'transparent',
-                      borderLeft: isUserTeam ? '4px solid #2563EB' : 'none'
-                    }}
-                  >
-                    <td style={{ padding: '10px', fontWeight: 'bold', fontSize: '14px', color: entry.rank <= 5 ? '#D97706' : '#1E293B' }}>
-                      #{entry.rank}
-                    </td>
-                    <td style={{ padding: '10px' }}>{renderMovementBadge(entry)}</td>
-                    <td style={{ padding: '10px' }}>
-                      <div style={{ fontWeight: 'bold', color: isUserTeam ? '#1D4ED8' : '#0F172A' }}>
-                        {entry.teamName} {entry.mascot}
-                        {entry.firstPlaceVotes > 0 && (
-                          <span style={{ marginLeft: '6px', fontSize: '11px', color: '#D97706', fontWeight: 'bold' }}>
-                            ({entry.firstPlaceVotes})
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td style={{ padding: '10px', color: '#64748B' }}>
-                      {entry.state} ({entry.classification})
-                    </td>
-                    <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>
-                      {entry.record.wins}-{entry.record.losses}
-                    </td>
-                    <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#2563EB' }}>
-                      {entry.pollPoints}
-                    </td>
-                    <td style={{ padding: '10px', textAlign: 'center', color: '#475569' }}>
-                      {entry.strengthOfSchedule}
-                    </td>
-                    <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#16A34A' }}>
-                      {entry.qualityWinsCount}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      {/* Phones: one compact row per team */}
+      <div className="ui-standings">
+        {activeEntries.map((entry) => {
+          const isUserTeam = entry.teamId === userTeamId;
+          return (
+            <div key={entry.teamId} className="ui-standings-row" style={{ background: isUserTeam ? '#EFF6FF' : undefined, fontWeight: isUserTeam ? 'bold' : undefined }}>
+              <span style={{ flex: '0 0 auto', width: '34px', textAlign: 'center', lineHeight: 1.1 }}>
+                <strong style={{ color: entry.rank <= 5 ? '#D97706' : '#1E293B', fontSize: '15px' }}>{entry.rank}</strong>
+                <br />
+                {renderMovementBadge(entry)}
+              </span>
+              <span className="ui-standings-name">
+                {entry.teamName}
+                {entry.firstPlaceVotes > 0 && <span style={{ color: '#D97706', fontSize: '12px' }}> ({entry.firstPlaceVotes})</span>}
+                <br />
+                <small style={{ color: '#64748B', fontWeight: 'normal', fontSize: '12px' }}>
+                  {entry.mascot} · {entry.state}
+                </small>
+              </span>
+              <span className="ui-standings-record">
+                <strong>
+                  {entry.record.wins}-{entry.record.losses}
+                </strong>
+                <small>{entry.pollPoints} pts</small>
+              </span>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Others Receiving Votes (Bubble Teams) */}
+      {/* Desktop: full table */}
+      <div className="ui-desktop-only">
+        <DataList
+          rows={activeEntries}
+          rowKey={(e) => e.teamId}
+          rowTone={(e) => (e.teamId === userTeamId ? '#EFF6FF' : undefined)}
+          columns={[
+            { key: 'rank', label: 'Rank', render: (e) => <strong style={{ color: e.rank <= 5 ? '#D97706' : '#1E293B' }}>#{e.rank}</strong> },
+            { key: 'move', label: 'Move', render: renderMovementBadge },
+            {
+              key: 'school',
+              label: 'School',
+              primary: true,
+              render: (e) => (
+                <strong>
+                  {e.teamName} {e.mascot}
+                  {e.firstPlaceVotes > 0 && <span style={{ color: '#D97706', fontSize: '12px' }}> ({e.firstPlaceVotes})</span>}
+                </strong>
+              )
+            },
+            { key: 'state', label: 'State / Class', render: (e) => `${e.state} (${e.classification})` },
+            { key: 'record', label: 'Record', align: 'center', render: (e) => `${e.record.wins}-${e.record.losses}` },
+            { key: 'points', label: 'Points', align: 'center', render: (e) => <strong style={{ color: '#2563EB' }}>{e.pollPoints}</strong> },
+            { key: 'sos', label: 'SoS', align: 'center', render: (e) => e.strengthOfSchedule },
+            { key: 'qwins', label: 'Q-Wins', align: 'center', render: (e) => e.qualityWinsCount }
+          ]}
+        />
+      </div>
+
       {selectedView === 'NATIONAL' && polls.bubbleTeams.length > 0 && (
-        <div style={{ marginTop: '20px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px' }}>
-          <h4 style={{ margin: '0 0 8px 0', color: '#334155' }}>Others Receiving Votes (Bubble Teams):</h4>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '12px' }}>
+        <div style={{ marginTop: '18px' }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#334155' }}>Others receiving votes</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '13px' }}>
             {polls.bubbleTeams.map((team) => (
               <span
                 key={team.teamId}
                 style={{
                   background: team.teamId === userTeamId ? '#DBEAFE' : '#fff',
                   border: '1px solid #CBD5E1',
-                  padding: '4px 10px',
-                  borderRadius: '4px',
+                  padding: '6px 10px',
+                  borderRadius: '999px',
                   color: team.teamId === userTeamId ? '#1D4ED8' : '#475569',
                   fontWeight: team.teamId === userTeamId ? 'bold' : 'normal'
                 }}
               >
-                #{team.rank} {team.teamName} ({team.record.wins}-{team.record.losses}) — {team.pollPoints} pts
+                {team.teamName} ({team.record.wins}-{team.record.losses}) · {team.pollPoints} pts
               </span>
             ))}
           </div>

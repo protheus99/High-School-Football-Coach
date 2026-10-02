@@ -3,6 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { Position, Player } from '../types/game';
 import { DepthChartEditorModal } from './DepthChartEditorModal';
 import { DepthChartBoard } from './DepthChartBoard';
+import { DataList } from './ui/DataList';
 
 export const RosterDepthChartView: React.FC = () => {
   const { districtTeams, userTeamId, updatePlayerTier, togglePlayerStudyHall, moveDepthChartPlayer } = useGameStore();
@@ -22,8 +23,10 @@ export const RosterDepthChartView: React.FC = () => {
     return true;
   });
 
+  const STRING_LABEL = { 1: '1st', 2: '2nd', 3: '3rd' } as const;
+
   return (
-    <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div className="ui-screen">
       {selectedPlayer && (
         <DepthChartEditorModal
           player={selectedPlayer}
@@ -39,12 +42,12 @@ export const RosterDepthChartView: React.FC = () => {
         />
       )}
 
-      <h2>Varsity Roster & Depth Chart</h2>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        <button onClick={() => setView('CHART')} style={tabBtn(view === 'CHART')}>
+      <h2 style={{ margin: '0 0 10px 0' }}>Roster</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
+        <button className={`ui-btn${view === 'CHART' ? ' ui-btn-primary' : ''}`} aria-pressed={view === 'CHART'} onClick={() => setView('CHART')}>
           Depth Chart
         </button>
-        <button onClick={() => setView('ROSTER')} style={tabBtn(view === 'ROSTER')}>
+        <button className={`ui-btn${view === 'ROSTER' ? ' ui-btn-primary' : ''}`} aria-pressed={view === 'ROSTER'} onClick={() => setView('ROSTER')}>
           Full Roster
         </button>
       </div>
@@ -53,68 +56,57 @@ export const RosterDepthChartView: React.FC = () => {
 
       {view === 'ROSTER' && (
         <>
-          <p style={{ fontSize: '13px', color: '#6B7280' }}>
-            Click any athlete to adjust their depth chart slot (1st/2nd/3rd string) or assign mandatory study hall.
-          </p>
-
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-            <button onClick={() => setFilter('ALL')} style={tabBtn(filter === 'ALL')}>
+          <div className="ui-chips" role="group" aria-label="Filter" style={{ marginBottom: '10px' }}>
+            <button className="ui-chip" aria-pressed={filter === 'ALL'} onClick={() => setFilter('ALL')}>
               All ({userTeam.roster.length})
             </button>
-            <button onClick={() => setFilter('OFF')} style={tabBtn(filter === 'OFF')}>
+            <button className="ui-chip" aria-pressed={filter === 'OFF'} onClick={() => setFilter('OFF')}>
               Offense
             </button>
-            <button onClick={() => setFilter('DEF')} style={tabBtn(filter === 'DEF')}>
+            <button className="ui-chip" aria-pressed={filter === 'DEF'} onClick={() => setFilter('DEF')}>
               Defense
             </button>
           </div>
-
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ background: '#F3F4F6', borderBottom: '2px solid #E5E7EB' }}>
-                  <th style={{ padding: '8px' }}>Name</th>
-                  <th style={{ padding: '8px' }}>Pos</th>
-                  <th style={{ padding: '8px' }}>Class</th>
-                  <th style={{ padding: '8px' }}>OVR</th>
-                  <th style={{ padding: '8px' }}>Slot</th>
-                  <th style={{ padding: '8px' }}>Stamina</th>
-                  <th style={{ padding: '8px' }}>Wear</th>
-                  <th style={{ padding: '8px' }}>GPA</th>
-                  <th style={{ padding: '8px' }}>Offers</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((p) => (
-                  <tr key={p.id} onClick={() => setSelectedPlayer(p)} style={{ borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
-                    <td style={{ padding: '8px', fontWeight: 'bold' }}>
-                      {p.firstName} {p.lastName}
-                    </td>
-                    <td style={{ padding: '8px' }}>{p.position}</td>
-                    <td style={{ padding: '8px' }}>{p.classYear}</td>
-                    <td style={{ padding: '8px', fontWeight: 'bold', color: '#2563EB' }}>{p.overallRating}</td>
-                    <td style={{ padding: '8px' }}>{p.depthChartTier === 1 ? '1st String' : p.depthChartTier === 2 ? '2nd String' : '3rd String'}</td>
-                    <td style={{ padding: '8px' }}>{p.condition.inGameStamina}%</td>
-                    <td style={{ padding: '8px' }}>{p.condition.seasonWear}%</td>
-                    <td style={{ padding: '8px', color: p.academics.isEligible ? '#059669' : '#DC2626' }}>{p.academics.gpa.toFixed(2)}</td>
-                    <td style={{ padding: '8px' }}>{p.recruiting.offers.length} Offers</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
+            Tap a player to change his string or assign study hall.
+          </p>
+          <DataList
+            rows={filtered}
+            rowKey={(p) => p.id}
+            onRowClick={setSelectedPlayer}
+            rowTone={(p) => (!p.academics.isEligible || p.condition.injuryStatus !== 'HEALTHY' ? '#FEF2F2' : undefined)}
+            columns={[
+              {
+                key: 'name',
+                label: 'Name',
+                primary: true,
+                render: (p) => (
+                  <>
+                    {p.firstName} {p.lastName} <span style={{ color: '#64748B', fontWeight: 'normal', fontSize: '13px' }}>{p.position}</span>
+                  </>
+                )
+              },
+              { key: 'ovr', label: 'OVR', badge: true, render: (p) => p.overallRating },
+              { key: 'pos', label: 'Pos', desktopOnly: true, render: (p) => p.position },
+              { key: 'class', label: 'Class', render: (p) => p.classYear },
+              { key: 'string', label: 'String', render: (p) => STRING_LABEL[p.depthChartTier] },
+              { key: 'stamina', label: 'Stamina', desktopOnly: true, render: (p) => `${p.condition.inGameStamina}%` },
+              {
+                key: 'status',
+                label: 'Status',
+                render: (p) =>
+                  p.condition.injuryStatus !== 'HEALTHY' ? (
+                    <span style={{ color: '#DC2626' }}>Injured ({p.condition.injuryWeeksRemaining} wk)</span>
+                  ) : (
+                    `Wear ${p.condition.seasonWear}%`
+                  )
+              },
+              { key: 'gpa', label: 'GPA', render: (p) => <span style={{ color: p.academics.isEligible ? '#059669' : '#DC2626' }}>{p.academics.gpa.toFixed(2)}</span> },
+              { key: 'offers', label: 'Offers', desktopOnly: true, render: (p) => p.recruiting.offers.length }
+            ]}
+          />
         </>
       )}
     </div>
   );
 };
-
-const tabBtn = (active: boolean): React.CSSProperties => ({
-  padding: '6px 14px',
-  background: active ? '#2563EB' : '#E5E7EB',
-  color: active ? '#fff' : '#374151',
-  border: 'none',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  fontWeight: 'bold'
-});

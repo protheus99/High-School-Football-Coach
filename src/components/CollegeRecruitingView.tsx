@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { Player, Team } from '../types/game';
+import { DataList } from './ui/DataList';
 import {
   CAMP_WEEKS,
   COLLEGE_ACTION_COSTS,
@@ -165,57 +166,34 @@ export const CollegeRecruitingView: React.FC = () => {
       </div>
 
       <h3 style={{ margin: '24px 0 6px 0', fontSize: '15px' }}>Top Senior Recruits in the State</h3>
-      <div style={{ overflowX: 'auto' }}>
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            fontSize: '12px',
-            minWidth: '560px'
-          }}
-        >
-          <thead>
-            <tr
-              style={{
-                textAlign: 'left',
-                color: '#64748B',
-                borderBottom: '1px solid #E2E8F0'
-              }}
-            >
-              <th style={cell}>#</th>
-              <th style={cell}>Player</th>
-              <th style={cell}>School</th>
-              <th style={cell}>Stars</th>
-              <th style={cell}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {statewide.map(({ player, team }, i) => {
-              const status = recruitingStatus(player);
-              return (
-                <tr
-                  key={player.id}
-                  style={{
-                    borderBottom: '1px solid #F1F5F9',
-                    background: team.id === userTeamId ? '#EFF6FF' : undefined
-                  }}
-                >
-                  <td style={cell}>{i + 1}</td>
-                  <td style={cell}>
-                    <strong>
-                      {player.firstName} {player.lastName}
-                    </strong>{' '}
-                    {player.position}
-                  </td>
-                  <td style={cell}>{team.name}</td>
-                  <td style={{ ...cell, color: '#D97706' }}>{stars(player.recruiting.starRating)}</td>
-                  <td style={{ ...cell, color: status.color, fontWeight: 'bold' }}>{status.label}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataList
+        rows={statewide.map((row, i) => ({ ...row, rank: i + 1 }))}
+        rowKey={(r) => r.player.id}
+        rowTone={(r) => (r.team.id === userTeamId ? '#EFF6FF' : undefined)}
+        columns={[
+          { key: 'rank', label: '#', badge: true, render: (r) => `#${r.rank}` },
+          {
+            key: 'player',
+            label: 'Player',
+            primary: true,
+            render: (r) => (
+              <>
+                {r.player.firstName} {r.player.lastName} <span style={{ color: '#64748B', fontWeight: 'normal', fontSize: '13px' }}>{r.player.position}</span>
+              </>
+            )
+          },
+          { key: 'school', label: 'School', render: (r) => r.team.name },
+          { key: 'stars', label: 'Stars', render: (r) => <span style={{ color: '#D97706' }}>{stars(r.player.recruiting.starRating)}</span> },
+          {
+            key: 'status',
+            label: 'Status',
+            render: (r) => {
+              const status = recruitingStatus(r.player);
+              return <span style={{ color: status.color, fontWeight: 'bold' }}>{status.label}</span>;
+            }
+          }
+        ]}
+      />
     </div>
   );
 };
@@ -275,7 +253,7 @@ const RecruitRow: React.FC<{
             </span>
           </div>
         </div>
-        <div style={{ fontSize: '11px', color: '#475569', minWidth: '140px' }}>
+        <div style={{ fontSize: '12px', color: '#475569', minWidth: '140px' }}>
           Exposure {exposure}
           <div
             style={{
@@ -328,7 +306,7 @@ const RecruitRow: React.FC<{
               <span
                 key={o.collegeName}
                 style={{
-                  fontSize: '11px',
+                  fontSize: '12px',
                   padding: '3px 8px',
                   borderRadius: '4px',
                   background: isCommit ? '#DCFCE7' : '#EFF6FF',
@@ -353,7 +331,6 @@ const pill = (background: string, color: string): React.CSSProperties => ({
   padding: '5px 12px',
   borderRadius: '6px'
 });
-const cell: React.CSSProperties = { padding: '6px 8px' };
 const btn = (color: string, disabled: boolean): React.CSSProperties => ({
   padding: '5px 10px',
   background: disabled ? '#CBD5E1' : color,

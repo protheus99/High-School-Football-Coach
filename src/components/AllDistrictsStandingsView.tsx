@@ -37,89 +37,49 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void }> = ({ on
     .filter((region) => region.districts.length > 0);
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <button onClick={onBack} style={linkBtn}>
-        ← Back to my district
+    <div className="ui-screen">
+      <button onClick={onBack} className="ui-btn" style={{ marginBottom: '10px' }}>
+        ← My district
       </button>
-      <h2 style={{ margin: '6px 0 4px 0' }}>{league.name}: All District Standings</h2>
-      <p style={{ color: '#6B7280', fontSize: '13px', margin: '0 0 12px 0' }}>
-        Top 4 in each district make the playoffs. Your district is highlighted.
+      <h2 style={{ margin: '0 0 4px 0' }}>All District Standings</h2>
+      <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
+        {league.name}. Top 4 in each district make the playoffs.
       </p>
 
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' }}>
-        <button onClick={() => setRegionIndex('ALL')} style={tabBtn(regionIndex === 'ALL')}>
-          All Regions
+      <input
+        className="ui-input"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Find a school…"
+        aria-label="Find a school"
+        style={{ marginBottom: '8px' }}
+      />
+      <div className="ui-chips" role="group" aria-label="Region" style={{ marginBottom: '14px' }}>
+        <button className="ui-chip" aria-pressed={regionIndex === 'ALL'} onClick={() => setRegionIndex('ALL')}>
+          All regions
         </button>
         {regions.map((region, i) => (
-          <button key={region.name} onClick={() => setRegionIndex(i)} style={tabBtn(regionIndex === i)}>
+          <button key={region.name} className="ui-chip" aria-pressed={regionIndex === i} onClick={() => setRegionIndex(i)}>
             {region.name}
           </button>
         ))}
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Find a school…"
-          aria-label="Find a school"
-          style={{ marginLeft: 'auto', padding: '6px 10px', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '13px', minWidth: '180px' }}
-        />
       </div>
 
-      {shownRegions.length === 0 && <p style={{ color: '#64748B' }}>No school matches &quot;{search}&quot;.</p>}
+      {shownRegions.length === 0 && <p className="ui-muted">No school matches &quot;{search}&quot;.</p>}
 
       {shownRegions.map((region) => (
         <div key={region.name} style={{ marginBottom: '20px' }}>
           <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', borderBottom: '2px solid #0F172A', paddingBottom: '3px' }}>{region.name}</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
             {region.districts.map((district) => (
-              <div
-                key={district.id}
-                style={{
-                  background: '#fff',
-                  border: district.isUser ? '2px solid #2563EB' : '1px solid #E2E8F0',
-                  borderRadius: '6px',
-                  overflow: 'hidden'
-                }}
-              >
-                <div style={{ background: district.isUser ? '#2563EB' : '#0F172A', color: '#fff', padding: '5px 10px', fontWeight: 'bold', fontSize: '13px' }}>
+              <div key={district.id}>
+                <div style={{ fontWeight: 'bold', fontSize: '14px', margin: '0 0 6px 2px', color: district.isUser ? '#2563EB' : '#0F172A' }}>
                   {district.name}
                   {district.isUser && ' (yours)'}
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                  <thead>
-                    <tr style={{ color: '#64748B', textAlign: 'left' }}>
-                      <th style={cell}>#</th>
-                      <th style={cell}>School</th>
-                      <th style={cell}>Dist</th>
-                      <th style={cell}>Ovr</th>
-                      <th style={cell}>Diff</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {district.standings.map((row) => {
-                      const match = query && row.name.toLowerCase().includes(query);
-                      return (
-                        <tr
-                          key={row.teamId}
-                          style={{
-                            borderTop: '1px solid #F1F5F9',
-                            background: match ? '#FEF9C3' : row.isPlayoffBound ? '#F0FDF4' : undefined,
-                            fontWeight: row.teamId === userTeamId ? 'bold' : 'normal'
-                          }}
-                        >
-                          <td style={cell}>{row.rank}</td>
-                          <td style={{ ...cell, maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={row.name}>
-                            {row.name}
-                          </td>
-                          <td style={cell}>{row.districtRecord}</td>
-                          <td style={cell}>{row.overallRecord}</td>
-                          <td style={{ ...cell, color: row.pointDifferential >= 0 ? '#059669' : '#DC2626' }}>
-                            {row.pointDifferential > 0 ? `+${row.pointDifferential}` : row.pointDifferential}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div style={{ borderRadius: '10px', boxShadow: district.isUser ? '0 0 0 2px #2563EB' : undefined }}>
+                  <CompactStandings rows={district.standings} userTeamId={userTeamId} query={query} />
+                </div>
               </div>
             ))}
           </div>
@@ -129,25 +89,36 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void }> = ({ on
   );
 };
 
-const cell: React.CSSProperties = { padding: '4px 8px' };
-
-const linkBtn: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: '#2563EB',
-  cursor: 'pointer',
-  fontSize: '13px',
-  padding: 0,
-  fontWeight: 'bold'
-};
-
-const tabBtn = (active: boolean): React.CSSProperties => ({
-  padding: '6px 12px',
-  background: active ? '#0F172A' : '#E5E7EB',
-  color: active ? '#fff' : '#374151',
-  border: 'none',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  fontWeight: 'bold',
-  fontSize: '12px'
-});
+/** Dense standings rows (all screen sizes): seed, school, district and overall record, differential. */
+const CompactStandings: React.FC<{ rows: ReturnType<typeof calculateDistrictStandings>; userTeamId: string; query: string }> = ({ rows, userTeamId, query }) => (
+  <div className="ui-standings" style={{ display: 'flex' }}>
+    {rows.map((row) => {
+      const match = query && row.name.toLowerCase().includes(query);
+      return (
+        <div
+          key={row.teamId}
+          className="ui-standings-row"
+          style={{
+            minHeight: '40px',
+            background: match ? '#FEF9C3' : row.isPlayoffBound ? '#F0FDF4' : undefined,
+            fontWeight: row.teamId === userTeamId ? 'bold' : undefined
+          }}
+        >
+          <span className="ui-standings-seed" style={{ background: row.isPlayoffBound ? '#16A34A' : '#CBD5E1' }}>
+            {row.rank}
+          </span>
+          <span className="ui-standings-name">{row.name}</span>
+          <span className="ui-standings-record">
+            <strong>{row.districtRecord}</strong>
+            <small>
+              {row.overallRecord} ·{' '}
+              <span style={{ color: row.pointDifferential >= 0 ? '#059669' : '#DC2626' }}>
+                {row.pointDifferential > 0 ? `+${row.pointDifferential}` : row.pointDifferential}
+              </span>
+            </small>
+          </span>
+        </div>
+      );
+    })}
+  </div>
+);
