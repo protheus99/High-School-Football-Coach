@@ -5,17 +5,75 @@ import { DEPTH_ROWS, DEPTH_TEMPLATE, SLOT_LABELS, depthChartName, depthGroup } f
 /** A slot on the board: a position and which starter column it is (e.g. OT column 0 = LT). */
 type Slot = [Position, number];
 
-// Formation rows, left to right, like a printed depth chart
-const DEFENSE: Slot[][] = [
-  [['S', 0], ['S', 1]],
-  [['CB', 0], ['LB', 0], ['LB', 1], ['LB', 2], ['CB', 1]],
-  [['DE', 0], ['DT', 0], ['DT', 1], ['DE', 1]]
+/** A formation row: slots pinned to the left edge, centered, and pinned to the right edge. Rows never wrap. */
+interface FormationRow {
+  left?: Slot[];
+  center?: Slot[];
+  right?: Slot[];
+}
+
+// Formation rows, like a printed depth chart
+const DEFENSE: FormationRow[] = [
+  {
+    center: [
+      ['S', 0],
+      ['S', 1]
+    ]
+  },
+  {
+    left: [['CB', 0]],
+    center: [
+      ['LB', 0],
+      ['LB', 1],
+      ['LB', 2]
+    ],
+    right: [['CB', 1]]
+  },
+  {
+    center: [
+      ['DE', 0],
+      ['DT', 0],
+      ['DT', 1],
+      ['DE', 1]
+    ]
+  }
 ];
-const OFFENSE: Slot[][] = [
-  [['WR', 0], ['OT', 0], ['OG', 0], ['C', 0], ['OG', 1], ['OT', 1], ['WR', 1]],
-  [['QB', 0], ['RB', 0], ['TE', 0]]
+const OFFENSE: FormationRow[] = [
+  {
+    center: [
+      ['OT', 0],
+      ['OG', 0],
+      ['C', 0],
+      ['OG', 1],
+      ['OT', 1]
+    ]
+  },
+  {
+    left: [['WR', 0]],
+    right: [
+      ['TE', 0],
+      ['WR', 1]
+    ]
+  },
+  {
+    center: [
+      ['QB', 0],
+      ['RB', 0]
+    ]
+  }
 ];
-const SPECIALISTS: Slot[][] = [[['K', 0], ['P', 0]]];
+const SPECIALISTS: FormationRow[] = [
+  {
+    center: [
+      ['K', 0],
+      ['P', 0]
+    ]
+  }
+];
+
+const CARD_WIDTH = 150;
+const GAP = 8;
+const BOARD_MIN_WIDTH = CARD_WIDTH * 5 + GAP * 4; // the offensive line, the widest row
 
 const unavailable = (p: Player) => p.condition.injuryStatus !== 'HEALTHY' || !p.academics.isEligible;
 
@@ -55,7 +113,12 @@ export const DepthChartBoard: React.FC<{
             <button onClick={() => onMove(p.id, -1)} disabled={i - k < 0} style={arrowBtn(i - k < 0)} aria-label={`Move ${p.lastName} up`}>
               ▲
             </button>
-            <button onClick={() => onMove(p.id, 1)} disabled={i + k >= group.length} style={arrowBtn(i + k >= group.length)} aria-label={`Move ${p.lastName} down`}>
+            <button
+              onClick={() => onMove(p.id, 1)}
+              disabled={i + k >= group.length}
+              style={arrowBtn(i + k >= group.length)}
+              aria-label={`Move ${p.lastName} down`}
+            >
               ▼
             </button>
           </span>
@@ -78,25 +141,34 @@ export const DepthChartBoard: React.FC<{
     );
   };
 
-  const section = (title: string, rows: Slot[][]) => (
+  const group = (slots: Slot[] | undefined, justify: 'flex-start' | 'center' | 'flex-end') => (
+    <div style={{ display: 'flex', gap: `${GAP}px`, justifyContent: justify }}>{slots?.map(card)}</div>
+  );
+
+  const section = (title: string, rows: FormationRow[]) => (
     <div style={{ marginBottom: '18px' }}>
       <h3 style={sectionTitle}>{title}</h3>
       {rows.map((row, i) => (
-        <div key={i} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-          {row.map(card)}
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: `${GAP}px`, marginBottom: `${GAP}px` }}>
+          {group(row.left, 'flex-start')}
+          {group(row.center, 'center')}
+          {group(row.right, 'flex-end')}
         </div>
       ))}
     </div>
   );
 
   return (
-    <div>
-      {section('DEFENSE', DEFENSE)}
-      {section('OFFENSE', OFFENSE)}
-      {section('SPECIALISTS', SPECIALISTS)}
-      <div style={{ fontSize: '11px', color: '#64748B', textAlign: 'center' }}>
-        Bold = starter. ▲▼ swaps a player with the one above or below him in that slot. <span style={{ color: '#B91C1C' }}>*</span> injured or
-        ineligible (the next man up plays).
+    // Narrow screens scroll the board sideways rather than breaking the formation
+    <div style={{ overflowX: 'auto' }}>
+      <div style={{ minWidth: `${BOARD_MIN_WIDTH}px` }}>
+        {section('DEFENSE', DEFENSE)}
+        {section('OFFENSE', OFFENSE)}
+        {section('SPECIALISTS', SPECIALISTS)}
+        <div style={{ fontSize: '11px', color: '#64748B', textAlign: 'center' }}>
+          Bold = starter. ▲▼ swaps a player with the one above or below him in that slot. <span style={{ color: '#B91C1C' }}>*</span> injured or
+          ineligible (the next man up plays).
+        </div>
       </div>
     </div>
   );
@@ -114,7 +186,8 @@ const sectionTitle: React.CSSProperties = {
 };
 
 const cardStyle: React.CSSProperties = {
-  width: '168px',
+  width: `${CARD_WIDTH}px`,
+  flexShrink: 0,
   background: '#fff',
   border: '1px solid #CBD5E1',
   borderRadius: '4px',
