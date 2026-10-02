@@ -9,7 +9,8 @@ const LABELS: Record<PlayAlertKind, string> = {
   FUMBLE: 'FUMBLE!',
   FIELD_GOAL: "IT'S GOOD!",
   SAFETY: 'SAFETY!',
-  TURNOVER_ON_DOWNS: 'TURNOVER ON DOWNS!'
+  TURNOVER_ON_DOWNS: 'TURNOVER ON DOWNS!',
+  PUNT: 'PUNT'
 };
 
 /** How long each banner stays up (ms): big moments linger. */
@@ -20,7 +21,8 @@ const DURATION: Record<PlayAlertKind, number> = {
   FUMBLE: 2000,
   FIELD_GOAL: 1800,
   SAFETY: 2000,
-  TURNOVER_ON_DOWNS: 1800
+  TURNOVER_ON_DOWNS: 1800,
+  PUNT: 1400
 };
 
 /**
@@ -36,17 +38,18 @@ export const PlayAlert: React.FC<{ alert: PlayAlertData; onDone: () => void }> =
   const color = alert.team.primaryColor || '#0F172A';
   const text = (luminance(color) ?? 0) > 0.45 ? '#0F172A' : '#FFFFFF';
   const big = alert.kind === 'TOUCHDOWN';
+  const small = alert.kind === 'PUNT'; // a routine change of possession: noticeable, not dramatic
 
   return (
     <div
       key={alert.id}
       role="status"
       aria-live="assertive"
-      className={`play-alert${big ? ' play-alert-big' : ''}`}
+      className={`play-alert${big ? ' play-alert-big' : ''}${small ? ' play-alert-small' : ''}`}
       style={{ background: color, color: text, borderColor: alert.team.secondaryColor || '#FACC15' }}
     >
       <span className="play-alert-title">{LABELS[alert.kind]}</span>
-      <span className="play-alert-team">{alert.team.name}</span>
+      <span className="play-alert-team">{small ? `${alert.team.name} ball` : alert.team.name}</span>
     </div>
   );
 };

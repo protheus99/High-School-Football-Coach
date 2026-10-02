@@ -52,6 +52,7 @@ describe('Game alerts', () => {
         }
         if (alert.kind === 'INTERCEPTION') expect(alert.team.id).toBe(other);
         if (alert.kind === 'FUMBLE') expect(alert.team.id).toBe(event.turnoverType === 'MUFFED_PUNT' ? before.possession : other);
+        if (alert.kind === 'PUNT') expect(alert.team.id).toBe(other); // the receiving team
         if (alert.kind === 'TOUCHDOWN') {
           // The team credited with the touchdown is the one whose score went up
           const homeScored = state.homeScore > before.home;
@@ -61,6 +62,7 @@ describe('Game alerts', () => {
     }
     expect(seen.get('FIRST_DOWN') ?? 0).toBeGreaterThan(20);
     expect(seen.get('TOUCHDOWN') ?? 0).toBeGreaterThan(3);
+    expect(seen.get('PUNT') ?? 0).toBeGreaterThan(5);
     expect((seen.get('INTERCEPTION') ?? 0) + (seen.get('FUMBLE') ?? 0)).toBeGreaterThan(0);
   });
 

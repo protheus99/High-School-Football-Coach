@@ -1,6 +1,6 @@
 import { GameSimulationState, PlayEvent, Team } from '../types/game';
 
-export type PlayAlertKind = 'FIRST_DOWN' | 'TOUCHDOWN' | 'INTERCEPTION' | 'FUMBLE' | 'FIELD_GOAL' | 'SAFETY' | 'TURNOVER_ON_DOWNS';
+export type PlayAlertKind = 'FIRST_DOWN' | 'TOUCHDOWN' | 'INTERCEPTION' | 'FUMBLE' | 'FIELD_GOAL' | 'SAFETY' | 'TURNOVER_ON_DOWNS' | 'PUNT';
 
 export interface PlayAlertData {
   id: string;
@@ -48,7 +48,9 @@ export function alertForPlay(event: PlayEvent, before: PreSnap, after: GameSimul
     if (event.turnoverType === 'DOWNS') return make('TURNOVER_ON_DOWNS', takeaway);
     return null;
   }
-  const kick = event.playConcept === 'PUNT' || event.playConcept === 'FIELD_GOAL';
+  // A clean punt hands the ball to the receiving team (muffs and return touchdowns were handled above)
+  if (event.playConcept === 'PUNT') return make('PUNT', offense.id === after.homeTeam.id ? after.awayTeam : after.homeTeam);
+  const kick = event.playConcept === 'FIELD_GOAL';
   // Scores and turnovers were handled above, so gaining the line to gain is a first down for the team that
   // snapped it, even on the last play of the half when the kickoff then hands the ball over
   const movedChains = event.yardsGained >= before.distance || /FIRST DOWN/i.test(event.textCommentary);

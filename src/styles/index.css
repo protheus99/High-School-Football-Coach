@@ -603,6 +603,16 @@ h3 {
   animation: play-alert-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both, play-alert-flash 0.4s ease-in-out 0.35s 5;
 }
 
+.play-alert-small {
+  border-width: 2px;
+  animation: play-alert-pop 0.25s ease-out both, play-alert-flash 0.5s ease-in-out 0.25s 1;
+}
+
+.play-alert-small .play-alert-title {
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
 .play-alert-title {
   font-size: 22px;
   font-weight: 900;
@@ -644,7 +654,8 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   .play-alert,
-  .play-alert-big {
+  .play-alert-big,
+  .play-alert-small {
     animation: none;
   }
 }
