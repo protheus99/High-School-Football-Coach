@@ -71,3 +71,18 @@ describe('Game injuries and league-wide report cards', () => {
     expect(ineligible).toBeGreaterThan(0);
   }, 60000);
 });
+
+describe('Playoff bracket and the league share team objects', () => {
+  it('relinks a loaded bracket to the league teams so injuries carry over', async () => {
+    const { relinkBracketTeams } = await import('../playoffEngine');
+    const store = useGameStore;
+    store.getState().startNewSeason();
+    while (!store.getState().playoffBracket) store.getState().advanceWeek();
+    const copy = JSON.parse(JSON.stringify(store.getState().playoffBracket));
+    const node = copy.divisions[0].rounds[0][0];
+    expect(store.getState().leagueTeams).not.toContain(node.team1);
+    relinkBracketTeams(copy, store.getState().leagueTeams);
+    expect(store.getState().leagueTeams).toContain(node.team1);
+    expect(store.getState().leagueTeams).toContain(node.team2);
+  }, 60000);
+});

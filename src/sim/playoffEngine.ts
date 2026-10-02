@@ -153,6 +153,23 @@ export function userDivisionIndex(bracketState: PlayoffBracketState, userTeamId:
   return index >= 0 ? index : undefined;
 }
 
+/**
+ * Points the bracket at the league's team objects (a loaded save stores separate copies), so injuries
+ * and eligibility from the league carry into simulated playoff games and back.
+ */
+export function relinkBracketTeams(bracketState: PlayoffBracketState, teams: Team[]): PlayoffBracketState {
+  const byId = new Map(teams.map((t) => [t.id, t]));
+  bracketState.divisions.forEach((d) =>
+    d.rounds.forEach((round) =>
+      round.forEach((n) => {
+        n.team1 = byId.get(n.team1.id) ?? n.team1;
+        n.team2 = byId.get(n.team2.id) ?? n.team2;
+      })
+    )
+  );
+  return bracketState;
+}
+
 /** Records the user's live result (team1 is the home team) on their node in the current round. */
 export function recordPlayoffResult(
   bracketState: PlayoffBracketState,

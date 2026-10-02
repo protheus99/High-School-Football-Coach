@@ -5,14 +5,15 @@ import { findDistrict } from '../sim/league';
 import { DistrictStandingsView } from './DistrictStandingsView';
 import { AllDistrictsStandingsView } from './AllDistrictsStandingsView';
 import { RankingsView } from './RankingsView';
+import { ScoreboardView } from './ScoreboardView';
 
-export type RankingsSection = 'HOME' | 'DISTRICT' | 'ALL_DISTRICTS' | 'POLLS';
+export type RankingsSection = 'HOME' | 'DISTRICT' | 'ALL_DISTRICTS' | 'POLLS' | 'SCORES';
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 
 /** Rankings: a main page linking to district standings, every district, and the polls. */
 export const RankingsHub: React.FC<{ section: RankingsSection; onSection: (section: RankingsSection) => void }> = ({ section, onSection }) => {
-  const { league, districtTeams, userTeamId, polls } = useGameStore();
+  const { league, districtTeams, userTeamId, polls, seasonSchedule, currentWeek } = useGameStore();
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
   if (section !== 'HOME') {
@@ -26,6 +27,7 @@ export const RankingsHub: React.FC<{ section: RankingsSection; onSection: (secti
         {section === 'DISTRICT' && <DistrictStandingsView />}
         {section === 'ALL_DISTRICTS' && <AllDistrictsStandingsView onBack={() => onSection('HOME')} hideBackButton />}
         {section === 'POLLS' && polls && <RankingsView polls={polls} userTeamId={userTeamId} />}
+        {section === 'SCORES' && <ScoreboardView />}
       </div>
     );
   }
@@ -44,6 +46,9 @@ export const RankingsHub: React.FC<{ section: RankingsSection; onSection: (secti
       ? `You're #${stateRank} in ${state}`
       : 'Not ranked yet';
 
+  const finals = seasonSchedule.filter((g) => g.week === currentWeek - 1 && g.homeScore !== undefined).length;
+  const scoresSummary = finals > 0 ? `${finals} final scores from week ${currentWeek - 1}` : 'Scores and results from every game';
+
   const links: { id: RankingsSection; icon: string; title: string; summary: string }[] = [
     {
       id: 'DISTRICT',
@@ -51,6 +56,7 @@ export const RankingsHub: React.FC<{ section: RankingsSection; onSection: (secti
       title: `${districtName} standings`,
       summary: myRow ? `${ordinal(myRow.rank)} place · ${myRow.districtRecord} district, ${myRow.overallRecord} overall` : 'Your district race'
     },
+    { id: 'SCORES', icon: '📋', title: 'Scoreboard', summary: scoresSummary },
     { id: 'POLLS', icon: '🥇', title: 'Polls', summary: pollSummary },
     { id: 'ALL_DISTRICTS', icon: '🗺️', title: 'All district standings', summary: `Every district in ${league?.name ?? 'the league'}${districtCount ? ` (${districtCount})` : ''}` }
   ];

@@ -72,7 +72,7 @@ import {
   processPostGameSeasonWear,
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
-import { buildPlayoffBracket, advancePlayoffRound, findUserNode, recordPlayoffResult, PlayoffBracketState } from '../sim/playoffEngine';
+import { buildPlayoffBracket, advancePlayoffRound, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
 import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
@@ -392,7 +392,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       leagueTeams: world.teams,
       districtTeams: userDistrictTeams(world.league, world.teams, userTeam.id),
       seasonSchedule: save.league && save.seasonSchedule ? save.seasonSchedule : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
-      playoffBracket: save.league ? save.playoffBracket ?? null : null,
+      playoffBracket: save.league && save.playoffBracket ? relinkBracketTeams(save.playoffBracket, world.teams) : null,
       sanctionLevel: save.sanctionLevel ?? 0,
       statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
       userViolationHeat: save.userViolationHeat ?? 0,
@@ -521,7 +521,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { playoffBracket } = get();
     if (playoffBracket?.isPlayoffsActive) {
       const userNode = findUserNode(playoffBracket, userTeamId)?.node;
-      set({ playoffBracket: advancePlayoffRound(playoffBracket) });
+      set({ playoffBracket: advancePlayoffRound(relinkBracketTeams(playoffBracket, leagueTeams)) });
       if (userNode?.winnerTeamId === userTeamId) set({ coachPoints: get().coachPoints + winBonus(true, get().coachTalents) });
     }
 
