@@ -14,7 +14,6 @@ import { SplashScreen } from './components/SplashScreen';
 import { StatePlayoffBracketModal } from './components/StatePlayoffBracketModal';
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
 import { AllStateAwardsModal } from './components/AllStateAwardsModal';
-import { HallOfFameTrophyModal } from './components/HallOfFameTrophyModal';
 import { calculateSeasonAwards, SeasonAwardsRecord } from './sim/awardsEngine';
 import { GameSimulationState, OffensiveScheme, Player } from './types/game';
 
@@ -36,7 +35,6 @@ export const App: React.FC = () => {
   const [activeMatch, setActiveMatch] = useState<GameSimulationState | null>(null);
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [showBracketModal, setShowBracketModal] = useState(false);
-  const [showTrophyModal, setShowTrophyModal] = useState(false);
   const [selectedPlayerDetail, setSelectedPlayerDetail] = useState<Player | null>(null);
   const [awardsRecord, setAwardsRecord] = useState<SeasonAwardsRecord | null>(null);
   const [awardsShownForYear, setAwardsShownForYear] = useState<number | null>(null);
@@ -177,14 +175,6 @@ export const App: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
       {showSaveLoadModal && <SaveLoadManagerModal onClose={() => setShowSaveLoadModal(false)} />}
-      {showTrophyModal && userTeam && (
-        <HallOfFameTrophyModal
-          trophies={[{ year: currentYear - 1, type: 'DISTRICT_TITLE', name: 'District 26-6A Trophy' }]}
-          alumniSigningsCount={4}
-          schoolPrestige={userTeam.prestige}
-          onClose={() => setShowTrophyModal(false)}
-        />
-      )}
       {selectedPlayerDetail && (
         <PlayerDetailModal
           player={selectedPlayerDetail}
@@ -202,9 +192,6 @@ export const App: React.FC = () => {
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button onClick={() => setTab('NEWS')} aria-label="News" title="News" style={topBtn(tab === 'NEWS' ? '#2563EB' : '#334155')}>
             📰 <span className="hide-sm">News</span>
-          </button>
-          <button onClick={() => setShowTrophyModal(true)} aria-label="Trophies" title="Trophies" style={topBtn('#D97706')}>
-            🏆 <span className="hide-sm">Trophies</span>
           </button>
           {playoffBracket && (
             <button onClick={() => setShowBracketModal(true)} aria-label="Bracket" title="Bracket" style={{ ...topBtn('#F59E0B'), color: '#000' }}>

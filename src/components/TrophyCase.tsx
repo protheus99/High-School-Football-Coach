@@ -1,5 +1,4 @@
 import React from 'react';
-import { Sheet } from './ui/Sheet';
 
 export interface TrophyRecord {
   year: number;
@@ -8,19 +7,8 @@ export interface TrophyRecord {
   opponent?: string;
 }
 
-interface TrophyModalProps {
-  trophies: TrophyRecord[];
-  alumniSigningsCount: number;
-  schoolPrestige: number;
-  onClose: () => void;
-}
-
-export const HallOfFameTrophyModal: React.FC<TrophyModalProps> = ({
-  trophies,
-  alumniSigningsCount,
-  schoolPrestige,
-  onClose
-}) => {
+/** Trophy case (Team › Office): program prestige, college signees and the titles the program has won. */
+export const TrophyCase: React.FC<{ trophies: TrophyRecord[]; collegeSignees: number; schoolPrestige: number }> = ({ trophies, collegeSignees, schoolPrestige }) => {
   const stat = (label: string, value: number, color: string) => (
     <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '10px', borderRadius: '10px', textAlign: 'center' }}>
       <div style={{ fontSize: '12px', color: '#64748B' }}>{label}</div>
@@ -29,10 +17,10 @@ export const HallOfFameTrophyModal: React.FC<TrophyModalProps> = ({
   );
 
   return (
-    <Sheet title="🏆 Trophy Case & Alumni" onClose={onClose}>
+    <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '18px' }}>
         {stat('Prestige', schoolPrestige, '#2563EB')}
-        {stat('College signees', alumniSigningsCount, '#10B981')}
+        {stat('College signees', collegeSignees, '#10B981')}
         {stat('Titles', trophies.length, '#F59E0B')}
       </div>
 
@@ -47,8 +35,8 @@ export const HallOfFameTrophyModal: React.FC<TrophyModalProps> = ({
           ))}
         </div>
       ) : (
-        <div className="ui-muted">No trophies in the case yet. Go win some on Friday nights!</div>
+        <div className="ui-muted">No trophies in the case yet. District titles and state championships you win will be displayed here.</div>
       )}
-    </Sheet>
+    </div>
   );
 };
