@@ -56,6 +56,7 @@ export const App: React.FC = () => {
     playerRankings,
     playoffBracket,
     isBanquetActive,
+    firedFrom,
     graduatingSeniors,
     finishBanquet,
     advancePlayoffGame,
@@ -112,7 +113,7 @@ export const App: React.FC = () => {
   if (showMenu) {
     return (
       <SplashScreen
-        canContinue={league !== null}
+        canContinue={league !== null && !firedFrom}
         onEnterGame={() => {
           setShowMenu(false);
           setTab('DASHBOARD');
@@ -121,6 +122,22 @@ export const App: React.FC = () => {
           setAwardsRecord(null);
         }}
       />
+    );
+  }
+
+  // Fired by the school board: this save's career is over
+  if (firedFrom) {
+    return (
+      <div className="ui-screen" style={{ maxWidth: '560px', textAlign: 'center', paddingTop: '48px' }}>
+        <div style={{ fontSize: '48px' }}>📉</div>
+        <h1 style={{ margin: '8px 0', fontSize: '26px' }}>You&apos;ve been fired</h1>
+        <p style={{ color: '#475569', fontSize: '15px' }}>
+          After a second straight season with Board Trust under 35, the {firedFrom} school board has decided to make a change. Thank you for your service, Coach.
+        </p>
+        <button className="ui-btn ui-btn-primary ui-btn-block" style={{ marginTop: '16px', minHeight: '50px' }} onClick={() => setShowMenu(true)}>
+          Back to the main menu
+        </button>
+      </div>
     );
   }
 

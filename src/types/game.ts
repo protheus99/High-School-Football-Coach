@@ -66,6 +66,7 @@ export interface PlayerCondition {
   injuryStatus: InjurySeverity;
   injuryWeeksRemaining: number;
   injuredInWeek?: number; // hurt in this week's game: the week's healing skips him
+  isSuspended?: boolean; // out for discipline (shown as suspended, heals like a 1-game injury)
   isHot: boolean;
   isCold: boolean;
 }

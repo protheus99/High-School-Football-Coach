@@ -132,7 +132,7 @@ export const WeeklyAgenda: React.FC<{
       title: `${unavailable.length} starter${unavailable.length === 1 ? '' : 's'} unavailable`,
       detail: `${unavailable
         .slice(0, 4)
-        .map((p) => `${p.position} ${shortName(p)} (${p.condition.injuryStatus !== 'HEALTHY' ? 'injured' : 'ineligible'})`)
+        .map((p) => `${p.position} ${shortName(p)} (${p.condition.isSuspended ? 'suspended' : p.condition.injuryStatus !== 'HEALTHY' ? 'injured' : 'ineligible'})`)
         .join(', ')}${unavailable.length > 4 ? '…' : ''}. The next man up plays unless you change the depth chart.`,
       tone: 'urgent',
       link: { label: 'Review depth chart', onClick: () => onNavigate('ROSTER') }
@@ -220,7 +220,7 @@ export const WeeklyAgenda: React.FC<{
           <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
         </h2>
         <span style={{ fontSize: '13px', color: '#64748B' }}>
-          ₡{coachPoints} <span style={{ color: '#94A3B8' }}>· +₡{weeklyCpIncome(currentWeek + 1, coachTalents)} next week</span>
+          ₡{coachPoints} <span style={{ color: '#94A3B8' }}>· +₡{weeklyCpIncome(currentWeek + 1, coachTalents, team.programMeters.schoolBoardTrust)} next week</span>
         </span>
       </div>
       {flash && (

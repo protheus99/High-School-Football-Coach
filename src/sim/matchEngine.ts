@@ -15,6 +15,7 @@ import {
 import { calculateGaussianVariance, clamp, randomInt } from './math/variance';
 import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 import { compareDepth } from './depthChart';
+import { disciplinePlayQualityPenalty } from './programMeters';
 
 // Teams resting their starters on the current snap (set at the start of each simulateSnap call)
 let restingTeamIds = new Set<string>();
@@ -624,9 +625,11 @@ export function simulateSnap(
     const label = (p: Player | undefined) => `${p?.position ?? ''} #${p?.lastName ?? '?'}`;
 
     // Catastrophic Turnover Check
-    const fumbleThreshold = RUN_THRESHOLDS.fumble - (offScheme === 'POWER_I' ? 4 : 0);
+    // Undisciplined offenses are closer to a fumble or interception on every snap
+    const sloppiness = disciplinePlayQualityPenalty(offense);
+    const fumbleThreshold = RUN_THRESHOLDS.fumble - (offScheme === 'POWER_I' ? 4 : 0) + sloppiness;
     const explosiveThreshold = EXPLOSIVE_PLAY_QUALITY - (offScheme === 'AIR_RAID' || offScheme === 'SPREAD' ? 3 : 0);
-    if (passThresholds ? playQuality < passThresholds.interception : playQuality < fumbleThreshold) {
+    if (passThresholds ? playQuality < passThresholds.interception + sloppiness : playQuality < fumbleThreshold) {
       isTurnover = true;
       turnoverType = isPass ? 'INTERCEPTION' : 'FUMBLE';
       const defender = isPass ? pickInterceptor(defense) : tackler;

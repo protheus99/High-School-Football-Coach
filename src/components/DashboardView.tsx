@@ -6,6 +6,7 @@ import { Sheet } from './ui/Sheet';
 import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
 import { FilmStudyModal } from './FilmStudyModal';
 import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
+import { HOT_SEAT_TRUST, SUSPENSION_DISCIPLINE, boardCpModifier } from '../sim/programMeters';
 import { getUserMatchup } from '../sim/userMatchup';
 import { findDistrict, findRegion, playoffRoundCount } from '../sim/league';
 
@@ -23,7 +24,7 @@ export const DashboardView: React.FC<{
   onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
   onNavigate: (tab: AgendaTab) => void;
 }> = ({ onLaunchGame, onNavigate }) => {
-  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, sanctionLevel } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, sanctionLevel, onHotSeat } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
   const [showSimWarning, setShowSimWarning] = useState(false);
@@ -140,10 +141,28 @@ export const DashboardView: React.FC<{
 
       {/* Program Meters */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-        <MeterCard label="Board Trust" val={userTeam.programMeters.schoolBoardTrust} color="#10B981" />
-        <MeterCard label="Booster Approval" val={userTeam.programMeters.boosterApproval} color="#F59E0B" />
-        <MeterCard label="Discipline" val={userTeam.programMeters.lockerRoomDiscipline} color="#3B82F6" />
-        <MeterCard label="Compliance" val={userTeam.programMeters.complianceScore} color="#EC4899" />
+        <MeterCard
+          label="Board Trust"
+          val={userTeam.programMeters.schoolBoardTrust}
+          color="#10B981"
+          hint={`${boardCpModifier(userTeam.programMeters.schoolBoardTrust) >= 0 ? '+' : '−'}₡${Math.abs(boardCpModifier(userTeam.programMeters.schoolBoardTrust))} a week. Wins raise it; under ${HOT_SEAT_TRUST} at season's end is the hot seat.${onHotSeat ? ' You are on the hot seat.' : ''}`}
+          warn={onHotSeat || userTeam.programMeters.schoolBoardTrust < HOT_SEAT_TRUST}
+        />
+        <MeterCard label="Booster Approval" val={userTeam.programMeters.boosterApproval} color="#F59E0B" hint="Helps win over feeder recruits." />
+        <MeterCard
+          label="Discipline"
+          val={userTeam.programMeters.lockerRoomDiscipline}
+          color="#3B82F6"
+          hint={`Low discipline means more turnovers${userTeam.programMeters.lockerRoomDiscipline < SUSPENSION_DISCIPLINE ? ' and suspensions' : `; under ${SUSPENSION_DISCIPLINE}, suspensions`}. Full Contact practice builds it.`}
+          warn={userTeam.programMeters.lockerRoomDiscipline < SUSPENSION_DISCIPLINE}
+        />
+        <MeterCard
+          label="Compliance"
+          val={userTeam.programMeters.complianceScore}
+          color="#EC4899"
+          hint="Under 40, the state association hands out penalties."
+          warn={userTeam.programMeters.complianceScore < 40}
+        />
       </div>
 
       {/* State Association Sanctions */}
@@ -197,12 +216,13 @@ export const DashboardView: React.FC<{
   );
 };
 
-const MeterCard: React.FC<{ label: string; val: number; color: string }> = ({ label, val, color }) => (
-  <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '12px' }}>
+const MeterCard: React.FC<{ label: string; val: number; color: string; hint?: string; warn?: boolean }> = ({ label, val, color, hint, warn }) => (
+  <div style={{ background: warn ? '#FEF2F2' : '#F9FAFB', border: `1px solid ${warn ? '#FCA5A5' : '#E5E7EB'}`, borderRadius: '8px', padding: '12px' }}>
     <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '4px' }}>{label}</div>
     <div style={{ fontSize: '20px', fontWeight: 'bold', color }}>{val}%</div>
     <div style={{ background: '#E5E7EB', height: '6px', borderRadius: '3px', marginTop: '6px' }}>
       <div style={{ background: color, width: `${val}%`, height: '100%', borderRadius: '3px' }} />
     </div>
+    {hint && <div style={{ fontSize: '12px', color: warn ? '#B91C1C' : '#64748B', marginTop: '6px', lineHeight: 1.35 }}>{hint}</div>}
   </div>
 );

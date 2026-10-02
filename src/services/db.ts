@@ -30,6 +30,7 @@ export interface GameSaveRecord {
   statewideRecruits?: FeederProspect[];
   userViolationHeat?: number;
   pendingUserBan?: boolean;
+  onHotSeat?: boolean; // board warning from last season's review
   seasonSchedule?: ScheduledGame[];
   dilemmaLog?: DilemmaRecord[];
   difficulty?: Difficulty;

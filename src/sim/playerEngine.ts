@@ -85,6 +85,7 @@ export function processWeeklyInjuryHealing(player: Player, week?: number): void 
     player.condition.injuryWeeksRemaining -= 1;
     if (player.condition.injuryWeeksRemaining === 0) {
       player.condition.injuryStatus = 'HEALTHY';
+      player.condition.isSuspended = false;
     }
   }
 }

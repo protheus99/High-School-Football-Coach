@@ -1,3 +1,5 @@
+import { boardCpModifier } from './programMeters';
+
 // ---------------------------------------------------------------------------
 // Coach Points (CP): the single currency for the head coach's time and influence.
 //
@@ -92,7 +94,9 @@ export function talentBlocker(id: TalentId, owned: TalentId[], coachPoints: numb
 export const formatCP = (amount: number) => `₡${amount.toLocaleString('en-US')}`;
 /** Bonus CP for a win (doubled by Deep Pockets). */
 export const winBonus = (playoff: boolean, owned: TalentId[]) => (playoff ? PLAYOFF_WIN_CP_BONUS : WIN_CP_BONUS) * (owned.includes('DEEP_POCKETS') ? 2 : 1);
-export const weeklyCpIncome = (week: number, owned: TalentId[]) => weeklyCoachPoints(week) + (owned.includes('BIGGER_BUDGET') ? 10 : 0);
+/** Weekly CP: the allowance, Bigger Budget, and the school board's support (see programMeters). */
+export const weeklyCpIncome = (week: number, owned: TalentId[], boardTrust = 70) =>
+  Math.max(0, weeklyCoachPoints(week) + (owned.includes('BIGGER_BUDGET') ? 10 : 0) + boardCpModifier(boardTrust));
 export const feederEventCost = (base: number, owned: TalentId[]) => Math.round(base * (owned.includes('RECRUITING_NETWORK') ? 0.8 : 1));
 export const collegeActionCost = (base: number, owned: TalentId[]) => Math.max(1, Math.round(base * (owned.includes('COLLEGE_CONNECTIONS') ? 0.6 : 1)));
 export const drillsPerWeek = (base: number, owned: TalentId[]) => base + (owned.includes('ASSISTANT_UPGRADE') ? 2 : 0);

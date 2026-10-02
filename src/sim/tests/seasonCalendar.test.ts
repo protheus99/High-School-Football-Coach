@@ -34,4 +34,20 @@ describe('Season calendar', () => {
     expect(store.getState().currentYear).toBe(currentYear + 1);
     expect(store.getState().currentWeek).toBe(1);
   });
+
+  it('publishes new team and schedule arrays every week so standings and the scoreboard refresh', () => {
+    const store = useGameStore;
+    store.getState().startNewSeason();
+    while (store.getState().currentWeek < 6) store.getState().advanceWeek();
+    const teams = store.getState().leagueTeams;
+    const schedule = store.getState().seasonSchedule;
+    store.getState().advanceWeek(); // week 6 games are played
+    expect(store.getState().leagueTeams).not.toBe(teams);
+    expect(store.getState().seasonSchedule).not.toBe(schedule);
+    // Week 14 -> 15 starts the playoffs through an early return: still refreshed
+    while (store.getState().currentWeek < 14) store.getState().advanceWeek();
+    const before = store.getState().leagueTeams;
+    store.getState().advanceWeek();
+    expect(store.getState().leagueTeams).not.toBe(before);
+  });
 });

@@ -95,6 +95,7 @@ import {
   weeklyCpIncome,
   winBonus
 } from '../sim/coachPoints';
+import { BOARD_RESULT_DELTA, PRACTICE_DISCIPLINE, boardReview, pickSuspension } from '../sim/programMeters';
 
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
 const INDUCEMENT_CP_COST = 20;
@@ -220,6 +221,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     statewideRecruits: state.statewideRecruits,
     userViolationHeat: state.userViolationHeat,
     pendingUserBan: state.pendingUserBan,
+    onHotSeat: state.onHotSeat,
     ...(state.difficulty && { difficulty: state.difficulty })
   };
 }
@@ -275,6 +277,8 @@ interface GameStoreState {
   playoffBracket: PlayoffBracketState | null;
   graduatingSeniors: Player[];
   isBanquetActive: boolean;
+  onHotSeat: boolean; // the board's warning: another season under 35 Board Trust ends the job
+  firedFrom: string | null; // set when the board fires the coach (game over for this save)
 
   // Actions
   startNewSeason: (world?: GameWorld) => void; // default: the Texas 6A world
@@ -321,6 +325,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   statewideRecruits: [],
   userViolationHeat: 0,
   pendingUserBan: false,
+  onHotSeat: false,
+  firedFrom: null,
   newsArticles: [],
   polls: null,
   playerRankings: null,
@@ -356,6 +362,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       statewideRecruits: generateStatewideElite(ctx),
       userViolationHeat: 0,
       pendingUserBan: false,
+      onHotSeat: false,
+      firedFrom: null,
       feederEventsThisWeek: [],
       lastFeederResults: null,
       newsArticles: generateWeeklyNewsStream(1, userTeam),
@@ -397,6 +405,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
       userViolationHeat: save.userViolationHeat ?? 0,
       pendingUserBan: save.pendingUserBan ?? false,
+      onHotSeat: save.onHotSeat ?? false,
+      firedFrom: null,
       dilemmaLog: save.dilemmaLog ?? [],
       currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
       userTeamId: userTeam.id,
@@ -459,7 +469,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       userGame?.homeScore !== undefined &&
       (userGame.homeTeamId === userTeamId ? userGame.homeScore > userGame.awayScore! : userGame.awayScore! > userGame.homeScore);
     const { coachTalents } = get();
-    set({ coachPoints: get().coachPoints + weeklyCpIncome(nextWeek, coachTalents) + (userWon ? winBonus(false, coachTalents) : 0), feederEventsThisWeek: [] });
+    const meters = userTeam.programMeters;
+    // The board rewards wins and notices losses
+    if (userGame?.homeScore !== undefined) {
+      meters.schoolBoardTrust = Math.max(0, Math.min(100, meters.schoolBoardTrust + (userWon ? BOARD_RESULT_DELTA.win : BOARD_RESULT_DELTA.loss)));
+    }
+    set({
+      coachPoints: get().coachPoints + weeklyCpIncome(nextWeek, coachTalents, meters.schoolBoardTrust) + (userWon ? winBonus(false, coachTalents) : 0),
+      feederEventsThisWeek: []
+    });
+    // Records and scores changed in place: new array references so every screen (standings, scoreboard) refreshes
+    set({ leagueTeams: [...leagueTeams], seasonSchedule: [...seasonSchedule] });
 
     // Families occasionally move into the district during the year
     const ctx = recruitingContext(get());
@@ -522,7 +542,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (playoffBracket?.isPlayoffsActive) {
       const userNode = findUserNode(playoffBracket, userTeamId)?.node;
       set({ playoffBracket: advancePlayoffRound(relinkBracketTeams(playoffBracket, leagueTeams)) });
-      if (userNode?.winnerTeamId === userTeamId) set({ coachPoints: get().coachPoints + winBonus(true, get().coachTalents) });
+      if (userNode?.winnerTeamId === userTeamId) {
+        userTeam.programMeters.schoolBoardTrust = Math.min(100, userTeam.programMeters.schoolBoardTrust + BOARD_RESULT_DELTA.playoffWin);
+        set({ coachPoints: get().coachPoints + winBonus(true, get().coachTalents) });
+      }
     }
 
     // Whistleblowers: risky/corrupt decisions can surface in a later week (design spec 12.1)
@@ -599,6 +622,26 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         if (nextWeek % 3 === 0) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p) ? 0.1 : 0);
       });
     });
+    // Discipline: full-contact practices build it, walkthroughs let it slip; below 50 starters get suspended
+    meters.lockerRoomDiscipline = Math.max(0, Math.min(100, meters.lockerRoomDiscipline + PRACTICE_DISCIPLINE[practiceIntensity]));
+    const suspended = currentWeek < LAST_REGULAR_SEASON_WEEK + 6 ? pickSuspension(userTeam) : undefined;
+    if (suspended) {
+      Object.assign(suspended.condition, { injuryStatus: 'DINGED', injuryWeeksRemaining: 1, injuredInWeek: currentWeek, isSuspended: true });
+      set({
+        newsArticles: [
+          {
+            id: `news_suspension_${suspended.id}_${nextWeek}`,
+            week: nextWeek,
+            outlet: 'TOWN_JOURNAL',
+            headline: `${userTeam.name} Suspends ${suspended.position} ${suspended.firstName} ${suspended.lastName}`,
+            content: `A breakdown in team discipline (Discipline ${meters.lockerRoomDiscipline}) costs ${userTeam.name} a starter: ${suspended.lastName} sits this week's game.`,
+            impactSentiment: 'NEGATIVE',
+            featuredTeamName: userTeam.name
+          },
+          ...get().newsArticles
+        ]
+      });
+    }
     // Assistants run this week's position drills with the coach's focus
     const lastDrillReport = runAssistantDrills(userTeam.roster, get().drillFocus, drillsPerWeek(ASSISTANT_DRILLS_PER_WEEK, get().coachTalents));
 
@@ -630,7 +673,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       playerRankings: updatedPlayerRankings,
       lastDrillReport,
       newsArticles: [...collegeNews, ...newArticles, ...get().newsArticles],
-      districtTeams: [...districtTeams]
+      districtTeams: [...districtTeams],
+      leagueTeams: [...leagueTeams] // sanctions/forfeits above can change records too
     };
 
     set(updatedState);
@@ -666,7 +710,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   finishBanquet: () => {
     const { currentWeek, coachPoints, coachTalents } = get();
-    set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents) });
+    set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents, get().districtTeams.find((t) => t.id === get().userTeamId)?.programMeters.schoolBoardTrust) });
   },
 
   transitionToNextYear: () => {
@@ -675,6 +719,26 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // the user's signed feeder prospects arrive as freshmen at their projected positions
     // The user's feeder class decides (rivals compete for many of them); elite recruits pick among top programs
     const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
+    // The school board's season-end review
+    const review = boardReview(userTeam.programMeters.schoolBoardTrust, get().onHotSeat);
+    if (review === 'FIRED') {
+      set({ firedFrom: userTeam.name });
+      return;
+    }
+    const boardNews: NewsArticle[] =
+      review === 'HOT_SEAT'
+        ? [
+            {
+              id: `news_hot_seat_${currentYear}`,
+              week: 1,
+              outlet: 'TOWN_JOURNAL',
+              headline: `School Board Puts ${userTeam.name} Coach on the Hot Seat`,
+              content: `Board members say confidence in the program is low (Board Trust ${userTeam.programMeters.schoolBoardTrust}). Another season like this one and the board will make a change.`,
+              impactSentiment: 'NEGATIVE',
+              featuredTeamName: userTeam.name
+            }
+          ]
+        : [];
     const ctx = recruitingContext(get());
     const feederClass = resolveFeederClass(scoutingPool, userTeam, ctx);
     const elite = ctx ? resolveStatewideElite(get().statewideRecruits, ctx) : { signings: [] as RivalSigning[], headlines: [] as string[] };
@@ -769,8 +833,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       pendingUserBan,
       lastFeederResults: feederClass.outcomes,
       feederEventsThisWeek: [],
-      coachPoints: get().coachPoints + weeklyCpIncome(1, get().coachTalents),
-      newsArticles: [classArticle, ...investigationNews, ...eliteNews, ...get().newsArticles],
+      coachPoints: get().coachPoints + weeklyCpIncome(1, get().coachTalents, userTeam.programMeters.schoolBoardTrust),
+      onHotSeat: review === 'HOT_SEAT',
+      newsArticles: [...boardNews, classArticle, ...investigationNews, ...eliteNews, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams],
       seasonSchedule: league ? generateSeasonSchedule(leagueRegionTeams(league, leagueTeams), currentYear + 1) : []

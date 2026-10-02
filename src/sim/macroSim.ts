@@ -2,6 +2,7 @@ import { Team, CompactBoxScore, WeatherType, Player, PlayerStats, InjurySeverity
 import { randomInt, clamp } from './math/variance';
 import { getPositionGroup } from './matchEngine';
 import { addPlayerStats } from './playerStats';
+import { disciplineTurnoverPoints } from './programMeters';
 
 // Calibration constants (tuned against src/sim/tests/macroSim.test.ts targets)
 const HOME_FIELD_RATING = 1;
@@ -170,6 +171,10 @@ export function simulateMacroMatch(
   const awayOvr = teamStarterRating(awayTeam);
   const delta = (homeOvr + HOME_FIELD_RATING) - awayOvr;
 
+  // Undisciplined teams turn it over more
+  const homeSloppiness = disciplineTurnoverPoints(homeTeam);
+  const awaySloppiness = disciplineTurnoverPoints(awayTeam);
+
   const totalDrives = 11 + randomInt(-1, 2);
   let homeScore = 0;
   let awayScore = 0;
@@ -189,7 +194,7 @@ export function simulateMacroMatch(
     const homeRoll = Math.random() * 100;
     const homeTdProb = clamp(BASE_DRIVE_ODDS.td + delta * DRIVE_DELTA_SCALE.td, 5, 45);
     const homeFgProb = clamp(BASE_DRIVE_ODDS.fg + delta * DRIVE_DELTA_SCALE.fg, 3, 25);
-    const homeToProb = clamp(BASE_DRIVE_ODDS.turnover - delta * DRIVE_DELTA_SCALE.turnover + (weather === 'HEAVY_RAIN' ? 5 : 0), 4, 24);
+    const homeToProb = clamp(BASE_DRIVE_ODDS.turnover - delta * DRIVE_DELTA_SCALE.turnover + (weather === 'HEAVY_RAIN' ? 5 : 0) + homeSloppiness, 4, 24);
 
     if (homeRoll < homeTdProb) {
       homeScore += 7;
@@ -213,7 +218,7 @@ export function simulateMacroMatch(
     const awayRoll = Math.random() * 100;
     const awayTdProb = clamp(BASE_DRIVE_ODDS.td - delta * DRIVE_DELTA_SCALE.td, 5, 45);
     const awayFgProb = clamp(BASE_DRIVE_ODDS.fg - delta * DRIVE_DELTA_SCALE.fg, 3, 25);
-    const awayToProb = clamp(BASE_DRIVE_ODDS.turnover + delta * DRIVE_DELTA_SCALE.turnover + (weather === 'HEAVY_RAIN' ? 5 : 0), 4, 24);
+    const awayToProb = clamp(BASE_DRIVE_ODDS.turnover + delta * DRIVE_DELTA_SCALE.turnover + (weather === 'HEAVY_RAIN' ? 5 : 0) + awaySloppiness, 4, 24);
 
     if (awayRoll < awayTdProb) {
       awayScore += 7;

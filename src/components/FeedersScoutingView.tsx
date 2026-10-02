@@ -62,7 +62,7 @@ export const FeedersScoutingView: React.FC = () => {
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   if (!userTeam) return null;
 
-  const weeklyIncome = weeklyCpIncome(currentWeek, coachTalents);
+  const weeklyIncome = weeklyCpIncome(currentWeek, coachTalents, userTeam.programMeters.schoolBoardTrust);
   const eventCost = (type: FeederEventType) => feederEventCost(FEEDER_EVENTS[type].cost, coachTalents);
   const sources = Object.keys(SOURCE_LABELS) as ProspectSource[];
   const shown = scoutingPool.filter((p) => filter === 'ALL' || p.source === filter);
