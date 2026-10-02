@@ -255,7 +255,8 @@ const btnStyle: React.CSSProperties = {
 };
 
 const controlBtnStyle: React.CSSProperties = {
-  padding: '10px 16px',
+  flex: '1 1 0', // share the row evenly so labels fit on phones
+  padding: '10px 8px',
   background: '#3B82F6',
   color: '#fff',
   border: 'none',

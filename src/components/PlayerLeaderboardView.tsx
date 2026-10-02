@@ -167,72 +167,74 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
 
       {/* Main Leaderboard Table */}
       <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-          <thead>
-            <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0', color: '#475569' }}>
-              <th style={{ padding: '12px 10px', width: '50px' }}>Rank</th>
-              <th style={{ padding: '12px 10px' }}>Student-Athlete</th>
-              <th style={{ padding: '12px 10px' }}>Pos / Class</th>
-              <th style={{ padding: '12px 10px' }}>High School</th>
-              <th style={{ padding: '12px 10px' }}>State / Class</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>
-                {activeTab === 'PROSPECT_RANKINGS' ? 'Stars' : 'Season Production'}
-              </th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>
-                {activeTab === 'PROSPECT_RANKINGS' ? 'Recruit Grade' : 'OVR'}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {(activeTab === 'PROSPECT_RANKINGS' ? activeProspectEntries : activeStatEntries).map((entry) => {
-              const isUserTeam = entry.teamId === userTeamId;
-              return (
-                <tr
-                  key={entry.player.id}
-                  onClick={() => onSelectPlayer(entry)}
-                  style={{
-                    borderBottom: '1px solid #F1F5F9',
-                    background: isUserTeam ? '#EFF6FF' : 'transparent',
-                    borderLeft: isUserTeam ? '4px solid #2563EB' : 'none',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <td style={{ padding: '10px', fontWeight: 'bold', fontSize: '14px', color: entry.rank <= 3 ? '#D97706' : '#1E293B' }}>
-                    #{entry.rank}
-                  </td>
-                  <td style={{ padding: '10px' }}>
-                    <div style={{ fontWeight: 'bold', color: isUserTeam ? '#1D4ED8' : '#0F172A' }}>
-                      {entry.player.firstName} {entry.player.lastName}
-                    </div>
-                  </td>
-                  <td style={{ padding: '10px', color: '#475569' }}>
-                    #{entry.player.position} ({entry.player.classYear})
-                  </td>
-                  <td style={{ padding: '10px', fontWeight: '500' }}>
-                    {entry.teamName}
-                  </td>
-                  <td style={{ padding: '10px', color: '#64748B' }}>
-                    {entry.state} ({entry.classification})
-                  </td>
-                  <td style={{ padding: '10px', textAlign: 'center' }}>
-                    {activeTab === 'PROSPECT_RANKINGS' ? (
-                      <span style={{ color: '#D97706', fontSize: '12px' }}>
-                        {renderStarBadges(entry.player.recruiting.starRating)}
-                      </span>
-                    ) : (
-                      <span style={{ fontWeight: 'bold', color: '#0F172A' }}>
-                        {entry.primaryStatLine}
-                      </span>
-                    )}
-                  </td>
-                  <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#2563EB' }}>
-                    {activeTab === 'PROSPECT_RANKINGS' ? `${entry.compositeRecruitScore} pts` : `${entry.player.overallRating}`}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0', color: '#475569' }}>
+                <th style={{ padding: '12px 10px', width: '50px' }}>Rank</th>
+                <th style={{ padding: '12px 10px' }}>Student-Athlete</th>
+                <th style={{ padding: '12px 10px' }}>Pos / Class</th>
+                <th style={{ padding: '12px 10px' }}>High School</th>
+                <th style={{ padding: '12px 10px' }}>State / Class</th>
+                <th style={{ padding: '12px 10px', textAlign: 'center' }}>
+                  {activeTab === 'PROSPECT_RANKINGS' ? 'Stars' : 'Season Production'}
+                </th>
+                <th style={{ padding: '12px 10px', textAlign: 'center' }}>
+                  {activeTab === 'PROSPECT_RANKINGS' ? 'Recruit Grade' : 'OVR'}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {(activeTab === 'PROSPECT_RANKINGS' ? activeProspectEntries : activeStatEntries).map((entry) => {
+                const isUserTeam = entry.teamId === userTeamId;
+                return (
+                  <tr
+                    key={entry.player.id}
+                    onClick={() => onSelectPlayer(entry)}
+                    style={{
+                      borderBottom: '1px solid #F1F5F9',
+                      background: isUserTeam ? '#EFF6FF' : 'transparent',
+                      borderLeft: isUserTeam ? '4px solid #2563EB' : 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <td style={{ padding: '10px', fontWeight: 'bold', fontSize: '14px', color: entry.rank <= 3 ? '#D97706' : '#1E293B' }}>
+                      #{entry.rank}
+                    </td>
+                    <td style={{ padding: '10px' }}>
+                      <div style={{ fontWeight: 'bold', color: isUserTeam ? '#1D4ED8' : '#0F172A' }}>
+                        {entry.player.firstName} {entry.player.lastName}
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px', color: '#475569' }}>
+                      #{entry.player.position} ({entry.player.classYear})
+                    </td>
+                    <td style={{ padding: '10px', fontWeight: '500' }}>
+                      {entry.teamName}
+                    </td>
+                    <td style={{ padding: '10px', color: '#64748B' }}>
+                      {entry.state} ({entry.classification})
+                    </td>
+                    <td style={{ padding: '10px', textAlign: 'center' }}>
+                      {activeTab === 'PROSPECT_RANKINGS' ? (
+                        <span style={{ color: '#D97706', fontSize: '12px' }}>
+                          {renderStarBadges(entry.player.recruiting.starRating)}
+                        </span>
+                      ) : (
+                        <span style={{ fontWeight: 'bold', color: '#0F172A' }}>
+                          {entry.primaryStatLine}
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#2563EB' }}>
+                      {activeTab === 'PROSPECT_RANKINGS' ? `${entry.compositeRecruitScore} pts` : isUserTeam ? `${entry.player.overallRating}` : '—'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

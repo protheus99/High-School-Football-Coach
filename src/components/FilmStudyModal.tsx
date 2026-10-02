@@ -41,7 +41,7 @@ export const FilmStudyModal: React.FC<FilmStudyModalProps> = ({ opponent, onClos
 
         {/* Key Playmaker Threat Warnings */}
         <h4 style={{ margin: '0 0 8px 0', color: '#334155' }}>Key Players to Shadow</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '16px' }}>
           <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '6px', fontSize: '12px' }}>
             <div style={{ fontWeight: 'bold', color: '#1E40AF' }}>Pass Threat</div>
             <div>{topQB.firstName} {topQB.lastName} (QB)</div>

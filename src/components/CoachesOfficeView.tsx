@@ -77,7 +77,7 @@ export const CoachesOfficeView: React.FC = () => {
           {/* Assistant Coaching Staff */}
           <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '16px' }}>
             <h3 style={{ margin: '0 0 12px 0' }}>Coaching Staff</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', fontSize: '13px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', fontSize: '13px' }}>
               <div>
                 <div style={{ fontWeight: 'bold' }}>{userTeam.staff.offensiveCoordinator.name}</div>
                 <div style={{ color: '#6B7280' }}>Offensive Coordinator</div>

@@ -43,37 +43,39 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
         </div>
 
         {/* Team Comparison Matrix */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '13px', marginBottom: '20px' }}>
-          <thead>
-            <tr style={{ background: '#F1F5F9', borderBottom: '2px solid #CBD5E1' }}>
-              <th style={{ padding: '8px', textAlign: 'left' }}>Team Metric</th>
-              <th style={{ padding: '8px' }}>{homeTeam.name}</th>
-              <th style={{ padding: '8px' }}>{awayTeam.name}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-              <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Total Yards</td>
-              <td>{home.passYards + home.rushYards}</td>
-              <td>{away.passYards + away.rushYards}</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-              <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Passing Yards</td>
-              <td>{home.passYards} ({home.passCompletions}/{home.passAttempts})</td>
-              <td>{away.passYards} ({away.passCompletions}/{away.passAttempts})</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-              <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Rushing Yards</td>
-              <td>{home.rushYards} ({home.rushAttempts} car)</td>
-              <td>{away.rushYards} ({away.rushAttempts} car)</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-              <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Turnovers Lost</td>
-              <td style={{ color: turnovers(home) > 0 ? '#DC2626' : '#059669' }}>{turnovers(home)}</td>
-              <td style={{ color: turnovers(away) > 0 ? '#DC2626' : '#059669' }}>{turnovers(away)}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '13px', marginBottom: '20px' }}>
+            <thead>
+              <tr style={{ background: '#F1F5F9', borderBottom: '2px solid #CBD5E1' }}>
+                <th style={{ padding: '8px', textAlign: 'left' }}>Team Metric</th>
+                <th style={{ padding: '8px' }}>{homeTeam.name}</th>
+                <th style={{ padding: '8px' }}>{awayTeam.name}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Total Yards</td>
+                <td>{home.passYards + home.rushYards}</td>
+                <td>{away.passYards + away.rushYards}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Passing Yards</td>
+                <td>{home.passYards} ({home.passCompletions}/{home.passAttempts})</td>
+                <td>{away.passYards} ({away.passCompletions}/{away.passAttempts})</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Rushing Yards</td>
+                <td>{home.rushYards} ({home.rushAttempts} car)</td>
+                <td>{away.rushYards} ({away.rushAttempts} car)</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <td style={{ padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Turnovers Lost</td>
+                <td style={{ color: turnovers(home) > 0 ? '#DC2626' : '#059669' }}>{turnovers(home)}</td>
+                <td style={{ color: turnovers(away) > 0 ? '#DC2626' : '#059669' }}>{turnovers(away)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         {/* Individual Player Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '20px', maxHeight: '260px', overflowY: 'auto' }}>

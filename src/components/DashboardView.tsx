@@ -100,9 +100,11 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
       )}
 
       {/* Header Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ margin: 0 }}>{userTeam.name} {userTeam.mascot}</h1>
+          <h1 style={{ margin: 0, fontSize: 'clamp(22px, 6vw, 32px)' }}>
+            {userTeam.name} {userTeam.mascot}
+          </h1>
           <div style={{ color: '#6B7280' }}>
             {district?.name ?? 'Class 6A'}{region ? ` · ${region.name}` : ''} | Record: {userTeam.record.wins}-{userTeam.record.losses} (District: {userTeam.record.districtWins}-{userTeam.record.districtLosses})
           </div>
@@ -121,7 +123,7 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
       </div>
 
       {/* Program Meters */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '24px' }}>
         <MeterCard label="Board Trust" val={userTeam.programMeters.schoolBoardTrust} color="#10B981" />
         <MeterCard label="Booster Approval" val={userTeam.programMeters.boosterApproval} color="#F59E0B" />
         <MeterCard label="Discipline" val={userTeam.programMeters.lockerRoomDiscipline} color="#3B82F6" />

@@ -66,65 +66,67 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
 
       {/* Rankings Table */}
       <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-          <thead>
-            <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0', color: '#475569' }}>
-              <th style={{ padding: '12px 10px', width: '60px' }}>Rank</th>
-              <th style={{ padding: '12px 10px', width: '50px' }}>Move</th>
-              <th style={{ padding: '12px 10px' }}>School & Mascot</th>
-              <th style={{ padding: '12px 10px' }}>State / Class</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>Record</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>Points</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>SoS</th>
-              <th style={{ padding: '12px 10px', textAlign: 'center' }}>Q-Wins</th>
-            </tr>
-          </thead>
-          <tbody>
-            {activeEntries.map((entry) => {
-              const isUserTeam = entry.teamId === userTeamId;
-              return (
-                <tr
-                  key={entry.teamId}
-                  style={{
-                    borderBottom: '1px solid #F1F5F9',
-                    background: isUserTeam ? '#EFF6FF' : 'transparent',
-                    borderLeft: isUserTeam ? '4px solid #2563EB' : 'none'
-                  }}
-                >
-                  <td style={{ padding: '10px', fontWeight: 'bold', fontSize: '14px', color: entry.rank <= 5 ? '#D97706' : '#1E293B' }}>
-                    #{entry.rank}
-                  </td>
-                  <td style={{ padding: '10px' }}>{renderMovementBadge(entry)}</td>
-                  <td style={{ padding: '10px' }}>
-                    <div style={{ fontWeight: 'bold', color: isUserTeam ? '#1D4ED8' : '#0F172A' }}>
-                      {entry.teamName} {entry.mascot}
-                      {entry.firstPlaceVotes > 0 && (
-                        <span style={{ marginLeft: '6px', fontSize: '11px', color: '#D97706', fontWeight: 'bold' }}>
-                          ({entry.firstPlaceVotes})
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td style={{ padding: '10px', color: '#64748B' }}>
-                    {entry.state} ({entry.classification})
-                  </td>
-                  <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>
-                    {entry.record.wins}-{entry.record.losses}
-                  </td>
-                  <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#2563EB' }}>
-                    {entry.pollPoints}
-                  </td>
-                  <td style={{ padding: '10px', textAlign: 'center', color: '#475569' }}>
-                    {entry.strengthOfSchedule}
-                  </td>
-                  <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#16A34A' }}>
-                    {entry.qualityWinsCount}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0', color: '#475569' }}>
+                <th style={{ padding: '12px 10px', width: '60px' }}>Rank</th>
+                <th style={{ padding: '12px 10px', width: '50px' }}>Move</th>
+                <th style={{ padding: '12px 10px' }}>School & Mascot</th>
+                <th style={{ padding: '12px 10px' }}>State / Class</th>
+                <th style={{ padding: '12px 10px', textAlign: 'center' }}>Record</th>
+                <th style={{ padding: '12px 10px', textAlign: 'center' }}>Points</th>
+                <th style={{ padding: '12px 10px', textAlign: 'center' }}>SoS</th>
+                <th style={{ padding: '12px 10px', textAlign: 'center' }}>Q-Wins</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activeEntries.map((entry) => {
+                const isUserTeam = entry.teamId === userTeamId;
+                return (
+                  <tr
+                    key={entry.teamId}
+                    style={{
+                      borderBottom: '1px solid #F1F5F9',
+                      background: isUserTeam ? '#EFF6FF' : 'transparent',
+                      borderLeft: isUserTeam ? '4px solid #2563EB' : 'none'
+                    }}
+                  >
+                    <td style={{ padding: '10px', fontWeight: 'bold', fontSize: '14px', color: entry.rank <= 5 ? '#D97706' : '#1E293B' }}>
+                      #{entry.rank}
+                    </td>
+                    <td style={{ padding: '10px' }}>{renderMovementBadge(entry)}</td>
+                    <td style={{ padding: '10px' }}>
+                      <div style={{ fontWeight: 'bold', color: isUserTeam ? '#1D4ED8' : '#0F172A' }}>
+                        {entry.teamName} {entry.mascot}
+                        {entry.firstPlaceVotes > 0 && (
+                          <span style={{ marginLeft: '6px', fontSize: '11px', color: '#D97706', fontWeight: 'bold' }}>
+                            ({entry.firstPlaceVotes})
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px', color: '#64748B' }}>
+                      {entry.state} ({entry.classification})
+                    </td>
+                    <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>
+                      {entry.record.wins}-{entry.record.losses}
+                    </td>
+                    <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#2563EB' }}>
+                      {entry.pollPoints}
+                    </td>
+                    <td style={{ padding: '10px', textAlign: 'center', color: '#475569' }}>
+                      {entry.strengthOfSchedule}
+                    </td>
+                    <td style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#16A34A' }}>
+                      {entry.qualityWinsCount}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Others Receiving Votes (Bubble Teams) */}

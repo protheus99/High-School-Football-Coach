@@ -5,37 +5,97 @@ import { TIER_LABELS, recruitingStatus, sortedOffers } from '../sim/collegeRecru
 interface PlayerDetailModalProps {
   player: Player;
   onClose: () => void;
+  isOwnPlayer: boolean; // ratings, attributes and family info are only visible for your own players
+  teamName?: string;
 }
 
-export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player, onClose }) => {
+/** Season stat lines worth showing for this player (non-zero categories only). */
+function seasonStatLines(p: Player): [string, string][] {
+  const s = p.stats;
+  const lines: [string, string][] = [['Games', `${s.gamesPlayed}`]];
+  if (s.passAttempts > 0)
+    lines.push(['Passing', `${s.passCompletions}/${s.passAttempts}, ${s.passYards} yds, ${s.passTDs} TD, ${s.interceptionsThrown} INT`]);
+  if (s.rushAttempts > 0) lines.push(['Rushing', `${s.rushAttempts} car, ${s.rushYards} yds, ${s.rushTDs} TD`]);
+  if (s.receptions > 0) lines.push(['Receiving', `${s.receptions} rec, ${s.receivingYards} yds, ${s.receivingTDs} TD`]);
+  if (s.tackles + s.sacks + s.interceptionsCaught > 0)
+    lines.push(['Defense', `${s.tackles} tkl, ${s.tacklesForLoss} TFL, ${s.sacks} sacks, ${s.interceptionsCaught} INT`]);
+  if (s.fieldGoalsAttempted > 0) lines.push(['Kicking', `${s.fieldGoalsMade}/${s.fieldGoalsAttempted} FG`]);
+  if (s.fumblesLost > 0) lines.push(['Fumbles lost', `${s.fumblesLost}`]);
+  return lines;
+}
+
+export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player, onClose, isOwnPlayer, teamName }) => {
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
+        <div
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}
+        >
           <div>
-            <h2 style={{ margin: 0, color: '#0F172A' }}>{player.firstName} {player.lastName}</h2>
+            <h2 style={{ margin: 0, color: '#0F172A' }}>
+              {player.firstName} {player.lastName}
+            </h2>
             <div style={{ fontSize: '13px', color: '#64748B' }}>
-              #{player.position} | {player.classYear} (Age {player.age}) | Overall: <strong style={{ color: '#2563EB' }}>{player.overallRating}</strong> | Potential: <strong>{player.potential}</strong>
+              {player.position} | {player.classYear} (Age {player.age}){teamName && ` | ${teamName}`}
+              {isOwnPlayer && (
+                <>
+                  {' '}
+                  | Overall: <strong style={{ color: '#2563EB' }}>{player.overallRating}</strong> | Potential: <strong>{player.potential}</strong>
+                </>
+              )}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>
+            ✕
+          </button>
         </div>
 
-        {/* Ratings Grid */}
+        {/* Season stats (public) */}
         <div style={{ margin: '16px 0' }}>
-          <h4 style={{ margin: '0 0 8px 0', color: '#334155' }}>Attribute Breakdown</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', fontSize: '12px' }}>
-            <AttrCard label="Speed" val={player.attributes.speed} />
-            <AttrCard label="Strength" val={player.attributes.strength} />
-            <AttrCard label="Agility" val={player.attributes.agility} />
-            <AttrCard label="Stamina" val={player.attributes.stamina} />
-            <AttrCard label="Football IQ" val={player.attributes.footballIQ} />
-            <AttrCard label="Discipline" val={player.attributes.discipline} />
-            <AttrCard label="Leadership" val={player.attributes.leadership} />
-            <AttrCard label="Clutch" val={player.attributes.clutch} />
+          <h4 style={{ margin: '0 0 8px 0', color: '#334155' }}>Season Stats</h4>
+          <div style={{ fontSize: '13px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 12px' }}>
+            {seasonStatLines(player).map(([label, value]) => (
+              <React.Fragment key={label}>
+                <span style={{ color: '#64748B' }}>{label}</span>
+                <span>{value}</span>
+              </React.Fragment>
+            ))}
           </div>
         </div>
+
+        {!isOwnPlayer && (
+          <div
+            style={{
+              fontSize: '12px',
+              color: '#64748B',
+              background: '#F8FAFC',
+              border: '1px dashed #CBD5E1',
+              borderRadius: '6px',
+              padding: '8px 10px',
+              marginBottom: '16px'
+            }}
+          >
+            🔒 Ratings and attributes are only visible for players on your own roster.
+          </div>
+        )}
+
+        {/* Ratings Grid (own players only) */}
+        {isOwnPlayer && (
+          <div style={{ margin: '16px 0' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#334155' }}>Attribute Breakdown</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '8px', fontSize: '12px' }}>
+              <AttrCard label="Speed" val={player.attributes.speed} />
+              <AttrCard label="Strength" val={player.attributes.strength} />
+              <AttrCard label="Agility" val={player.attributes.agility} />
+              <AttrCard label="Stamina" val={player.attributes.stamina} />
+              <AttrCard label="Football IQ" val={player.attributes.footballIQ} />
+              <AttrCard label="Discipline" val={player.attributes.discipline} />
+              <AttrCard label="Leadership" val={player.attributes.leadership} />
+              <AttrCard label="Clutch" val={player.attributes.clutch} />
+            </div>
+          </div>
+        )}
 
         {/* College Recruiting & Offer Sheet */}
         <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px', marginBottom: '16px' }}>
@@ -72,12 +132,19 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player, on
           )}
         </div>
 
-        {/* Parent / Family Profile */}
-        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px', fontSize: '13px' }}>
-          <h4 style={{ margin: '0 0 6px 0' }}>Family & Community Dossier</h4>
-          <div><strong>Archetype:</strong> {player.parent.archetype.replace('_', ' ')}</div>
-          <div><strong>Parent Sentiment:</strong> {player.parent.sentiment}% | <strong>Booster Donor:</strong> {player.parent.isBoosterDonor ? 'Yes (Major Contributor)' : 'No'}</div>
-        </div>
+        {/* Parent / Family Profile (own players only) */}
+        {isOwnPlayer && (
+          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '14px', fontSize: '13px' }}>
+            <h4 style={{ margin: '0 0 6px 0' }}>Family & Community Dossier</h4>
+            <div>
+              <strong>Archetype:</strong> {player.parent.archetype.replace('_', ' ')}
+            </div>
+            <div>
+              <strong>Parent Sentiment:</strong> {player.parent.sentiment}% | <strong>Booster Donor:</strong>{' '}
+              {player.parent.isBoosterDonor ? 'Yes (Major Contributor)' : 'No'}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

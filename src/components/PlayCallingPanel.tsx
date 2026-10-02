@@ -15,7 +15,7 @@ export const PlayCallingPanel: React.FC<PlayCallingPanelProps> = ({ side, onCall
         <div style={{ color: '#FCA5A5', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase' }}>
           Defensive Play-Calling Panel
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(76px, 1fr))', gap: '6px' }}>
           <button onClick={() => onCallDefense('BASE')} disabled={disabled} style={playBtnStyle('#94A3B8')} title="Balanced front and coverage">
             🛡️ Base
           </button>
@@ -38,7 +38,7 @@ export const PlayCallingPanel: React.FC<PlayCallingPanelProps> = ({ side, onCall
       <div style={{ color: '#94A3B8', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase' }}>
         Tactical Play-Calling Panel
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(76px, 1fr))', gap: '6px' }}>
         <button onClick={() => onCallPlay('INSIDE_RUN')} disabled={disabled} style={playBtnStyle('#3B82F6')}>
           🏈 Inside Power
         </button>

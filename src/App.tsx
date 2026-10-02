@@ -182,47 +182,65 @@ export const App: React.FC = () => {
         />
       )}
       {selectedPlayerDetail && (
-        <PlayerDetailModal player={selectedPlayerDetail} onClose={() => setSelectedPlayerDetail(null)} />
+        <PlayerDetailModal
+          player={selectedPlayerDetail}
+          isOwnPlayer={!!userTeam?.roster.some((p) => p.id === selectedPlayerDetail.id)}
+          teamName={leagueTeams.find((t) => t.roster.some((p) => p.id === selectedPlayerDetail.id))?.name}
+          onClose={() => setSelectedPlayerDetail(null)}
+        />
       )}
 
       {/* Top Navigation Bar */}
-      <div style={{ background: '#0F172A', color: '#fff', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="app-topbar">
         <div>
-          <span style={{ fontWeight: 'bold', fontSize: '18px' }}>🏈 HIGH SCHOOL FOOTBALL HEAD COACH</span>
+          <span className="app-title">
+            🏈 <span className="hide-sm">HIGH SCHOOL FOOTBALL HEAD COACH</span>
+            <span className="show-sm">HS Football Coach</span>
+          </span>
           <span style={{ marginLeft: '12px', fontSize: '13px', color: '#94A3B8' }}>{currentYear} Season</span>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
             onClick={() => setShowDrillsModal(true)}
+            aria-label="Drills"
+            title="Drills"
             style={{ padding: '6px 12px', background: '#10B981', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
           >
-            🏋️ Drills
+            🏋️ <span className="hide-sm">Drills</span>
           </button>
           <button
             onClick={() => setShowTrophyModal(true)}
+            aria-label="Trophies"
+            title="Trophies"
             style={{ padding: '6px 12px', background: '#D97706', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
           >
-            🏆 Trophies
+            🏆 <span className="hide-sm">Trophies</span>
           </button>
           {playoffBracket && (
             <button
               onClick={() => setShowBracketModal(true)}
+              aria-label="Bracket"
+              title="Bracket"
               style={{ padding: '6px 12px', background: '#F59E0B', color: '#000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
             >
-              🏆 Bracket
+              🏆 <span className="hide-sm">Bracket</span>
             </button>
           )}
           <button
             onClick={() => setShowSaveLoadModal(true)}
+            aria-label="Save / Load"
+            title="Save / Load"
             style={{ padding: '6px 12px', background: '#334155', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
           >
-            ⚙️ Save / Load
+            ⚙️ <span className="hide-sm">Save / Load</span>
           </button>
           <button
             onClick={() => setShowMenu(true)}
+            aria-label="Main Menu"
+            title="Main Menu"
             style={{ padding: '6px 12px', background: '#1E293B', color: '#fff', border: '1px solid #475569', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
           >
-            🏠 Main Menu
+            🏠 <span className="hide-sm">Main Menu</span>
           </button>
         </div>
       </div>
@@ -247,17 +265,44 @@ export const App: React.FC = () => {
       </div>
 
       {/* Persistent Bottom Tab Navigation */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#fff', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-around', padding: '10px 0', zIndex: 100 }}>
-        <button onClick={() => setTab('DASHBOARD')} style={navBtnStyle(tab === 'DASHBOARD')}>📊 Dashboard</button>
-        <button onClick={() => setTab('ROSTER')} style={navBtnStyle(tab === 'ROSTER')}>📋 Roster</button>
-        <button onClick={() => setTab('DISTRICT')} style={navBtnStyle(tab === 'DISTRICT')}>🏆 District</button>
-        <button onClick={() => setTab('RANKINGS')} style={navBtnStyle(tab === 'RANKINGS')}>🥇 Polls</button>
-        <button onClick={() => setTab('LEADERS')} style={navBtnStyle(tab === 'LEADERS')}>🌟 Leaders</button>
-        <button onClick={() => setTab('FEEDERS')} style={navBtnStyle(tab === 'FEEDERS')}>🔍 Feeders</button>
-        <button onClick={() => setTab('COLLEGE')} style={navBtnStyle(tab === 'COLLEGE')}>🎓 College</button>
-        <button onClick={() => setTab('NEWS')} style={navBtnStyle(tab === 'NEWS')}>📰 News</button>
-        <button onClick={() => setTab('OFFICE')} style={navBtnStyle(tab === 'OFFICE')}>🏢 Office</button>
-      </div>
+      <nav className="app-tabbar" aria-label="Main sections">
+        <button onClick={() => setTab('DASHBOARD')} style={navBtnStyle(tab === 'DASHBOARD')}>
+          <span className="tab-icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+        <button onClick={() => setTab('ROSTER')} style={navBtnStyle(tab === 'ROSTER')}>
+          <span className="tab-icon">📋</span>
+          <span>Roster</span>
+        </button>
+        <button onClick={() => setTab('DISTRICT')} style={navBtnStyle(tab === 'DISTRICT')}>
+          <span className="tab-icon">🏆</span>
+          <span>District</span>
+        </button>
+        <button onClick={() => setTab('RANKINGS')} style={navBtnStyle(tab === 'RANKINGS')}>
+          <span className="tab-icon">🥇</span>
+          <span>Polls</span>
+        </button>
+        <button onClick={() => setTab('LEADERS')} style={navBtnStyle(tab === 'LEADERS')}>
+          <span className="tab-icon">🌟</span>
+          <span>Leaders</span>
+        </button>
+        <button onClick={() => setTab('FEEDERS')} style={navBtnStyle(tab === 'FEEDERS')}>
+          <span className="tab-icon">🔍</span>
+          <span>Feeders</span>
+        </button>
+        <button onClick={() => setTab('COLLEGE')} style={navBtnStyle(tab === 'COLLEGE')}>
+          <span className="tab-icon">🎓</span>
+          <span>College</span>
+        </button>
+        <button onClick={() => setTab('NEWS')} style={navBtnStyle(tab === 'NEWS')}>
+          <span className="tab-icon">📰</span>
+          <span>News</span>
+        </button>
+        <button onClick={() => setTab('OFFICE')} style={navBtnStyle(tab === 'OFFICE')}>
+          <span className="tab-icon">🏢</span>
+          <span>Office</span>
+        </button>
+      </nav>
     </div>
   );
 };
@@ -267,6 +312,5 @@ const navBtnStyle = (active: boolean): React.CSSProperties => ({
   border: 'none',
   fontWeight: active ? 'bold' : 'normal',
   color: active ? '#2563EB' : '#64748B',
-  cursor: 'pointer',
-  fontSize: '13px'
+  cursor: 'pointer'
 });

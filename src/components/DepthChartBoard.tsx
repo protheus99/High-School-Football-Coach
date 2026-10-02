@@ -1,5 +1,6 @@
 import React from 'react';
 import { Player, Position, Team } from '../types/game';
+import { PHONE_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
 import { DEPTH_ROWS, DEPTH_TEMPLATE, SLOT_LABELS, depthChartName, depthGroup } from '../sim/depthChart';
 
 /** A slot on the board: a position and which starter column it is (e.g. OT column 0 = LT). */
@@ -82,6 +83,7 @@ export const DepthChartBoard: React.FC<{
   onMove: (playerId: string, direction: -1 | 1) => void;
   onSelect?: (player: Player) => void;
 }> = ({ team, onMove, onSelect }) => {
+  const isPhone = useMediaQuery(PHONE_QUERY);
   const groups = new Map((Object.keys(DEPTH_TEMPLATE) as Position[]).map((pos) => [pos, depthGroup(team.roster, pos)]));
 
   const card = ([position, column]: Slot) => {
@@ -126,7 +128,7 @@ export const DepthChartBoard: React.FC<{
       );
     };
     return (
-      <div key={`${position}_${column}`} style={cardStyle}>
+      <div key={`${position}_${column}`} style={isPhone ? { ...cardStyle, width: '100%' } : cardStyle}>
         <div style={cardHeader}>{SLOT_LABELS[position][column]}</div>
         <div style={{ padding: '4px 6px' }}>
           {rows.map((i, r) => line(i, r))}
@@ -148,20 +150,27 @@ export const DepthChartBoard: React.FC<{
   const section = (title: string, rows: FormationRow[]) => (
     <div style={{ marginBottom: '18px' }}>
       <h3 style={sectionTitle}>{title}</h3>
-      {rows.map((row, i) => (
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: `${GAP}px`, marginBottom: `${GAP}px` }}>
-          {group(row.left, 'flex-start')}
-          {group(row.center, 'center')}
-          {group(row.right, 'flex-end')}
+      {isPhone ? (
+        // Phones: slot cards two to a row, in formation order (left to right, front to back)
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: `${GAP}px` }}>
+          {rows.flatMap((row) => [...(row.left ?? []), ...(row.center ?? []), ...(row.right ?? [])]).map(card)}
         </div>
-      ))}
+      ) : (
+        rows.map((row, i) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: `${GAP}px`, marginBottom: `${GAP}px` }}>
+            {group(row.left, 'flex-start')}
+            {group(row.center, 'center')}
+            {group(row.right, 'flex-end')}
+          </div>
+        ))
+      )}
     </div>
   );
 
   return (
-    // Narrow screens scroll the board sideways rather than breaking the formation
+    // Mid-size screens scroll the formation sideways rather than breaking it; phones get the grid above
     <div style={{ overflowX: 'auto' }}>
-      <div style={{ minWidth: `${BOARD_MIN_WIDTH}px` }}>
+      <div style={{ minWidth: isPhone ? undefined : `${BOARD_MIN_WIDTH}px` }}>
         {section('DEFENSE', DEFENSE)}
         {section('OFFENSE', OFFENSE)}
         {section('SPECIALISTS', SPECIALISTS)}

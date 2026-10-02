@@ -19,7 +19,7 @@ export const AllStateAwardsModal: React.FC<AllStateAwardsModalProps> = ({ awards
         </div>
 
         {/* Major Awards Spotlight */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '16px 0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', margin: '16px 0' }}>
           <MajorAwardCard title="👑 Mr. Football (MVP)" winner={awards.mrFootballStateMVP} />
           <MajorAwardCard title="⚡ Offensive POY" winner={awards.offensivePlayerOfTheYear} />
           <MajorAwardCard title="🛡️ Defensive POY" winner={awards.defensivePlayerOfTheYear} />

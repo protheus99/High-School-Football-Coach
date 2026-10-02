@@ -69,38 +69,40 @@ export const RosterDepthChartView: React.FC = () => {
             </button>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-            <thead>
-              <tr style={{ background: '#F3F4F6', borderBottom: '2px solid #E5E7EB' }}>
-                <th style={{ padding: '8px' }}>Name</th>
-                <th style={{ padding: '8px' }}>Pos</th>
-                <th style={{ padding: '8px' }}>Class</th>
-                <th style={{ padding: '8px' }}>OVR</th>
-                <th style={{ padding: '8px' }}>Slot</th>
-                <th style={{ padding: '8px' }}>Stamina</th>
-                <th style={{ padding: '8px' }}>Wear</th>
-                <th style={{ padding: '8px' }}>GPA</th>
-                <th style={{ padding: '8px' }}>Offers</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id} onClick={() => setSelectedPlayer(p)} style={{ borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
-                  <td style={{ padding: '8px', fontWeight: 'bold' }}>
-                    {p.firstName} {p.lastName}
-                  </td>
-                  <td style={{ padding: '8px' }}>{p.position}</td>
-                  <td style={{ padding: '8px' }}>{p.classYear}</td>
-                  <td style={{ padding: '8px', fontWeight: 'bold', color: '#2563EB' }}>{p.overallRating}</td>
-                  <td style={{ padding: '8px' }}>{p.depthChartTier === 1 ? '1st String' : p.depthChartTier === 2 ? '2nd String' : '3rd String'}</td>
-                  <td style={{ padding: '8px' }}>{p.condition.inGameStamina}%</td>
-                  <td style={{ padding: '8px' }}>{p.condition.seasonWear}%</td>
-                  <td style={{ padding: '8px', color: p.academics.isEligible ? '#059669' : '#DC2626' }}>{p.academics.gpa.toFixed(2)}</td>
-                  <td style={{ padding: '8px' }}>{p.recruiting.offers.length} Offers</td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#F3F4F6', borderBottom: '2px solid #E5E7EB' }}>
+                  <th style={{ padding: '8px' }}>Name</th>
+                  <th style={{ padding: '8px' }}>Pos</th>
+                  <th style={{ padding: '8px' }}>Class</th>
+                  <th style={{ padding: '8px' }}>OVR</th>
+                  <th style={{ padding: '8px' }}>Slot</th>
+                  <th style={{ padding: '8px' }}>Stamina</th>
+                  <th style={{ padding: '8px' }}>Wear</th>
+                  <th style={{ padding: '8px' }}>GPA</th>
+                  <th style={{ padding: '8px' }}>Offers</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((p) => (
+                  <tr key={p.id} onClick={() => setSelectedPlayer(p)} style={{ borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
+                    <td style={{ padding: '8px', fontWeight: 'bold' }}>
+                      {p.firstName} {p.lastName}
+                    </td>
+                    <td style={{ padding: '8px' }}>{p.position}</td>
+                    <td style={{ padding: '8px' }}>{p.classYear}</td>
+                    <td style={{ padding: '8px', fontWeight: 'bold', color: '#2563EB' }}>{p.overallRating}</td>
+                    <td style={{ padding: '8px' }}>{p.depthChartTier === 1 ? '1st String' : p.depthChartTier === 2 ? '2nd String' : '3rd String'}</td>
+                    <td style={{ padding: '8px' }}>{p.condition.inGameStamina}%</td>
+                    <td style={{ padding: '8px' }}>{p.condition.seasonWear}%</td>
+                    <td style={{ padding: '8px', color: p.academics.isEligible ? '#059669' : '#DC2626' }}>{p.academics.gpa.toFixed(2)}</td>
+                    <td style={{ padding: '8px' }}>{p.recruiting.offers.length} Offers</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </div>
