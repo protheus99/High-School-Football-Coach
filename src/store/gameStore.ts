@@ -65,9 +65,10 @@ import {
   weeklyDetectionChance,
   yearEndDetectionChance
 } from '../sim/feederCompetition';
-import { simulateMacroMatch } from '../sim/macroSim';
+import { simulateMacroMatch, rollGameInjuries } from '../sim/macroSim';
 import {
   evaluateAcademicReport,
+  isAcademicallyAtRisk,
   processPostGameSeasonWear,
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
@@ -444,6 +445,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         const away = teamsById.get(g.awayTeamId);
         if (!home || !away) return;
         const box = simulateMacroMatch(g.gameId, g.week, home, away);
+        rollGameInjuries(home, g.week);
+        rollGameInjuries(away, g.week);
         g.homeScore = box.homeScore;
         g.awayScore = box.awayScore;
         applyGameResult(home, away, box.homeScore, box.awayScore, g.isDistrictGame);
@@ -585,11 +588,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return;
     }
 
-    // 1. Weekly Triage & Health Updates
-    userTeam.roster.forEach((p) => {
-      processWeeklyInjuryHealing(p);
-      processPostGameSeasonWear(p, p.depthChartTier === 1 ? 52 : 12, practiceIntensity);
-      if (nextWeek % 3 === 0) evaluateAcademicReport(p);
+    // 1. Weekly triage for every program: injuries heal, season wear builds, and every third week brings
+    // report cards ("No Pass, No Play"). AI programs keep their struggling students in study hall; the
+    // user handles grades through dilemmas.
+    leagueTeams.forEach((team) => {
+      const isUser = team.id === userTeamId;
+      team.roster.forEach((p) => {
+        processWeeklyInjuryHealing(p, currentWeek);
+        processPostGameSeasonWear(p, p.depthChartTier === 1 ? 52 : 12, isUser ? practiceIntensity : 'STANDARD');
+        if (nextWeek % 3 === 0) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p) ? 0.1 : 0);
+      });
     });
     // Assistants run this week's position drills with the coach's focus
     const lastDrillReport = runAssistantDrills(userTeam.roster, get().drillFocus, drillsPerWeek(ASSISTANT_DRILLS_PER_WEEK, get().coachTalents));
@@ -809,6 +817,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         if (line || p.depthChartTier === 1) p.stats.gamesPlayed += 1;
       })
     );
+    // Live games cause injuries too
+    [home, away].forEach((team) => team && rollGameInjuries(team, currentWeek));
 
     set({ districtTeams: [...districtTeams], leagueTeams: [...leagueTeams], seasonSchedule: [...seasonSchedule] });
   },

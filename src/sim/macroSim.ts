@@ -1,4 +1,4 @@
-import { Team, CompactBoxScore, WeatherType, Player, PlayerStats } from '../types/game';
+import { Team, CompactBoxScore, WeatherType, Player, PlayerStats, InjurySeverity } from '../types/game';
 import { randomInt, clamp } from './math/variance';
 import { getPositionGroup } from './matchEngine';
 import { addPlayerStats } from './playerStats';
@@ -119,6 +119,33 @@ export function gameDayLineup(team: Team): (Player | undefined)[] {
     if (sub) used.add(sub.id);
     return sub;
   });
+}
+
+// Per-game injury odds for each player in the lineup (about one minor injury per team per game)
+const GAME_INJURY_ODDS = { seasonEnding: 0.0015, moderate: 0.01, dinged: 0.03 };
+
+/**
+ * Injuries from one game (live or simulated) for everyone who played. Tired players (heavy season wear)
+ * get hurt more; kickers rarely. Returns who was hurt and how badly.
+ */
+export function rollGameInjuries(team: Team, week: number): { player: Player; severity: InjurySeverity }[] {
+  const hurt: { player: Player; severity: InjurySeverity }[] = [];
+  gameDayLineup(team).forEach((p) => {
+    if (!p || p.condition.injuryStatus !== 'HEALTHY') return;
+    const risk = (p.condition.inGameStamina < 75 ? 1.5 : 1) * (p.position === 'K' || p.position === 'P' ? 0.3 : 1);
+    const roll = Math.random();
+    let severity: InjurySeverity = 'HEALTHY';
+    let weeks = 0;
+    if (roll < GAME_INJURY_ODDS.seasonEnding * risk) [severity, weeks] = ['SEASON_ENDING', 20];
+    else if (roll < GAME_INJURY_ODDS.moderate * risk) [severity, weeks] = ['MODERATE', randomInt(2, 4)];
+    else if (roll < GAME_INJURY_ODDS.dinged * risk) [severity, weeks] = ['DINGED', 1];
+    if (severity === 'HEALTHY') return;
+    p.condition.injuryStatus = severity;
+    p.condition.injuryWeeksRemaining = weeks;
+    p.condition.injuredInWeek = week;
+    hurt.push({ player: p, severity });
+  });
+  return hurt;
 }
 
 /** Average overall rating of the game-day lineup (first string, with backups in for missing starters). */

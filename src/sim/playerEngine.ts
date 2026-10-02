@@ -76,9 +76,11 @@ export function evaluateSnapInjury(player: Player): InjurySeverity {
 }
 
 /**
- * Decrements injury recovery counters during Monday triage.
+ * Decrements injury recovery counters during Monday triage. Injuries from this week's game are skipped,
+ * so injuryWeeksRemaining is the number of games a player misses.
  */
-export function processWeeklyInjuryHealing(player: Player): void {
+export function processWeeklyInjuryHealing(player: Player, week?: number): void {
+  if (week !== undefined && player.condition.injuredInWeek === week) return;
   if (player.condition.injuryWeeksRemaining > 0) {
     player.condition.injuryWeeksRemaining -= 1;
     if (player.condition.injuryWeeksRemaining === 0) {
@@ -97,8 +99,8 @@ export function isAcademicallyAtRisk(player: Player): boolean {
   return !player.academics.isEligible || player.academics.gpa < AT_RISK_GPA;
 }
 
-export function evaluateAcademicReport(player: Player): void {
-  let gpaDelta = (Math.random() * 0.6 - 0.3);
+export function evaluateAcademicReport(player: Player, support = 0): void {
+  let gpaDelta = (Math.random() * 0.6 - 0.3) + support; // support: AI programs keep struggling players in study hall
   if (player.attributes.footballIQ > 75) gpaDelta += 0.1;
 
   player.academics.gpa = clamp(Number((player.academics.gpa + gpaDelta).toFixed(2)), 1.2, 4.0);

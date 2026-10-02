@@ -65,6 +65,7 @@ export interface PlayerCondition {
   seasonWear: number;
   injuryStatus: InjurySeverity;
   injuryWeeksRemaining: number;
+  injuredInWeek?: number; // hurt in this week's game: the week's healing skips him
   isHot: boolean;
   isCold: boolean;
 }
