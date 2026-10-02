@@ -152,7 +152,7 @@ export const WeeklyAgenda: React.FC<{
       detail: 'Clinics and events bring in and win over next year’s players.',
       tone: 'todo',
       actions: events.map((e) => ({
-        label: `${FEEDER_EVENTS[e].label} (${feederEventCost(FEEDER_EVENTS[e].cost, coachTalents)} CP)`,
+        label: `${FEEDER_EVENTS[e].label} (₡${feederEventCost(FEEDER_EVENTS[e].cost, coachTalents)})`,
         disabled: coachPoints < feederEventCost(FEEDER_EVENTS[e].cost, coachTalents),
         onClick: () => {
           const found = runFeederEvent(e);
@@ -186,9 +186,9 @@ export const WeeklyAgenda: React.FC<{
   const film = collegeBatch('FILM');
   const collegeActions: AgendaAction[] = [];
   if (currentWeek <= CAMP_WEEKS && camp.ready.length > 0)
-    collegeActions.push({ label: `Camp for top ${camp.ready.length} (${camp.cost} CP)`, disabled: coachPoints < camp.cost, onClick: () => runBatch('CAMP', 'Took') });
+    collegeActions.push({ label: `Camp for top ${camp.ready.length} (₡${camp.cost})`, disabled: coachPoints < camp.cost, onClick: () => runBatch('CAMP', 'Took') });
   if (film.ready.length > 0)
-    collegeActions.push({ label: `Send film for top ${film.ready.length} (${film.cost} CP)`, disabled: coachPoints < film.cost, onClick: () => runBatch('FILM', 'Sent film for') });
+    collegeActions.push({ label: `Send film for top ${film.ready.length} (₡${film.cost})`, disabled: coachPoints < film.cost, onClick: () => runBatch('FILM', 'Sent film for') });
   if (collegeActions.length > 0) {
     items.push({
       id: 'college',
@@ -222,7 +222,7 @@ export const WeeklyAgenda: React.FC<{
           This Week
         </h2>
         <span style={{ fontSize: '13px', color: '#64748B' }}>
-          {coachPoints} CP <span style={{ color: '#94A3B8' }}>· +{weeklyCpIncome(currentWeek + 1, coachTalents)} next week</span>
+          ₡{coachPoints} <span style={{ color: '#94A3B8' }}>· +₡{weeklyCpIncome(currentWeek + 1, coachTalents)} next week</span>
         </span>
       </div>
       {flash && (

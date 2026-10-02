@@ -40,12 +40,12 @@ export interface CoachTalent {
 
 /** Every talent changes something real in the game (the effect helpers below are read by the systems). */
 export const COACH_TALENTS: CoachTalent[] = [
-  { id: 'RECRUITING_NETWORK', branch: 'RECRUITER', name: 'Recruiting Network', description: 'Feeder events cost 20% less CP.', cost: 60 },
+  { id: 'RECRUITING_NETWORK', branch: 'RECRUITER', name: 'Recruiting Network', description: 'Feeder events cost 20% less.', cost: 60 },
   {
     id: 'COLLEGE_CONNECTIONS',
     branch: 'RECRUITER',
     name: 'College Connections',
-    description: 'Film, calls and camps for college prospects cost 40% less CP.',
+    description: 'Film, calls and camps for college prospects cost 40% less.',
     cost: 120,
     requires: 'RECRUITING_NETWORK'
   },
@@ -67,8 +67,8 @@ export const COACH_TALENTS: CoachTalent[] = [
     cost: 120,
     requires: 'BOARD_ROOM_SHIELD'
   },
-  { id: 'BIGGER_BUDGET', branch: 'MANAGER', name: 'Bigger Budget', description: '+10 CP every week.', cost: 60 },
-  { id: 'DEEP_POCKETS', branch: 'MANAGER', name: 'Deep Pockets', description: 'Bank up to 100 more CP.', cost: 120, requires: 'BIGGER_BUDGET' }
+  { id: 'BIGGER_BUDGET', branch: 'MANAGER', name: 'Bigger Budget', description: '+₡10 every week.', cost: 60 },
+  { id: 'DEEP_POCKETS', branch: 'MANAGER', name: 'Deep Pockets', description: 'Bank up to ₡100 more.', cost: 120, requires: 'BIGGER_BUDGET' }
 ];
 
 export const TALENT_BRANCH_LABELS: Record<TalentBranch, string> = {
@@ -83,7 +83,7 @@ export function talentBlocker(id: TalentId, owned: TalentId[], coachPoints: numb
   const talent = COACH_TALENTS.find((t) => t.id === id)!;
   if (owned.includes(id)) return 'Already unlocked';
   if (talent.requires && !owned.includes(talent.requires)) return `Unlock ${COACH_TALENTS.find((t) => t.id === talent.requires)!.name} first`;
-  if (coachPoints < talent.cost) return `Needs ${talent.cost} CP`;
+  if (coachPoints < talent.cost) return `Needs ₡${talent.cost}`;
   return null;
 }
 

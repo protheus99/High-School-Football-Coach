@@ -202,7 +202,7 @@ export const App: React.FC = () => {
             title="Coach Points"
             style={{ ...topBtn('#FACC15'), color: '#0F172A', padding: '6px 10px', whiteSpace: 'nowrap' }}
           >
-            CP {coachPoints}
+            ₡{coachPoints}
           </button>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

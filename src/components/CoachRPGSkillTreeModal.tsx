@@ -52,7 +52,7 @@ export const CoachRPGSkillTreeModal: React.FC<{ onClose: () => void }> = ({ onCl
                     ) : (
                       <>
                         <button className="ui-btn ui-btn-primary" onClick={() => handleUnlock(t.id, t.name)} disabled={!!blocker}>
-                          Unlock ({t.cost} CP)
+                          Unlock (₡{t.cost})
                         </button>
                         {blocker && <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>{blocker}</div>}
                       </>

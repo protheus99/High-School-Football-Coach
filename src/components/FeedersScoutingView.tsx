@@ -81,7 +81,7 @@ export const FeedersScoutingView: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
         <h2 style={{ margin: 0 }}>Feeder Pipeline</h2>
         <div style={{ display: 'flex', gap: '8px', fontSize: '13px', fontWeight: 'bold' }}>
-          <span style={pillStyle('#DBEAFE', '#1E40AF')}>CP {coachPoints} · +{weeklyIncome}/wk</span>
+          <span style={pillStyle('#DBEAFE', '#1E40AF')}>₡{coachPoints} · +₡{weeklyIncome}/wk</span>
           <span style={pillStyle('#F1F5F9', '#334155')}>Program Prestige: {userTeam.prestige}</span>
           <span style={pillStyle('#F1F5F9', '#334155')}>Pool: {scoutingPool.length} / {MAX_POOL_SIZE}</span>
         </div>
@@ -132,7 +132,7 @@ export const FeedersScoutingView: React.FC = () => {
               <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{event.label}</div>
               <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 8px' }}>{event.description}</div>
               <button onClick={() => handleEvent(type)} disabled={done || coachPoints < eventCost(type)} style={actionBtn('#0F766E', done || coachPoints < eventCost(type))}>
-                {done ? 'Held this week' : `Host (${eventCost(type)} CP)`}
+                {done ? 'Held this week' : `Host (₡${eventCost(type)})`}
               </button>
             </div>
           );
@@ -222,14 +222,14 @@ const ProspectCard: React.FC<{
       {notes.length > 0 && <div style={{ fontSize: '12px', color: '#92400E', marginTop: '4px' }}>{notes.join(' · ')}</div>}
       <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
         <button onClick={onScout} disabled={scouted || coachPoints < PROSPECT_ACTION_COSTS.SCOUT} style={actionBtn('#475569', scouted || coachPoints < PROSPECT_ACTION_COSTS.SCOUT)}>
-          {scouted ? 'Evaluated' : `Evaluate (${PROSPECT_ACTION_COSTS.SCOUT} CP)`}
+          {scouted ? 'Evaluated' : `Evaluate (₡${PROSPECT_ACTION_COSTS.SCOUT})`}
         </button>
         <button onClick={onVisit} disabled={coachPoints < PROSPECT_ACTION_COSTS.VISIT} style={actionBtn('#2563EB', coachPoints < PROSPECT_ACTION_COSTS.VISIT)}>
-          {p.source === 'STAR_RECRUIT' ? 'Call' : 'Home Visit'} ({PROSPECT_ACTION_COSTS.VISIT} CP)
+          {p.source === 'STAR_RECRUIT' ? 'Call' : 'Home Visit'} (₡{PROSPECT_ACTION_COSTS.VISIT})
         </button>
         {p.source === 'STAR_RECRUIT' && (
           <button onClick={onPitch} disabled={coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR} style={actionBtn('#D97706', coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR)}>
-            Full Recruiting Pitch ({PROSPECT_ACTION_COSTS.PITCH_STAR} CP)
+            Full Recruiting Pitch (₡{PROSPECT_ACTION_COSTS.PITCH_STAR})
           </button>
         )}
         {p.source !== 'TRYOUT' &&
@@ -242,7 +242,7 @@ const ProspectCard: React.FC<{
               title="Illegal: boosters make an improper offer. Big pull on this player, but it builds evidence that may surface for years."
               style={actionBtn('#7F1D1D', coachPoints < 20)}
             >
-              Booster Offer (illegal, 20 CP)
+              Booster Offer (illegal, ₡20)
             </button>
           ))}
       </div>

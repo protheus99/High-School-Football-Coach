@@ -832,7 +832,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   collegeRecruitAction: (playerId, action) => {
     const { coachPoints, leagueTeams, userTeamId, currentWeek, currentYear, districtTeams } = get();
     const cost = collegeActionCost(COLLEGE_ACTION_COSTS[action], get().coachTalents);
-    if (coachPoints < cost) return { ok: false, message: 'Not enough CP' };
+    if (coachPoints < cost) return { ok: false, message: 'Not enough Coach Points' };
     const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
     const player = userTeam.roster.find((p) => p.id === playerId);
     if (!player) return { ok: false, message: 'Player not found' };

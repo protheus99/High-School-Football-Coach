@@ -117,7 +117,7 @@ export const CollegeRecruitingView: React.FC = () => {
             flexWrap: 'wrap'
           }}
         >
-          <span style={pill('#EEF2FF', '#3730A3')}>CP {coachPoints}</span>
+          <span style={pill('#EEF2FF', '#3730A3')}>₡{coachPoints}</span>
           <span style={pill('#ECFDF5', '#065F46')}>Committed: {committed}</span>
           <span style={pill('#EFF6FF', '#1E40AF')}>With D-I offers: {d1Offers}</span>
           <span style={pill(currentWeek <= CAMP_WEEKS ? '#FEF3C7' : '#F1F5F9', currentWeek <= CAMP_WEEKS ? '#92400E' : '#64748B')}>
@@ -272,10 +272,10 @@ const RecruitRow: React.FC<{
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {ACTIONS.map(({ action, label, color, help }) => {
             const cost = collegeActionCost(COLLEGE_ACTION_COSTS[action], coachTalents);
-            const blocker = collegeActionBlocker(p, action, week, year) ?? (coachPoints < cost ? 'Not enough CP' : null);
+            const blocker = collegeActionBlocker(p, action, week, year) ?? (coachPoints < cost ? 'Not enough Coach Points' : null);
             return (
               <button key={action} onClick={() => onAction(action)} disabled={!!blocker} title={blocker ?? help} style={btn(color, !!blocker)}>
-                {label} ({cost} CP)
+                {label} (₡{cost})
               </button>
             );
           })}
