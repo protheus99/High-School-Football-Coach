@@ -109,8 +109,7 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
 
       {/* Possession on a white strip so the school color is readable; down and distance live in the scoreboard */}
       <div style={{ background: '#fff', borderRadius: '6px', padding: '6px 10px', marginTop: '8px', fontSize: '13px', color: '#334155' }}>
-        🏈 <strong style={{ color: readableOnWhite(possessionColor, possessionSecondaryColor) }}>{possessionTeamName}</strong> ball{' '}
-        <span style={{ color: '#64748B' }}>{possessionIsHome ? '← driving left' : 'driving right →'}</span>
+        🏈 <strong style={{ color: readableOnWhite(possessionColor, possessionSecondaryColor) }}>{possessionTeamName}</strong> ball
       </div>
     </div>
   );
