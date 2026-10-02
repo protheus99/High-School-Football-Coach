@@ -1,131 +1,118 @@
-import React, { useState } from 'react';
-import { Player } from '../types/game';
-import { DrillType, executePositionDrill, DrillResult } from '../sim/drillEngine';
+import React from 'react';
+import { useGameStore } from '../store/gameStore';
+import { ASSISTANT_DRILLS_PER_WEEK, DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
 
-interface PlayerDrillsModalProps {
-  roster: Player[];
-  onClose: () => void;
-}
+const INTENSITY: { id: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT'; label: string; help: string }[] = [
+  { id: 'WALKTHROUGH', label: 'Walkthrough', help: 'Fresh legs, less wear.' },
+  { id: 'STANDARD', label: 'Standard', help: 'Balanced reps and fatigue.' },
+  { id: 'CONTACT', label: 'Full Contact', help: 'Tougher team, more wear and injury risk.' }
+];
 
-export const PlayerDrillsModal: React.FC<PlayerDrillsModalProps> = ({ roster, onClose }) => {
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string>(roster[0]?.id || '');
-  const [drillResult, setDrillResult] = useState<DrillResult | null>(null);
-
-  const player = roster.find((p) => p.id === selectedPlayerId);
-
-  const handleRunDrill = (drill: DrillType) => {
-    if (player) {
-      const res = executePositionDrill(player, drill);
-      setDrillResult(res);
-    }
-  };
+/**
+ * Practice plan: the head coach sets the week's development focus and intensity; the assistant coaches
+ * pick the players and run the position drills automatically when the week advances.
+ */
+export const PlayerDrillsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { drillFocus, setDrillFocus, practiceIntensity, setPracticeIntensity, lastDrillReport } = useGameStore();
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
+    <div style={overlayStyle} onClick={onClose}>
+      <div style={modalStyle} role="dialog" aria-modal="true" aria-labelledby="practice-plan-title" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
           <div>
-            <h2 style={{ margin: 0, color: '#0F172A' }}>🏋️ WEEKLY POSITION FOCUS DRILLS</h2>
-            <div style={{ fontSize: '13px', color: '#64748B' }}>Target individual student-athletes for extra development reps</div>
+            <h2 id="practice-plan-title" style={{ margin: 0, color: '#0F172A' }}>
+              🏋️ Practice Plan
+            </h2>
+            <div style={{ fontSize: '13px', color: '#64748B' }}>
+              Your assistants run position drills with {ASSISTANT_DRILLS_PER_WEEK} players every week. You set the focus.
+            </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>
+            ✕
+          </button>
         </div>
 
-        {drillResult && (
-          <div style={{ background: '#F0FDF4', border: '1px solid #86EFAC', color: '#166534', padding: '10px 14px', borderRadius: '6px', margin: '14px 0', fontSize: '13px' }}>
-            ✓ {drillResult.message}
-          </div>
+        <h4 style={sectionTitle}>Development focus</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
+          {DRILL_FOCUS_OPTIONS.map((o) => (
+            <button key={o.id} onClick={() => setDrillFocus(o.id)} style={choiceBtn(drillFocus === o.id)}>
+              <div style={{ fontWeight: 'bold' }}>{o.label}</div>
+              <div style={{ fontSize: '11px', opacity: 0.85 }}>{o.help}</div>
+            </button>
+          ))}
+        </div>
+
+        <h4 style={sectionTitle}>Practice intensity</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
+          {INTENSITY.map((o) => (
+            <button key={o.id} onClick={() => setPracticeIntensity(o.id)} style={choiceBtn(practiceIntensity === o.id)}>
+              <div style={{ fontWeight: 'bold' }}>{o.label}</div>
+              <div style={{ fontSize: '11px', opacity: 0.85 }}>{o.help}</div>
+            </button>
+          ))}
+        </div>
+
+        <h4 style={sectionTitle}>Last week&apos;s drill report</h4>
+        {lastDrillReport.length > 0 ? (
+          <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#334155' }}>
+            {lastDrillReport.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        ) : (
+          <div style={{ fontSize: '13px', color: '#64748B' }}>No drills yet. Your assistants report after the week advances.</div>
         )}
 
-        {/* Athlete Selection Dropdown */}
-        <div style={{ margin: '14px 0' }}>
-          <label style={{ display: 'block', fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>Select Student-Athlete:</label>
-          <select
-            value={selectedPlayerId}
-            onChange={(e) => {
-              setSelectedPlayerId(e.target.value);
-              setDrillResult(null);
-            }}
-            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}
-          >
-            {roster.map((p) => (
-              <option key={p.id} value={p.id}>
-                #{p.position} {p.firstName} {p.lastName} (OVR: {p.overallRating}, {p.classYear})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Available Drills Grid */}
-        <h4 style={{ margin: '14px 0 8px 0', color: '#334155' }}>Select Training Circuit:</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-          <button onClick={() => handleRunDrill('QB_FILM_AND_READS')} style={drillBtn}>
-            🧠 QB Film & Reads (+IQ, +Accuracy)
-          </button>
-          <button onClick={() => handleRunDrill('RB_BALL_SECURITY')} style={drillBtn}>
-            🏈 RB Gauntlet (+Carrying, -Fumbles)
-          </button>
-          <button onClick={() => handleRunDrill('WR_CONTESTED_CATCH')} style={drillBtn}>
-            🎯 WR Red Zone Catches (+Catching)
-          </button>
-          <button onClick={() => handleRunDrill('TRENCH_BLOCK_SHEDDING')} style={drillBtn}>
-            💥 Trench Hand Combat (+Strength)
-          </button>
-          <button onClick={() => handleRunDrill('DB_BALL_HAWK_COVERAGE')} style={drillBtn}>
-            🛡️ DB Hip Turn & Coverage (+Coverage)
-          </button>
-          <button onClick={() => handleRunDrill('SPEED_AND_AGILITY_CONES')} style={drillBtn}>
-            ⚡ Cone & Ladder Drills (+Speed, +Agility)
-          </button>
-        </div>
-
-        <button onClick={onClose} style={closeBtnStyle}>Finished Training Session</button>
+        <button onClick={onClose} style={doneBtn}>
+          Done
+        </button>
       </div>
     </div>
   );
 };
 
-const drillBtn: React.CSSProperties = {
+const sectionTitle: React.CSSProperties = { margin: '16px 0 8px 0', color: '#334155' };
+
+const choiceBtn = (active: boolean): React.CSSProperties => ({
   textAlign: 'left',
   padding: '10px 12px',
-  background: '#F8FAFC',
-  border: '1px solid #CBD5E1',
   borderRadius: '6px',
-  fontSize: '12px',
-  fontWeight: 'bold',
-  color: '#1E293B',
-  cursor: 'pointer'
-};
+  border: active ? '2px solid #2563EB' : '1px solid #CBD5E1',
+  background: active ? '#EFF6FF' : '#fff',
+  color: '#0F172A',
+  cursor: 'pointer',
+  fontSize: '13px'
+});
 
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: 'rgba(15, 23, 42, 0.75)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1350
-};
-
-const modalStyle: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: '12px',
-  padding: '24px',
-  width: '90%',
-  maxWidth: '580px'
-};
-
-const closeBtnStyle: React.CSSProperties = {
+const doneBtn: React.CSSProperties = {
   width: '100%',
-  padding: '10px',
+  marginTop: '18px',
+  padding: '12px',
   background: '#2563EB',
   color: '#fff',
   border: 'none',
   borderRadius: '6px',
   fontWeight: 'bold',
-  marginTop: '16px',
   cursor: 'pointer'
+};
+
+const overlayStyle: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(15, 23, 42, 0.7)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1200,
+  padding: '16px'
+};
+
+const modalStyle: React.CSSProperties = {
+  background: '#fff',
+  borderRadius: '12px',
+  padding: '20px',
+  width: '100%',
+  maxWidth: '560px',
+  maxHeight: '90vh',
+  overflowY: 'auto'
 };

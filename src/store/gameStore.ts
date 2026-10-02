@@ -69,6 +69,7 @@ import {
 import { simulateMacroMatch } from '../sim/macroSim';
 import {
   evaluateAcademicReport,
+  isAcademicallyAtRisk,
   processPostGameSeasonWear,
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
@@ -82,6 +83,7 @@ import type { GameSaveRecord } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
 import { advanceTeamToNextSeason } from '../sim/offseasonEngine';
 import { moveInDepthChart, setDepthTier } from '../sim/depthChart';
+import { DrillFocus, runAssistantDrills } from '../sim/drillEngine';
 
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
 const INDUCEMENT_AP_COST = 20;
@@ -191,6 +193,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     userTeamId: state.userTeamId,
     coachingAP: state.coachingAP,
     practiceIntensity: state.practiceIntensity,
+    drillFocus: state.drillFocus,
     districtTeams: state.districtTeams,
     activeDilemma: state.activeDilemma,
     scoutingPool: state.scoutingPool,
@@ -252,6 +255,8 @@ interface GameStoreState {
   playerRankings: PlayerRankingsAndStatsState | null;
   coachingAP: number;
   practiceIntensity: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT';
+  drillFocus: DrillFocus; // assistants run position drills each week with this focus
+  lastDrillReport: string[]; // who the assistants worked with last week
 
   // Postseason & Offseason state
   playoffBracket: PlayoffBracketState | null;
@@ -278,6 +283,8 @@ interface GameStoreState {
   updatePlayerTier: (playerId: string, tier: DepthChartTier) => void;
   moveDepthChartPlayer: (playerId: string, direction: -1 | 1) => void; // up/down one string in his slot
   togglePlayerStudyHall: (playerId: string) => void;
+  setDrillFocus: (focus: DrillFocus) => void;
+  assignStudyHallToAtRisk: () => number; // study hall for every struggling student not already assigned; returns how many
   startPostseason: () => void;
   advancePlayoffGame: (userScore?: { homeScore: number; awayScore: number }) => void;
   transitionToNextYear: () => void;
@@ -307,6 +314,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   playerRankings: null,
   coachingAP: 100,
   practiceIntensity: 'STANDARD',
+  drillFocus: 'BALANCED',
+  lastDrillReport: [],
   playoffBracket: null,
   graduatingSeniors: [],
   isBanquetActive: false,
@@ -379,6 +388,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       userTeamId: userTeam.id,
       coachingAP: save.coachingAP,
       practiceIntensity: save.practiceIntensity,
+      drillFocus: save.drillFocus ?? 'BALANCED',
+      lastDrillReport: [],
       activeDilemma: save.activeDilemma,
       activeGame: null,
       isBanquetActive: false,
@@ -553,6 +564,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       processPostGameSeasonWear(p, p.depthChartTier === 1 ? 52 : 12, practiceIntensity);
       if (nextWeek % 3 === 0) evaluateAcademicReport(p);
     });
+    // Assistants run this week's position drills with the coach's focus
+    const lastDrillReport = runAssistantDrills(userTeam.roster, get().drillFocus);
 
     // 2. Recalculate National & State Team Polls
     const updatedPolls = generateNationalAndStatePolls(leagueTeams, polls, nextWeek);
@@ -580,6 +593,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       activeDilemma: dilemma,
       polls: updatedPolls,
       playerRankings: updatedPlayerRankings,
+      lastDrillReport,
       newsArticles: [...collegeNews, ...newArticles, ...get().newsArticles],
       districtTeams: [...districtTeams]
     };
@@ -850,6 +864,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const userTeam = leagueTeams.find((t) => t.id === userTeamId);
     if (!userTeam || !moveInDepthChart(userTeam.roster, playerId, direction)) return;
     set({ districtTeams: [...districtTeams], leagueTeams: [...leagueTeams] });
+  },
+
+  setDrillFocus: (focus) => set({ drillFocus: focus }),
+
+  assignStudyHallToAtRisk: () => {
+    const { districtTeams, userTeamId } = get();
+    const userTeam = districtTeams.find((t) => t.id === userTeamId);
+    if (!userTeam) return 0;
+    const atRisk = userTeam.roster.filter((p) => isAcademicallyAtRisk(p) && !p.academics.studyHallAssigned);
+    atRisk.forEach((p) => (p.academics.studyHallAssigned = true));
+    if (atRisk.length > 0) set({ districtTeams: [...districtTeams] });
+    return atRisk.length;
   },
 
   togglePlayerStudyHall: (playerId) => {

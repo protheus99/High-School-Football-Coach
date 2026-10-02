@@ -171,7 +171,7 @@ export const App: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
       {showSaveLoadModal && <SaveLoadManagerModal onClose={() => setShowSaveLoadModal(false)} />}
       {showDrillsModal && userTeam && (
-        <PlayerDrillsModal roster={userTeam.roster} onClose={() => setShowDrillsModal(false)} />
+        <PlayerDrillsModal onClose={() => setShowDrillsModal(false)} />
       )}
       {showTrophyModal && userTeam && (
         <HallOfFameTrophyModal
@@ -202,11 +202,11 @@ export const App: React.FC = () => {
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
             onClick={() => setShowDrillsModal(true)}
-            aria-label="Drills"
-            title="Drills"
+            aria-label="Practice plan"
+            title="Practice plan"
             style={{ padding: '6px 12px', background: '#10B981', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
           >
-            🏋️ <span className="hide-sm">Drills</span>
+            🏋️ <span className="hide-sm">Practice</span>
           </button>
           <button
             onClick={() => setShowTrophyModal(true)}
@@ -247,7 +247,9 @@ export const App: React.FC = () => {
 
       {/* Main Viewport Container */}
       <div style={{ flex: 1, paddingBottom: '60px' }}>
-        {tab === 'DASHBOARD' && <DashboardView onLaunchGame={handleLaunchMatch} />}
+        {tab === 'DASHBOARD' && (
+          <DashboardView onLaunchGame={handleLaunchMatch} onNavigate={(t) => setTab(t)} onOpenPracticePlan={() => setShowDrillsModal(true)} />
+        )}
         {tab === 'ROSTER' && <RosterDepthChartView />}
         {tab === 'DISTRICT' && <DistrictStandingsView />}
         {tab === 'RANKINGS' && polls && <RankingsView polls={polls} userTeamId={userTeamId} />}

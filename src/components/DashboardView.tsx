@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { OffensiveScheme } from '../types/game';
 import { PreGameStrategyModal } from './PreGameStrategyModal';
+import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
 import { FilmStudyModal } from './FilmStudyModal';
 import { getSeasonPhase } from '../sim/scheduleEngine';
 import { getUserMatchup } from '../sim/userMatchup';
@@ -18,7 +19,11 @@ const TIER_COLORS: Record<string, string> = { GOOD: '#059669', COMPROMISE: '#256
 
 export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
 
-export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void }> = ({ onLaunchGame }) => {
+export const DashboardView: React.FC<{
+  onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
+  onNavigate: (tab: AgendaTab) => void;
+  onOpenPracticePlan: () => void;
+}> = ({ onLaunchGame, onNavigate, onOpenPracticePlan }) => {
   const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, activeDilemma, resolveDilemma, advanceWeek, sanctionLevel } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
@@ -122,6 +127,25 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
         </div>
       </div>
 
+      {/* This week's to-do list: quick decisions and links */}
+      <WeeklyAgenda
+        game={
+          game && opponent
+            ? {
+                opponentName: opponent.name,
+                isHome,
+                isPlayed,
+                result: isPlayed ? `${userScore! > opponentScore! ? 'Won' : 'Lost'} ${userScore}-${opponentScore} ${isHome ? 'vs' : 'at'} ${opponent.name}` : undefined
+              }
+            : null
+        }
+        onPlayGame={() => setShowPreGameModal(true)}
+        onAutoSim={advanceWeek}
+        onAdvanceWeek={handleAdvanceWeek}
+        onNavigate={onNavigate}
+        onOpenPracticePlan={onOpenPracticePlan}
+      />
+
       {/* Program Meters */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '24px' }}>
         <MeterCard label="Board Trust" val={userTeam.programMeters.schoolBoardTrust} color="#10B981" />
@@ -141,7 +165,7 @@ export const DashboardView: React.FC<{ onLaunchGame: (focus: DefensiveFocus, off
 
       {/* Active Dilemma Banner */}
       {activeDilemma && (
-        <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
+        <div id="weekly-dilemma" style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '8px', padding: '16px', marginBottom: '24px', scrollMarginTop: '12px' }}>
           <h3 style={{ margin: '0 0 6px 0', color: '#B45309' }}>⚠️ THURSDAY DILEMMA: {activeDilemma.title}</h3>
           <p style={{ margin: '0 0 14px 0', fontSize: '14px', color: '#4B5563' }}>{activeDilemma.scenario}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

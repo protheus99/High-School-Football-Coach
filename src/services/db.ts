@@ -1,5 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import type { Difficulty, LeagueStructure } from '../sim/league';
+import type { DrillFocus } from '../sim/drillEngine';
 import { SAVE_FORMAT_GZIP, canCompressSaves, compressText, decompressText } from './saveCodec';
 import type { PlayoffBracketState } from '../sim/playoffEngine';
 import { Team, NarrativeDilemma, FeederProspect, CompactBoxScore, ScheduledGame, DilemmaRecord } from '../types/game';
@@ -29,6 +30,7 @@ export interface GameSaveRecord {
   seasonSchedule?: ScheduledGame[];
   dilemmaLog?: DilemmaRecord[];
   difficulty?: Difficulty;
+  drillFocus?: DrillFocus;
 }
 
 /** Lightweight listing for the load screen (full saves are ~10 MB each). */

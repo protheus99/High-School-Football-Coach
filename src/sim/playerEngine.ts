@@ -90,6 +90,13 @@ export function processWeeklyInjuryHealing(player: Player): void {
 /**
  * Evaluates 3-week academic report cards for "No Pass, No Play" eligibility.
  */
+const AT_RISK_GPA = 2.3; // within reach of the 2.0 "No Pass, No Play" line
+
+/** Ineligible, or close enough to the line that study hall is worth it. */
+export function isAcademicallyAtRisk(player: Player): boolean {
+  return !player.academics.isEligible || player.academics.gpa < AT_RISK_GPA;
+}
+
 export function evaluateAcademicReport(player: Player): void {
   let gpaDelta = (Math.random() * 0.6 - 0.3);
   if (player.academics.studyHallAssigned) gpaDelta += 0.25;
