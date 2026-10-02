@@ -1,17 +1,6 @@
 import React, { useEffect } from 'react';
-import { luminance } from '../utils/color';
-import { PlayAlertData, PlayAlertKind } from '../sim/playAlerts';
-
-const LABELS: Record<PlayAlertKind, string> = {
-  FIRST_DOWN: 'FIRST DOWN!',
-  TOUCHDOWN: 'TOUCHDOWN!',
-  INTERCEPTION: 'INTERCEPTION!',
-  FUMBLE: 'FUMBLE!',
-  FIELD_GOAL: "IT'S GOOD!",
-  SAFETY: 'SAFETY!',
-  TURNOVER_ON_DOWNS: 'TURNOVER ON DOWNS!',
-  PUNT: 'PUNT'
-};
+import { readableOnWhite } from '../utils/color';
+import { PlayAlertData, PlayAlertKind, alertLabel, alertTone } from '../sim/playAlerts';
 
 /** How long each banner stays up (ms): big moments linger. */
 const DURATION: Record<PlayAlertKind, number> = {
@@ -20,6 +9,8 @@ const DURATION: Record<PlayAlertKind, number> = {
   INTERCEPTION: 2000,
   FUMBLE: 2000,
   FIELD_GOAL: 1800,
+  FG_MISSED: 1500,
+  FG_BLOCKED: 1700,
   SAFETY: 2000,
   TURNOVER_ON_DOWNS: 1800,
   PUNT: 1400
@@ -29,27 +20,32 @@ const DURATION: Record<PlayAlertKind, number> = {
  * A flashing banner for big moments, shown in the message strip under the field. It dismisses itself
  * and never covers the scoreboard or the play-calling buttons.
  */
-export const PlayAlert: React.FC<{ alert: PlayAlertData; onDone: () => void }> = ({ alert, onDone }) => {
+export const PlayAlert: React.FC<{ alert: PlayAlertData; userTeamId?: string; onDone: () => void }> = ({ alert, userTeamId, onDone }) => {
   useEffect(() => {
     const timer = setTimeout(onDone, DURATION[alert.kind]);
     return () => clearTimeout(timer);
   }, [alert, onDone]);
 
-  const color = alert.team.primaryColor || '#0F172A';
-  const text = (luminance(color) ?? 0) > 0.45 ? '#0F172A' : '#FFFFFF';
+  const tone = alertTone(alert, userTeamId);
   const big = alert.kind === 'TOUCHDOWN';
-  const small = alert.kind === 'PUNT'; // a routine change of possession: noticeable, not dramatic
+  // Routine changes of possession: noticeable, not dramatic ("<team> ball" says who takes over)
+  const small = alert.kind === 'PUNT' || alert.kind === 'FG_MISSED';
 
   return (
     <div
       key={alert.id}
       role="status"
       aria-live="assertive"
-      className={`play-alert${big ? ' play-alert-big' : ''}${small ? ' play-alert-small' : ''}`}
-      style={{ background: color, color: text, borderColor: alert.team.secondaryColor || '#FACC15' }}
+      data-alert-id={alert.id}
+      data-alert-kind={alert.kind}
+      data-alert-tone={tone}
+      className={`play-alert play-alert-${tone}${big ? ' play-alert-big' : ''}${small ? ' play-alert-small' : ''}`}
+      style={{ borderColor: alert.team.primaryColor || '#0F172A' }}
     >
-      <span className="play-alert-title">{LABELS[alert.kind]}</span>
-      <span className="play-alert-team">{small ? `${alert.team.name} ball` : alert.team.name}</span>
+      <span className="play-alert-title">{alertLabel(alert, tone)}</span>
+      <span className="play-alert-team" style={{ color: readableOnWhite(alert.team.primaryColor, alert.team.secondaryColor) }}>
+        {small ? `${alert.team.name} ball` : alert.team.name}
+      </span>
     </div>
   );
 };

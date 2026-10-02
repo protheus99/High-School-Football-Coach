@@ -21,7 +21,8 @@ class WorkerBridge {
       if (type === 'PLAY_RESOLVED' && this.onPlayResolvedCb) {
         this.onPlayResolvedCb(payload);
       } else if (type === 'LEVERAGE_MOMENT_PROMPT' && this.onLeveragePromptCb) {
-        this.onLeveragePromptCb(payload);
+        // The worker names the play that set up the decision "lastEvent"; expose it as `event` like a resolved play
+        this.onLeveragePromptCb({ ...payload, event: payload.event ?? payload.lastEvent });
       } else if (type === 'GAME_COMPLETED' && this.onGameOverCb) {
         this.onGameOverCb(payload);
       }

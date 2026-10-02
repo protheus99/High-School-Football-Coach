@@ -6,7 +6,7 @@ import { PostGameBoxScoreModal } from './PostGameBoxScoreModal';
 import { HalftimeSpeechModal } from './HalftimeSpeechModal';
 import { FieldVisualizer } from './FieldVisualizer';
 import { PlayAlert } from './PlayAlert';
-import { PlayAlertData, PreSnap, alertForPlay } from '../sim/playAlerts';
+import { PlayAlertData, PreSnap, alertsForPlay } from '../sim/playAlerts';
 import { readableOnWhite } from '../utils/color';
 import { PlayCallingPanel } from './PlayCallingPanel';
 
@@ -57,7 +57,9 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       return !open;
     });
   // Flashing banner for big moments; muted while fast-forwarding to the final
-  const [playAlert, setPlayAlert] = useState<PlayAlertData | null>(null);
+  // Banners queue up when one play has two moments (a field goal, then a fumbled kickoff); a new play replaces the queue
+  const [alertQueue, setAlertQueue] = useState<PlayAlertData[]>([]);
+  const playAlert = alertQueue[0] ?? null;
   const simmingToEndRef = useRef(false);
   // The game just before the current snap, so alerts can credit the right team
   const preSnapRef = useRef<PreSnap>({
@@ -67,47 +69,47 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     down: initialState.down,
     distance: initialState.distance
   });
-  const clearPlayAlert = useCallback(() => setPlayAlert(null), []);
+  const clearPlayAlert = useCallback(() => setAlertQueue((q) => q.slice(1)), []);
 
   useEffect(() => {
     simWorkerBridge.initialize();
     simWorkerBridge.initGame(initialState, userTeamId);
 
+    // Shared by both play callbacks: update the screen, queue banners, and open the halftime locker room
+    const afterSnap = (state: GameSimulationState, event?: PlayEvent) => {
+      setGameState({ ...state });
+      const alerts = event && !simmingToEndRef.current ? alertsForPlay(event, preSnapRef.current, state) : [];
+      if (alerts.length > 0) setAlertQueue(alerts);
+      preSnapRef.current = {
+        possessionTeamId: state.possessionTeamId,
+        homeScore: state.homeScore,
+        awayScore: state.awayScore,
+        down: state.down,
+        distance: state.distance
+      };
+      if (state.currentQuarter === 3 && !halftimeHandledRef.current) {
+        halftimeHandledRef.current = true;
+        setAutoPlay(false);
+        setShowHalftimeModal(true);
+      }
+    };
+
     simWorkerBridge.subscribe({
       onPlayResolved: ({ state, event }) => {
-        setGameState({ ...state });
         // A decision prompt only applies to the snap it was asked about (e.g. Next Snap was pressed instead)
         setLeveragePrompt(null);
-        const alert = event && !simmingToEndRef.current ? alertForPlay(event, preSnapRef.current, state) : null;
-        if (alert) setPlayAlert(alert);
-        preSnapRef.current = {
-          possessionTeamId: state.possessionTeamId,
-          homeScore: state.homeScore,
-          awayScore: state.awayScore,
-          down: state.down,
-          distance: state.distance
-        };
-
-        // Trigger Halftime Modal at start of Q3
-        if (state.currentQuarter === 3 && !halftimeHandledRef.current) {
-          halftimeHandledRef.current = true;
-          setAutoPlay(false);
-          setShowHalftimeModal(true);
-        }
-
-        if (event?.isScore && event.scoreType === 'TOUCHDOWN') {
-          soundFx.playTouchdownHorn();
-        } else if (event?.isTurnover) {
-          soundFx.playWhistle();
-        } else {
-          soundFx.playTackleThud();
-        }
+        afterSnap(state, event);
+        if (event?.isScore && event.scoreType === 'TOUCHDOWN') soundFx.playTouchdownHorn();
+        else if (event?.isTurnover) soundFx.playWhistle();
+        else soundFx.playTackleThud();
       },
-      onLeveragePrompt: ({ state, leverageType }) => {
-        setGameState({ ...state });
+      // The play that sets up a decision (your touchdown's try, a red-zone or 4th-down call) arrives here instead
+      onLeveragePrompt: ({ state, event, leverageType }) => {
+        afterSnap(state, event);
         setLeveragePrompt(leverageType || 'FOURTH_DOWN');
         setAutoPlay(false);
-        soundFx.playLeverageAlert();
+        if (event?.isScore && event.scoreType === 'TOUCHDOWN') soundFx.playTouchdownHorn();
+        else soundFx.playLeverageAlert();
       },
       onGameOver: ({ state }) => {
         setGameState({ ...state });
@@ -202,7 +204,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         possessionColor={currentPossTeam.primaryColor}
         caption={
           playAlert ? (
-            <PlayAlert alert={playAlert} onDone={clearPlayAlert} />
+            <PlayAlert alert={playAlert} userTeamId={userTeamId} onDone={clearPlayAlert} />
           ) : (
             <div className="play-latest" aria-live="polite">
               {gameState.eventLog[gameState.eventLog.length - 1]?.textCommentary ?? 'Kickoff! The game is under way.'}
@@ -323,7 +325,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
             <button
               onClick={() => {
                 simmingToEndRef.current = true;
-                setPlayAlert(null);
+                setAlertQueue([]);
                 simWorkerBridge.simToEnd();
               }}
               style={controlBtnStyle}

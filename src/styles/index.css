@@ -596,7 +596,30 @@ h3 {
   padding: 6px 10px;
   border-radius: 6px;
   border: 3px solid;
+  background: #fff;
+  --flash: #f1f5f9;
   animation: play-alert-pop 0.3s cubic-bezier(0.2, 1.4, 0.4, 1) both, play-alert-flash 0.45s ease-in-out 0.3s 3;
+}
+
+/* Good news for your team in green, bad news in red, routine moments in slate */
+.play-alert-good {
+  --flash: #dcfce7;
+}
+
+.play-alert-good .play-alert-title {
+  color: #15803d;
+}
+
+.play-alert-bad {
+  --flash: #fee2e2;
+}
+
+.play-alert-bad .play-alert-title {
+  color: #b91c1c;
+}
+
+.play-alert-neutral .play-alert-title {
+  color: #0f172a;
 }
 
 .play-alert-big {
@@ -618,7 +641,6 @@ h3 {
   font-weight: 900;
   letter-spacing: 1px;
   line-height: 1.05;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .play-alert-big .play-alert-title {
@@ -645,10 +667,10 @@ h3 {
 @keyframes play-alert-flash {
   0%,
   100% {
-    filter: brightness(1);
+    background-color: #fff;
   }
   50% {
-    filter: brightness(1.6);
+    background-color: var(--flash);
   }
 }
 

@@ -130,7 +130,8 @@ describe('Year-end decisions', () => {
     let cold = 0;
     let courted = 0;
     let uncourtedStars = 0;
-    for (let i = 0; i < 400; i++) {
+    // True ratio is about 1.7; 1,500 samples keep random dips below 1.4 practically impossible
+    for (let i = 0; i < 1500; i++) {
       const base = { ...createProspect('FEEDER_MIDDLE_SCHOOL', team), interestScore: 25, isTransferRisk: false };
       let warm = base;
       for (let v = 0; v < 4; v++) warm = visitProspect(warm);

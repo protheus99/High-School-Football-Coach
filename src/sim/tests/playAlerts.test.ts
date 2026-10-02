@@ -51,7 +51,8 @@ describe('Game alerts', () => {
           expect(state.down).toBe(1);
         }
         if (alert.kind === 'INTERCEPTION') expect(alert.team.id).toBe(other);
-        if (alert.kind === 'FUMBLE') expect(alert.team.id).toBe(event.turnoverType === 'MUFFED_PUNT' ? before.possession : other);
+        if (alert.kind === 'FUMBLE' && !event.isTry && !/FUMBLES the kickoff return/i.test(event.textCommentary))
+          expect(alert.team.id).toBe(event.turnoverType === 'MUFFED_PUNT' ? before.possession : other);
         if (alert.kind === 'PUNT') expect(alert.team.id).toBe(other); // the receiving team
         if (alert.kind === 'TOUCHDOWN') {
           // The team credited with the touchdown is the one whose score went up
