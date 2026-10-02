@@ -6,7 +6,7 @@ import { DepthChartBoard } from './DepthChartBoard';
 import { DataList } from './ui/DataList';
 
 export const RosterDepthChartView: React.FC = () => {
-  const { districtTeams, userTeamId, updatePlayerTier, togglePlayerStudyHall, moveDepthChartPlayer } = useGameStore();
+  const { districtTeams, userTeamId, updatePlayerTier, moveDepthChartPlayer } = useGameStore();
   const [view, setView] = useState<'CHART' | 'ROSTER'>('CHART');
   const [filter, setFilter] = useState<'ALL' | 'OFF' | 'DEF'>('ALL');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -32,10 +32,6 @@ export const RosterDepthChartView: React.FC = () => {
           player={selectedPlayer}
           onUpdateTier={(id, tier) => {
             updatePlayerTier(id, tier);
-            setSelectedPlayer(null);
-          }}
-          onToggleStudyHall={(id) => {
-            togglePlayerStudyHall(id);
             setSelectedPlayer(null);
           }}
           onClose={() => setSelectedPlayer(null)}

@@ -185,8 +185,7 @@ export function generateProceduralPlayer(
     academics: {
       gpa: Number((Math.random() * 1.8 + 2.2).toFixed(2)),
       isEligible: true,
-      consecutiveFailingWeeks: 0,
-      studyHallAssigned: false
+      consecutiveFailingWeeks: 0
     },
     stats: {
       gamesPlayed: 0,

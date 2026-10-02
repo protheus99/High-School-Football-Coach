@@ -41,7 +41,6 @@ export function advanceTeamToNextSeason(
     p.stats = createEmptyPlayerStats();
     p.academics.isEligible = true;
     p.academics.consecutiveFailingWeeks = 0;
-    p.academics.studyHallAssigned = false;
   });
 
   const freshmen: Player[] = [];

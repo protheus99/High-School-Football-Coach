@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { ASSISTANT_DRILLS_PER_WEEK, assistantDrillTargets, executePositionDrill, runAssistantDrills, DRILL_FOR_POSITION } from '../drillEngine';
-import { isAcademicallyAtRisk } from '../playerEngine';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
 import { useGameStore } from '../../store/gameStore';
@@ -37,20 +36,11 @@ describe('Assistant-run drills', () => {
     expect(runAssistantDrills(team.roster, 'BALANCED')).toHaveLength(ASSISTANT_DRILLS_PER_WEEK);
   });
 
-  it('runs every week through the store with the chosen focus, and study hall can be assigned in one tap', () => {
+  it('runs every week through the store with the chosen focus', () => {
     const store = useGameStore;
     store.getState().newGame('MEDIUM');
     store.getState().setDrillFocus('YOUNG_PLAYERS');
     store.getState().advanceWeek();
     expect(store.getState().lastDrillReport.length).toBe(ASSISTANT_DRILLS_PER_WEEK);
-
-    const team = store.getState().leagueTeams.find((t) => t.id === store.getState().userTeamId)!;
-    team.roster.slice(0, 3).forEach((p) => {
-      p.academics.gpa = 1.9;
-      p.academics.studyHallAssigned = false;
-    });
-    const assigned = store.getState().assignStudyHallToAtRisk();
-    expect(assigned).toBeGreaterThanOrEqual(3);
-    team.roster.filter(isAcademicallyAtRisk).forEach((p) => expect(p.academics.studyHallAssigned).toBe(true));
   }, 60000);
 });

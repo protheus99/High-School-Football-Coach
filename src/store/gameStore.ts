@@ -68,7 +68,6 @@ import {
 import { simulateMacroMatch } from '../sim/macroSim';
 import {
   evaluateAcademicReport,
-  isAcademicallyAtRisk,
   processPostGameSeasonWear,
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
@@ -295,9 +294,7 @@ interface GameStoreState {
   collegeRecruitAction: (playerId: string, action: CollegeAction) => CollegeActionResult; // promote a player to colleges
   updatePlayerTier: (playerId: string, tier: DepthChartTier) => void;
   moveDepthChartPlayer: (playerId: string, direction: -1 | 1) => void; // up/down one string in his slot
-  togglePlayerStudyHall: (playerId: string) => void;
   setDrillFocus: (focus: DrillFocus) => void;
-  assignStudyHallToAtRisk: () => number; // study hall for every struggling student not already assigned; returns how many
   startPostseason: () => void;
   advancePlayoffGame: (userScore?: { homeScore: number; awayScore: number }) => void;
   finishBanquet: () => void; // banquet done: on to the off-season week
@@ -907,25 +904,5 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   setDrillFocus: (focus) => set({ drillFocus: focus }),
 
-  assignStudyHallToAtRisk: () => {
-    const { districtTeams, userTeamId } = get();
-    const userTeam = districtTeams.find((t) => t.id === userTeamId);
-    if (!userTeam) return 0;
-    const atRisk = userTeam.roster.filter((p) => isAcademicallyAtRisk(p) && !p.academics.studyHallAssigned);
-    atRisk.forEach((p) => (p.academics.studyHallAssigned = true));
-    if (atRisk.length > 0) set({ districtTeams: [...districtTeams] });
-    return atRisk.length;
-  },
 
-  togglePlayerStudyHall: (playerId) => {
-    const { districtTeams, userTeamId } = get();
-    const userTeam = districtTeams.find((t) => t.id === userTeamId);
-    if (!userTeam) return;
-
-    const ply = userTeam.roster.find((p) => p.id === playerId);
-    if (ply) {
-      ply.academics.studyHallAssigned = !ply.academics.studyHallAssigned;
-      set({ districtTeams: [...districtTeams] });
-    }
-  }
 }));

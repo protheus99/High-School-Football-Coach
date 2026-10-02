@@ -46,9 +46,9 @@ describe('Weekly dilemma selection', () => {
 });
 
 describe('Dilemma library', () => {
-  it('has 50 distinct scenarios, each well-formed and playable', () => {
-    expect(TEMPLATES).toHaveLength(50);
-    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(50);
+  it('has 51 distinct scenarios, each well-formed and playable', () => {
+    expect(TEMPLATES).toHaveLength(51);
+    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(51);
 
     const built = new Set<string>();
     for (let attempt = 0; attempt < 6 && built.size < TEMPLATES.length; attempt++) {
@@ -151,5 +151,31 @@ describe('Whistleblower exposure', () => {
 
     expect(team().programMeters.complianceScore).toBe(Math.max(0, complianceBefore - 15));
     expect(useGameStore.getState().newsArticles.some((a) => a.headline.includes('Inquiry'))).toBe(true);
+  });
+});
+
+describe('Study hall through dilemmas', () => {
+  it('raises GPAs and restores eligibility at 2.0', () => {
+    const [team] = generateDistrictTeams();
+    const [a, b] = team.roster;
+    a.academics.gpa = 1.8;
+    a.academics.isEligible = false;
+    b.academics.gpa = 2.2;
+    executeDilemmaDecision(team, choice({ gpaChanges: [{ playerId: a.id, amount: 0.4 }, { playerId: b.id, amount: 0.4 }] }));
+    expect(a.academics.gpa).toBe(2.2);
+    expect(a.academics.isEligible).toBe(true);
+    expect(b.academics.gpa).toBe(2.6);
+  });
+
+  it('flags the roster when several players are close to failing, between report cards', () => {
+    const [team] = generateDistrictTeams();
+    const template = TEMPLATES.find((t) => t.id === 'TEAM_GRADES')!;
+    team.roster.forEach((p) => (p.academics.gpa = 3.0));
+    expect(template.appliesTo(team, 4)).toBeNull();
+    team.roster.slice(0, 3).forEach((p) => (p.academics.gpa = 2.1));
+    expect(template.appliesTo(team, 3)).toBeNull(); // report card week itself
+    expect(template.appliesTo(team, 4)).toBe(true);
+    const studyHall = template.build(team, 4).choices.find((c) => c.id === 'opt_study_hall')!;
+    expect(studyHall.impact.gpaChanges).toHaveLength(3);
   });
 });

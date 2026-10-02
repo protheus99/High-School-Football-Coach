@@ -4,7 +4,6 @@ import { collegeActionCost, feederEventCost, weeklyCpIncome } from '../sim/coach
 import { FEEDER_EVENTS, FeederEventType } from '../sim/feederEngine';
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
-import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { Player } from '../types/game';
 import { dilemmaChoiceCosts } from '../sim/dilemmaEngine';
 
@@ -64,7 +63,6 @@ export const WeeklyAgenda: React.FC<{
     feederEventsThisWeek,
     runFeederEvent,
     collegeRecruitAction,
-    assignStudyHallToAtRisk,
     drillFocus,
     setDrillFocus,
     lastDrillReport
@@ -138,28 +136,6 @@ export const WeeklyAgenda: React.FC<{
         .join(', ')}${unavailable.length > 4 ? '…' : ''}. The next man up plays unless you change the depth chart.`,
       tone: 'urgent',
       link: { label: 'Review depth chart', onClick: () => onNavigate('ROSTER') }
-    });
-  }
-
-  // 4. Grades
-  const atRisk = team.roster.filter((p) => isAcademicallyAtRisk(p) && !p.academics.studyHallAssigned);
-  if (atRisk.length > 0) {
-    items.push({
-      id: 'grades',
-      icon: '📚',
-      title: `${atRisk.length} player${atRisk.length === 1 ? '' : 's'} at academic risk`,
-      detail: atRisk
-        .slice(0, 4)
-        .map((p) => `${shortName(p)} (${p.academics.gpa.toFixed(1)})`)
-        .join(', '),
-      tone: 'todo',
-      actions: [
-        {
-          label: `Assign study hall (${atRisk.length})`,
-          primary: true,
-          onClick: () => setFlash(`Study hall assigned to ${assignStudyHallToAtRisk()} players.`)
-        }
-      ]
     });
   }
 

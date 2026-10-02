@@ -5,13 +5,12 @@ import { Sheet } from './ui/Sheet';
 interface DepthChartEditorProps {
   player: Player;
   onUpdateTier: (playerId: string, tier: DepthChartTier) => void;
-  onToggleStudyHall: (playerId: string) => void;
   onClose: () => void;
 }
 
 const TIER_LABELS: Record<DepthChartTier, string> = { 1: '1st String', 2: '2nd String', 3: '3rd String' };
 
-export const DepthChartEditorModal: React.FC<DepthChartEditorProps> = ({ player, onUpdateTier, onToggleStudyHall, onClose }) => (
+export const DepthChartEditorModal: React.FC<DepthChartEditorProps> = ({ player, onUpdateTier, onClose }) => (
   <Sheet
     title={`${player.firstName} ${player.lastName}`}
     subtitle={`${player.position} · ${player.classYear} · ${player.overallRating} OVR · Potential ${player.potential}`}
@@ -55,13 +54,5 @@ export const DepthChartEditorModal: React.FC<DepthChartEditorProps> = ({ player,
       ))}
     </div>
 
-    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: '14px', minHeight: '44px' }}>
-      <input type="checkbox" checked={player.academics.studyHallAssigned} onChange={() => onToggleStudyHall(player.id)} style={{ width: '22px', height: '22px' }} />
-      <span>
-        <strong>Mandatory study hall</strong>
-        <br />
-        <span className="ui-muted">Helps his GPA recover; slightly slower practice growth.</span>
-      </span>
-    </label>
   </Sheet>
 );

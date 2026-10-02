@@ -92,14 +92,13 @@ export function processWeeklyInjuryHealing(player: Player): void {
  */
 const AT_RISK_GPA = 2.3; // within reach of the 2.0 "No Pass, No Play" line
 
-/** Ineligible, or close enough to the line that study hall is worth it. */
+/** Ineligible, or close enough to the 2.0 line to be in danger. */
 export function isAcademicallyAtRisk(player: Player): boolean {
   return !player.academics.isEligible || player.academics.gpa < AT_RISK_GPA;
 }
 
 export function evaluateAcademicReport(player: Player): void {
   let gpaDelta = (Math.random() * 0.6 - 0.3);
-  if (player.academics.studyHallAssigned) gpaDelta += 0.25;
   if (player.attributes.footballIQ > 75) gpaDelta += 0.1;
 
   player.academics.gpa = clamp(Number((player.academics.gpa + gpaDelta).toFixed(2)), 1.2, 4.0);

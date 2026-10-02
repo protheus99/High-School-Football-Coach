@@ -73,7 +73,6 @@ export interface PlayerAcademics {
   gpa: number;
   isEligible: boolean;
   consecutiveFailingWeeks: number;
-  studyHallAssigned: boolean;
 }
 
 export interface PlayerStats {
@@ -344,6 +343,7 @@ export interface DilemmaChoice {
     addTransfer?: { position: Position; overallRating: number; name: string };
     injuryRisk?: { chance: number; weeks: number }; // a random first-string player may get hurt
     removePlayerId?: string; // the player leaves the program (transfers out, quits)
+    gpaChanges?: { playerId: string; amount: number }[]; // tutoring / study hall (eligibility re-checked at 2.0)
   };
 }
 

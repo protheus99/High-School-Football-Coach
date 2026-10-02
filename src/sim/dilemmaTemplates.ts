@@ -1,9 +1,10 @@
 import { NarrativeDilemma, Team, DilemmaChoice, Player, Position } from '../types/game';
+import { isAcademicallyAtRisk } from './playerEngine';
 import { randomPlayerName } from '../generators/names';
 import { randomInt } from './math/variance';
 
 // ---------------------------------------------------------------------------
-// The weekly dilemma library (design spec 12-13): 50 scenarios with Good / Compromise / Risky /
+// The weekly dilemma library (design spec 12-13): 51 scenarios with Good / Compromise / Risky /
 // Corrupt choices. Each template decides when it can occur (week, roster, program meters) and
 // which player it involves.
 // ---------------------------------------------------------------------------
@@ -56,14 +57,36 @@ export const TEMPLATES: DilemmaTemplate[] = [
       choices: [
         { id: 'opt_good', label: 'Enforce "No Pass, No Play" (Bench Him)', description: 'Uphold school integrity. He sits until his grades recover.', tier: 'GOOD',
           impact: impact(10, -15, 12, 10, { playerAvailabilityOverride: { playerId: player!.id, isEligible: false } }) },
-        { id: 'opt_compromise', label: 'Assign Emergency Study Hall', description: 'Mandate weekend tutoring; he plays but the booster club grumbles about the precedent.', tier: 'COMPROMISE',
-          impact: impact(0, -5, 0, 0) },
+        { id: 'opt_compromise', label: 'Assign Emergency Study Hall', description: 'Daily tutoring after school should pull his grade up. He misses practice this week and the booster club grumbles about the precedent.', tier: 'COMPROMISE',
+          impact: impact(0, -5, 0, 0, { gpaChanges: [{ playerId: player!.id, amount: 0.5 }], sidelinePlayer: { playerId: player!.id, weeks: 1 } }) },
         { id: 'opt_risky', label: 'Ask the Counselor to Delay the Grade Report', description: 'Buys a week of eligibility, but paperwork leaves a trail.', tier: 'RISKY',
           impact: impact(-8, 5, -5, -10, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true } }) },
         { id: 'opt_corrupt', label: 'Direct the Teacher to Supply "Extra Credit"', description: 'Falsify passing grades to guarantee his presence on Friday.', tier: 'CORRUPT',
           impact: impact(-18, 12, -15, -25, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true } }) }
       ]
     })
+  },
+  {
+    id: 'TEAM_GRADES',
+    // Between report cards, when several players are close to the "No Pass, No Play" line
+    appliesTo: (team, week) => when(week % 3 === 1 && week > 1 && team.roster.filter(isAcademicallyAtRisk).length >= 3),
+    build: (team) => {
+      const atRisk = team.roster.filter(isAcademicallyAtRisk).sort((a, b) => b.overallRating - a.overallRating);
+      const shown = atRisk.slice(0, 3).map(name).join(', ');
+      const boost = (amount: number) => atRisk.map((p) => ({ playerId: p.id, amount }));
+      return {
+        title: 'Grades Slipping Across the Roster',
+        scenario: `The academic coordinator flagged ${atRisk.length} players close to failing before the next report card, including ${shown}. Anyone under 2.0 sits.`,
+        choices: [
+          { id: 'opt_study_hall', label: 'Mandatory Team Study Hall', description: 'Every flagged player studies before practice. Grades come up; practices run short all week.', tier: 'GOOD',
+            impact: impact(6, -4, 4, 2, { gpaChanges: boost(0.4) }) },
+          { id: 'opt_tutors', label: 'Have Boosters Pay for Private Tutors', description: 'Fast results. Booster-funded academic help for athletes is a gray area with the state association.', tier: 'RISKY',
+            impact: impact(-4, 6, 0, -12, { gpaChanges: boost(0.5) }) },
+          { id: 'opt_their_job', label: 'Grades Are Their Responsibility', description: 'No change to practice. Whoever fails the next report card sits.', tier: 'COMPROMISE',
+            impact: impact(0, 0, -3, 0) }
+        ]
+      };
+    }
   },
   {
     id: 'PLAGIARISM',

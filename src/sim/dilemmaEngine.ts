@@ -5,7 +5,7 @@ import { TEMPLATES, pick, starters } from './dilemmaTemplates';
 
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices (library in dilemmaTemplates.ts)
 const DILEMMA_CHANCE = 0.6; // not every week brings a crisis
-export const DILEMMA_COOLDOWN_WEEKS = 21; // with 50 scenarios, none repeats within a season
+export const DILEMMA_COOLDOWN_WEEKS = 21; // with 51 scenarios, none repeats within a season
 export const EXPOSURE_CHANCE: Record<DilemmaChoice['tier'], number> = { GOOD: 0, COMPROMISE: 0, RISKY: 0.15, CORRUPT: 0.3 };
 
 /**
@@ -70,13 +70,21 @@ export function executeDilemmaDecision(userTeam: Team, choice: DilemmaChoice): v
   meters.lockerRoomDiscipline = clampMeter(meters.lockerRoomDiscipline + choice.impact.lockerRoomDisciplineDelta);
   meters.complianceScore = clampMeter(meters.complianceScore + choice.impact.complianceScoreDelta);
 
-  const { playerAvailabilityOverride, sidelinePlayer, promoteToStarterPlayerId, addTransfer, injuryRisk, removePlayerId } = choice.impact;
+  const { playerAvailabilityOverride, sidelinePlayer, promoteToStarterPlayerId, addTransfer, injuryRisk, removePlayerId, gpaChanges } = choice.impact;
   const findPlayer = (id: string) => userTeam.roster.find((p) => p.id === id);
 
   if (playerAvailabilityOverride) {
     const ply = findPlayer(playerAvailabilityOverride.playerId);
     if (ply) ply.academics.isEligible = playerAvailabilityOverride.isEligible;
   }
+
+  // Study hall and tutoring raise grades; 2.0 is the "No Pass, No Play" line
+  gpaChanges?.forEach(({ playerId, amount }) => {
+    const ply = findPlayer(playerId);
+    if (!ply) return;
+    ply.academics.gpa = Math.min(4, Math.max(1.2, Number((ply.academics.gpa + amount).toFixed(2))));
+    ply.academics.isEligible = ply.academics.gpa >= 2.0;
+  });
 
   if (sidelinePlayer) {
     const ply = findPlayer(sidelinePlayer.playerId);
