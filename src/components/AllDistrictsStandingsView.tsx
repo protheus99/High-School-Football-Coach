@@ -4,7 +4,7 @@ import { calculateDistrictStandings } from '../sim/districtEngine';
 import { leagueRegionTeams } from '../sim/league';
 
 /** Standings for every district in the league, grouped by region. */
-export const AllDistrictsStandingsView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackButton?: boolean }> = ({ onBack, hideBackButton }) => {
   const { league, leagueTeams, userTeamId } = useGameStore();
   const [regionIndex, setRegionIndex] = useState<number | 'ALL'>('ALL');
   const [search, setSearch] = useState('');
@@ -38,9 +38,11 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void }> = ({ on
 
   return (
     <div className="ui-screen">
-      <button onClick={onBack} className="ui-btn" style={{ marginBottom: '10px' }}>
-        ← My district
-      </button>
+      {!hideBackButton && (
+        <button onClick={onBack} className="ui-btn" style={{ marginBottom: '10px' }}>
+          ← My district
+        </button>
+      )}
       <h2 style={{ margin: '0 0 4px 0' }}>All District Standings</h2>
       <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
         {league.name}. Top 4 in each district make the playoffs.

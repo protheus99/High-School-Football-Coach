@@ -2,13 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useGameStore } from './store/gameStore';
 import { DashboardView, DefensiveFocus } from './components/DashboardView';
 import { getUserMatchup } from './sim/userMatchup';
-import { RosterDepthChartView } from './components/RosterDepthChartView';
-import { DistrictStandingsView } from './components/DistrictStandingsView';
 import { FeedersScoutingView } from './components/FeedersScoutingView';
-import { CollegeRecruitingView } from './components/CollegeRecruitingView';
-import { CoachesOfficeView } from './components/CoachesOfficeView';
 import { NewsMediaView } from './components/NewsMediaView';
-import { RankingsView } from './components/RankingsView';
+import { TeamView, TeamSection } from './components/TeamView';
+import { RankingsHub, RankingsSection } from './components/RankingsHub';
 import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { LiveMatchScreen } from './components/LiveMatchScreen';
@@ -18,17 +15,28 @@ import { StatePlayoffBracketModal } from './components/StatePlayoffBracketModal'
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
 import { AllStateAwardsModal } from './components/AllStateAwardsModal';
 import { HallOfFameTrophyModal } from './components/HallOfFameTrophyModal';
-import { PlayerDrillsModal } from './components/PlayerDrillsModal';
 import { calculateSeasonAwards, SeasonAwardsRecord } from './sim/awardsEngine';
 import { GameSimulationState, OffensiveScheme, Player } from './types/game';
 
+type AppTab = 'DASHBOARD' | 'TEAM' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS';
+
+/** Bottom tab bar (News lives in the top bar). */
+const NAV_TABS: { id: AppTab; icon: string; label: string }[] = [
+  { id: 'DASHBOARD', icon: '📊', label: 'Dashboard' },
+  { id: 'TEAM', icon: '🧢', label: 'Team' },
+  { id: 'RANKINGS', icon: '🏆', label: 'Rankings' },
+  { id: 'LEADERS', icon: '🌟', label: 'Leaders' },
+  { id: 'FEEDERS', icon: '🔍', label: 'Feeders' }
+];
+
 export const App: React.FC = () => {
-  const [tab, setTab] = useState<'DASHBOARD' | 'ROSTER' | 'DISTRICT' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'COLLEGE' | 'NEWS' | 'OFFICE'>('DASHBOARD');
+  const [tab, setTab] = useState<AppTab>('DASHBOARD');
+  const [teamSection, setTeamSection] = useState<TeamSection>('ROSTER');
+  const [rankingsSection, setRankingsSection] = useState<RankingsSection>('HOME');
   const [activeMatch, setActiveMatch] = useState<GameSimulationState | null>(null);
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [showBracketModal, setShowBracketModal] = useState(false);
   const [showTrophyModal, setShowTrophyModal] = useState(false);
-  const [showDrillsModal, setShowDrillsModal] = useState(false);
   const [selectedPlayerDetail, setSelectedPlayerDetail] = useState<Player | null>(null);
   const [awardsRecord, setAwardsRecord] = useState<SeasonAwardsRecord | null>(null);
   const [awardsShownForYear, setAwardsShownForYear] = useState<number | null>(null);
@@ -43,7 +51,6 @@ export const App: React.FC = () => {
     currentWeek,
     currentYear,
     newsArticles,
-    polls,
     playerRankings,
     playoffBracket,
     isBanquetActive,
@@ -170,9 +177,6 @@ export const App: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
       {showSaveLoadModal && <SaveLoadManagerModal onClose={() => setShowSaveLoadModal(false)} />}
-      {showDrillsModal && userTeam && (
-        <PlayerDrillsModal onClose={() => setShowDrillsModal(false)} />
-      )}
       {showTrophyModal && userTeam && (
         <HallOfFameTrophyModal
           trophies={[{ year: currentYear - 1, type: 'DISTRICT_TITLE', name: 'District 26-6A Trophy' }]}
@@ -192,122 +196,89 @@ export const App: React.FC = () => {
 
       {/* Top Navigation Bar */}
       <div className="app-topbar">
-        <div>
-          <span className="app-title">
-            🏈 <span className="hide-sm">HIGH SCHOOL FOOTBALL HEAD COACH</span>
-            <span className="show-sm">HS Football Coach</span>
-          </span>
-          <span style={{ marginLeft: '12px', fontSize: '13px', color: '#94A3B8' }}>{currentYear} Season</span>
+        <div style={{ fontSize: '14px', color: '#CBD5E1', fontWeight: 'bold' }}>
+          {currentYear} Season · Week {currentWeek}
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setShowDrillsModal(true)}
-            aria-label="Practice plan"
-            title="Practice plan"
-            style={{ padding: '6px 12px', background: '#10B981', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
-          >
-            🏋️ <span className="hide-sm">Practice</span>
+          <button onClick={() => setTab('NEWS')} aria-label="News" title="News" style={topBtn(tab === 'NEWS' ? '#2563EB' : '#334155')}>
+            📰 <span className="hide-sm">News</span>
           </button>
-          <button
-            onClick={() => setShowTrophyModal(true)}
-            aria-label="Trophies"
-            title="Trophies"
-            style={{ padding: '6px 12px', background: '#D97706', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
-          >
+          <button onClick={() => setShowTrophyModal(true)} aria-label="Trophies" title="Trophies" style={topBtn('#D97706')}>
             🏆 <span className="hide-sm">Trophies</span>
           </button>
           {playoffBracket && (
-            <button
-              onClick={() => setShowBracketModal(true)}
-              aria-label="Bracket"
-              title="Bracket"
-              style={{ padding: '6px 12px', background: '#F59E0B', color: '#000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
-            >
-              🏆 <span className="hide-sm">Bracket</span>
+            <button onClick={() => setShowBracketModal(true)} aria-label="Bracket" title="Bracket" style={{ ...topBtn('#F59E0B'), color: '#000' }}>
+              🗓️ <span className="hide-sm">Bracket</span>
             </button>
           )}
-          <button
-            onClick={() => setShowSaveLoadModal(true)}
-            aria-label="Save / Load"
-            title="Save / Load"
-            style={{ padding: '6px 12px', background: '#334155', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
-          >
+          <button onClick={() => setShowSaveLoadModal(true)} aria-label="Save / Load" title="Save / Load" style={topBtn('#334155')}>
             ⚙️ <span className="hide-sm">Save / Load</span>
           </button>
-          <button
-            onClick={() => setShowMenu(true)}
-            aria-label="Main Menu"
-            title="Main Menu"
-            style={{ padding: '6px 12px', background: '#1E293B', color: '#fff', border: '1px solid #475569', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
-          >
-            🏠 <span className="hide-sm">Main Menu</span>
+          <button onClick={() => setShowMenu(true)} aria-label="Main Menu" title="Main Menu" style={{ ...topBtn('#1E293B'), border: '1px solid #475569' }}>
+            🏠 <span className="hide-sm">Menu</span>
           </button>
         </div>
       </div>
 
       {/* Main Viewport Container */}
-      <div style={{ flex: 1, paddingBottom: '60px' }}>
+      <div style={{ flex: 1, paddingBottom: '72px' }}>
         {tab === 'DASHBOARD' && (
-          <DashboardView onLaunchGame={handleLaunchMatch} onNavigate={(t) => setTab(t)} onOpenPracticePlan={() => setShowDrillsModal(true)} />
-        )}
-        {tab === 'ROSTER' && <RosterDepthChartView />}
-        {tab === 'DISTRICT' && <DistrictStandingsView />}
-        {tab === 'RANKINGS' && polls && <RankingsView polls={polls} userTeamId={userTeamId} />}
-        {tab === 'LEADERS' && playerRankings && (
-          <PlayerLeaderboardView
-            rankingsState={playerRankings}
-            userTeamId={userTeamId}
-            onSelectPlayer={(entry) => setSelectedPlayerDetail(entry.player)}
+          <DashboardView
+            onLaunchGame={handleLaunchMatch}
+            onNavigate={(target) => {
+              if (target === 'FEEDERS') setTab('FEEDERS');
+              else if (target === 'DISTRICT') {
+                setRankingsSection('DISTRICT');
+                setTab('RANKINGS');
+              } else {
+                setTeamSection(target);
+                setTab('TEAM');
+              }
+            }}
           />
         )}
+        {tab === 'TEAM' && <TeamView section={teamSection} onSection={setTeamSection} />}
+        {tab === 'RANKINGS' && <RankingsHub section={rankingsSection} onSection={setRankingsSection} />}
+        {tab === 'LEADERS' && playerRankings && (
+          <PlayerLeaderboardView rankingsState={playerRankings} userTeamId={userTeamId} onSelectPlayer={(entry) => setSelectedPlayerDetail(entry.player)} />
+        )}
         {tab === 'FEEDERS' && <FeedersScoutingView />}
-        {tab === 'COLLEGE' && <CollegeRecruitingView />}
         {tab === 'NEWS' && <NewsMediaView articles={newsArticles} />}
-        {tab === 'OFFICE' && <CoachesOfficeView />}
       </div>
 
-      {/* Persistent Bottom Tab Navigation */}
+      {/* Bottom Tab Bar */}
       <nav className="app-tabbar" aria-label="Main sections">
-        <button onClick={() => setTab('DASHBOARD')} style={navBtnStyle(tab === 'DASHBOARD')}>
-          <span className="tab-icon">📊</span>
-          <span>Dashboard</span>
-        </button>
-        <button onClick={() => setTab('ROSTER')} style={navBtnStyle(tab === 'ROSTER')}>
-          <span className="tab-icon">📋</span>
-          <span>Roster</span>
-        </button>
-        <button onClick={() => setTab('DISTRICT')} style={navBtnStyle(tab === 'DISTRICT')}>
-          <span className="tab-icon">🏆</span>
-          <span>District</span>
-        </button>
-        <button onClick={() => setTab('RANKINGS')} style={navBtnStyle(tab === 'RANKINGS')}>
-          <span className="tab-icon">🥇</span>
-          <span>Polls</span>
-        </button>
-        <button onClick={() => setTab('LEADERS')} style={navBtnStyle(tab === 'LEADERS')}>
-          <span className="tab-icon">🌟</span>
-          <span>Leaders</span>
-        </button>
-        <button onClick={() => setTab('FEEDERS')} style={navBtnStyle(tab === 'FEEDERS')}>
-          <span className="tab-icon">🔍</span>
-          <span>Feeders</span>
-        </button>
-        <button onClick={() => setTab('COLLEGE')} style={navBtnStyle(tab === 'COLLEGE')}>
-          <span className="tab-icon">🎓</span>
-          <span>College</span>
-        </button>
-        <button onClick={() => setTab('NEWS')} style={navBtnStyle(tab === 'NEWS')}>
-          <span className="tab-icon">📰</span>
-          <span>News</span>
-        </button>
-        <button onClick={() => setTab('OFFICE')} style={navBtnStyle(tab === 'OFFICE')}>
-          <span className="tab-icon">🏢</span>
-          <span>Office</span>
-        </button>
+        {NAV_TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => {
+              setTab(t.id);
+              if (t.id === 'RANKINGS') setRankingsSection('HOME');
+            }}
+            aria-current={tab === t.id ? 'page' : undefined}
+            style={navBtnStyle(tab === t.id)}
+          >
+            <span className="tab-icon">{t.icon}</span>
+            <span>{t.label}</span>
+          </button>
+        ))}
       </nav>
     </div>
   );
 };
+
+const topBtn = (background: string): React.CSSProperties => ({
+  minHeight: '40px',
+  minWidth: '40px',
+  padding: '6px 12px',
+  background,
+  color: '#fff',
+  border: 'none',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  fontSize: '13px',
+  fontWeight: 'bold'
+});
 
 const navBtnStyle = (active: boolean): React.CSSProperties => ({
   background: 'none',

@@ -7,7 +7,7 @@ import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { Player } from '../types/game';
 
 /** Screens the agenda can send the coach to. */
-export type AgendaTab = 'ROSTER' | 'FEEDERS' | 'COLLEGE' | 'DISTRICT';
+export type AgendaTab = 'ROSTER' | 'PRACTICE' | 'COLLEGE' | 'OFFICE' | 'FEEDERS' | 'DISTRICT';
 
 interface AgendaAction {
   label: string;
@@ -47,8 +47,7 @@ export const WeeklyAgenda: React.FC<{
   onAutoSim: () => void;
   onAdvanceWeek: () => void;
   onNavigate: (tab: AgendaTab) => void;
-  onOpenPracticePlan: () => void;
-}> = ({ game, onPlayGame, onAutoSim, onAdvanceWeek, onNavigate, onOpenPracticePlan }) => {
+}> = ({ game, onPlayGame, onAutoSim, onAdvanceWeek, onNavigate }) => {
   const {
     leagueTeams,
     userTeamId,
@@ -211,7 +210,7 @@ export const WeeklyAgenda: React.FC<{
         : 'Your assistants run position drills each week with this focus.',
     tone: 'info',
     actions: DRILL_FOCUS_OPTIONS.map((o) => ({ label: o.label, primary: o.id === drillFocus, onClick: () => setDrillFocus(o.id) })),
-    link: { label: 'Practice plan', onClick: onOpenPracticePlan }
+    link: { label: 'Practice plan', onClick: () => onNavigate('PRACTICE') }
   });
 
   return (

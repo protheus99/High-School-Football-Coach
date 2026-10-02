@@ -23,8 +23,7 @@ export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
 export const DashboardView: React.FC<{
   onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
   onNavigate: (tab: AgendaTab) => void;
-  onOpenPracticePlan: () => void;
-}> = ({ onLaunchGame, onNavigate, onOpenPracticePlan }) => {
+}> = ({ onLaunchGame, onNavigate }) => {
   const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, activeDilemma, resolveDilemma, advanceWeek, sanctionLevel } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
@@ -141,7 +140,6 @@ export const DashboardView: React.FC<{
         onAutoSim={advanceWeek}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}
-        onOpenPracticePlan={onOpenPracticePlan}
       />
 
       {/* Program Meters */}

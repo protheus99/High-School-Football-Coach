@@ -4,7 +4,7 @@ import { CoachRPGSkillTreeModal } from './CoachRPGSkillTreeModal';
 import { ScheduleView } from './ScheduleView';
 
 export const CoachesOfficeView: React.FC = () => {
-  const { districtTeams, userTeamId, practiceIntensity, setPracticeIntensity } = useGameStore();
+  const { districtTeams, userTeamId } = useGameStore();
   const [showSkillTree, setShowSkillTree] = useState(false);
   const [subTab, setSubTab] = useState<'STRATEGY' | 'SCHEDULE'>('STRATEGY');
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
@@ -32,29 +32,6 @@ export const CoachesOfficeView: React.FC = () => {
         <ScheduleView />
       ) : (
         <>
-          {/* Practice Plan Settings */}
-          <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 10px 0' }}>Weekly Practice Intensity</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
-              {(['WALKTHROUGH', 'STANDARD', 'CONTACT'] as const).map((mode) => (
-                <button
-                  key={mode}
-                  className={`ui-btn${practiceIntensity === mode ? ' ui-btn-primary' : ''}`}
-                  aria-pressed={practiceIntensity === mode}
-                  onClick={() => setPracticeIntensity(mode)}
-                  style={{ paddingLeft: '4px', paddingRight: '4px' }}
-                >
-                  {mode === 'WALKTHROUGH' ? 'Walkthrough' : mode === 'STANDARD' ? 'Standard' : 'Contact'}
-                </button>
-              ))}
-            </div>
-            <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '8px' }}>
-              {practiceIntensity === 'WALKTHROUGH' && 'Walkthrough: +15% Stamina Recovery, +3 Football IQ, 0% Injury Risk.'}
-              {practiceIntensity === 'STANDARD' && 'Standard: Balanced development reps, baseline fatigue.'}
-              {practiceIntensity === 'CONTACT' && 'Full Pads Contact: +15% Physical Progression, -10% Stamina, 3% Injury Risk.'}
-            </p>
-          </div>
-
           {/* Assistant Coaching Staff */}
           <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '16px' }}>
             <h3 style={{ margin: '0 0 12px 0' }}>Coaching Staff</h3>
