@@ -14,7 +14,7 @@ import { clamp, randomInt } from './math/variance';
 
 export const MIN_POOL_SIZE = 15;
 export const MAX_POOL_SIZE = 40;
-export const STAR_RECRUIT_MIN_PRESTIGE = 85;
+export const STAR_RECRUIT_MIN_PRESTIGE = 85; // older saves' pools still hold out-of-area stars
 export const MAX_VARSITY_ROSTER = 70; // newcomers beyond this play JV instead (base roster is 67)
 
 export const SOURCE_LABELS: Record<ProspectSource, string> = {
@@ -22,7 +22,7 @@ export const SOURCE_LABELS: Record<ProspectSource, string> = {
   SEVEN_ON_SEVEN: '7-on-7 Athletes',
   MOVE_IN: 'Move-Ins',
   STAR_RECRUIT: 'Out-of-Area Stars',
-  OUT_OF_DISTRICT: 'Out-of-District',
+  OUT_OF_DISTRICT: 'Zoned Elsewhere',
   TRYOUT: 'Tryout Walk-Ons'
 };
 
@@ -207,22 +207,59 @@ function createCompetedProspect(source: ProspectSource, team: Team, takenNames: 
 }
 
 /**
- * Next season's pool (15-40): bigger and richer for higher-prestige programs; stars only for top programs.
- * With a league context, rival programs attach to prospects and out-of-district players join the pool.
+ * The shared regional pool. Your own pipeline (15-40: district middle schoolers, 7-on-7 athletes, move-ins and
+ * walk-ons, bigger for higher-prestige programs) plus, with a league context, the prospects zoned to every
+ * other school in the region: 3-5 from each school in your district and 1-2 from each school elsewhere in the
+ * region. Every program in the region can recruit any of them; their own zoned school starts ahead.
  */
 export function generateFeederPool(team: Team, ctx?: RecruitingContext): FeederProspect[] {
   const counts: [ProspectSource, number][] = [
     ['FEEDER_MIDDLE_SCHOOL', 9 + Math.round(team.prestige / 10) + randomInt(-2, 2)],
     ['SEVEN_ON_SEVEN', randomInt(3, 6)],
     ['MOVE_IN', randomInt(1, 3)],
-    ['STAR_RECRUIT', team.prestige >= STAR_RECRUIT_MIN_PRESTIGE ? randomInt(1, 3) : 0],
-    ['TRYOUT', randomInt(2, 4)],
-    ['OUT_OF_DISTRICT', ctx ? randomInt(2, 4) : 0]
+    ['TRYOUT', randomInt(2, 4)]
   ];
   const names = new Set<string>();
   const pool = counts.flatMap(([source, n]) => Array.from({ length: n }, () => createCompetedProspect(source, team, names, ctx)));
   while (pool.length < MIN_POOL_SIZE) pool.push(createCompetedProspect('FEEDER_MIDDLE_SCHOOL', team, names, ctx));
-  return pool.slice(0, MAX_POOL_SIZE);
+  return [...pool.slice(0, MAX_POOL_SIZE), ...(ctx ? regionProspects(team, ctx, names) : [])];
+}
+
+/** Prospects zoned to the other schools in the user's region (the shared part of the pool). */
+function regionProspects(team: Team, ctx: RecruitingContext, names: Set<string>): FeederProspect[] {
+  const userDistrict = ctx.districtOf.get(ctx.userTeamId);
+  const userRegion = ctx.regionOf.get(ctx.userTeamId);
+  return [...ctx.teamsById.values()]
+    .filter((t) => t.id !== ctx.userTeamId && ctx.regionOf.get(t.id) === userRegion)
+    .flatMap((school) => {
+      const count = ctx.districtOf.get(school.id) === userDistrict ? randomInt(3, 5) : randomInt(1, 2);
+      return Array.from({ length: count }, () => assignSuitors(createProspect('OUT_OF_DISTRICT', team, names, school), ctx));
+    });
+}
+
+/** Prospects in the user's own pipeline: zoned to the user's school (or nobody's), or already interested. */
+export const inUserPipeline = (p: FeederProspect) => !p.homeTeamId || p.interestScore >= 40;
+
+const POTENTIAL_POINTS: Record<PotentialGrade, number> = { 'A+': 12, A: 9, B: 5, C: 2, D: 0 };
+/** The public prospect ranking (what recruiting services say about him), used for the Top 10 lists. */
+export const prospectRankScore = (p: FeederProspect) => p.trueOverall + POTENTIAL_POINTS[p.truePotential];
+
+/** Interest at or above this makes a verbal commitment; the highest committed school wins on signing day. */
+export const COMMIT_THRESHOLD = 80;
+const INDUCEMENT_INTEREST = 10; // a booster offer is worth this much interest on signing day
+
+/** Every school's interest in a prospect (the user's and each rival's), highest first. */
+export function schoolInterest(p: FeederProspect, userTeamId: string): { teamId: string; interest: number }[] {
+  return [{ teamId: userTeamId, interest: p.interestScore + (p.userInducement ? INDUCEMENT_INTEREST : 0) }, ...p.suitors.map((s) => ({ teamId: s.teamId, interest: s.effort + (s.inducement ? INDUCEMENT_INTEREST : 0) }))]
+    .map((e) => ({ ...e, interest: Math.min(100, e.interest) }))
+    .sort((a, b) => b.interest - a.interest);
+}
+
+/** Where the prospect is committed right now (80+ interest; ties at the top stay open until signing day). */
+export function currentCommitment(p: FeederProspect, userTeamId: string): { teamId: string; interest: number; tied: boolean } | null {
+  const [top, next] = schoolInterest(p, userTeamId);
+  if (!top || top.interest < COMMIT_THRESHOLD) return null;
+  return { ...top, tied: next !== undefined && next.interest === top.interest };
 }
 
 export function interestLabel(score: number): string {
@@ -257,7 +294,7 @@ export function runFeederEvent(
   team: Team,
   ctx?: RecruitingContext
 ): { pool: FeederProspect[]; discovered: FeederProspect[] } {
-  const room = () => MAX_POOL_SIZE - pool.length - discovered.length;
+  const room = () => MAX_POOL_SIZE - pool.filter((p) => !p.homeTeamId).length - discovered.length;
   const discovered: FeederProspect[] = [];
   const names = new Set(pool.map((p) => p.name));
   const discover = (source: ProspectSource, count: number, positions?: Position[]) => {
@@ -272,7 +309,7 @@ export function runFeederEvent(
 
   if (type === 'YOUTH_CLINIC') {
     pool = pool.map((p) =>
-      p.source === 'FEEDER_MIDDLE_SCHOOL'
+      p.source === 'FEEDER_MIDDLE_SCHOOL' && !p.homeTeamId
         ? { ...p, interestScore: clamp(p.interestScore + randomInt(4, 8), 0, 100), trueOverall: Math.min(99, p.trueOverall + 1) }
         : p
     );
@@ -281,15 +318,15 @@ export function runFeederEvent(
     pool = pool.map((p) => (p.source === 'SEVEN_ON_SEVEN' ? { ...p, interestScore: clamp(p.interestScore + randomInt(5, 10), 0, 100) } : p));
     discover('SEVEN_ON_SEVEN', randomInt(1, 2));
   } else if (type === 'FAMILY_NIGHT') {
-    warm((p) => p.source !== 'STAR_RECRUIT', 3, 6);
+    warm((p) => p.source !== 'STAR_RECRUIT' && inUserPipeline(p), 3, 6);
   } else if (type === 'COMBINE') {
-    const unscouted = pool.filter((p) => p.revealedPotential === 'UNKNOWN').slice(0, COMBINE_SCOUTS).map((p) => p.id);
+    const unscouted = pool.filter((p) => p.revealedPotential === 'UNKNOWN' && inUserPipeline(p)).slice(0, COMBINE_SCOUTS).map((p) => p.id);
     pool = pool.map((p) => (unscouted.includes(p.id) ? scoutProspect(p) : p));
   } else if (type === 'BIG_MAN_CAMP') {
-    warm((p) => LINE_POSITIONS.includes(p.projectedPosition), 6, 10);
+    warm((p) => LINE_POSITIONS.includes(p.projectedPosition) && inUserPipeline(p), 6, 10);
     discover('FEEDER_MIDDLE_SCHOOL', randomInt(1, 2), LINE_POSITIONS);
   } else if (type === 'SKILLS_ACADEMY') {
-    warm((p) => SKILL_POSITIONS.includes(p.projectedPosition), 6, 10);
+    warm((p) => SKILL_POSITIONS.includes(p.projectedPosition) && inUserPipeline(p), 6, 10);
     discover('FEEDER_MIDDLE_SCHOOL', randomInt(0, 1), ['QB', 'QB', ...SKILL_POSITIONS]);
   } else {
     discover('TRYOUT', randomInt(2, 4));
@@ -299,7 +336,7 @@ export function runFeederEvent(
 
 /** Families occasionally move into the district during the year. */
 export function maybeMoveInArrival(pool: FeederProspect[], team: Team, week: number, ctx?: RecruitingContext): FeederProspect | null {
-  if (week > LAST_REGULAR_SEASON_WEEK || pool.length >= MAX_POOL_SIZE || Math.random() > 0.12) return null;
+  if (week > LAST_REGULAR_SEASON_WEEK || pool.filter((p) => !p.homeTeamId).length >= MAX_POOL_SIZE || Math.random() > 0.12) return null;
   return createCompetedProspect('MOVE_IN', team, new Set(pool.map((p) => p.name)), ctx);
 }
 
@@ -429,6 +466,24 @@ export function resolveFeederClass(
       return { ...base, outcome: missedOutcome(p.source) };
     }
 
+    // Commitments decide first: the school with the highest interest at 80+ signs him (ties at the top are a coin flip)
+    const bids = schoolInterest(p, ctx.userTeamId).filter((b) => b.interest >= COMMIT_THRESHOLD);
+    if (bids.length > 0) {
+      const tied = bids.filter((b) => b.interest === bids[0].interest);
+      const winner = tied[randomInt(0, tied.length - 1)];
+      if (winner.teamId === ctx.userTeamId) {
+        const player = prospectToPlayer(p);
+        joined.push(player);
+        return { ...base, outcome: 'JOINED' as FeederOutcomeType, playerId: player.id, overall: p.trueOverall };
+      }
+      const school = ctx.teamsById.get(winner.teamId);
+      if (school) {
+        rivalSignings.push({ teamId: school.id, player: prospectToPlayer(p) });
+        return { ...base, outcome: 'OTHER_SCHOOL' as FeederOutcomeType, destinationTeamId: school.id, destinationName: school.name };
+      }
+    }
+
+    // Nobody committed him: he decides on fit (his zoned school, playing time, relationships)
     const choice = pickShare(choiceShares(p, ctx));
     if (choice.teamId === ctx.userTeamId) {
       if (Math.random() < playsFootballChance(p, team.prestige)) {

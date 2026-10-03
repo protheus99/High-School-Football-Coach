@@ -12,7 +12,8 @@ import {
   resolveFeederClass,
   runFeederEvent,
   scoutProspect,
-  visitProspect
+  visitProspect,
+  inUserPipeline
 } from '../feederEngine';
 import { STARTING_COACH_POINTS, weeklyCoachPoints } from '../coachPoints';
 import { FeederOutcome, Team } from '../../types/game';
@@ -27,7 +28,7 @@ const teamWithPrestige = (prestige: number): Team => {
 };
 
 describe('Feeder pool', () => {
-  it('holds 15-40 prospects from every source, with stars only for top programs', () => {
+  it('holds 15-40 prospects of your own from every source (the Top 10 lists replace out-of-area stars)', () => {
     for (const prestige of [45, 70, 84, 85, 99]) {
       for (let i = 0; i < 30; i++) {
         const pool = generateFeederPool(teamWithPrestige(prestige));
@@ -35,7 +36,8 @@ describe('Feeder pool', () => {
         expect(pool.length).toBeLessThanOrEqual(MAX_POOL_SIZE);
         const sources = new Set(pool.map((p) => p.source));
         ['FEEDER_MIDDLE_SCHOOL', 'SEVEN_ON_SEVEN', 'MOVE_IN', 'TRYOUT'].forEach((s) => expect(sources.has(s as never)).toBe(true));
-        expect(sources.has('STAR_RECRUIT')).toBe(prestige >= STAR_RECRUIT_MIN_PRESTIGE);
+        expect(sources.has('STAR_RECRUIT')).toBe(false);
+        expect(STAR_RECRUIT_MIN_PRESTIGE).toBeGreaterThan(0); // still used by older saves
       }
     }
   });
@@ -194,7 +196,9 @@ describe('Feeder pipeline through the store', () => {
     const finalPool = store.getState().scoutingPool;
     store.getState().advanceWeek(); // signing day closes pre season week 2
     const { lastFeederResults, scoutingPool } = store.getState();
-    expect(lastFeederResults).toHaveLength(finalPool.length);
+    // The pool is shared across the region; results cover the user's own pipeline
+    expect(lastFeederResults!.length).toBeGreaterThanOrEqual(finalPool.filter(inUserPipeline).length);
+    expect(lastFeederResults!.length).toBeLessThanOrEqual(finalPool.length);
     expect(scoutingPool.length).toBeGreaterThanOrEqual(MIN_POOL_SIZE);
     const team = store.getState().districtTeams.find((t) => t.id === store.getState().userTeamId)!;
     expect(team.roster.length).toBeLessThanOrEqual(MAX_VARSITY_ROSTER);

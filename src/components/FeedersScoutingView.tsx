@@ -10,7 +10,11 @@ import {
   MAX_POOL_SIZE,
   PROSPECT_ACTION_COSTS,
   SOURCE_LABELS,
+  COMMIT_THRESHOLD,
+  currentCommitment,
   interestLabel,
+  prospectRankScore,
+  schoolInterest,
   userJoinProbability
 } from '../sim/feederEngine';
 import { FACTOR_LABELS, RecruitingContext, buildRecruitingContext, choiceShares, topPriority } from '../sim/feederCompetition';
@@ -40,6 +44,7 @@ function outlook(chance: number): { label: string; color: string } {
 }
 
 export type FeederSection = 'STUDENTS' | 'PROGRAMS' | 'NEEDS';
+type PoolView = 'DISTRICT' | 'REGION' | 'TOP_DISTRICT' | 'TOP_REGION' | 'COMMITTED';
 
 const SECTIONS: { id: FeederSection; label: string }[] = [
   { id: 'STUDENTS', label: '🧑‍🎓 New Students' },
@@ -75,7 +80,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     feederClassYear
   } = useGameStore();
   const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
-  const [filter, setFilter] = useState<ProspectSource | 'ALL'>('ALL');
+  const [view, setView] = useState<PoolView>('DISTRICT');
   const [feedback, setFeedback] = useState<string | null>(null);
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   if (!userTeam) return null;
@@ -85,8 +90,29 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const eventsOpen = feederEventsOpen({ currentWeek, league });
   const needs = teamNeeds(userTeam, scoutingPool, seniorsStillHere(currentYear, feederClassYear, currentWeek));
   const topNeeds = priorityNeeds(needs).slice(0, 4);
-  const sources = Object.keys(SOURCE_LABELS) as ProspectSource[];
-  const shown = scoutingPool.filter((p) => filter === 'ALL' || p.source === filter);
+  // The pool is shared by every program in the region: views by district, region, the top 10s and commitments
+  const userDistrict = ctx?.districtOf.get(userTeamId);
+  const inDistrict = (p: FeederProspect) => !p.homeTeamId || ctx?.districtOf.get(p.homeTeamId) === userDistrict;
+  const ranked = (list: FeederProspect[]) => [...list].sort((a, b) => prospectRankScore(b) - prospectRankScore(a));
+  const districtPool = scoutingPool.filter(inDistrict);
+  const topDistrict = ranked(districtPool).slice(0, 10);
+  const topRegion = ranked(scoutingPool).slice(0, 10);
+  const committedToMe = scoutingPool.filter((p) => currentCommitment(p, userTeamId)?.teamId === userTeamId);
+  const views: { id: PoolView; label: string; list: FeederProspect[] }[] = [
+    { id: 'DISTRICT', label: 'District Players', list: ranked(districtPool) },
+    { id: 'REGION', label: 'Region Players', list: ranked(scoutingPool) },
+    { id: 'TOP_DISTRICT', label: 'Top 10 in District', list: topDistrict },
+    { id: 'TOP_REGION', label: 'Top 10 in Region', list: topRegion },
+    { id: 'COMMITTED', label: 'Committed to You', list: committedToMe }
+  ];
+  const shown = views.find((v) => v.id === view)!.list;
+  const rankLabel = (p: FeederProspect) => {
+    const r = topRegion.indexOf(p);
+    if (r >= 0) return `#${r + 1} in Region`;
+    const d = topDistrict.indexOf(p);
+    return d >= 0 ? `#${d + 1} in District` : undefined;
+  };
+  const schoolName = (id: string) => (id === userTeamId ? 'You' : (ctx?.teamsById.get(id)?.name ?? 'Rival'));
 
   const handleEvent = (type: FeederEventType) => {
     const discovered = runFeederEvent(type);
@@ -214,15 +240,18 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             </div>
           )}
 
-          {/* Source filter */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
-            <button onClick={() => setFilter('ALL')} style={tabStyle(filter === 'ALL')}>All ({scoutingPool.length})</button>
-            {sources.map((s) => (
-              <button key={s} onClick={() => setFilter(s)} style={tabStyle(filter === s)}>
-                {SOURCE_LABELS[s]} ({scoutingPool.filter((p) => p.source === s).length})
+          {/* Pool views */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
+            {views.map((v) => (
+              <button key={v.id} onClick={() => setView(v.id)} style={tabStyle(view === v.id)}>
+                {v.label} ({v.list.length})
               </button>
             ))}
           </div>
+          <p className="ui-muted" style={{ margin: '0 0 10px 0', fontSize: '12px' }}>
+            Every program in the region recruits this pool. At {COMMIT_THRESHOLD}+ interest a prospect commits; on signing day the school with the highest
+            interest signs him, and a tie at the top is a coin flip.
+          </p>
 
           {/* Prospects */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '10px' }}>
@@ -236,11 +265,17 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                 onVisit={() => visitFeederProspect(p.id)}
                 onPitch={() => pitchFeederStar(p.id)}
                 onInduce={() => offerFeederInducement(p.id)}
-            positionFilled={(needs.find((n) => n.position === p.projectedPosition)?.need ?? 1) === 0}
-            onRemove={() => {
-              removeFeederProspect(p.id);
-              setFeedback(`${p.name} was removed from your list.`);
-            }}
+                rank={rankLabel(p)}
+                schools={schoolInterest(p, userTeamId).slice(0, 3).map((e) => ({ name: schoolName(e.teamId), interest: e.interest, isYou: e.teamId === userTeamId }))}
+                commitment={(() => {
+                  const c = currentCommitment(p, userTeamId);
+                  return c ? { name: schoolName(c.teamId), interest: c.interest, isYou: c.teamId === userTeamId, tied: c.tied } : null;
+                })()}
+                positionFilled={(needs.find((n) => n.position === p.projectedPosition)?.need ?? 1) === 0}
+                onRemove={() => {
+                  removeFeederProspect(p.id);
+                  setFeedback(`${p.name} was removed from your list.`);
+                }}
               />
             ))}
             {shown.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No prospects in this group.</div>}
@@ -263,7 +298,10 @@ const ProspectCard: React.FC<{
   onInduce: () => void;
   positionFilled: boolean;
   onRemove: () => void;
-}> = ({ prospect: p, chance, coachPoints, onScout, onVisit, onPitch, onInduce, positionFilled, onRemove }) => {
+  rank?: string;
+  schools: { name: string; interest: number; isYou: boolean }[];
+  commitment: { name: string; interest: number; isYou: boolean; tied: boolean } | null;
+}> = ({ prospect: p, chance, coachPoints, onScout, onVisit, onPitch, onInduce, positionFilled, onRemove, rank, schools, commitment }) => {
   const [confirmRemove, setConfirmRemove] = useState(false);
   const scouted = p.revealedPotential !== 'UNKNOWN';
   const look = outlook(chance);
@@ -271,14 +309,17 @@ const ProspectCard: React.FC<{
   if (p.source === 'SEVEN_ON_SEVEN') notes.push("Doesn't play tackle yet");
   if (p.source === 'STAR_RECRUIT') notes.push('Long shot: elite talent from out of area');
   if (p.source === 'TRYOUT') notes.push('General student trying out');
-  if (p.source === 'OUT_OF_DISTRICT') notes.push('Pulling a player from his zoned school is a long shot');
+  if (p.source === 'OUT_OF_DISTRICT') notes.push('Zoned to another school: out-recruit them to sign him');
   if (p.isTransferRisk) notes.push('Family may relocate');
   if (positionFilled) notes.push(`${p.projectedPosition} is already filled for next season`);
 
   return (
     <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderLeft: `4px solid ${SOURCE_COLORS[p.source]}`, borderRadius: '8px', padding: '12px', fontSize: '13px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-        <strong style={{ fontSize: '14px' }}>{p.name}</strong>
+        <strong style={{ fontSize: '14px' }}>
+          {p.name}
+          {rank && <span style={{ marginLeft: '6px', fontSize: '11px', color: '#B45309' }}>{rank}</span>}
+        </strong>
         <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontWeight: 'bold' }}>{p.projectedPosition}</span>
           {!confirmRemove && (
@@ -317,12 +358,32 @@ const ProspectCard: React.FC<{
         <span style={{ color: look.color, fontWeight: 'bold' }}>{look.label}</span>
       </div>
       <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>Cares most about: {FACTOR_LABELS[topPriority(p)]}</div>
-      {p.suitors.length > 0 && (
-        <div style={{ fontSize: '12px', color: '#9F1239', marginTop: '2px' }}>
-          Also recruiting: {p.suitors.map((s) => `${s.teamName} (${interestLabel(s.effort)})${s.inducement ? ' 🚩' : ''}`).join(', ')}
-          {p.suitors.some((s) => s.inducement) && <span> · 🚩 rumored booster money</span>}
+      {commitment && (
+        <div
+          style={{
+            fontSize: '12px',
+            fontWeight: 'bold',
+            marginTop: '4px',
+            padding: '4px 8px',
+            borderRadius: '6px',
+            background: commitment.isYou ? '#DCFCE7' : '#FEE2E2',
+            color: commitment.isYou ? '#166534' : '#991B1B'
+          }}
+        >
+          {commitment.isYou ? '✅ Committed to you' : `🔒 Committed to ${commitment.name}`} ({commitment.interest})
+          {commitment.tied ? ' · tied at the top: a coin flip on signing day' : !commitment.isYou ? ` · pass ${commitment.interest} to win him` : ''}
         </div>
       )}
+      <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>
+        Interested schools:{' '}
+        {schools.map((s, i) => (
+          <span key={s.name} style={{ fontWeight: s.isYou ? 'bold' : 'normal', color: s.interest >= COMMIT_THRESHOLD ? '#B45309' : undefined }}>
+            {i > 0 && ' · '}
+            {s.name} {s.interest}
+          </span>
+        ))}
+        {p.suitors.some((s) => s.inducement) && <span style={{ color: '#9F1239' }}> · 🚩 rumored booster money</span>}
+      </div>
       {notes.length > 0 && <div style={{ fontSize: '12px', color: '#92400E', marginTop: '4px' }}>{notes.join(' · ')}</div>}
       <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
         <button onClick={onScout} disabled={scouted || coachPoints < PROSPECT_ACTION_COSTS.SCOUT} style={actionBtn('#475569', scouted || coachPoints < PROSPECT_ACTION_COSTS.SCOUT)}>

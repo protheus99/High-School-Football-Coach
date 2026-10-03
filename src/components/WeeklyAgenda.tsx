@@ -11,7 +11,7 @@ import {
   getSeasonPhase,
   getTeamGameForWeek
 } from '../sim/scheduleEngine';
-import { FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, PROSPECT_ACTION_COSTS, SKILL_POSITIONS } from '../sim/feederEngine';
+import { FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, PROSPECT_ACTION_COSTS, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
 import { COACH_TALENTS, collegeActionCost, feederEventCost, talentBlocker, weeklyCpIncome } from '../sim/coachPoints';
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
@@ -291,7 +291,7 @@ export const WeeklyAgenda: React.FC<{
 
   const visitsCard = (title: string, tone: AgendaItem['tone'], id = 'visits'): AgendaItem => {
     const onTheFence = scoutingPool
-      .filter((p) => p.interestScore >= 30 && p.interestScore <= 75)
+      .filter((p) => inUserPipeline(p) && p.interestScore >= 30 && p.interestScore <= 75)
       .sort((a, b) => b.interestScore - a.interestScore)
       .slice(0, 3);
     const cost = onTheFence.length * PROSPECT_ACTION_COSTS.VISIT;
@@ -299,7 +299,7 @@ export const WeeklyAgenda: React.FC<{
       id,
       icon: '✍️',
       title,
-      detail: `${plural(scoutingPool.length, 'prospect')} pick their school when week ${FEEDER_SIGNING_WEEK} ends.${
+      detail: `${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pipeline pick their school when week ${FEEDER_SIGNING_WEEK} ends.${
         onTheFence.length ? ` Still deciding: ${onTheFence.map((p) => `${p.projectedPosition} ${p.name}`).join(', ')}.` : ''
       }`,
       tone,
@@ -502,7 +502,7 @@ export const WeeklyAgenda: React.FC<{
       headline = {
         id: 'pipeline',
         icon: '🔍',
-        title: currentWeek === firstOffSeasonWeek ? `Feeder program opens: ${plural(scoutingPool.length, 'prospect')} in the pipeline` : `Grow the pipeline: ${plural(scoutingPool.length, 'prospect')}`,
+        title: currentWeek === firstOffSeasonWeek ? `Feeder program opens: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pipeline` : `Grow the pipeline: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')}`,
         detail: `Off season week ${currentWeek - firstOffSeasonWeek + 1} of 4. Signing day is pre season week ${FEEDER_SIGNING_WEEK}.`,
         tone: 'info',
         link: { label: 'Feeders', onClick: () => onNavigate('FEEDERS') }

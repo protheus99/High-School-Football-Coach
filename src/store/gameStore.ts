@@ -51,6 +51,7 @@ import {
   FeederEventType,
   PROSPECT_ACTION_COSTS,
   generateFeederPool,
+  inUserPipeline,
   maybeMoveInArrival,
   pitchStarRecruit,
   enforceVarsityRosterLimit,
@@ -1047,6 +1048,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       else addIncomingClass(team, rivalIncoming.get(team.id) ?? [], STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL']);
     });
     enforceVarsityRosterLimit(userTeam, feederClass.joined, feederClass.outcomes);
+    // The pool is shared across the region: report only on the user's own pipeline (and anyone who chose the user)
+    const pipelineIds = new Set(scoutingPool.filter(inUserPipeline).map((p) => p.id));
+    const outcomes = feederClass.outcomes.filter((o) => pipelineIds.has(o.prospectId) || o.outcome === 'JOINED' || o.outcome === 'JV_TEAM');
     updateStarRatings(leagueTeams, false);
 
     const week = currentWeek + 1;
@@ -1058,22 +1062,22 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       content: 'One of the most sought-after newcomers in the state has picked a program.',
       impactSentiment: 'NEUTRAL'
     }));
-    const joinedCount = feederClass.outcomes.filter((o) => o.outcome === 'JOINED').length;
+    const joinedCount = outcomes.filter((o) => o.outcome === 'JOINED').length;
     const classArticle: NewsArticle = {
       id: `news_feeder_class_${currentYear}`,
       week,
       outlet: 'TOWN_JOURNAL',
       headline: `Signing Day: ${userTeam.name} Welcomes ${joinedCount} Newcomers to the Program`,
-      content: `${joinedCount} of ${scoutingPool.length} prospects in the pipeline chose ${userTeam.name}. ${
-        feederClass.outcomes.filter((o) => o.outcome === 'OTHER_SCHOOL').length
-      } enrolled elsewhere and ${feederClass.outcomes.filter((o) => o.outcome === 'LEFT_AREA').length} moved away.`,
-      impactSentiment: joinedCount >= scoutingPool.length / 2 ? 'POSITIVE' : 'NEUTRAL',
+      content: `${joinedCount} of ${outcomes.length} prospects in your pipeline chose ${userTeam.name}. ${
+        outcomes.filter((o) => o.outcome === 'OTHER_SCHOOL').length
+      } enrolled elsewhere and ${outcomes.filter((o) => o.outcome === 'LEFT_AREA').length} moved away.`,
+      impactSentiment: joinedCount >= outcomes.length / 2 ? 'POSITIVE' : 'NEUTRAL',
       featuredTeamName: userTeam.name
     };
     set({
       scoutingPool: generateFeederPool(userTeam, ctx),
       statewideRecruits: ctx ? generateStatewideElite(ctx) : [],
-      lastFeederResults: feederClass.outcomes,
+      lastFeederResults: outcomes,
       feederClassYear: currentYear + 1,
       newsArticles: [classArticle, ...eliteNews, ...get().newsArticles],
       districtTeams: [...districtTeams],

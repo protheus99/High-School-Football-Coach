@@ -254,10 +254,10 @@ export const STRATEGY_FRESHMAN_ADJUSTMENT: Record<FeederStrategy, number> = {
 };
 
 function weeklyEffortGain(strategy: FeederStrategy | undefined, p: FeederProspect, teamId: string): number {
-  if (p.homeTeamId === teamId) return randomInt(1, 3);
+  if (p.homeTeamId === teamId) return randomInt(0, 2); // a program keeps working its own zoned kids
   switch (strategy) {
     case 'RECRUIT_STARS':
-      return p.source === 'STAR_RECRUIT' ? randomInt(2, 4) : randomInt(0, 1);
+      return p.source === 'STAR_RECRUIT' || p.trueOverall >= 72 ? randomInt(2, 4) : randomInt(0, 1);
     case 'CHASE_TRANSFERS':
       return p.source === 'MOVE_IN' || p.source === 'OUT_OF_DISTRICT' ? randomInt(2, 4) : randomInt(0, 1);
     case 'STAND_PAT':
@@ -272,12 +272,53 @@ export function inducementHeat(p: FeederProspect): number {
   return p.source === 'STAR_RECRUIT' ? 20 : 12;
 }
 
+/** How many prospects an AI program will work at once (its own zoned kids don't count). */
+const targetLimit = (team: Team) => (team.feederProfile?.strategy === 'STAND_PAT' ? 2 : 4 + Math.round(team.prestige / 25));
+const WEEKLY_NEW_TARGET_CHANCE: Record<FeederStrategy, number> = { RECRUIT_STARS: 0.7, CHASE_TRANSFERS: 0.6, BUILD_LOCAL: 0.5, STAND_PAT: 0.15 };
+
 /**
- * Rivals keep working their targets all year, until feeder signing day in pre season. Low-ethics programs
- * may have boosters make an illegal offer to a valuable prospect, which adds heat to that program.
+ * AI programs recruit the shared pool: each week a program may add a new target (better prospects and ones
+ * in its own district first), up to its limit. The prospect's zoned school is always in the mix.
+ */
+function addRivalTargets(pool: FeederProspect[], ctx: RecruitingContext): FeederProspect[] {
+  const userRegion = ctx.regionOf.get(ctx.userTeamId);
+  const schools = [...ctx.teamsById.values()].filter((t) => t.id !== ctx.userTeamId && ctx.regionOf.get(t.id) === userRegion);
+  if (schools.length === 0 || pool.length === 0) return pool;
+  const targetsOf = new Map<string, number>();
+  pool.forEach((p) => p.suitors.forEach((s) => s.teamId !== p.homeTeamId && targetsOf.set(s.teamId, (targetsOf.get(s.teamId) ?? 0) + 1)));
+  const next = [...pool];
+  schools.forEach((school) => {
+    const strategy = school.feederProfile?.strategy ?? 'BUILD_LOCAL';
+    if ((targetsOf.get(school.id) ?? 0) >= targetLimit(school) || Math.random() > WEEKLY_NEW_TARGET_CHANCE[strategy]) return;
+    const district = ctx.districtOf.get(school.id);
+    let bestIndex = -1;
+    let bestScore = -Infinity;
+    for (let i = 0; i < 12; i++) {
+      const index = randomInt(0, next.length - 1);
+      const p = next[index];
+      if (p.homeTeamId === school.id || p.suitors.some((s) => s.teamId === school.id)) continue;
+      const nearby = (p.homeTeamId ? ctx.districtOf.get(p.homeTeamId) === district : ctx.districtOf.get(ctx.userTeamId) === district) ? 8 : 0;
+      const score = p.trueOverall + nearby + Math.random() * 10;
+      if (score > bestScore) {
+        bestScore = score;
+        bestIndex = index;
+      }
+    }
+    if (bestIndex < 0) return;
+    const p = next[bestIndex];
+    next[bestIndex] = { ...p, suitors: [...p.suitors, { teamId: school.id, teamName: school.name, effort: startingEffort(strategy, p, school.id), inducement: false }] };
+    targetsOf.set(school.id, (targetsOf.get(school.id) ?? 0) + 1);
+  });
+  return next;
+}
+
+/**
+ * Rivals keep working their targets all year, until feeder signing day in pre season, and pick up new ones.
+ * Low-ethics programs may have boosters make an illegal offer to a valuable prospect, which adds heat to
+ * that program.
  */
 export function advanceRivalRecruiting(pool: FeederProspect[], ctx: RecruitingContext, _week: number): FeederProspect[] {
-  return pool.map((p) => {
+  return addRivalTargets(pool, ctx).map((p) => {
     if (p.suitors.length === 0) return p;
     const suitors = p.suitors.map((s) => {
       const team = ctx.teamsById.get(s.teamId);

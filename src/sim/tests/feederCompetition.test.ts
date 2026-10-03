@@ -12,7 +12,7 @@ import {
   weeklyDetectionChance,
   yearEndDetectionChance
 } from '../feederCompetition';
-import { createProspect, generateStatewideElite, resolveStatewideElite } from '../feederEngine';
+import { createProspect, currentCommitment, generateFeederPool, generateStatewideElite, resolveFeederClass, resolveStatewideElite } from '../feederEngine';
 import { FeederProspect, Team } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -162,4 +162,45 @@ describe('Competition through the store', () => {
         expect(rival.roster.some((pl) => `${pl.firstName} ${pl.lastName}` === o.prospectName)).toBe(true);
       });
   }, 120000);
+});
+
+describe('Shared pool and commitments', () => {
+  const { teams, user, ctx } = world();
+  const rival = teams.find((t) => t.id !== user.id && ctx.districtOf.get(t.id) === ctx.districtOf.get(user.id))!;
+  const contested = (userInterest: number, rivalInterest: number): FeederProspect => ({
+    ...createProspect('FEEDER_MIDDLE_SCHOOL', user),
+    isTransferRisk: false,
+    interestScore: userInterest,
+    suitors: [{ teamId: rival.id, teamName: rival.name, effort: rivalInterest, inducement: false }]
+  });
+
+  it('builds a regional pool: your own pipeline plus prospects zoned to every school in the region', () => {
+    const pool = generateFeederPool(user, ctx);
+    const region = ctx.regionOf.get(user.id);
+    const zoned = pool.filter((p) => p.homeTeamId);
+    expect(zoned.length).toBeGreaterThan(50);
+    zoned.forEach((p) => {
+      expect(ctx.regionOf.get(p.homeTeamId!)).toBe(region);
+      expect(p.suitors[0].teamId).toBe(p.homeTeamId); // the zoned school is always recruiting him
+    });
+  });
+
+  it('signs the highest committed school: 90 beats 85, whoever holds it', () => {
+    for (let i = 0; i < 20; i++) {
+      expect(resolveFeederClass([contested(90, 85)], user, ctx).joined).toHaveLength(1);
+      const lost = resolveFeederClass([contested(85, 90)], user, ctx);
+      expect(lost.joined).toHaveLength(0);
+      expect(lost.rivalSignings[0].teamId).toBe(rival.id);
+    }
+    expect(currentCommitment(contested(85, 90), user.id)?.teamId).toBe(rival.id);
+    expect(currentCommitment(contested(70, 79), user.id)).toBeNull();
+  });
+
+  it('breaks a tie at the top with a coin flip', () => {
+    let mine = 0;
+    for (let i = 0; i < 200; i++) mine += resolveFeederClass([contested(100, 100)], user, ctx).joined.length;
+    expect(mine).toBeGreaterThan(60);
+    expect(mine).toBeLessThan(140);
+    expect(currentCommitment(contested(100, 100), user.id)?.tied).toBe(true);
+  });
 });

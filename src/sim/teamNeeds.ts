@@ -1,6 +1,7 @@
 import { FeederProspect, Position, Team } from '../types/game';
 import { DEPTH_TEMPLATE } from './depthChart';
 import { FEEDER_SIGNING_WEEK } from './scheduleEngine';
+import { inUserPipeline } from './feederEngine';
 
 /** One position's outlook for the incoming class. */
 export interface PositionNeed {
@@ -35,7 +36,7 @@ export function teamNeeds(team: Team, pool: FeederProspect[], seniorsStillHere: 
       leavingStarters: leavingPlayers.filter((p) => p.depthChartTier === 1).length,
       starterHoles: Math.max(0, starters - returningStarters),
       need: Math.max(0, target - returningPlayers.length),
-      pipeline: pool.filter((p) => p.projectedPosition === position).length
+      pipeline: pool.filter((p) => p.projectedPosition === position && inUserPipeline(p)).length
     };
   });
 }
