@@ -616,6 +616,27 @@ export const ALABAMA_RULES: StateRules = {
   overtime: { startYardsFromGoal: 10 }
 };
 
+/**
+ * How strong a state's football is on a national scale, in player-rating points added to every roster it
+ * generates (programs' prestige only ranks schools within their own state). Tier 1: the national powers;
+ * tier 2: strong football states; tier 3: average; tier 4: below average. States not listed: 0.
+ */
+export const STATE_TALENT: Record<string, number> = {
+  Texas: 3,
+  Florida: 3,
+  California: 3,
+  Georgia: 3,
+  Alabama: 1.5,
+  Ohio: 1.5,
+  Louisiana: 1.5,
+  Pennsylvania: 0,
+  'New Jersey': 0,
+  Tennessee: 0,
+  'North Carolina': 0,
+  Maryland: -1.5
+};
+export const stateTalent = (state?: string) => (state ? STATE_TALENT[state] ?? 0 : 0);
+
 /** Playable states and their rules. Add a state here once its rules and complete district data exist. */
 export const STATE_RULES: Record<string, StateRules> = {
   Texas: TEXAS_RULES,

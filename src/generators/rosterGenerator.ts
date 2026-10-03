@@ -10,6 +10,7 @@ import {
 import { calculateGaussianVariance, clamp, randomInt } from '../sim/math/variance';
 import { DEPTH_TEMPLATE, rebuildDepthChart } from '../sim/depthChart';
 import { NameProfile, randomPlayerName, randomSurname } from './names';
+import { stateTalent } from '../sim/stateRules';
 
 // Player and coach names come from ./names (realistic, region-aware pools)
 
@@ -306,7 +307,8 @@ export function generateDistrictTeams(
   return schools.map((hs, i) => {
     const prestige = hs.prestige ?? randomInt(68, 92);
     const nameProfile = options.nameProfile ?? 'DEFAULT';
-    const talent = options.talentFromPrestige ? Math.round((prestige - 75) * 0.3) : 0;
+    // Talent leans toward the school's prestige (within its state) plus its state's national strength
+    const talent = options.talentFromPrestige ? Math.round((prestige - 75) * 0.3 + stateTalent(options.state)) : 0;
     const light = options.light ? generateLightRoster(talent, nameProfile) : undefined;
     const roster = light?.roster ?? generateCompleteTeamRoster(talent, nameProfile);
 

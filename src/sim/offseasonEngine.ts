@@ -4,6 +4,7 @@ import { generateProceduralPlayer } from '../generators/rosterGenerator';
 import { processOffSeasonProgression } from './playerEngine';
 import { createEmptyPlayerStats } from './playerStats';
 import { randomInt } from './math/variance';
+import { stateTalent } from './stateRules';
 
 // Incoming freshmen roll starter-level talent minus a youth penalty; three years of progression
 // brings them back to the level of the generated rosters, keeping program strength stable. Only the core share
@@ -15,7 +16,8 @@ const STARTER_FRESHMAN_SHARE = 0.55;
 const newFreshman = (pos: Position, team: Team, takenNames: Set<string>, adjustment: number) => {
   const { roster, core } = DEPTH_TEMPLATE[pos];
   const tier = Math.random() < (core / roster) * STARTER_FRESHMAN_SHARE ? 1 : 3;
-  return generateProceduralPlayer(pos, 'Freshman', tier, adjustment - randomInt(4, 8), { nameProfile: team.nameProfile, takenNames });
+  // Freshmen carry their state's national strength, so it lasts beyond the first season
+  return generateProceduralPlayer(pos, 'Freshman', tier, Math.round(adjustment + stateTalent(team.state)) - randomInt(4, 8), { nameProfile: team.nameProfile, takenNames });
 };
 
 const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior' } as const;

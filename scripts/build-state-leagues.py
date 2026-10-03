@@ -240,6 +240,9 @@ STATE_WORLD_FILES = {'Georgia': 'georgia-7a.json', 'Florida': 'florida-6a.json',
                      'North Carolina': 'north-carolina-8a.json', 'Alabama': 'alabama-6a.json'}
 
 
+CURATED_TOP_TEN_PRESTIGE = 95
+
+
 def build_curated_worlds(out_dir: Path):
     """A playable state's whole top class as one structure: one league region holding every district."""
     parsed = parse(Path(sys.argv[1]).read_text(encoding='utf-8').split('\n'))
@@ -251,6 +254,15 @@ def build_curated_worlds(out_dir: Path):
             match = re.match(r'^(.*?)\s*\((.*)\)$', name)
             districts.append({'number': number, 'name': match.group(1) if match else name, 'area': match.group(2) if match else state,
                               'schools': schools})
+        # Prestige ranks schools within their state (a state's national strength is the game's state talent tier).
+        # The curated lists rate fewer programs near the top than the spec does (Florida's top ten average 87, the
+        # spec states' 93-97): stretch them so the top ten average 95, keeping 50 fixed.
+        top_ten = sorted((s['prestige'] for d in districts for s in d['schools']), reverse=True)[:10]
+        top_ten_average = sum(top_ten) / len(top_ten)
+        if top_ten_average < CURATED_TOP_TEN_PRESTIGE:
+            scale = (CURATED_TOP_TEN_PRESTIGE - 50) / (top_ten_average - 50)
+            for d in districts:
+                d['schools'] = [{**s, 'prestige': min(99, round(50 + (s['prestige'] - 50) * scale))} for s in d['schools']]
         world = {'state': state, 'classification': info['classification'],
                  'regions': [{'name': f"Class {info['classification']}", 'area': state, 'districts': districts}]}
         (out_dir / file).write_text(json.dumps(world, indent=1) + '\n', encoding='utf-8')
