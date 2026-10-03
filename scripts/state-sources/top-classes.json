@@ -1,5 +1,5 @@
 {
- "_about": "Full top football classifications from the official 2026 alignments (GHSA Region Alignment for 2026-2028, FHSAA 2026-27/2027-28 Finalized FB Classification, AHSAA 2026-28 public classes (7A eliminated), MPSSAA 2025 Football Classification Alignment, NCHSAA 2025-29 realignment). Each school: [name, city, mascot, prestige estimate]. Prestige and schemes from the design spec win when the spec rates the school.",
+ "_about": "Full top football classifications from the official 2026 alignments (GHSA Region Alignment for 2026-2028, FHSAA 2026-27/2027-28 Finalized FB Classification, AHSAA 2026-28 public classes (7A eliminated), MPSSAA 2025 Football Classification Alignment, NCHSAA 2025-29 realignment). Each school: [name, city, mascot, prestige estimate]. Prestige and schemes from the design spec win when the spec rates the school. Florida also lists its national powers that play in smaller classes or as independents (St. Thomas Aquinas, IMG Academy, Miami Central, Armwood...), in their home districts, as the spec ranks them among the state's best.",
  "Georgia": {
   "classification": "7A",
   "districts": [
@@ -382,6 +382,12 @@
       66
      ],
      [
+      "Mandarin",
+      "Jacksonville",
+      "Mustangs",
+      87
+     ],
+     [
       "Sandalwood",
       "Jacksonville",
       "Saints",
@@ -626,6 +632,12 @@
       64
      ],
      [
+      "Lakeland",
+      "Lakeland",
+      "Dreadnaughts",
+      92
+     ],
+     [
       "Poinciana",
       "Kissimmee",
       "Eagles",
@@ -648,6 +660,12 @@
    {
     "name": "District 10-6A (Hillsborough South & East)",
     "schools": [
+     [
+      "Armwood",
+      "Seffner",
+      "Hawks",
+      88
+     ],
      [
       "Durant",
       "Plant City",
@@ -713,6 +731,12 @@
     "name": "District 12-6A (Manatee, Sarasota & Lee)",
     "schools": [
      [
+      "IMG Academy",
+      "Bradenton",
+      "Ascenders",
+      98
+     ],
+     [
       "Lakewood Ranch",
       "Bradenton",
       "Mustangs",
@@ -731,16 +755,16 @@
       60
      ],
      [
-      "Sarasota Riverview",
-      "Sarasota",
-      "Rams",
-      58
-     ],
-     [
       "Sarasota",
       "Sarasota",
       "Sailors",
       62
+     ],
+     [
+      "Sarasota Riverview",
+      "Sarasota",
+      "Rams",
+      58
      ],
      [
       "Venice",
@@ -801,10 +825,22 @@
     "name": "District 14-6A (Palm Beach South & Broward North)",
     "schools": [
      [
+      "American Heritage",
+      "Plantation",
+      "Patriots",
+      95
+     ],
+     [
       "Boca Raton",
       "Boca Raton",
       "Bobcats",
       62
+     ],
+     [
+      "Cardinal Gibbons",
+      "Fort Lauderdale",
+      "Chiefs",
+      88
      ],
      [
       "Coral Glades",
@@ -835,12 +871,24 @@
       "Boca Raton",
       "Sharks",
       58
+     ],
+     [
+      "St. Thomas Aquinas",
+      "Fort Lauderdale",
+      "Raiders",
+      99
      ]
     ]
    },
    {
     "name": "District 15-6A (Broward & North Miami-Dade)",
     "schools": [
+     [
+      "Chaminade-Madonna",
+      "Hollywood",
+      "Lions",
+      94
+     ],
      [
       "Cypress Bay",
       "Weston",
@@ -860,10 +908,22 @@
       62
      ],
      [
+      "Miami Central",
+      "Miami",
+      "Rockets",
+      93
+     ],
+     [
       "Miami High",
       "Miami",
       "Stingarees",
       66
+     ],
+     [
+      "Miami Northwestern",
+      "Miami",
+      "Bulls",
+      91
      ],
      [
       "West Broward",
@@ -882,6 +942,12 @@
    {
     "name": "District 16-6A (South Miami-Dade)",
     "schools": [
+     [
+      "Booker T. Washington",
+      "Miami",
+      "Tornadoes",
+      90
+     ],
      [
       "Columbus",
       "Miami",
