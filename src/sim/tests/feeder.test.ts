@@ -225,15 +225,24 @@ describe('Recruiting contacts', () => {
   it('costs Coach Points, adds interest, can be used once a week each, and resets the next week', () => {
     const store = useGameStore;
     store.getState().startNewSeason();
-    const p = store.getState().scoutingPool.find((x) => !x.homeTeamId && x.interestScore < 60)!;
+    // A prospect at 35 interest: a text and a visit leave him under 50, more contacts take him past it
+    const pick = store.getState().scoutingPool.find((x) => !x.homeTeamId && x.revealedPotential === 'UNKNOWN')!;
+    useGameStore.setState({ scoutingPool: store.getState().scoutingPool.map((x) => (x.id === pick.id ? { ...x, interestScore: 35 } : x)) });
+    const p = store.getState().scoutingPool.find((x) => x.id === pick.id)!;
     const cp = store.getState().coachPoints;
     store.getState().contactFeederProspect(p.id, 'TEXT');
     store.getState().contactFeederProspect(p.id, 'TEXT'); // already texted this week
     store.getState().contactFeederProspect(p.id, 'VISIT');
     const after = store.getState().scoutingPool.find((x) => x.id === p.id)!;
     expect(store.getState().coachPoints).toBe(cp - 5 - 30);
+
     expect(after.interestScore).toBe(Math.min(100, p.interestScore + 2 + (p.interestScore + 2 >= 60 ? 7 : 9)));
-    expect(after.revealedPotential).not.toBe('UNKNOWN'); // visiting evaluates him
+    expect(after.revealedPotential).toBe('UNKNOWN'); // under 50 interest: not evaluated yet
+    store.getState().contactFeederProspect(p.id, 'WINE_AND_DINE');
+    store.getState().contactFeederProspect(p.id, 'INVITE');
+    const warm = store.getState().scoutingPool.find((x) => x.id === p.id)!;
+    expect(warm.interestScore).toBeGreaterThanOrEqual(50);
+    expect(warm.revealedPotential).toBe(p.truePotential); // 50+ interest evaluates him
     store.getState().advanceWeek();
     expect(store.getState().scoutingPool.find((x) => x.id === p.id)!.actionsThisWeek ?? []).toEqual([]);
   });

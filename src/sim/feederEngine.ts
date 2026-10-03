@@ -31,13 +31,13 @@ export const PROSPECT_ACTION_COSTS = { SCOUT: 10, VISIT: 15, PITCH_STAR: 40 };
 
 /** The ways a coach contacts a prospect: each costs Coach Points, adds interest, and can be used once a week. */
 export type ContactAction = 'TEXT' | 'EMAIL' | 'CALL' | 'VISIT' | 'INVITE' | 'WINE_AND_DINE';
-export const CONTACT_ACTIONS: Record<ContactAction, { label: string; cost: number; interest: number; evaluates?: boolean }> = {
+export const CONTACT_ACTIONS: Record<ContactAction, { label: string; cost: number; interest: number }> = {
   TEXT: { label: 'Text', cost: 5, interest: 2 },
   EMAIL: { label: 'Email', cost: 15, interest: 4 },
   CALL: { label: 'Call', cost: 20, interest: 6 },
-  VISIT: { label: 'Visit', cost: 30, interest: 9, evaluates: true }, // seeing him in person evaluates him
-  INVITE: { label: 'Invite', cost: 40, interest: 12, evaluates: true }, // a campus / game-night visit
-  WINE_AND_DINE: { label: 'Wine & Dine', cost: 50, interest: 15, evaluates: true }
+  VISIT: { label: 'Visit', cost: 30, interest: 9 },
+  INVITE: { label: 'Invite', cost: 40, interest: 12 }, // a campus / game-night visit
+  WINE_AND_DINE: { label: 'Wine & Dine', cost: 50, interest: 15 }
 };
 export const CONTACT_ORDER: ContactAction[] = ['TEXT', 'EMAIL', 'CALL', 'VISIT', 'INVITE', 'WINE_AND_DINE'];
 
@@ -58,7 +58,7 @@ export function contactProspect(p: FeederProspect, action: ContactAction): Feede
     coachContacts: p.coachContacts + 1,
     actionsThisWeek: [...(p.actionsThisWeek ?? []), action]
   };
-  return CONTACT_ACTIONS[action].evaluates ? scoutProspect(contacted) : contacted;
+  return withEvaluation(contacted);
 }
 
 export type FeederEventType = 'YOUTH_CLINIC' | 'SEVEN_ON_SEVEN_LEAGUE' | 'TRYOUT_DAY' | 'FAMILY_NIGHT' | 'COMBINE' | 'BIG_MAN_CAMP' | 'SKILLS_ACADEMY';
@@ -345,6 +345,13 @@ export function interestLabel(score: number): string {
   return 'Cold';
 }
 
+/** Interest at which a prospect counts as evaluated: he's close enough to the program for a real look. */
+export const EVALUATION_INTEREST = 50;
+/** Evaluated: scouted (e.g. at a combine) or interested enough (50+). */
+export const isEvaluated = (p: FeederProspect) => p.revealedPotential !== 'UNKNOWN' || p.interestScore >= EVALUATION_INTEREST;
+/** Records the evaluation once he reaches 50 interest, so it stays if his interest later falls. */
+export const withEvaluation = (p: FeederProspect) => (p.revealedPotential === 'UNKNOWN' && p.interestScore >= EVALUATION_INTEREST ? scoutProspect(p) : p);
+
 /** Scouting reveals potential, speed and strength (useful, but it doesn't change anyone's mind). */
 export function scoutProspect(p: FeederProspect): FeederProspect {
   return { ...p, revealedPotential: p.truePotential, scoutedSpeed: p.trueSpeed, scoutedStrength: p.trueStrength };
@@ -396,7 +403,7 @@ export function runFeederEvent(
   } else if (type === 'FAMILY_NIGHT') {
     warm((p) => p.source !== 'STAR_RECRUIT' && inUserPipeline(p), 3, 6);
   } else if (type === 'COMBINE') {
-    const unscouted = pool.filter((p) => p.revealedPotential === 'UNKNOWN' && inUserPipeline(p)).slice(0, COMBINE_SCOUTS).map((p) => p.id);
+    const unscouted = pool.filter((p) => !isEvaluated(p) && inUserPipeline(p)).slice(0, COMBINE_SCOUTS).map((p) => p.id);
     pool = pool.map((p) => (unscouted.includes(p.id) ? scoutProspect(p) : p));
   } else if (type === 'BIG_MAN_CAMP') {
     warm((p) => LINE_POSITIONS.includes(p.projectedPosition) && inUserPipeline(p), 6, 10);
@@ -407,7 +414,7 @@ export function runFeederEvent(
   } else {
     discover('TRYOUT', randomInt(2, 4));
   }
-  return { pool: [...pool, ...discovered], discovered };
+  return { pool: [...pool, ...discovered].map(withEvaluation), discovered: discovered.map(withEvaluation) };
 }
 
 /** Families occasionally move into the district during the year. */

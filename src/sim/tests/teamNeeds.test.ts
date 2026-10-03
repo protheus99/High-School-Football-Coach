@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
-import { generateFeederPool, runFeederEvent, LINE_POSITIONS } from '../feederEngine';
+import { generateFeederPool, inUserPipeline, isEvaluated, runFeederEvent, LINE_POSITIONS } from '../feederEngine';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../teamNeeds';
 import { DEPTH_TEMPLATE } from '../depthChart';
 
@@ -35,7 +35,9 @@ describe('Team needs', () => {
       expect(camp.pool.find((q) => q.id === p.id)!.interestScore).toBeGreaterThanOrEqual(p.interestScore);
     });
     const combine = runFeederEvent(pool, 'COMBINE', team);
-    const newlyScouted = combine.pool.filter((p) => p.revealedPotential !== 'UNKNOWN' && pool.find((q) => q.id === p.id)!.revealedPotential === 'UNKNOWN');
-    expect(newlyScouted.length).toBe(Math.min(5, pool.filter((p) => p.revealedPotential === 'UNKNOWN').length));
+    // The combine evaluates up to five who aren't evaluated yet; everyone at 50+ interest already counts
+    const newlyScouted = combine.pool.filter((p) => isEvaluated(p) && !isEvaluated(pool.find((q) => q.id === p.id)!));
+    expect(newlyScouted.length).toBe(Math.min(5, pool.filter((p) => !isEvaluated(p) && inUserPipeline(p)).length));
+    combine.pool.filter((p) => p.interestScore >= 50).forEach((p) => expect(p.revealedPotential).toBe(p.truePotential));
   });
 });

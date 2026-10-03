@@ -17,6 +17,9 @@ import {
   SOURCE_LABELS,
   COMMIT_THRESHOLD,
   currentCommitment,
+  EVALUATION_INTEREST,
+  isEvaluated,
+  scoutProspect,
   topTenLists,
   interestLabel,
   prospectRankScore,
@@ -397,7 +400,9 @@ const ProspectCard: React.FC<{
   commitment: { name: string; interest: number; isYou: boolean; tied: boolean } | null;
 }> = ({ prospect: p, chance, coachPoints, onContact, positionFilled, onRemove, rank, schools, commitment }) => {
   const [confirmRemove, setConfirmRemove] = useState(false);
-  const scouted = p.revealedPotential !== 'UNKNOWN';
+  // Evaluated once scouted or at 50+ interest: his potential, speed and strength show
+  const scouted = isEvaluated(p);
+  const seen = scouted ? scoutProspect(p) : p;
   const look = outlook(chance);
   const notes: string[] = [];
   if (p.source === 'SEVEN_ON_SEVEN') notes.push("Doesn't play tackle yet");
@@ -439,9 +444,9 @@ const ProspectCard: React.FC<{
       </div>
       <div style={{ margin: '6px 0', fontSize: '12px' }}>
         {scouted ? (
-          <>Potential <strong>{p.revealedPotential}</strong> · Speed {p.scoutedSpeed} · Strength {p.scoutedStrength}</>
+          <>Potential <strong>{seen.revealedPotential}</strong> · Speed {seen.scoutedSpeed} · Strength {seen.scoutedStrength}</>
         ) : (
-          <span style={{ color: '#94A3B8' }}>Not evaluated</span>
+          <span style={{ color: '#94A3B8' }}>Not evaluated · evaluated at {EVALUATION_INTEREST} interest</span>
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
