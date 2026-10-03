@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { feederEventsOpen, useGameStore } from '../store/gameStore';
 import { FEEDER_SIGNING_WEEK } from '../sim/scheduleEngine';
 import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
-import { FeederOutcomeType, FeederProspect, ProspectSource } from '../types/game';
+import { FeederOutcomeType, FeederProspect, Player, ProspectSource } from '../types/game';
+import { PositionNeed, priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 import {
   FEEDER_EVENTS,
   FeederEventType,
@@ -38,7 +39,20 @@ function outlook(chance: number): { label: string; color: string } {
   return { label: 'Long shot', color: '#DC2626' };
 }
 
-export const FeedersScoutingView: React.FC = () => {
+export type FeederSection = 'STUDENTS' | 'PROGRAMS' | 'NEEDS';
+
+const SECTIONS: { id: FeederSection; label: string }[] = [
+  { id: 'STUDENTS', label: '🧑‍🎓 New Students' },
+  { id: 'PROGRAMS', label: '🏟️ Off Season Programs' },
+  { id: 'NEEDS', label: '📋 Team Needs' }
+];
+
+/** Feeders: next year's students, the off-season programs that find and win them, and the roster's needs. */
+export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: (section: FeederSection) => void; onOpenPlayer: (player: Player) => void }> = ({
+  section,
+  onSection,
+  onOpenPlayer
+}) => {
   const {
     scoutingPool,
     coachPoints,
@@ -68,6 +82,8 @@ export const FeedersScoutingView: React.FC = () => {
   const weeklyIncome = weeklyCpIncome(currentWeek, coachTalents, userTeam.programMeters.schoolBoardTrust);
   const eventCost = (type: FeederEventType) => feederEventCost(FEEDER_EVENTS[type].cost, coachTalents);
   const eventsOpen = feederEventsOpen({ currentWeek, league });
+  const needs = teamNeeds(userTeam, scoutingPool, seniorsStillHere(currentYear, feederClassYear, currentWeek));
+  const topNeeds = priorityNeeds(needs).slice(0, 4);
   const sources = Object.keys(SOURCE_LABELS) as ProspectSource[];
   const shown = scoutingPool.filter((p) => filter === 'ALL' || p.source === filter);
 
@@ -90,40 +106,15 @@ export const FeedersScoutingView: React.FC = () => {
           <span style={pillStyle('#F1F5F9', '#334155')}>Pool: {scoutingPool.length} / {MAX_POOL_SIZE}</span>
         </div>
       </div>
-      <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#64748B' }}>
-        Next season&apos;s newcomers come from this pool. Not everyone will come out: your clinics, events and personal visits decide
-        who does. {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; the off season is the time to build the pipeline.'}
-      </p>
+      <div className="ui-chips" role="tablist" aria-label="Feeder sections" style={{ marginBottom: '12px' }}>
+        {SECTIONS.map((s) => (
+          <button key={s.id} role="tab" className="ui-chip" aria-selected={section === s.id} aria-pressed={section === s.id} onClick={() => onSection(s.id)}>
+            {s.label}
+          </button>
+        ))}
+      </div>
 
       {feedback && <div style={{ background: '#EEF2FF', color: '#3730A3', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', marginBottom: '12px' }}>{feedback}</div>}
-
-      {/* Last year's class */}
-      {lastFeederResults && lastFeederResults.length > 0 && (
-        <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '12px 14px', marginBottom: '14px', fontSize: '13px' }}>
-          <strong>Last year&apos;s pipeline:</strong>{' '}
-          {(Object.keys(OUTCOME_LABELS) as FeederOutcomeType[])
-            .map((o) => ({ o, count: lastFeederResults.filter((r) => r.outcome === o).length }))
-            .filter(({ count }) => count > 0)
-            .map(({ o, count }) => `${count} ${OUTCOME_LABELS[o].toLowerCase().replace('jv', 'JV')}`)
-            .join(' · ')}
-          <div style={{ marginTop: '6px', color: '#166534' }}>
-            Newcomers:{' '}
-            {lastFeederResults
-              .filter((r) => r.outcome === 'JOINED')
-              .map((r) => `${r.prospectName} (${r.position}, ${r.overall})`)
-              .join(', ') || 'none'}
-          </div>
-          {lastFeederResults.some((r) => r.destinationTeamId) && (
-            <div style={{ marginTop: '4px', color: '#9F1239' }}>
-              Lost to rivals:{' '}
-              {lastFeederResults
-                .filter((r) => r.destinationTeamId)
-                .map((r) => `${r.prospectName} → ${r.destinationName}`)
-                .join(', ')}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Signing day */}
       <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', marginBottom: '14px' }}>
@@ -135,61 +126,123 @@ export const FeedersScoutingView: React.FC = () => {
           : `pre season week ${FEEDER_SIGNING_WEEK} of ${feederClassYear}. Visits and pitches count until then.`}
       </div>
 
-      {/* Program events: off season only */}
-      <h3 style={{ margin: '0 0 8px 0', fontSize: '15px' }}>Off-Season Program Events</h3>
-      {!feederEventsOpen({ currentWeek, league }) && (
-        <p className="ui-muted" style={{ margin: '0 0 8px 0', fontSize: '13px' }}>
-          Clinics, 7-on-7 nights and tryouts run during the four off-season weeks after the banquet.
-        </p>
+      {section === 'NEEDS' && <TeamNeedsPanel needs={needs} onPrograms={() => onSection('PROGRAMS')} />}
+
+      {section === 'PROGRAMS' && (
+        <>
+          <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#64748B' }}>
+            Each program can run once a week during the four off-season weeks after the banquet.
+            {topNeeds.length > 0 && ` Your biggest needs: ${topNeeds.map((n) => n.position).join(', ')}.`}
+          </p>
+          {!eventsOpen && (
+            <p className="ui-muted" style={{ margin: '0 0 8px 0', fontSize: '13px' }}>
+              Programs open in the off season (after the banquet).
+            </p>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px', marginBottom: '18px' }}>
+            {(Object.keys(FEEDER_EVENTS) as FeederEventType[]).map((type) => {
+              const event = FEEDER_EVENTS[type];
+              const done = feederEventsThisWeek.includes(type);
+              return (
+                <div key={type} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{event.label}</div>
+                  <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 8px' }}>{event.description}</div>
+                  <button
+                    onClick={() => handleEvent(type)}
+                    disabled={!eventsOpen || done || coachPoints < eventCost(type)}
+                    style={actionBtn('#0F766E', !eventsOpen || done || coachPoints < eventCost(type))}
+                  >
+                    {!eventsOpen ? 'Off season only' : done ? 'Held this week' : `Host (₡${eventCost(type)})`}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px', marginBottom: '18px' }}>
-        {(Object.keys(FEEDER_EVENTS) as FeederEventType[]).map((type) => {
-          const event = FEEDER_EVENTS[type];
-          const done = feederEventsThisWeek.includes(type);
-          return (
-            <div key={type} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{event.label}</div>
-              <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 8px' }}>{event.description}</div>
-              <button
-                onClick={() => handleEvent(type)}
-                disabled={!eventsOpen || done || coachPoints < eventCost(type)}
-                style={actionBtn('#0F766E', !eventsOpen || done || coachPoints < eventCost(type))}
-              >
-                {!eventsOpen ? 'Off season only' : done ? 'Held this week' : `Host (₡${eventCost(type)})`}
-              </button>
+
+      {section === 'STUDENTS' && (
+        <>
+          <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#64748B' }}>
+            Every student who could join the team next year. Not everyone will come out: your programs and personal visits decide who does.{' '}
+            {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; the off season is the time to build the pipeline.'}
+          </p>
+
+          {/* Last year's class */}
+          {lastFeederResults && lastFeederResults.length > 0 && (
+            <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '12px 14px', marginBottom: '14px', fontSize: '13px' }}>
+              <strong>Last year&apos;s pipeline:</strong>{' '}
+              {(Object.keys(OUTCOME_LABELS) as FeederOutcomeType[])
+                .map((o) => ({ o, count: lastFeederResults.filter((r) => r.outcome === o).length }))
+                .filter(({ count }) => count > 0)
+                .map(({ o, count }) => `${count} ${OUTCOME_LABELS[o].toLowerCase().replace('jv', 'JV')}`)
+                .join(' · ')}
+              <div style={{ marginTop: '6px', color: '#166534' }}>
+                Newcomers:{' '}
+                {lastFeederResults.some((r) => r.outcome === 'JOINED')
+                  ? lastFeederResults
+                      .filter((r) => r.outcome === 'JOINED')
+                      .map((r, i) => {
+                        // Link to the player's profile while he is on the team
+                        const player = userTeam.roster.find((pl) => pl.id === r.playerId);
+                        const label = `${r.prospectName} (${r.position}, ${player?.overallRating ?? r.overall})`;
+                        return (
+                          <React.Fragment key={r.prospectId}>
+                            {i > 0 && ', '}
+                            {player ? (
+                              <button onClick={() => onOpenPlayer(player)} style={playerLink}>
+                                {label}
+                              </button>
+                            ) : (
+                              label
+                            )}
+                          </React.Fragment>
+                        );
+                      })
+                  : 'none'}
+              </div>
+              {lastFeederResults.some((r) => r.destinationTeamId) && (
+                <div style={{ marginTop: '4px', color: '#9F1239' }}>
+                  Lost to rivals:{' '}
+                  {lastFeederResults
+                    .filter((r) => r.destinationTeamId)
+                    .map((r) => `${r.prospectName} → ${r.destinationName}`)
+                    .join(', ')}
+                </div>
+              )}
             </div>
-          );
-        })}
-      </div>
+          )}
 
-      {/* Source filter */}
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
-        <button onClick={() => setFilter('ALL')} style={tabStyle(filter === 'ALL')}>All ({scoutingPool.length})</button>
-        {sources.map((s) => (
-          <button key={s} onClick={() => setFilter(s)} style={tabStyle(filter === s)}>
-            {SOURCE_LABELS[s]} ({scoutingPool.filter((p) => p.source === s).length})
-          </button>
-        ))}
-      </div>
+          {/* Source filter */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+            <button onClick={() => setFilter('ALL')} style={tabStyle(filter === 'ALL')}>All ({scoutingPool.length})</button>
+            {sources.map((s) => (
+              <button key={s} onClick={() => setFilter(s)} style={tabStyle(filter === s)}>
+                {SOURCE_LABELS[s]} ({scoutingPool.filter((p) => p.source === s).length})
+              </button>
+            ))}
+          </div>
 
-      {/* Prospects */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '10px' }}>
-        {shown.map((p) => (
-          <ProspectCard
-            key={p.id}
-            prospect={p}
-            chance={userJoinProbability(p, userTeam.prestige, ctx)}
-            coachPoints={coachPoints}
-            onScout={() => scoutFeederProspect(p.id)}
-            onVisit={() => visitFeederProspect(p.id)}
-            onPitch={() => pitchFeederStar(p.id)}
-            onInduce={() => offerFeederInducement(p.id)}
-          />
-        ))}
-        {shown.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No prospects in this group.</div>}
-      </div>
+          {/* Prospects */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '10px' }}>
+            {shown.map((p) => (
+              <ProspectCard
+                key={p.id}
+                prospect={p}
+                chance={userJoinProbability(p, userTeam.prestige, ctx)}
+                coachPoints={coachPoints}
+                onScout={() => scoutFeederProspect(p.id)}
+                onVisit={() => visitFeederProspect(p.id)}
+                onPitch={() => pitchFeederStar(p.id)}
+                onInduce={() => offerFeederInducement(p.id)}
+              />
+            ))}
+            {shown.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No prospects in this group.</div>}
+          </div>
 
-      {ctx && statewideRecruits.length > 0 && <StatewideElitePanel recruits={statewideRecruits} ctx={ctx} />}
+          {ctx && statewideRecruits.length > 0 && <StatewideElitePanel recruits={statewideRecruits} ctx={ctx} />}
+        </>
+      )}
     </div>
   );
 };
@@ -324,3 +377,71 @@ const actionBtn = (color: string, disabled: boolean): React.CSSProperties => ({
   fontSize: '12px',
   fontWeight: 'bold'
 });
+
+const playerLink: React.CSSProperties = {
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  color: '#166534',
+  fontWeight: 'bold',
+  textDecoration: 'underline',
+  cursor: 'pointer',
+  fontSize: 'inherit'
+};
+
+/** Holes in the roster by position, most urgent first, with how many prospects the pipeline has there. */
+const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void }> = ({ needs, onPrograms }) => {
+  const priority = priorityNeeds(needs);
+  const rest = needs.filter((n) => !priority.includes(n));
+  const row = (n: PositionNeed, urgent: boolean) => (
+    <div
+      key={n.position}
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '10px 12px',
+        background: urgent ? '#FFFBEB' : '#fff',
+        border: `1px solid ${urgent ? '#FCD34D' : '#E2E8F0'}`,
+        borderRadius: '8px'
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
+          {n.position}
+          {n.need > 0 ? ` · need ${n.need}` : ' · set'}
+          {n.starterHoles > 0 && <span style={{ color: '#B91C1C' }}> ({n.starterHoles} starting job{n.starterHoles === 1 ? '' : 's'} open)</span>}
+        </div>
+        <div style={{ fontSize: '12px', color: '#64748B' }}>
+          {n.leaving > 0 ? `${n.leaving} senior${n.leaving === 1 ? '' : 's'} leaving${n.leavingStarters ? ` (${n.leavingStarters} starting)` : ''} · ` : ''}
+          {n.returning} of {n.target} spots filled
+        </div>
+      </div>
+      <div style={{ textAlign: 'right', fontSize: '12px', color: n.pipeline >= n.need ? '#16A34A' : '#B45309', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+        {n.pipeline} in pipeline
+      </div>
+    </div>
+  );
+  return (
+    <div>
+      <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#64748B' }}>
+        Holes in next season&apos;s roster by position, after the seniors leave. Target these positions with visits and programs: Big Man Camp
+        brings in linemen, the QB &amp; Skills Academy skill players.{' '}
+        <button onClick={onPrograms} style={{ ...playerLink, color: '#2563EB' }}>
+          Off Season Programs →
+        </button>
+      </p>
+      {priority.length > 0 ? (
+        <>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '15px' }}>Needs</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>{priority.map((n) => row(n, true))}</div>
+        </>
+      ) : (
+        <p style={{ fontSize: '13px', color: '#16A34A', fontWeight: 'bold' }}>No urgent needs: the pipeline covers every position.</p>
+      )}
+      <h3 style={{ margin: '0 0 8px 0', fontSize: '15px' }}>Covered</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{rest.map((n) => row(n, false))}</div>
+    </div>
+  );
+};

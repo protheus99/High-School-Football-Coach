@@ -11,7 +11,7 @@ import {
   getSeasonPhase,
   getTeamGameForWeek
 } from '../sim/scheduleEngine';
-import { FEEDER_EVENTS, FeederEventType, PROSPECT_ACTION_COSTS } from '../sim/feederEngine';
+import { FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, PROSPECT_ACTION_COSTS, SKILL_POSITIONS } from '../sim/feederEngine';
 import { COACH_TALENTS, collegeActionCost, feederEventCost, talentBlocker, weeklyCpIncome } from '../sim/coachPoints';
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
@@ -22,9 +22,10 @@ import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
 import { ROUND_LABELS } from '../sim/playoffEngine';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
 import { Player, Team } from '../types/game';
+import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 
 /** Screens the Hub can send the coach to. */
-export type AgendaTab = 'ROSTER' | 'PRACTICE' | 'COLLEGE' | 'OFFICE' | 'FEEDERS' | 'DISTRICT' | 'SCOREBOARD';
+export type AgendaTab = 'ROSTER' | 'PRACTICE' | 'COLLEGE' | 'OFFICE' | 'FEEDERS' | 'FEEDER_PROGRAMS' | 'FEEDER_NEEDS' | 'DISTRICT' | 'SCOREBOARD';
 
 /** This week's game, as the Hub needs it. */
 export interface HubGame {
@@ -321,7 +322,13 @@ export const WeeklyAgenda: React.FC<{
 
   const feederEventsCard = (title: string): AgendaItem | null => {
     if (!feederEventsOpen({ currentWeek, league })) return null;
-    const events = (Object.keys(FEEDER_EVENTS) as FeederEventType[]).filter((e) => !feederEventsThisWeek.includes(e));
+    // Programs that target this year's needs come first; the full list is on the Off Season Programs page
+    const needed = priorityNeeds(teamNeeds(team, scoutingPool, seniorsStillHere(currentYear, feederClassYear, currentWeek))).map((n) => n.position);
+    const targeted: FeederEventType[] = [
+      ...(needed.some((p) => LINE_POSITIONS.includes(p)) ? (['BIG_MAN_CAMP'] as FeederEventType[]) : []),
+      ...(needed.some((p) => SKILL_POSITIONS.includes(p)) ? (['SKILLS_ACADEMY'] as FeederEventType[]) : [])
+    ];
+    const events = [...new Set([...targeted, ...(Object.keys(FEEDER_EVENTS) as FeederEventType[])])].filter((e) => !feederEventsThisWeek.includes(e)).slice(0, 4);
     if (events.length === 0) return null;
     return {
       id: 'feeder-events',
@@ -340,7 +347,21 @@ export const WeeklyAgenda: React.FC<{
           }
         };
       }),
-      link: { label: 'Feeders', onClick: () => onNavigate('FEEDERS') }
+      link: { label: 'All programs', onClick: () => onNavigate('FEEDER_PROGRAMS') }
+    };
+  };
+
+  // Post season on: the holes the next class has to fill
+  const teamNeedsCard = (): AgendaItem | null => {
+    const top = priorityNeeds(teamNeeds(team, scoutingPool, seniorsStillHere(currentYear, feederClassYear, currentWeek))).slice(0, 5);
+    if (top.length === 0) return null;
+    return {
+      id: 'team-needs',
+      icon: '📋',
+      title: `Team needs: ${top.map((n) => n.position).join(', ')}`,
+      detail: top.map((n) => `${n.position} need ${n.need}${n.starterHoles ? ` (${n.starterHoles} starting job${n.starterHoles === 1 ? '' : 's'} open)` : ''}, ${n.pipeline} in pipeline`).join(' · '),
+      tone: 'todo',
+      link: { label: 'Team needs', onClick: () => onNavigate('FEEDER_NEEDS') }
     };
   };
 
@@ -496,6 +517,10 @@ export const WeeklyAgenda: React.FC<{
   if (isGamePhase && game) task = practiceCard();
 
   // ---------------------------------------------------------------- week-specific extras
+  if (phase === 'POST_SEASON' || phase === 'OFF_SEASON') {
+    const needsCard = teamNeedsCard();
+    if (needsCard) extras.push(needsCard);
+  }
   // Report cards come out every third week
   if (isGamePhase && currentWeek % 3 === 0) {
     const ineligible = team.roster.filter((p) => !p.academics.isEligible).length;

@@ -29,7 +29,7 @@ export const SOURCE_LABELS: Record<ProspectSource, string> = {
 
 export const PROSPECT_ACTION_COSTS = { SCOUT: 10, VISIT: 15, PITCH_STAR: 40 };
 
-export type FeederEventType = 'YOUTH_CLINIC' | 'SEVEN_ON_SEVEN_LEAGUE' | 'TRYOUT_DAY';
+export type FeederEventType = 'YOUTH_CLINIC' | 'SEVEN_ON_SEVEN_LEAGUE' | 'TRYOUT_DAY' | 'FAMILY_NIGHT' | 'COMBINE' | 'BIG_MAN_CAMP' | 'SKILLS_ACADEMY';
 
 export const FEEDER_EVENTS: Record<FeederEventType, { label: string; cost: number; description: string }> = {
   YOUTH_CLINIC: {
@@ -46,8 +46,32 @@ export const FEEDER_EVENTS: Record<FeederEventType, { label: string; cost: numbe
     label: 'Community Tryout Day',
     cost: 30,
     description: 'Open tryouts for the student body: walk-ons who can fill out the depth chart.'
+  },
+  FAMILY_NIGHT: {
+    label: 'Family Night Cookout',
+    cost: 35,
+    description: 'Invite every prospect and their families to meet the staff: everyone in the pipeline warms to the program.'
+  },
+  COMBINE: {
+    label: 'Speed & Strength Combine',
+    cost: 25,
+    description: 'Test the pipeline: reveals potential, speed and strength for up to five unscouted prospects.'
+  },
+  BIG_MAN_CAMP: {
+    label: 'Big Man Camp',
+    cost: 40,
+    description: 'Line play for linemen: offensive and defensive line prospects warm up to you, and new linemen may come out.'
+  },
+  SKILLS_ACADEMY: {
+    label: 'QB & Skills Academy',
+    cost: 40,
+    description: 'Quarterback, receiver and secondary work: skill-position prospects warm up to you, and a new one may come out.'
   }
 };
+
+export const LINE_POSITIONS: Position[] = ['OT', 'OG', 'C', 'DE', 'DT'];
+export const SKILL_POSITIONS: Position[] = ['QB', 'RB', 'WR', 'TE', 'CB', 'S'];
+const COMBINE_SCOUTS = 5;
 
 const MIDDLE_SCHOOLS = ['Lakeview MS', 'Cedar Creek MS', 'Oak Hill MS', 'Pecan Springs MS', 'Riverbend MS', 'Canyon Vista MS', 'Bluebonnet MS', 'Live Oak MS'];
 const SEVEN_ON_SEVEN_CLUBS = ['Texas Elite 7v7', 'Lone Star Legends', 'Hill Country Hurricanes', 'Gulf Coast Speed', 'DFW Prime', 'Alamo City Ballers'];
@@ -236,8 +260,14 @@ export function runFeederEvent(
   const room = () => MAX_POOL_SIZE - pool.length - discovered.length;
   const discovered: FeederProspect[] = [];
   const names = new Set(pool.map((p) => p.name));
-  const discover = (source: ProspectSource, count: number) => {
-    for (let i = 0; i < count && room() > 0; i++) discovered.push(createCompetedProspect(source, team, names, ctx));
+  const discover = (source: ProspectSource, count: number, positions?: Position[]) => {
+    for (let i = 0; i < count && room() > 0; i++) {
+      const prospect = createCompetedProspect(source, team, names, ctx);
+      discovered.push(positions ? { ...prospect, projectedPosition: pick(positions) } : prospect);
+    }
+  };
+  const warm = (match: (p: FeederProspect) => boolean, min: number, max: number) => {
+    pool = pool.map((p) => (match(p) ? { ...p, interestScore: clamp(p.interestScore + randomInt(min, max), 0, 100) } : p));
   };
 
   if (type === 'YOUTH_CLINIC') {
@@ -250,6 +280,17 @@ export function runFeederEvent(
   } else if (type === 'SEVEN_ON_SEVEN_LEAGUE') {
     pool = pool.map((p) => (p.source === 'SEVEN_ON_SEVEN' ? { ...p, interestScore: clamp(p.interestScore + randomInt(5, 10), 0, 100) } : p));
     discover('SEVEN_ON_SEVEN', randomInt(1, 2));
+  } else if (type === 'FAMILY_NIGHT') {
+    warm((p) => p.source !== 'STAR_RECRUIT', 3, 6);
+  } else if (type === 'COMBINE') {
+    const unscouted = pool.filter((p) => p.revealedPotential === 'UNKNOWN').slice(0, COMBINE_SCOUTS).map((p) => p.id);
+    pool = pool.map((p) => (unscouted.includes(p.id) ? scoutProspect(p) : p));
+  } else if (type === 'BIG_MAN_CAMP') {
+    warm((p) => LINE_POSITIONS.includes(p.projectedPosition), 6, 10);
+    discover('FEEDER_MIDDLE_SCHOOL', randomInt(1, 2), LINE_POSITIONS);
+  } else if (type === 'SKILLS_ACADEMY') {
+    warm((p) => SKILL_POSITIONS.includes(p.projectedPosition), 6, 10);
+    discover('FEEDER_MIDDLE_SCHOOL', randomInt(0, 1), ['QB', 'QB', ...SKILL_POSITIONS]);
   } else {
     discover('TRYOUT', randomInt(2, 4));
   }

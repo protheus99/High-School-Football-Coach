@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useGameStore } from './store/gameStore';
 import { DashboardView, DefensiveFocus } from './components/DashboardView';
 import { getUserMatchup } from './sim/userMatchup';
-import { FeedersScoutingView } from './components/FeedersScoutingView';
+import { FeederSection, FeedersScoutingView } from './components/FeedersScoutingView';
 import { NewsMediaView } from './components/NewsMediaView';
 import { TeamView, TeamSection } from './components/TeamView';
 import { RankingsHub, RankingsSection } from './components/RankingsHub';
@@ -34,6 +34,7 @@ const NAV_TABS: { id: AppTab; icon: string; label: string }[] = [
 export const App: React.FC = () => {
   const [tab, setTab] = useState<AppTab>('DASHBOARD');
   const [teamSection, setTeamSection] = useState<TeamSection>('ROSTER');
+  const [feederSection, setFeederSection] = useState<FeederSection>('STUDENTS');
   const [rankingsSection, setRankingsSection] = useState<RankingsSection>('HOME');
   const [activeMatch, setActiveMatch] = useState<GameSimulationState | null>(null);
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
@@ -264,8 +265,10 @@ export const App: React.FC = () => {
           <DashboardView
             onLaunchGame={handleLaunchMatch}
             onNavigate={(target) => {
-              if (target === 'FEEDERS') setTab('FEEDERS');
-              else if (target === 'SCOREBOARD') {
+              if (target === 'FEEDERS' || target === 'FEEDER_PROGRAMS' || target === 'FEEDER_NEEDS') {
+                setFeederSection(target === 'FEEDER_PROGRAMS' ? 'PROGRAMS' : target === 'FEEDER_NEEDS' ? 'NEEDS' : 'STUDENTS');
+                setTab('FEEDERS');
+              } else if (target === 'SCOREBOARD') {
                 setRankingsSection('SCORES');
                 setTab('RANKINGS');
               } else if (target === 'DISTRICT') {
@@ -283,7 +286,7 @@ export const App: React.FC = () => {
         {tab === 'LEADERS' && playerRankings && (
           <PlayerLeaderboardView rankingsState={playerRankings} userTeamId={userTeamId} onSelectPlayer={(entry) => setSelectedPlayerDetail(entry.player)} />
         )}
-        {tab === 'FEEDERS' && <FeedersScoutingView />}
+        {tab === 'FEEDERS' && <FeedersScoutingView section={feederSection} onSection={setFeederSection} onOpenPlayer={setSelectedPlayerDetail} />}
         {tab === 'NEWS' && <NewsMediaView articles={newsArticles} />}
       </div>
 
