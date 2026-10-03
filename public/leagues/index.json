@@ -3,23 +3,23 @@
     "state": "Alabama",
     "districts": [
       {
-        "name": "Region 1 (Mobile Metro & Baldwin County / Gulf Coast)",
-        "file": "alabama/region-1-mobile-metro-baldwin-county-gulf-coast.json",
-        "schools": 7
-      },
-      {
-        "name": "Region 2 (East Alabama, River Region & Wiregrass)",
-        "file": "alabama/region-2-east-alabama-river-region-wiregrass.json",
-        "schools": 7
-      },
-      {
-        "name": "Region 3 (Birmingham Metro & Over-the-Mountain Corridor)",
-        "file": "alabama/region-3-birmingham-metro-over-the-mountain-corridor.json",
+        "name": "Region 1-6A (Mobile & Baldwin County)",
+        "file": "alabama/region-1-6a-mobile-baldwin-county.json",
         "schools": 8
       },
       {
-        "name": "Region 4 (Huntsville Metro & North Alabama Tennessee Valley)",
-        "file": "alabama/region-4-huntsville-metro-north-alabama-tennessee-valley.json",
+        "name": "Region 2-6A (East Alabama, River Region & Wiregrass)",
+        "file": "alabama/region-2-6a-east-alabama-river-region-wiregrass.json",
+        "schools": 8
+      },
+      {
+        "name": "Region 3-6A (Birmingham Metro & Over-the-Mountain)",
+        "file": "alabama/region-3-6a-birmingham-metro-over-the-mountain.json",
+        "schools": 8
+      },
+      {
+        "name": "Region 4-6A (Huntsville & North Alabama)",
+        "file": "alabama/region-4-6a-huntsville-north-alabama.json",
         "schools": 8
       }
     ]

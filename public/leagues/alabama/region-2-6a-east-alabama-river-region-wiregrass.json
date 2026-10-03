@@ -1,0 +1,88 @@
+{
+  "state": "Alabama",
+  "classification": "6A",
+  "districtId": "alabama_region-2-6a-east-alabama-river-region-wiregrass",
+  "districtName": "Region 2-6A (East Alabama, River Region & Wiregrass)",
+  "schools": [
+    {
+      "name": "Auburn High",
+      "city": "Auburn",
+      "mascot": "Tigers",
+      "primaryColor": "#003087",
+      "secondaryColor": "#000000",
+      "prestige": 96,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Carver-Montgomery",
+      "city": "Montgomery",
+      "mascot": "Wolverines",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFD700",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Central-Phenix City",
+      "city": "Phenix City",
+      "mascot": "Red Devils",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 99,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Dothan",
+      "city": "Dothan",
+      "mascot": "Wolves",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 85,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Enterprise",
+      "city": "Enterprise",
+      "mascot": "Wildcats",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "JAG (Johnson Graetz)",
+      "city": "Montgomery",
+      "mascot": "Jaguars",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#000000",
+      "prestige": 50,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Opelika",
+      "city": "Opelika",
+      "mascot": "Bulldogs",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFD700",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Smiths Station",
+      "city": "Smiths Station",
+      "mascot": "Panthers",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFC72C",
+      "prestige": 66,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    }
+  ]
+}

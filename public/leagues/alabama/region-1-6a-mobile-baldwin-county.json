@@ -1,0 +1,88 @@
+{
+  "state": "Alabama",
+  "classification": "6A",
+  "districtId": "alabama_region-1-6a-mobile-baldwin-county",
+  "districtName": "Region 1-6A (Mobile & Baldwin County)",
+  "schools": [
+    {
+      "name": "Alma Bryant",
+      "city": "Irvington",
+      "mascot": "Hurricanes",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 65,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Baker",
+      "city": "Mobile",
+      "mascot": "Hornets",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Daphne",
+      "city": "Daphne",
+      "mascot": "Trojans",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 88,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Davidson",
+      "city": "Mobile",
+      "mascot": "Warriors",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 76,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Fairhope",
+      "city": "Fairhope",
+      "mascot": "Pirates",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#B3A369",
+      "prestige": 86,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Foley",
+      "city": "Foley",
+      "mascot": "Lions",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mary G. Montgomery",
+      "city": "Semmes",
+      "mascot": "Vikings",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 93,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Robertsdale",
+      "city": "Robertsdale",
+      "mascot": "Golden Bears",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 62,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

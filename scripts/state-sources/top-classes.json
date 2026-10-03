@@ -1,134 +1,1569 @@
 {
-  "_about": "Full top football classifications from the official 2026 alignments (GHSA Region Alignment for 2026-2028, FHSAA 2026-27/2027-28 Finalized FB Classification, MPSSAA 2025 Football Classification Alignment, NCHSAA 2025-29 realignment). Each school: [name, city, mascot, prestige estimate]. Prestige and schemes from the design spec win when the spec rates the school.",
-  "Georgia": {
-    "classification": "7A",
-    "districts": [
-      { "name": "Region 1-7A (South Georgia & Coast)", "schools": [
-        ["Camden County", "Kingsland", "Wildcats", 82], ["Colquitt County", "Moultrie", "Packers", 90], ["Lowndes", "Valdosta", "Vikings", 89],
-        ["Richmond Hill", "Richmond Hill", "Wildcats", 74], ["Valdosta", "Valdosta", "Wildcats", 86]] },
-      { "name": "Region 2-7A (West Metro & Coweta)", "schools": [
-        ["Carrollton", "Carrollton", "Trojans", 92], ["Douglas County", "Douglasville", "Tigers", 74], ["East Coweta", "Sharpsburg", "Indians", 76],
-        ["Northgate", "Newnan", "Vikings", 70], ["Westlake", "Atlanta", "Lions", 80]] },
-      { "name": "Region 3-7A (Cobb & Atlanta)", "schools": [
-        ["Campbell", "Smyrna", "Spartans", 66], ["Harrison", "Kennesaw", "Hoyas", 74], ["Hillgrove", "Powder Springs", "Hawks", 78],
-        ["Kennesaw Mountain", "Kennesaw", "Mustangs", 72], ["McEachern", "Powder Springs", "Indians", 78], ["North Atlanta", "Atlanta", "Warriors", 62],
-        ["Pebblebrook", "Mableton", "Falcons", 64]] },
-      { "name": "Region 4-7A (Gwinnett South, DeKalb & Rockdale)", "schools": [
-        ["Archer", "Lawrenceville", "Tigers", 72], ["Grayson", "Loganville", "Rams", 94], ["Lakeside (DeKalb)", "Atlanta", "Vikings", 60],
-        ["Newton", "Covington", "Rams", 74], ["Rockdale County", "Conyers", "Bulldogs", 64], ["South Gwinnett", "Snellville", "Comets", 66]] },
-      { "name": "Region 5-7A (Cobb, Cherokee & Paulding)", "schools": [
-        ["Cherokee", "Canton", "Warriors", 68], ["Etowah", "Woodstock", "Eagles", 70], ["Marietta", "Marietta", "Blue Devils", 82],
-        ["North Cobb", "Kennesaw", "Warriors", 84], ["North Paulding", "Dallas", "Wolfpack", 70], ["Paulding County", "Dallas", "Patriots", 62],
-        ["Walton", "Marietta", "Raiders", 78], ["Wheeler", "Marietta", "Wildcats", 66]] },
-      { "name": "Region 6-7A (Forsyth County)", "schools": [
-        ["Denmark", "Alpharetta", "Danes", 74], ["Forsyth Central", "Cumming", "Bulldogs", 66], ["Lambert", "Suwanee", "Longhorns", 76],
-        ["North Forsyth", "Cumming", "Raiders", 72], ["South Forsyth", "Cumming", "War Eagles", 70], ["West Forsyth", "Cumming", "Wolverines", 72]] },
-      { "name": "Region 7-7A (Gwinnett Central)", "schools": [
-        ["Berkmar", "Lilburn", "Patriots", 58], ["Brookwood", "Snellville", "Broncos", 80], ["Duluth", "Duluth", "Wildcats", 62],
-        ["Norcross", "Norcross", "Blue Devils", 82], ["North Gwinnett", "Suwanee", "Bulldogs", 84], ["Parkview", "Lilburn", "Panthers", 82],
-        ["Peachtree Ridge", "Suwanee", "Lions", 68]] },
-      { "name": "Region 8-7A (Gwinnett North & Buford)", "schools": [
-        ["Buford", "Buford", "Wolves", 97], ["Central Gwinnett", "Lawrenceville", "Black Knights", 60], ["Collins Hill", "Suwanee", "Eagles", 84],
-        ["Dacula", "Dacula", "Falcons", 74], ["Discovery", "Lawrenceville", "Titans", 58], ["Mill Creek", "Hoschton", "Hawks", 90],
-        ["Seckinger", "Buford", "Jaguars", 62]] }
+ "_about": "Full top football classifications from the official 2026 alignments (GHSA Region Alignment for 2026-2028, FHSAA 2026-27/2027-28 Finalized FB Classification, AHSAA 2026-28 public classes (7A eliminated), MPSSAA 2025 Football Classification Alignment, NCHSAA 2025-29 realignment). Each school: [name, city, mascot, prestige estimate]. Prestige and schemes from the design spec win when the spec rates the school.",
+ "Georgia": {
+  "classification": "7A",
+  "districts": [
+   {
+    "name": "Region 1-7A (South Georgia & Coast)",
+    "schools": [
+     [
+      "Camden County",
+      "Kingsland",
+      "Wildcats",
+      82
+     ],
+     [
+      "Colquitt County",
+      "Moultrie",
+      "Packers",
+      90
+     ],
+     [
+      "Lowndes",
+      "Valdosta",
+      "Vikings",
+      89
+     ],
+     [
+      "Richmond Hill",
+      "Richmond Hill",
+      "Wildcats",
+      74
+     ],
+     [
+      "Valdosta",
+      "Valdosta",
+      "Wildcats",
+      86
+     ]
     ]
-  },
-  "Florida": {
-    "classification": "6A",
-    "districts": [
-      { "name": "District 1-6A (Jacksonville, St. Johns & Flagler)", "schools": [
-        ["Atlantic Coast", "Jacksonville", "Stingrays", 64], ["Creekside", "St. Johns", "Knights", 70], ["First Coast", "Jacksonville", "Buccaneers", 62],
-        ["Flagler Palm Coast", "Palm Coast", "Bulldogs", 66], ["Sandalwood", "Jacksonville", "Saints", 72], ["Tocoi Creek", "St. Augustine", "Toros", 60]] },
-      { "name": "District 2-6A (Volusia County)", "schools": [
-        ["DeLand", "DeLand", "Bulldogs", 80], ["Mainland", "Daytona Beach", "Buccaneers", 76], ["Spruce Creek", "Port Orange", "Hawks", 66],
-        ["University", "Orange City", "Titans", 62]] },
-      { "name": "District 3-6A (Seminole County & Apopka)", "schools": [
-        ["Apopka", "Apopka", "Blue Darters", 88], ["Lake Brantley", "Altamonte Springs", "Patriots", 70], ["Lake Mary", "Lake Mary", "Rams", 74],
-        ["Seminole", "Sanford", "Seminoles", 84]] },
-      { "name": "District 4-6A (Orlando East & Oviedo)", "schools": [
-        ["Boone", "Orlando", "Braves", 72], ["Hagerty", "Oviedo", "Huskies", 66], ["Timber Creek", "Orlando", "Wolves", 70],
-        ["Winter Park", "Winter Park", "Wildcats", 72]] },
-      { "name": "District 5-6A (Osceola & Lake Nona)", "schools": [
-        ["Gateway", "Kissimmee", "Panthers", 58], ["Harmony", "Harmony", "Longhorns", 64], ["Lake Nona", "Orlando", "Lions", 72],
-        ["St. Cloud", "St. Cloud", "Bulldogs", 62], ["Tohopekaliga", "Kissimmee", "Tigers", 60]] },
-      { "name": "District 6-6A (Orlando West)", "schools": [
-        ["Dr. Phillips", "Orlando", "Panthers", 80], ["Edgewater", "Orlando", "Eagles", 74], ["Olympia", "Orlando", "Titans", 66],
-        ["West Orange", "Winter Garden", "Warriors", 72]] },
-      { "name": "District 7-6A (West Orange, Lake & Celebration)", "schools": [
-        ["Celebration", "Celebration", "Storm", 58], ["East Ridge", "Clermont", "Knights", 62], ["Horizon", "Winter Garden", "Hawks", 64],
-        ["Ocoee", "Ocoee", "Knights", 70]] },
-      { "name": "District 8-6A (Treasure Coast)", "schools": [
-        ["Centennial", "Port St. Lucie", "Eagles", 66], ["Fort Pierce Central", "Fort Pierce", "Cobras", 64], ["Treasure Coast", "Port St. Lucie", "Titans", 74],
-        ["Vero Beach", "Vero Beach", "Fighting Indians", 82]] },
-      { "name": "District 9-6A (Polk County)", "schools": [
-        ["Davenport", "Davenport", "Broncos", 54], ["George Jenkins", "Lakeland", "Eagles", 66], ["Haines City", "Haines City", "Hornets", 64],
-        ["Poinciana", "Kissimmee", "Eagles", 56], ["Ridge Community", "Davenport", "Bolts", 58], ["Winter Haven", "Winter Haven", "Blue Devils", 66]] },
-      { "name": "District 10-6A (Hillsborough South & East)", "schools": [
-        ["Durant", "Plant City", "Cougars", 66], ["Lennard", "Ruskin", "Longhorns", 62], ["Newsome", "Lithia", "Wolves", 74],
-        ["Plant City", "Plant City", "Raiders", 66], ["Riverview", "Riverview", "Sharks", 56]] },
-      { "name": "District 11-6A (Tampa North & Pinellas)", "schools": [
-        ["Alonso", "Tampa", "Ravens", 60], ["George Steinbrenner", "Lutz", "Warriors", 68], ["Palm Harbor University", "Palm Harbor", "Hurricanes", 62],
-        ["Strawberry Crest", "Dover", "Chargers", 58]] },
-      { "name": "District 12-6A (Manatee, Sarasota & Lee)", "schools": [
-        ["Lakewood Ranch", "Bradenton", "Mustangs", 66], ["Lehigh", "Lehigh Acres", "Lightning", 58], ["North Port", "North Port", "Bobcats", 60],
-        ["Sarasota Riverview", "Sarasota", "Rams", 58], ["Sarasota", "Sarasota", "Sailors", 62], ["Venice", "Venice", "Indians", 88]] },
-      { "name": "District 13-6A (Palm Beach North)", "schools": [
-        ["Palm Beach Lakes", "West Palm Beach", "Rams", 64], ["Dr. Joaquin Garcia", "Lake Worth", "Bulldogs", 54], ["Jupiter", "Jupiter", "Warriors", 66],
-        ["Lake Worth", "Lake Worth", "Trojans", 58], ["Palm Beach Central", "Wellington", "Broncos", 72], ["Santaluces", "Lantana", "Chiefs", 60],
-        ["Wellington", "Wellington", "Wolverines", 66]] },
-      { "name": "District 14-6A (Palm Beach South & Broward North)", "schools": [
-        ["Boca Raton", "Boca Raton", "Bobcats", 62], ["Coral Glades", "Coral Springs", "Jaguars", 58], ["Nova", "Davie", "Titans", 66],
-        ["Park Vista", "Lake Worth", "Cobras", 62], ["South Plantation", "Plantation", "Paladins", 60], ["Spanish River", "Boca Raton", "Sharks", 58]] },
-      { "name": "District 15-6A (Broward & North Miami-Dade)", "schools": [
-        ["Cypress Bay", "Weston", "Lightning", 66], ["Doral Academy", "Doral", "Firebirds", 64], ["Goleman", "Miami", "Gladiators", 62],
-        ["Miami High", "Miami", "Stingarees", 66], ["West Broward", "Pembroke Pines", "Bobcats", 60], ["Western", "Davie", "Wildcats", 64]] },
-      { "name": "District 16-6A (South Miami-Dade)", "schools": [
-        ["Columbus", "Miami", "Explorers", 82], ["Coral Gables", "Coral Gables", "Cavaliers", 70], ["Homestead", "Homestead", "Broncos", 74],
-        ["Miami Palmetto", "Pinecrest", "Panthers", 72], ["South Dade", "Homestead", "Buccaneers", 74], ["Southwest Miami", "Miami", "Eagles", 60]] }
+   },
+   {
+    "name": "Region 2-7A (West Metro & Coweta)",
+    "schools": [
+     [
+      "Carrollton",
+      "Carrollton",
+      "Trojans",
+      92
+     ],
+     [
+      "Douglas County",
+      "Douglasville",
+      "Tigers",
+      74
+     ],
+     [
+      "East Coweta",
+      "Sharpsburg",
+      "Indians",
+      76
+     ],
+     [
+      "Northgate",
+      "Newnan",
+      "Vikings",
+      70
+     ],
+     [
+      "Westlake",
+      "Atlanta",
+      "Lions",
+      80
+     ]
     ]
-  },
-  "Maryland": {
-    "classification": "4A",
-    "districts": [
-      { "name": "Class 4A West (Montgomery County)", "schools": [
-        ["Clarksburg", "Clarksburg", "Coyotes", 70], ["Gaithersburg", "Gaithersburg", "Trojans", 66], ["Northwest", "Germantown", "Jaguars", 80],
-        ["Quince Orchard", "Gaithersburg", "Cougars", 92], ["Richard Montgomery", "Rockville", "Rockets", 58], ["Seneca Valley", "Germantown", "Screaming Eagles", 72],
-        ["Walter Johnson", "Bethesda", "Wildcats", 64], ["Winston Churchill", "Potomac", "Bulldogs", 68]] },
-      { "name": "Class 4A North (Montgomery & Prince George's)", "schools": [
-        ["Bethesda-Chevy Chase", "Bethesda", "Barons", 62], ["James Hubert Blake", "Silver Spring", "Bengals", 60], ["Montgomery Blair", "Silver Spring", "Blazers", 58],
-        ["Paint Branch", "Burtonsville", "Panthers", 76], ["Wheaton", "Silver Spring", "Knights", 50], ["High Point", "Beltsville", "Eagles", 54],
-        ["Laurel", "Laurel", "Spartans", 56], ["Northwestern", "Hyattsville", "Wildcats", 50]] },
-      { "name": "Class 4A South (Prince George's County)", "schools": [
-        ["Bladensburg", "Bladensburg", "Mustangs", 56], ["Charles H. Flowers", "Springdale", "Jaguars", 64], ["Dr. Henry A. Wise", "Upper Marlboro", "Pumas", 86],
-        ["DuVal", "Lanham", "Tigers", 66], ["Eleanor Roosevelt", "Greenbelt", "Raiders", 62], ["Parkdale", "Riverdale", "Panthers", 52],
-        ["Suitland", "Forestville", "Rams", 70]] },
-      { "name": "Class 4A East (Anne Arundel, Baltimore County & Bowie)", "schools": [
-        ["Annapolis", "Annapolis", "Panthers", 64], ["Broadneck", "Annapolis", "Bruins", 74], ["Glen Burnie", "Glen Burnie", "Gophers", 60],
-        ["Meade", "Fort Meade", "Mustangs", 66], ["North County", "Glen Burnie", "Knights", 58], ["Dundalk", "Dundalk", "Owls", 56],
-        ["Bowie", "Bowie", "Bulldogs", 62]] }
+   },
+   {
+    "name": "Region 3-7A (Cobb & Atlanta)",
+    "schools": [
+     [
+      "Campbell",
+      "Smyrna",
+      "Spartans",
+      66
+     ],
+     [
+      "Harrison",
+      "Kennesaw",
+      "Hoyas",
+      74
+     ],
+     [
+      "Hillgrove",
+      "Powder Springs",
+      "Hawks",
+      78
+     ],
+     [
+      "Kennesaw Mountain",
+      "Kennesaw",
+      "Mustangs",
+      72
+     ],
+     [
+      "McEachern",
+      "Powder Springs",
+      "Indians",
+      78
+     ],
+     [
+      "North Atlanta",
+      "Atlanta",
+      "Warriors",
+      62
+     ],
+     [
+      "Pebblebrook",
+      "Mableton",
+      "Falcons",
+      64
+     ]
     ]
-  },
-  "North Carolina": {
-    "classification": "8A",
-    "districts": [
-      { "name": "8A Conference 1 (Wake & Johnston)", "schools": [
-        ["Athens Drive", "Raleigh", "Jaguars", 58], ["Broughton", "Raleigh", "Capitals", 62], ["Corinth Holders", "Wendell", "Pirates", 70],
-        ["Enloe", "Raleigh", "Eagles", 50], ["Leesville Road", "Raleigh", "Pride", 66], ["Millbrook", "Raleigh", "Wildcats", 70],
-        ["Rolesville", "Rolesville", "Rams", 78], ["Wakefield", "Raleigh", "Wolverines", 72]] },
-      { "name": "8A Conference 2 (Wake & Durham)", "schools": [
-        ["Apex", "Apex", "Cougars", 64], ["Apex Friendship", "Apex", "Patriots", 72], ["Green Hope", "Cary", "Falcons", 58],
-        ["Green Level", "Cary", "Gators", 66], ["Jordan", "Durham", "Falcons", 60], ["Panther Creek", "Cary", "Catamounts", 62],
-        ["Willow Spring", "Fuquay-Varina", "Storm", 52]] },
-      { "name": "Charlotte North & Central (7A/8A Conferences C & D)", "schools": [
-        ["Chambers", "Charlotte", "Cougars", 80], ["Mallard Creek", "Charlotte", "Mavericks", 92], ["West Charlotte", "Charlotte", "Lions", 70],
-        ["Garinger", "Charlotte", "Wildcats", 50], ["Hough", "Cornelius", "Huskies", 94], ["Myers Park", "Charlotte", "Mustangs", 80],
-        ["South Mecklenburg", "Charlotte", "Sabres", 64]] },
-      { "name": "Charlotte South & East (7A/8A Conference E)", "schools": [
-        ["Ardrey Kell", "Charlotte", "Knights", 74], ["East Mecklenburg", "Charlotte", "Eagles", 58], ["Palisades", "Charlotte", "Pumas", 56],
-        ["Providence", "Charlotte", "Panthers", 66]] },
-      { "name": "Coast, Sandhills & Triad (8A in mixed conferences)", "schools": [
-        ["Hoggard", "Wilmington", "Vikings", 76], ["Laney", "Wilmington", "Buccaneers", 74], ["Hoke County", "Raeford", "Bucks", 66],
-        ["Pinecrest", "Southern Pines", "Patriots", 72], ["Northwest Guilford", "Greensboro", "Vikings", 82], ["West Forsyth", "Clemmons", "Titans", 76]] }
+   },
+   {
+    "name": "Region 4-7A (Gwinnett South, DeKalb & Rockdale)",
+    "schools": [
+     [
+      "Archer",
+      "Lawrenceville",
+      "Tigers",
+      72
+     ],
+     [
+      "Grayson",
+      "Loganville",
+      "Rams",
+      94
+     ],
+     [
+      "Lakeside (DeKalb)",
+      "Atlanta",
+      "Vikings",
+      60
+     ],
+     [
+      "Newton",
+      "Covington",
+      "Rams",
+      74
+     ],
+     [
+      "Rockdale County",
+      "Conyers",
+      "Bulldogs",
+      64
+     ],
+     [
+      "South Gwinnett",
+      "Snellville",
+      "Comets",
+      66
+     ]
     ]
-  }
+   },
+   {
+    "name": "Region 5-7A (Cobb, Cherokee & Paulding)",
+    "schools": [
+     [
+      "Cherokee",
+      "Canton",
+      "Warriors",
+      68
+     ],
+     [
+      "Etowah",
+      "Woodstock",
+      "Eagles",
+      70
+     ],
+     [
+      "Marietta",
+      "Marietta",
+      "Blue Devils",
+      82
+     ],
+     [
+      "North Cobb",
+      "Kennesaw",
+      "Warriors",
+      84
+     ],
+     [
+      "North Paulding",
+      "Dallas",
+      "Wolfpack",
+      70
+     ],
+     [
+      "Paulding County",
+      "Dallas",
+      "Patriots",
+      62
+     ],
+     [
+      "Walton",
+      "Marietta",
+      "Raiders",
+      78
+     ],
+     [
+      "Wheeler",
+      "Marietta",
+      "Wildcats",
+      66
+     ]
+    ]
+   },
+   {
+    "name": "Region 6-7A (Forsyth County)",
+    "schools": [
+     [
+      "Denmark",
+      "Alpharetta",
+      "Danes",
+      74
+     ],
+     [
+      "Forsyth Central",
+      "Cumming",
+      "Bulldogs",
+      66
+     ],
+     [
+      "Lambert",
+      "Suwanee",
+      "Longhorns",
+      76
+     ],
+     [
+      "North Forsyth",
+      "Cumming",
+      "Raiders",
+      72
+     ],
+     [
+      "South Forsyth",
+      "Cumming",
+      "War Eagles",
+      70
+     ],
+     [
+      "West Forsyth",
+      "Cumming",
+      "Wolverines",
+      72
+     ]
+    ]
+   },
+   {
+    "name": "Region 7-7A (Gwinnett Central)",
+    "schools": [
+     [
+      "Berkmar",
+      "Lilburn",
+      "Patriots",
+      58
+     ],
+     [
+      "Brookwood",
+      "Snellville",
+      "Broncos",
+      80
+     ],
+     [
+      "Duluth",
+      "Duluth",
+      "Wildcats",
+      62
+     ],
+     [
+      "Norcross",
+      "Norcross",
+      "Blue Devils",
+      82
+     ],
+     [
+      "North Gwinnett",
+      "Suwanee",
+      "Bulldogs",
+      84
+     ],
+     [
+      "Parkview",
+      "Lilburn",
+      "Panthers",
+      82
+     ],
+     [
+      "Peachtree Ridge",
+      "Suwanee",
+      "Lions",
+      68
+     ]
+    ]
+   },
+   {
+    "name": "Region 8-7A (Gwinnett North & Buford)",
+    "schools": [
+     [
+      "Buford",
+      "Buford",
+      "Wolves",
+      97
+     ],
+     [
+      "Central Gwinnett",
+      "Lawrenceville",
+      "Black Knights",
+      60
+     ],
+     [
+      "Collins Hill",
+      "Suwanee",
+      "Eagles",
+      84
+     ],
+     [
+      "Dacula",
+      "Dacula",
+      "Falcons",
+      74
+     ],
+     [
+      "Discovery",
+      "Lawrenceville",
+      "Titans",
+      58
+     ],
+     [
+      "Mill Creek",
+      "Hoschton",
+      "Hawks",
+      90
+     ],
+     [
+      "Seckinger",
+      "Buford",
+      "Jaguars",
+      62
+     ]
+    ]
+   }
+  ]
+ },
+ "Florida": {
+  "classification": "6A",
+  "districts": [
+   {
+    "name": "District 1-6A (Jacksonville, St. Johns & Flagler)",
+    "schools": [
+     [
+      "Atlantic Coast",
+      "Jacksonville",
+      "Stingrays",
+      64
+     ],
+     [
+      "Creekside",
+      "St. Johns",
+      "Knights",
+      70
+     ],
+     [
+      "First Coast",
+      "Jacksonville",
+      "Buccaneers",
+      62
+     ],
+     [
+      "Flagler Palm Coast",
+      "Palm Coast",
+      "Bulldogs",
+      66
+     ],
+     [
+      "Sandalwood",
+      "Jacksonville",
+      "Saints",
+      72
+     ],
+     [
+      "Tocoi Creek",
+      "St. Augustine",
+      "Toros",
+      60
+     ]
+    ]
+   },
+   {
+    "name": "District 2-6A (Volusia County)",
+    "schools": [
+     [
+      "DeLand",
+      "DeLand",
+      "Bulldogs",
+      80
+     ],
+     [
+      "Mainland",
+      "Daytona Beach",
+      "Buccaneers",
+      76
+     ],
+     [
+      "Spruce Creek",
+      "Port Orange",
+      "Hawks",
+      66
+     ],
+     [
+      "University",
+      "Orange City",
+      "Titans",
+      62
+     ]
+    ]
+   },
+   {
+    "name": "District 3-6A (Seminole County & Apopka)",
+    "schools": [
+     [
+      "Apopka",
+      "Apopka",
+      "Blue Darters",
+      88
+     ],
+     [
+      "Lake Brantley",
+      "Altamonte Springs",
+      "Patriots",
+      70
+     ],
+     [
+      "Lake Mary",
+      "Lake Mary",
+      "Rams",
+      74
+     ],
+     [
+      "Seminole",
+      "Sanford",
+      "Seminoles",
+      84
+     ]
+    ]
+   },
+   {
+    "name": "District 4-6A (Orlando East & Oviedo)",
+    "schools": [
+     [
+      "Boone",
+      "Orlando",
+      "Braves",
+      72
+     ],
+     [
+      "Hagerty",
+      "Oviedo",
+      "Huskies",
+      66
+     ],
+     [
+      "Timber Creek",
+      "Orlando",
+      "Wolves",
+      70
+     ],
+     [
+      "Winter Park",
+      "Winter Park",
+      "Wildcats",
+      72
+     ]
+    ]
+   },
+   {
+    "name": "District 5-6A (Osceola & Lake Nona)",
+    "schools": [
+     [
+      "Gateway",
+      "Kissimmee",
+      "Panthers",
+      58
+     ],
+     [
+      "Harmony",
+      "Harmony",
+      "Longhorns",
+      64
+     ],
+     [
+      "Lake Nona",
+      "Orlando",
+      "Lions",
+      72
+     ],
+     [
+      "St. Cloud",
+      "St. Cloud",
+      "Bulldogs",
+      62
+     ],
+     [
+      "Tohopekaliga",
+      "Kissimmee",
+      "Tigers",
+      60
+     ]
+    ]
+   },
+   {
+    "name": "District 6-6A (Orlando West)",
+    "schools": [
+     [
+      "Dr. Phillips",
+      "Orlando",
+      "Panthers",
+      80
+     ],
+     [
+      "Edgewater",
+      "Orlando",
+      "Eagles",
+      74
+     ],
+     [
+      "Olympia",
+      "Orlando",
+      "Titans",
+      66
+     ],
+     [
+      "West Orange",
+      "Winter Garden",
+      "Warriors",
+      72
+     ]
+    ]
+   },
+   {
+    "name": "District 7-6A (West Orange, Lake & Celebration)",
+    "schools": [
+     [
+      "Celebration",
+      "Celebration",
+      "Storm",
+      58
+     ],
+     [
+      "East Ridge",
+      "Clermont",
+      "Knights",
+      62
+     ],
+     [
+      "Horizon",
+      "Winter Garden",
+      "Hawks",
+      64
+     ],
+     [
+      "Ocoee",
+      "Ocoee",
+      "Knights",
+      70
+     ]
+    ]
+   },
+   {
+    "name": "District 8-6A (Treasure Coast)",
+    "schools": [
+     [
+      "Centennial",
+      "Port St. Lucie",
+      "Eagles",
+      66
+     ],
+     [
+      "Fort Pierce Central",
+      "Fort Pierce",
+      "Cobras",
+      64
+     ],
+     [
+      "Treasure Coast",
+      "Port St. Lucie",
+      "Titans",
+      74
+     ],
+     [
+      "Vero Beach",
+      "Vero Beach",
+      "Fighting Indians",
+      82
+     ]
+    ]
+   },
+   {
+    "name": "District 9-6A (Polk County)",
+    "schools": [
+     [
+      "Davenport",
+      "Davenport",
+      "Broncos",
+      54
+     ],
+     [
+      "George Jenkins",
+      "Lakeland",
+      "Eagles",
+      66
+     ],
+     [
+      "Haines City",
+      "Haines City",
+      "Hornets",
+      64
+     ],
+     [
+      "Poinciana",
+      "Kissimmee",
+      "Eagles",
+      56
+     ],
+     [
+      "Ridge Community",
+      "Davenport",
+      "Bolts",
+      58
+     ],
+     [
+      "Winter Haven",
+      "Winter Haven",
+      "Blue Devils",
+      66
+     ]
+    ]
+   },
+   {
+    "name": "District 10-6A (Hillsborough South & East)",
+    "schools": [
+     [
+      "Durant",
+      "Plant City",
+      "Cougars",
+      66
+     ],
+     [
+      "Lennard",
+      "Ruskin",
+      "Longhorns",
+      62
+     ],
+     [
+      "Newsome",
+      "Lithia",
+      "Wolves",
+      74
+     ],
+     [
+      "Plant City",
+      "Plant City",
+      "Raiders",
+      66
+     ],
+     [
+      "Riverview",
+      "Riverview",
+      "Sharks",
+      56
+     ]
+    ]
+   },
+   {
+    "name": "District 11-6A (Tampa North & Pinellas)",
+    "schools": [
+     [
+      "Alonso",
+      "Tampa",
+      "Ravens",
+      60
+     ],
+     [
+      "George Steinbrenner",
+      "Lutz",
+      "Warriors",
+      68
+     ],
+     [
+      "Palm Harbor University",
+      "Palm Harbor",
+      "Hurricanes",
+      62
+     ],
+     [
+      "Strawberry Crest",
+      "Dover",
+      "Chargers",
+      58
+     ]
+    ]
+   },
+   {
+    "name": "District 12-6A (Manatee, Sarasota & Lee)",
+    "schools": [
+     [
+      "Lakewood Ranch",
+      "Bradenton",
+      "Mustangs",
+      66
+     ],
+     [
+      "Lehigh",
+      "Lehigh Acres",
+      "Lightning",
+      58
+     ],
+     [
+      "North Port",
+      "North Port",
+      "Bobcats",
+      60
+     ],
+     [
+      "Sarasota Riverview",
+      "Sarasota",
+      "Rams",
+      58
+     ],
+     [
+      "Sarasota",
+      "Sarasota",
+      "Sailors",
+      62
+     ],
+     [
+      "Venice",
+      "Venice",
+      "Indians",
+      88
+     ]
+    ]
+   },
+   {
+    "name": "District 13-6A (Palm Beach North)",
+    "schools": [
+     [
+      "Palm Beach Lakes",
+      "West Palm Beach",
+      "Rams",
+      64
+     ],
+     [
+      "Dr. Joaquin Garcia",
+      "Lake Worth",
+      "Bulldogs",
+      54
+     ],
+     [
+      "Jupiter",
+      "Jupiter",
+      "Warriors",
+      66
+     ],
+     [
+      "Lake Worth",
+      "Lake Worth",
+      "Trojans",
+      58
+     ],
+     [
+      "Palm Beach Central",
+      "Wellington",
+      "Broncos",
+      72
+     ],
+     [
+      "Santaluces",
+      "Lantana",
+      "Chiefs",
+      60
+     ],
+     [
+      "Wellington",
+      "Wellington",
+      "Wolverines",
+      66
+     ]
+    ]
+   },
+   {
+    "name": "District 14-6A (Palm Beach South & Broward North)",
+    "schools": [
+     [
+      "Boca Raton",
+      "Boca Raton",
+      "Bobcats",
+      62
+     ],
+     [
+      "Coral Glades",
+      "Coral Springs",
+      "Jaguars",
+      58
+     ],
+     [
+      "Nova",
+      "Davie",
+      "Titans",
+      66
+     ],
+     [
+      "Park Vista",
+      "Lake Worth",
+      "Cobras",
+      62
+     ],
+     [
+      "South Plantation",
+      "Plantation",
+      "Paladins",
+      60
+     ],
+     [
+      "Spanish River",
+      "Boca Raton",
+      "Sharks",
+      58
+     ]
+    ]
+   },
+   {
+    "name": "District 15-6A (Broward & North Miami-Dade)",
+    "schools": [
+     [
+      "Cypress Bay",
+      "Weston",
+      "Lightning",
+      66
+     ],
+     [
+      "Doral Academy",
+      "Doral",
+      "Firebirds",
+      64
+     ],
+     [
+      "Goleman",
+      "Miami",
+      "Gladiators",
+      62
+     ],
+     [
+      "Miami High",
+      "Miami",
+      "Stingarees",
+      66
+     ],
+     [
+      "West Broward",
+      "Pembroke Pines",
+      "Bobcats",
+      60
+     ],
+     [
+      "Western",
+      "Davie",
+      "Wildcats",
+      64
+     ]
+    ]
+   },
+   {
+    "name": "District 16-6A (South Miami-Dade)",
+    "schools": [
+     [
+      "Columbus",
+      "Miami",
+      "Explorers",
+      82
+     ],
+     [
+      "Coral Gables",
+      "Coral Gables",
+      "Cavaliers",
+      70
+     ],
+     [
+      "Homestead",
+      "Homestead",
+      "Broncos",
+      74
+     ],
+     [
+      "Miami Palmetto",
+      "Pinecrest",
+      "Panthers",
+      72
+     ],
+     [
+      "South Dade",
+      "Homestead",
+      "Buccaneers",
+      74
+     ],
+     [
+      "Southwest Miami",
+      "Miami",
+      "Eagles",
+      60
+     ]
+    ]
+   }
+  ]
+ },
+ "Maryland": {
+  "classification": "4A",
+  "districts": [
+   {
+    "name": "Class 4A West (Montgomery County)",
+    "schools": [
+     [
+      "Clarksburg",
+      "Clarksburg",
+      "Coyotes",
+      70
+     ],
+     [
+      "Gaithersburg",
+      "Gaithersburg",
+      "Trojans",
+      66
+     ],
+     [
+      "Northwest",
+      "Germantown",
+      "Jaguars",
+      80
+     ],
+     [
+      "Quince Orchard",
+      "Gaithersburg",
+      "Cougars",
+      92
+     ],
+     [
+      "Richard Montgomery",
+      "Rockville",
+      "Rockets",
+      58
+     ],
+     [
+      "Seneca Valley",
+      "Germantown",
+      "Screaming Eagles",
+      72
+     ],
+     [
+      "Walter Johnson",
+      "Bethesda",
+      "Wildcats",
+      64
+     ],
+     [
+      "Winston Churchill",
+      "Potomac",
+      "Bulldogs",
+      68
+     ]
+    ]
+   },
+   {
+    "name": "Class 4A North (Montgomery & Prince George's)",
+    "schools": [
+     [
+      "Bethesda-Chevy Chase",
+      "Bethesda",
+      "Barons",
+      62
+     ],
+     [
+      "James Hubert Blake",
+      "Silver Spring",
+      "Bengals",
+      60
+     ],
+     [
+      "Montgomery Blair",
+      "Silver Spring",
+      "Blazers",
+      58
+     ],
+     [
+      "Paint Branch",
+      "Burtonsville",
+      "Panthers",
+      76
+     ],
+     [
+      "Wheaton",
+      "Silver Spring",
+      "Knights",
+      50
+     ],
+     [
+      "High Point",
+      "Beltsville",
+      "Eagles",
+      54
+     ],
+     [
+      "Laurel",
+      "Laurel",
+      "Spartans",
+      56
+     ],
+     [
+      "Northwestern",
+      "Hyattsville",
+      "Wildcats",
+      50
+     ]
+    ]
+   },
+   {
+    "name": "Class 4A South (Prince George's County)",
+    "schools": [
+     [
+      "Bladensburg",
+      "Bladensburg",
+      "Mustangs",
+      56
+     ],
+     [
+      "Charles H. Flowers",
+      "Springdale",
+      "Jaguars",
+      64
+     ],
+     [
+      "Dr. Henry A. Wise",
+      "Upper Marlboro",
+      "Pumas",
+      86
+     ],
+     [
+      "DuVal",
+      "Lanham",
+      "Tigers",
+      66
+     ],
+     [
+      "Eleanor Roosevelt",
+      "Greenbelt",
+      "Raiders",
+      62
+     ],
+     [
+      "Parkdale",
+      "Riverdale",
+      "Panthers",
+      52
+     ],
+     [
+      "Suitland",
+      "Forestville",
+      "Rams",
+      70
+     ]
+    ]
+   },
+   {
+    "name": "Class 4A East (Anne Arundel, Baltimore County & Bowie)",
+    "schools": [
+     [
+      "Annapolis",
+      "Annapolis",
+      "Panthers",
+      64
+     ],
+     [
+      "Broadneck",
+      "Annapolis",
+      "Bruins",
+      74
+     ],
+     [
+      "Glen Burnie",
+      "Glen Burnie",
+      "Gophers",
+      60
+     ],
+     [
+      "Meade",
+      "Fort Meade",
+      "Mustangs",
+      66
+     ],
+     [
+      "North County",
+      "Glen Burnie",
+      "Knights",
+      58
+     ],
+     [
+      "Dundalk",
+      "Dundalk",
+      "Owls",
+      56
+     ],
+     [
+      "Bowie",
+      "Bowie",
+      "Bulldogs",
+      62
+     ]
+    ]
+   }
+  ]
+ },
+ "North Carolina": {
+  "classification": "8A",
+  "districts": [
+   {
+    "name": "8A Conference 1 (Wake & Johnston)",
+    "schools": [
+     [
+      "Athens Drive",
+      "Raleigh",
+      "Jaguars",
+      58
+     ],
+     [
+      "Broughton",
+      "Raleigh",
+      "Capitals",
+      62
+     ],
+     [
+      "Corinth Holders",
+      "Wendell",
+      "Pirates",
+      70
+     ],
+     [
+      "Enloe",
+      "Raleigh",
+      "Eagles",
+      50
+     ],
+     [
+      "Leesville Road",
+      "Raleigh",
+      "Pride",
+      66
+     ],
+     [
+      "Millbrook",
+      "Raleigh",
+      "Wildcats",
+      70
+     ],
+     [
+      "Rolesville",
+      "Rolesville",
+      "Rams",
+      78
+     ],
+     [
+      "Wakefield",
+      "Raleigh",
+      "Wolverines",
+      72
+     ]
+    ]
+   },
+   {
+    "name": "8A Conference 2 (Wake & Durham)",
+    "schools": [
+     [
+      "Apex",
+      "Apex",
+      "Cougars",
+      64
+     ],
+     [
+      "Apex Friendship",
+      "Apex",
+      "Patriots",
+      72
+     ],
+     [
+      "Green Hope",
+      "Cary",
+      "Falcons",
+      58
+     ],
+     [
+      "Green Level",
+      "Cary",
+      "Gators",
+      66
+     ],
+     [
+      "Jordan",
+      "Durham",
+      "Falcons",
+      60
+     ],
+     [
+      "Panther Creek",
+      "Cary",
+      "Catamounts",
+      62
+     ],
+     [
+      "Willow Spring",
+      "Fuquay-Varina",
+      "Storm",
+      52
+     ]
+    ]
+   },
+   {
+    "name": "Charlotte North & Central (7A/8A Conferences C & D)",
+    "schools": [
+     [
+      "Chambers",
+      "Charlotte",
+      "Cougars",
+      80
+     ],
+     [
+      "Mallard Creek",
+      "Charlotte",
+      "Mavericks",
+      92
+     ],
+     [
+      "West Charlotte",
+      "Charlotte",
+      "Lions",
+      70
+     ],
+     [
+      "Garinger",
+      "Charlotte",
+      "Wildcats",
+      50
+     ],
+     [
+      "Hough",
+      "Cornelius",
+      "Huskies",
+      94
+     ],
+     [
+      "Myers Park",
+      "Charlotte",
+      "Mustangs",
+      80
+     ],
+     [
+      "South Mecklenburg",
+      "Charlotte",
+      "Sabres",
+      64
+     ]
+    ]
+   },
+   {
+    "name": "Charlotte South & East (7A/8A Conference E)",
+    "schools": [
+     [
+      "Ardrey Kell",
+      "Charlotte",
+      "Knights",
+      74
+     ],
+     [
+      "East Mecklenburg",
+      "Charlotte",
+      "Eagles",
+      58
+     ],
+     [
+      "Palisades",
+      "Charlotte",
+      "Pumas",
+      56
+     ],
+     [
+      "Providence",
+      "Charlotte",
+      "Panthers",
+      66
+     ]
+    ]
+   },
+   {
+    "name": "Coast, Sandhills & Triad (8A in mixed conferences)",
+    "schools": [
+     [
+      "Hoggard",
+      "Wilmington",
+      "Vikings",
+      76
+     ],
+     [
+      "Laney",
+      "Wilmington",
+      "Buccaneers",
+      74
+     ],
+     [
+      "Hoke County",
+      "Raeford",
+      "Bucks",
+      66
+     ],
+     [
+      "Pinecrest",
+      "Southern Pines",
+      "Patriots",
+      72
+     ],
+     [
+      "Northwest Guilford",
+      "Greensboro",
+      "Vikings",
+      82
+     ],
+     [
+      "West Forsyth",
+      "Clemmons",
+      "Titans",
+      76
+     ]
+    ]
+   }
+  ]
+ },
+ "Alabama": {
+  "classification": "6A",
+  "districts": [
+   {
+    "name": "Region 1-6A (Mobile & Baldwin County)",
+    "schools": [
+     [
+      "Alma Bryant",
+      "Irvington",
+      "Hurricanes",
+      65
+     ],
+     [
+      "Baker",
+      "Mobile",
+      "Hornets",
+      90
+     ],
+     [
+      "Daphne",
+      "Daphne",
+      "Trojans",
+      88
+     ],
+     [
+      "Davidson",
+      "Mobile",
+      "Warriors",
+      76
+     ],
+     [
+      "Fairhope",
+      "Fairhope",
+      "Pirates",
+      86
+     ],
+     [
+      "Foley",
+      "Foley",
+      "Lions",
+      81
+     ],
+     [
+      "Mary G. Montgomery",
+      "Semmes",
+      "Vikings",
+      70
+     ],
+     [
+      "Robertsdale",
+      "Robertsdale",
+      "Golden Bears",
+      62
+     ]
+    ]
+   },
+   {
+    "name": "Region 2-6A (East Alabama, River Region & Wiregrass)",
+    "schools": [
+     [
+      "Auburn High",
+      "Auburn",
+      "Tigers",
+      96
+     ],
+     [
+      "Carver-Montgomery",
+      "Montgomery",
+      "Wolverines",
+      83
+     ],
+     [
+      "Central-Phenix City",
+      "Phenix City",
+      "Red Devils",
+      99
+     ],
+     [
+      "Dothan",
+      "Dothan",
+      "Wolves",
+      85
+     ],
+     [
+      "Enterprise",
+      "Enterprise",
+      "Wildcats",
+      92
+     ],
+     [
+      "JAG (Johnson Graetz)",
+      "Montgomery",
+      "Jaguars",
+      50
+     ],
+     [
+      "Opelika",
+      "Opelika",
+      "Bulldogs",
+      90
+     ],
+     [
+      "Smiths Station",
+      "Smiths Station",
+      "Panthers",
+      66
+     ]
+    ]
+   },
+   {
+    "name": "Region 3-6A (Birmingham Metro & Over-the-Mountain)",
+    "schools": [
+     [
+      "Hewitt-Trussville",
+      "Trussville",
+      "Huskies",
+      94
+     ],
+     [
+      "Hoover",
+      "Hoover",
+      "Buccaneers",
+      97
+     ],
+     [
+      "Oak Mountain",
+      "Birmingham",
+      "Eagles",
+      80
+     ],
+     [
+      "Prattville",
+      "Prattville",
+      "Lions",
+      83
+     ],
+     [
+      "Spain Park",
+      "Hoover",
+      "Jaguars",
+      88
+     ],
+     [
+      "Thompson",
+      "Alabaster",
+      "Warriors",
+      99
+     ],
+     [
+      "Tuscaloosa County",
+      "Northport",
+      "Wildcats",
+      68
+     ],
+     [
+      "Vestavia Hills",
+      "Vestavia Hills",
+      "Rebels",
+      90
+     ]
+    ]
+   },
+   {
+    "name": "Region 4-6A (Huntsville & North Alabama)",
+    "schools": [
+     [
+      "Bob Jones",
+      "Madison",
+      "Patriots",
+      83
+     ],
+     [
+      "Buckhorn",
+      "New Market",
+      "Bucks",
+      64
+     ],
+     [
+      "Gadsden City",
+      "Gadsden",
+      "Titans",
+      68
+     ],
+     [
+      "Grissom",
+      "Huntsville",
+      "Tigers",
+      62
+     ],
+     [
+      "Hazel Green",
+      "Hazel Green",
+      "Trojans",
+      66
+     ],
+     [
+      "Huntsville High",
+      "Huntsville",
+      "Panthers",
+      84
+     ],
+     [
+      "James Clemens",
+      "Madison",
+      "Jets",
+      91
+     ],
+     [
+      "Sparkman",
+      "Harvest",
+      "Senators",
+      86
+     ]
+    ]
+   }
+  ]
+ }
 }

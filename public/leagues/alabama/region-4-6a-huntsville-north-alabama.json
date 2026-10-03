@@ -1,0 +1,88 @@
+{
+  "state": "Alabama",
+  "classification": "6A",
+  "districtId": "alabama_region-4-6a-huntsville-north-alabama",
+  "districtName": "Region 4-6A (Huntsville & North Alabama)",
+  "schools": [
+    {
+      "name": "Bob Jones",
+      "city": "Madison",
+      "mascot": "Patriots",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Buckhorn",
+      "city": "New Market",
+      "mascot": "Bucks",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "prestige": 64,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Gadsden City",
+      "city": "Gadsden",
+      "mascot": "Titans",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Grissom",
+      "city": "Huntsville",
+      "mascot": "Tigers",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Hazel Green",
+      "city": "Hazel Green",
+      "mascot": "Trojans",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 66,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Huntsville High",
+      "city": "Huntsville",
+      "mascot": "Panthers",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFC72C",
+      "prestige": 84,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "James Clemens",
+      "city": "Madison",
+      "mascot": "Jets",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 91,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Sparkman",
+      "city": "Harvest",
+      "mascot": "Senators",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}
