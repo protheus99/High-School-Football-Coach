@@ -35,7 +35,7 @@ export const ScoreboardView: React.FC = () => {
       const roundIndex = week - LAST_REGULAR_SEASON_WEEK - 1;
       if (!playoffBracket) return [];
       return playoffBracket.divisions.flatMap((d) =>
-        (d.rounds[roundIndex] ?? []).map((n) => ({
+        (d.rounds[roundIndex] ?? []).filter((n) => !n.isBye).map((n) => ({
           id: n.matchupId,
           homeId: n.team1.id,
           awayId: n.team2.id,

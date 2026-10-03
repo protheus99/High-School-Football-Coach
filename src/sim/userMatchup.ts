@@ -24,7 +24,7 @@ export function getUserMatchup(state: {
   const { playoffBracket, userTeamId } = state;
   if (playoffBracket?.isPlayoffsActive) {
     const found = findUserNode(playoffBracket, userTeamId);
-    if (!found) return undefined;
+    if (!found || found.node.isBye) return undefined; // a bye: no game this week
     const { node, division } = found;
     const divisionLabel = playoffBracket.divisions.length > 1 ? `${division.name} ` : '';
     return {

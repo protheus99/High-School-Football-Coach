@@ -97,7 +97,7 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({ bracketS
                   fontSize: '14px'
                 }}
               >
-                {[node.team1, node.team2].map((team, i) => {
+                {(node.isBye ? [node.team1] : [node.team1, node.team2]).map((team, i) => {
                   const score = i === 0 ? node.team1Score : node.team2Score;
                   const won = node.winnerTeamId === team.id;
                   return (
@@ -112,6 +112,7 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({ bracketS
                     </div>
                   );
                 })}
+                {node.isBye && <div style={{ fontSize: '12px', color: '#94A3B8' }}>Bye: advances without playing</div>}
               </div>
             ))}
           </div>

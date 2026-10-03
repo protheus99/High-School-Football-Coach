@@ -53,7 +53,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
   playoffBracket?.divisions.forEach((d) =>
     d.rounds.forEach((round, i) =>
       round
-        .filter((n) => n.team1.id === team.id || n.team2.id === team.id)
+        .filter((n) => !n.isBye && (n.team1.id === team.id || n.team2.id === team.id))
         .forEach((n) => {
           const isHome = n.team1.id === team.id;
           const opponent = byId.get(isHome ? n.team2.id : n.team1.id) ?? (isHome ? n.team2 : n.team1);

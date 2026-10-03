@@ -112,3 +112,19 @@ describe('Postseason through the store', () => {
     playoffBracket!.divisions.forEach((d) => expect(d.championTeamId).toBeTruthy());
   }, 120000);
 });
+
+describe('Byes when a district is short of qualifiers', () => {
+  it('gives the paired team a bye and still crowns a champion in every division', () => {
+    const { regions } = playedWorld(buildTexasLeague);
+    // State bans leave one district with only three eligible teams
+    const district = regions[0].districts[1];
+    const banned = district.slice(3).map((t) => t.id);
+    let state = buildPlayoffBracket(regions, { splitDivisions: true, excludeTeamIds: banned });
+    state.divisions.forEach((d) => expect(d.rounds[0]).toHaveLength(32));
+    const byes = state.divisions.flatMap((d) => d.rounds[0]).filter((n) => n.isBye);
+    expect(byes.length).toBeGreaterThan(0);
+    byes.forEach((n) => expect(n.winnerTeamId).toBe(n.team1.id));
+    for (let round = 0; round < 6; round++) state = advancePlayoffRound(state);
+    state.divisions.forEach((d) => expect(d.championTeamId).toBeTruthy());
+  });
+});

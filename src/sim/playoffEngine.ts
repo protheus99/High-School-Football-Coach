@@ -42,6 +42,7 @@ export interface BracketNode {
   team1Score?: number;
   team2Score?: number;
   winnerTeamId?: string;
+  isBye?: boolean; // the paired district had no qualifier: team1 advances without playing (team2 repeats team1)
 }
 
 export interface PlayoffDivision {
@@ -104,9 +105,21 @@ function regionFirstRound(region: string, districtSeeds: Team[][]): BracketNode[
   } else {
     pairGames.forEach((games) => ordered.push(...games));
   }
+  // A missing opponent (a district short of qualifiers after state bans) means a bye: the other team advances
   return ordered
-    .filter(([t1, t2]) => t1 && t2)
-    .map(([team1, team2], i) => ({ matchupId: `${region}_bd_${i + 1}`, round: 'BI_DISTRICT' as PlayoffRound, region, team1, team2 }));
+    .filter(([t1, t2]) => t1 || t2)
+    .map(([t1, t2], i) => {
+      const team1 = (t1 ?? t2)!;
+      const bye = !t1 || !t2;
+      return {
+        matchupId: `${region}_bd_${i + 1}`,
+        round: 'BI_DISTRICT' as PlayoffRound,
+        region,
+        team1,
+        team2: bye ? team1 : t2!,
+        ...(bye ? { isBye: true, winnerTeamId: team1.id } : {})
+      };
+    });
 }
 
 /**
