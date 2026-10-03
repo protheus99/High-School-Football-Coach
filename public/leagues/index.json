@@ -90,7 +90,7 @@
       {
         "name": "District 1-6A (Jacksonville, St. Johns & Flagler)",
         "file": "florida/district-1-6a-jacksonville-st-johns-flagler.json",
-        "schools": 6
+        "schools": 7
       },
       {
         "name": "District 2-6A (Volusia County)",
@@ -130,12 +130,12 @@
       {
         "name": "District 9-6A (Polk County)",
         "file": "florida/district-9-6a-polk-county.json",
-        "schools": 6
+        "schools": 7
       },
       {
         "name": "District 10-6A (Hillsborough South & East)",
         "file": "florida/district-10-6a-hillsborough-south-east.json",
-        "schools": 5
+        "schools": 6
       },
       {
         "name": "District 11-6A (Tampa North & Pinellas)",
@@ -145,7 +145,7 @@
       {
         "name": "District 12-6A (Manatee, Sarasota & Lee)",
         "file": "florida/district-12-6a-manatee-sarasota-lee.json",
-        "schools": 6
+        "schools": 7
       },
       {
         "name": "District 13-6A (Palm Beach North)",
@@ -155,17 +155,17 @@
       {
         "name": "District 14-6A (Palm Beach South & Broward North)",
         "file": "florida/district-14-6a-palm-beach-south-broward-north.json",
-        "schools": 6
+        "schools": 9
       },
       {
         "name": "District 15-6A (Broward & North Miami-Dade)",
         "file": "florida/district-15-6a-broward-north-miami-dade.json",
-        "schools": 6
+        "schools": 9
       },
       {
         "name": "District 16-6A (South Miami-Dade)",
         "file": "florida/district-16-6a-south-miami-dade.json",
-        "schools": 6
+        "schools": 7
       }
     ]
   },

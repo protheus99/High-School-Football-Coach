@@ -5,6 +5,16 @@
   "districtName": "District 14-6A (Palm Beach South & Broward North)",
   "schools": [
     {
+      "name": "American Heritage",
+      "city": "Plantation",
+      "mascot": "Patriots",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 95,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
       "name": "Boca Raton",
       "city": "Boca Raton",
       "mascot": "Bobcats",
@@ -13,6 +23,16 @@
       "prestige": 82,
       "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cardinal Gibbons",
+      "city": "Fort Lauderdale",
+      "mascot": "Chiefs",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 88,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "DROP_EIGHT"
     },
     {
       "name": "Coral Glades",
@@ -62,6 +82,16 @@
       "secondaryColor": "#FFFFFF",
       "prestige": 58,
       "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "St. Thomas Aquinas",
+      "city": "Fort Lauderdale",
+      "mascot": "Raiders",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 99,
+      "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_THREE"
     }
   ]

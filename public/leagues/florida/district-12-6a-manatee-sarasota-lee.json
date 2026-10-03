@@ -5,6 +5,16 @@
   "districtName": "District 12-6A (Manatee, Sarasota & Lee)",
   "schools": [
     {
+      "name": "IMG Academy",
+      "city": "Bradenton",
+      "mascot": "Ascenders",
+      "primaryColor": "#003087",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 98,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
       "name": "Lakewood Ranch",
       "city": "Bradenton",
       "mascot": "Mustangs",
@@ -35,16 +45,6 @@
       "defenseScheme": "FOUR_THREE"
     },
     {
-      "name": "Sarasota Riverview",
-      "city": "Sarasota",
-      "mascot": "Rams",
-      "primaryColor": "#4F2683",
-      "secondaryColor": "#C0C0C0",
-      "prestige": 58,
-      "offenseScheme": "POWER_I",
-      "defenseScheme": "DROP_EIGHT"
-    },
-    {
       "name": "Sarasota",
       "city": "Sarasota",
       "mascot": "Sailors",
@@ -53,6 +53,16 @@
       "prestige": 62,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Sarasota Riverview",
+      "city": "Sarasota",
+      "mascot": "Rams",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 58,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
     },
     {
       "name": "Venice",

@@ -5,6 +5,16 @@
   "districtName": "District 10-6A (Hillsborough South & East)",
   "schools": [
     {
+      "name": "Armwood",
+      "city": "Seffner",
+      "mascot": "Hawks",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFD700",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
       "name": "Durant",
       "city": "Plant City",
       "mascot": "Cougars",

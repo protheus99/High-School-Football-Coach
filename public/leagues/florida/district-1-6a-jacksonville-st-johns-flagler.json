@@ -45,6 +45,16 @@
       "defenseScheme": "FOUR_THREE"
     },
     {
+      "name": "Mandarin",
+      "city": "Jacksonville",
+      "mascot": "Mustangs",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFC72C",
+      "prestige": 87,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
       "name": "Sandalwood",
       "city": "Jacksonville",
       "mascot": "Saints",

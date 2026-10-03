@@ -35,6 +35,16 @@
       "defenseScheme": "DROP_EIGHT"
     },
     {
+      "name": "Lakeland",
+      "city": "Lakeland",
+      "mascot": "Dreadnaughts",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
       "name": "Poinciana",
       "city": "Kissimmee",
       "mascot": "Eagles",

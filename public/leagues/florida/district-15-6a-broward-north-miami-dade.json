@@ -5,6 +5,16 @@
   "districtName": "District 15-6A (Broward & North Miami-Dade)",
   "schools": [
     {
+      "name": "Chaminade-Madonna",
+      "city": "Hollywood",
+      "mascot": "Lions",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
       "name": "Cypress Bay",
       "city": "Weston",
       "mascot": "Lightning",
@@ -35,6 +45,16 @@
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
+      "name": "Miami Central",
+      "city": "Miami",
+      "mascot": "Rockets",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 93,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
       "name": "Miami High",
       "city": "Miami",
       "mascot": "Stingarees",
@@ -43,6 +63,16 @@
       "prestige": 66,
       "offenseScheme": "TRIPLE_OPTION",
       "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Miami Northwestern",
+      "city": "Miami",
+      "mascot": "Bulls",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "prestige": 91,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "West Broward",
