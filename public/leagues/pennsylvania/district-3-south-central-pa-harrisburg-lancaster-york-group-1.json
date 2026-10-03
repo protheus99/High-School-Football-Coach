@@ -50,10 +50,10 @@
       "defenseScheme": "FOUR_THREE"
     },
     {
-      "name": "State College Area\\",
+      "name": "State College Area",
       "mascot": "Little Lions",
-      "primaryColor": "#FF6600",
-      "secondaryColor": "#000000",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
       "prestige": 88,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"

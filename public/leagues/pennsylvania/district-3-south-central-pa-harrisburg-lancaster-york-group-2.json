@@ -59,10 +59,10 @@
       "defenseScheme": "FOUR_FOUR"
     },
     {
-      "name": "Altoona Area\\",
+      "name": "Altoona Area",
       "mascot": "Mountain Lions",
-      "primaryColor": "#000000",
-      "secondaryColor": "#C0C0C0",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFFFFF",
       "prestige": 76,
       "offenseScheme": "TRIPLE_OPTION",
       "defenseScheme": "FOUR_FOUR"

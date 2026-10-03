@@ -93,7 +93,10 @@ def parse(lines):
                 elif box_columns and box_columns['name'] is not None and len(cells) > max(v for v in box_columns.values() if v is not None):
                     row = {k: (cells[i] if i is not None else '') for k, i in box_columns.items()}
             if row and heading:
-                name = row['name'].replace('*', '').strip()
+                # Clean markdown escapes (State College Area\*) and names cut off at a table column (Memphis University (MUS)
+                name = row['name'].replace('*', '').replace(chr(92), '').strip()
+                if name.count('(') > name.count(')'):
+                    name += ')'
                 name = re.sub(r'\s*\((National|Private)\)$', '', name)
                 mascot = re.sub(r'\s*\(.*\)$', '', row['mascot']).strip()
                 try:

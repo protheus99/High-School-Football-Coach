@@ -5,10 +5,10 @@
   "districtName": "Division II-AAA (The Private Super-Powers) (Group 2)",
   "schools": [
     {
-      "name": "Memphis University (MUS",
+      "name": "Memphis University (MUS)",
       "mascot": "",
-      "primaryColor": "#00843D",
-      "secondaryColor": "#000000",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
       "prestige": 70,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
@@ -41,10 +41,10 @@
       "defenseScheme": "FOUR_THREE"
     },
     {
-      "name": "Pope John Paul II (JPII",
+      "name": "Pope John Paul II (JPII)",
       "mascot": "",
-      "primaryColor": "#7C2529",
-      "secondaryColor": "#B3A369",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
       "prestige": 70,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
