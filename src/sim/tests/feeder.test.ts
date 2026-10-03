@@ -163,6 +163,8 @@ describe('Feeder pipeline through the store', () => {
     store.getState().startNewSeason();
     expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS);
     const pool = store.getState().scoutingPool;
+    // Keep the board neutral (no income bonus or cut) so the CP math below is exact
+    store.getState().leagueTeams.find((t) => t.id === store.getState().userTeamId)!.programMeters.schoolBoardTrust = 70;
 
     // Program events wait for the off season; personal visits work any time before signing day
     expect(store.getState().runFeederEvent('YOUTH_CLINIC')).toEqual([]);
@@ -174,8 +176,8 @@ describe('Feeder pipeline through the store', () => {
     // A new game's rosters already hold this year's freshmen: no signing day until next season
     while (store.getState().currentWeek < 9) store.getState().advanceWeek();
     expect(store.getState().lastFeederResults).toBeNull();
-    // Unspent CP carries over: 85 left + seven 100-CP pre season/camp weeks + the first game week
-    expect(store.getState().coachPoints).toBeGreaterThanOrEqual(85 + 7 * weeklyCoachPoints(2) + weeklyCoachPoints(9));
+    // Unspent CP carries over: 85 left + six 100-CP pre season/camp weeks (2-7) + game weeks 8 and 9 (+ any win bonus)
+    expect(store.getState().coachPoints).toBeGreaterThanOrEqual(85 + 6 * weeklyCoachPoints(2) + 2 * weeklyCoachPoints(9));
     expect(weeklyCoachPoints(9)).toBeLessThan(weeklyCoachPoints(1));
 
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();

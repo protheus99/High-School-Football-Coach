@@ -1,12 +1,42 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
-import { getSeasonPhase, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
+import {
+  FEEDER_SIGNING_WEEK,
+  getSeasonPhase,
+  getTeamGameForWeek,
+  LAST_REGULAR_SEASON_WEEK,
+  LAST_TRAINING_CAMP_WEEK,
+  SEASON_PHASE_LABELS,
+  SeasonPhase
+} from '../sim/scheduleEngine';
+
+/** What happens in a week without a game. */
+function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signingThisSeason: boolean): string {
+  switch (phase) {
+    case 'SPRING_EVALUATION':
+      // A new game's first season has no signing day: its rosters already hold this year's freshmen
+      if (!signingThisSeason) return 'Feeder visits · college camps (signing day is next season)';
+      if (week < FEEDER_SIGNING_WEEK) return 'Final feeder visits before signing day';
+      if (week === FEEDER_SIGNING_WEEK) return '✍️ Feeder signing day: prospects pick their school';
+      return 'Newcomers join the program · college camps';
+    case 'SUMMER_CAMP':
+      return week === LAST_TRAINING_CAMP_WEEK ? '📋 Depth chart set for the season' : 'Two-a-days or three-a-days';
+    case 'STATE_PLAYOFFS':
+      return 'No game this round';
+    case 'POST_SEASON':
+      return '🏆 Awards banquet and college signing day';
+    case 'OFF_SEASON':
+      return isLastWeek ? 'Seniors graduate as the week ends' : '🔍 Feeder clinics, 7-on-7 nights and tryouts';
+    default:
+      return 'Bye week';
+  }
+}
 import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
 import { ROUND_LABELS } from '../sim/playoffEngine';
 import { Team } from '../types/game';
 
 export const ScheduleView: React.FC = () => {
-  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, currentYear, feederClassYear } = useGameStore();
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
   if (!userTeam) return null;
@@ -64,40 +94,55 @@ export const ScheduleView: React.FC = () => {
     <div style={{ maxWidth: '850px', margin: '0 auto' }}>
       <h3 style={{ margin: '0 0 4px 0', fontSize: '17px' }}>{totalWeeks}-week schedule</h3>
       <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
-        Spring drills, non-district tune-ups, the {districtName ?? 'district'} race and the state playoffs.
+        Pre season and feeder signing day, training camp, non-district tune-ups, the {districtName ?? 'district'} race, the state playoffs and
+        the off season.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {schedule.map((game) => (
-          <div
-            key={game.week}
-            style={{
-              padding: '10px 12px',
-              background: game.isCurrent ? '#EFF6FF' : '#fff',
-              border: game.isCurrent ? '2px solid #3B82F6' : '1px solid #E2E8F0',
-              borderRadius: '10px'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'nowrap' }}>
-              <span style={{ fontSize: '14px' }}>
-                <strong>Week {game.week}</strong> <span style={{ color: '#64748B', fontSize: '13px' }}>· {game.label ?? SEASON_PHASE_LABELS[game.type]}</span>
-              </span>
-              {game.result && <strong style={{ color: game.result.startsWith('W') ? '#059669' : '#DC2626', fontSize: '14px' }}>{game.result}</strong>}
-            </div>
-            {game.opponent ? (
-              <div style={{ fontSize: '14px', marginTop: '2px' }}>
-                {game.isHome ? 'vs.' : 'at'}{' '}
-                <strong style={{ color: game.opponent.primaryColor }}>
-                  {game.opponent.name} {game.opponent.mascot}
-                </strong>
-                <div style={{ fontSize: '12px', color: '#64748B' }}>
-                  {game.opponent.record.wins}-{game.opponent.record.losses} · {game.opponent.schemeOffense.replace(/_/g, ' ')} offense
-                </div>
-              </div>
-            ) : (
-              <div style={{ color: '#94A3B8', fontSize: '13px', marginTop: '2px' }}>Practice and preparation</div>
+        {schedule.map((game, i) => (
+          <React.Fragment key={game.week}>
+            {/* A header where each phase begins */}
+            {(i === 0 || schedule[i - 1].type !== game.type) && (
+              <h4 style={{ margin: i === 0 ? '0' : '10px 0 0', fontSize: '13px', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {SEASON_PHASE_LABELS[game.type]}{' '}
+                <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>
+                  · {(() => {
+                    const last = schedule.filter((g) => g.type === game.type).pop()!.week;
+                    return last === game.week ? `Week ${game.week}` : `Weeks ${game.week}–${last}`;
+                  })()}
+                </span>
+              </h4>
             )}
-          </div>
+            <div
+              style={{
+                padding: '10px 12px',
+                background: game.isCurrent ? '#EFF6FF' : '#fff',
+                border: game.isCurrent ? '2px solid #3B82F6' : '1px solid #E2E8F0',
+                borderRadius: '10px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'nowrap' }}>
+                <span style={{ fontSize: '14px' }}>
+                  <strong>Week {game.week}</strong>
+                  {game.label && <span style={{ color: '#64748B', fontSize: '13px' }}> · {game.label}</span>}
+                </span>
+                {game.result && <strong style={{ color: game.result.startsWith('W') ? '#059669' : '#DC2626', fontSize: '14px' }}>{game.result}</strong>}
+              </div>
+              {game.opponent ? (
+                <div style={{ fontSize: '14px', marginTop: '2px' }}>
+                  {game.isHome ? 'vs.' : 'at'}{' '}
+                  <strong style={{ color: game.opponent.primaryColor }}>
+                    {game.opponent.name} {game.opponent.mascot}
+                  </strong>
+                  <div style={{ fontSize: '12px', color: '#64748B' }}>
+                    {game.opponent.record.wins}-{game.opponent.record.losses} · {game.opponent.schemeOffense.replace(/_/g, ' ')} offense
+                  </div>
+                </div>
+              ) : (
+                <div style={{ color: '#64748B', fontSize: '13px', marginTop: '2px' }}>{weekNote(game.week, game.type, game.week === totalWeeks, currentYear >= feederClassYear)}</div>
+              )}
+            </div>
+          </React.Fragment>
         ))}
       </div>
     </div>
