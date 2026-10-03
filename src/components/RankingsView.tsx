@@ -29,13 +29,15 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
     return <span style={{ color: '#94A3B8', fontSize: '12px' }}>—</span>;
   };
 
-  const title = selectedView === 'NATIONAL' ? 'National Super 25' : `${selectedView} Top 25`;
+  const title = selectedView === 'NATIONAL' ? 'National Top 25' : `${selectedView} Top 25`;
+  // Computer rating: points better than an average team; schedule = average opponent rating
+  const signed = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}`;
 
   return (
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
       <h3 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>{title}</h3>
       <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
-        Week {polls.week} rankings · composite strength and quality wins
+        Week {polls.week} computer rankings · every result, margins (capped) and strength of schedule; out-of-state games link the states
       </p>
 
       <div className="ui-chips" role="group" aria-label="Poll" style={{ marginBottom: '12px' }}>
@@ -72,7 +74,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
                 <strong>
                   {entry.record.wins}-{entry.record.losses}
                 </strong>
-                <small>{entry.pollPoints} pts</small>
+                <small>Rtg {signed(entry.pollPoints)}</small>
               </span>
             </div>
           );
@@ -101,8 +103,8 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
             },
             { key: 'state', label: 'State / Class', render: (e) => `${e.state} (${e.classification})` },
             { key: 'record', label: 'Record', align: 'center', render: (e) => `${e.record.wins}-${e.record.losses}` },
-            { key: 'points', label: 'Points', align: 'center', render: (e) => <strong style={{ color: '#2563EB' }}>{e.pollPoints}</strong> },
-            { key: 'sos', label: 'SoS', align: 'center', render: (e) => e.strengthOfSchedule },
+            { key: 'points', label: 'Rating', align: 'center', render: (e) => <strong style={{ color: '#2563EB' }}>{signed(e.pollPoints)}</strong> },
+            { key: 'sos', label: 'SoS', align: 'center', render: (e) => signed(e.strengthOfSchedule) },
             { key: 'qwins', label: 'Q-Wins', align: 'center', render: (e) => e.qualityWinsCount }
           ]}
         />
@@ -124,7 +126,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
                   fontWeight: team.teamId === userTeamId ? 'bold' : 'normal'
                 }}
               >
-                {team.teamName} ({team.record.wins}-{team.record.losses}) · {team.pollPoints} pts
+                {team.teamName} ({team.record.wins}-{team.record.losses}) · Rtg {signed(team.pollPoints)}
               </span>
             ))}
           </div>

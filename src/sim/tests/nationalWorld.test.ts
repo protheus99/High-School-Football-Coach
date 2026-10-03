@@ -40,12 +40,16 @@ describe('National world', () => {
     Object.values(s.polls!.stateRankings).forEach((poll) => expect(poll).toHaveLength(25));
     expect(Object.keys(s.playerRankings!.stateStatLeaders).sort()).toEqual([...PLAYABLE_STATES].sort());
     expect(new Set(s.polls!.nationalTop25.map((e) => e.state)).size).toBeGreaterThan(1);
-    // The final poll (at the banquet) counts the playoffs: a state champion is #1, with its playoff wins on its record
+    // The final computer rankings (at the banquet) count the playoffs: the leaders' records include playoff
+    // games, and state champions are among them
     expect(s.polls!.week).toBe(s.currentWeek);
     const champions = new Set([...(s.playoffBracket?.divisions ?? []), ...s.nationalLeagues.flatMap((l) => l.bracket?.divisions ?? [])].map((d) => d.championTeamId));
     const top = s.polls!.nationalTop25[0];
-    expect(champions.has(top.teamId)).toBe(true);
     expect(top.record.wins + top.record.losses).toBeGreaterThan(10);
+    expect(s.polls!.nationalTop25.filter((e) => champions.has(e.teamId)).length).toBeGreaterThanOrEqual(2);
+    // ratings: best first, an average team near zero
+    expect(s.polls!.nationalTop25[0].pollPoints).toBeGreaterThanOrEqual(s.polls!.nationalTop25[24].pollPoints);
+    expect(s.polls!.nationalTop25[24].pollPoints).toBeGreaterThan(0);
   }, 120000);
 
   it('saves brackets by team id and relinks them on load', async () => {

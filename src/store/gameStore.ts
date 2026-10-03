@@ -88,11 +88,12 @@ import {
 import { buildPlayoffBracket, advancePlayoffRound, bracketRoundForWeek, compactBracket, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
 import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
-import { generateNationalAndStatePolls, postseasonRecords } from '../sim/nationalRankingEngine';
+import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
+import { collectResults } from '../sim/computerRankings';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
 import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
 import { expandToFullRoster, INTERSTATE_WEEK, scheduleInterstateGames } from '../sim/interstate';
-import { buildNationalWorld, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
+import { buildNationalWorld, calibrateLightLeagues, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
 import type { GameSaveRecord } from '../services/db';
@@ -552,7 +553,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       feederEventsThisWeek: [],
       newsArticles: [],
       nationalLeagues,
-      polls: generateNationalAndStatePolls(everyone, null, save.currentWeek, postseasonRecords([save.playoffBracket ?? null, ...nationalLeagues.map((l) => l.bracket)])),
+      polls: generateNationalAndStatePolls(everyone, null, save.currentWeek, collectResults({ seasonSchedule: save.seasonSchedule ?? [], nationalLeagues, interstateGames: save.interstateGames, playoffBracket: save.playoffBracket ?? null })),
       playerRankings: generatePlayerRankingsAndLeaderboards(everyone, save.currentWeek),
       // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
       scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p) ? save.scoutingPool : generateFeederPool(userTeam)
@@ -763,6 +764,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       set({ sanctionLevel: level, newsArticles: [article, ...get().newsArticles] });
     }
 
+    // Season opener: the other states develop at the same pace as the coach's fully simulated league
+    if (nextWeek === FIRST_NON_DISTRICT_WEEK && league) calibrateLightLeagues(get().nationalLeagues, league.state ?? 'Texas', leagueTeams);
+
     // Postseason starts the week after the regular season
     if (nextWeek === LAST_REGULAR_SEASON_WEEK + 1) {
       get().startPostseason();
@@ -781,7 +785,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         graduatingSeniors: seniors,
         isBanquetActive: true,
         newsArticles: [...news, ...get().newsArticles],
-        polls: generateNationalAndStatePolls(everyone, polls, nextWeek, postseasonRecords([get().playoffBracket, ...get().nationalLeagues.map((l) => l.bracket)])),
+        polls: generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get())),
         playerRankings: generatePlayerRankingsAndLeaderboards(everyone, nextWeek),
         leagueTeams: [...leagueTeams]
       });
@@ -845,7 +849,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // 2. Recalculate National & State Team Polls
     const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
-    const updatedPolls = generateNationalAndStatePolls(everyone, polls, nextWeek, postseasonRecords([get().playoffBracket, ...get().nationalLeagues.map((l) => l.bracket)]));
+    const updatedPolls = generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get()));
 
     // 3. Recalculate Player Stats Leaderboards & Positional Prospect Rankings
     const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, nextWeek);

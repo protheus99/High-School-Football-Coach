@@ -1,7 +1,7 @@
 import { ScheduledGame, Team } from '../types/game';
 import { buildStateWorld, LeagueStructure, leagueRegionTeams } from './league';
 import { applyGameResult, FIRST_NON_DISTRICT_WEEK, generateSeasonSchedule, LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
-import { simulateMacroMatch } from './macroSim';
+import { simulateMacroMatch, teamStarterRating } from './macroSim';
 import { advancePlayoffRound, bracketRoundForWeek, buildPlayoffBracket, PlayoffBracketState, relinkBracketTeams } from './playoffEngine';
 import { PLAYABLE_STATES, rulesForState } from './stateRules';
 import { applyRunAheadRound, gameKey, WeekResults } from './runAhead';
@@ -103,6 +103,20 @@ export function catchUpNationalWorld(leagues: LightLeague[], throughWeek: number
 /** After loading a save: the bracket's teams are the league's team objects again. */
 export function relinkNationalWorld(leagues: LightLeague[]): LightLeague[] {
   return leagues.map((l) => ({ ...l, bracket: l.bracket ? relinkBracketTeams(l.bracket, l.teams) : null }));
+}
+
+/**
+ * Keeps the country developing at the same pace. The coach's league is fully simulated: its players grow
+ * season by season, while light leagues are rebuilt from the data each year. At each season's opener the
+ * league's average game-day rating is compared with a freshly built league of its state, and every light team
+ * moves by that difference. Returns the shift.
+ */
+export function calibrateLightLeagues(leagues: LightLeague[], userState: string, leagueTeams: Team[]): number {
+  const average = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / Math.max(1, xs.length);
+  const fresh = buildStateWorld(userState, undefined, true).teams.map((t) => t.lightRating ?? 0);
+  const shift = average(leagueTeams.map(teamStarterRating)) - average(fresh);
+  leagues.forEach((l) => l.teams.forEach((t) => t.lightRating !== undefined && (t.lightRating += shift)));
+  return shift;
 }
 
 /** Every team in the country: the user's league plus the light leagues. */

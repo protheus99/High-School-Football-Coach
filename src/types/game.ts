@@ -489,8 +489,8 @@ export interface RankedTeamEntry {
   state: string;
   classification: string;
   record: { wins: number; losses: number };
-  pollPoints: number; // Composite rating score
-  strengthOfSchedule: number; // 0 - 100
+  pollPoints: number; // computer rating: points better than an average team
+  strengthOfSchedule: number; // average opponent rating
   firstPlaceVotes: number;
   qualityWinsCount: number;
 }
