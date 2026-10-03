@@ -28,7 +28,7 @@ describe('State worlds', () => {
     expect(nearestDistrictIndexes(2, 1)).toEqual([0]);
   });
 
-  it('builds a California world entirely from California districts (not playable yet)', () => {
+  it('builds a small world (a district and its neighbors) entirely from one state file set', () => {
     const { districts, world } = stateWorld('California', 5);
     expect(world.league.regions.flatMap((r) => r.districts)).toHaveLength(4);
     expect(world.teams.every((t) => t.state === 'California')).toBe(true);
@@ -37,7 +37,8 @@ describe('State worlds', () => {
     const userDistrict = readDistrict(districts[5].file);
     expect(world.teams.find((t) => t.id === world.userTeamId)!.name).toBe(userDistrict.schools[0].name);
     expect(new Set(world.teams.map((t) => t.id)).size).toBe(world.teams.length);
-    expect(playoffRoundCount(world.league)).toBe(4);
+    // A state without its own rules plays Texas's format: 4 districts x 4 qualifiers = 4 rounds
+    expect(playoffRoundCount({ ...world.league, state: 'Nowhere' })).toBe(4);
   });
 
   it('fills a small state with generated schools from that state', () => {
@@ -48,18 +49,19 @@ describe('State worlds', () => {
     expect(world.teams.every((t) => t.state === 'Maryland')).toBe(true);
   });
 
-  it('plays a full season with an all-California schedule and bracket', () => {
+  it('plays a full season in a small world (the Texas format, for a state without its own rules)', () => {
     const { world } = stateWorld('California', 2);
+    world.league.state = 'Nowhere'; // every state in the game has its own rules now; this tests the fallback
     const store = useGameStore;
     store.getState().startNewSeason(world);
-    const paIds = new Set(world.teams.map((t) => t.id));
-    expect(store.getState().seasonSchedule.every((g) => paIds.has(g.homeTeamId) && paIds.has(g.awayTeamId))).toBe(true);
+    const ids = new Set(world.teams.map((t) => t.id));
+    expect(store.getState().seasonSchedule.every((g) => ids.has(g.homeTeamId) && ids.has(g.awayTeamId))).toBe(true);
     expect(store.getState().leagueTeams.filter((t) => t.id !== world.userTeamId).every((t) => t.feederProfile)).toBe(true);
     while (!store.getState().playoffBracket) store.getState().advanceWeek();
     const bracket = store.getState().playoffBracket!;
     bracket.divisions.flatMap((d) => d.rounds[0]).forEach((n) => {
-      expect(paIds.has(n.team1.id)).toBe(true);
-      expect(paIds.has(n.team2.id)).toBe(true);
+      expect(ids.has(n.team1.id)).toBe(true);
+      expect(ids.has(n.team2.id)).toBe(true);
     });
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
     store.getState().transitionToNextYear();

@@ -51,6 +51,7 @@ export interface RegionalPlayoffs {
   championsSeededFirst: boolean; // district champions qualify and take the top seeds in their region
   regionBracketSize: number; // slots per region bracket (a power of two); empty slots give the top seeds a bye
   regionalRounds: number; // rounds played inside a region before teams from different regions meet
+  regionWord?: string; // what the state calls a playoff region ('section' in California and New Jersey)
 }
 
 export const TEXAS_RULES: StateRules = {
@@ -309,7 +310,8 @@ export const NEW_JERSEY_RULES: StateRules = {
       qualifiersPerRegion: 8,
       championsSeededFirst: false,
       regionBracketSize: 8,
-      regionalRounds: 2
+      regionalRounds: 2,
+      regionWord: 'section'
     },
     ...fiveRounds(
       ['Sectional Quarterfinal', 'Sectional Semifinal', 'State Quarterfinal', 'State Semifinal', 'State Championship'],
@@ -363,6 +365,57 @@ export const LOUISIANA_RULES: StateRules = {
   // LHSAA: pass six units the previous semester with a passing average
   academics: { ruleName: 'Pass 6 units', minimumGpa: 1.7, atRiskGpa: 2.0 },
   mercyRuleMargin: 35,
+  overtime: { startYardsFromGoal: 10 }
+};
+
+/**
+ * California CIF Open Division: the top tier of the state's biggest sections (86 programs in eleven leagues).
+ * Modeled on the regional format: each section group seeds eight teams by ranking (CIF's competitive equity
+ * places teams by strength, not size) and crowns a section champion; the two southern sections meet, the two
+ * northern ones meet, and the final is North vs South, like the state Open Division bowl at Saddleback College.
+ */
+export const CALIFORNIA_RULES: StateRules = {
+  state: 'California',
+  governingBody: 'CIF',
+  classification: 'Open Division',
+  districtLabel: 'League',
+  playoffs: {
+    format: 'REGIONAL_SEEDED',
+    qualifiersPerDistrict: 0,
+    bracketSize: 32,
+    divisionSplit: 'NONE',
+    divisionNames: ['Open Division'],
+    regional: {
+      // South first (Southern Section, San Diego), then North (Bay Area, Central Valley): the final is North vs South
+      regions: [
+        { name: 'Southern Section', districts: [1, 2, 3, 4, 5] },
+        { name: 'San Diego Section', districts: [6, 7] },
+        { name: 'Bay Area', districts: [8, 9] },
+        { name: 'Central Valley', districts: [10, 11] }
+      ],
+      selection: 'RANKING',
+      qualifiersPerRegion: 8,
+      championsSeededFirst: false,
+      regionBracketSize: 8,
+      regionalRounds: 3,
+      regionWord: 'section'
+    },
+    ...fiveRounds(
+      ['Section Quarterfinal', 'Section Semifinal', 'Section Final', 'Regional Bowl', 'Open Division State Championship'],
+      [
+        'Opening round: the top eight in each section by ranking (competitive equity)',
+        'Final four in each section',
+        'The winner is section champion',
+        'Section champions meet: South (Southern Section v San Diego) and North (Bay Area v Central Valley)',
+        'North v South for the state title at Saddleback College in Mission Viejo'
+      ]
+    ),
+    championshipTitle: 'CIF Open Division State Championship',
+    championshipVenue: 'Saddleback College (Mission Viejo, CA)'
+  },
+  // CIF: a 2.0 GPA in the most recent grading period
+  academics: { ruleName: '2.0 GPA', minimumGpa: 2.0, atRiskGpa: 2.3 },
+  mercyRuleMargin: 35, // section rules: running clock with a 35-point lead in the second half
   overtime: { startYardsFromGoal: 10 }
 };
 
@@ -575,7 +628,8 @@ export const STATE_RULES: Record<string, StateRules> = {
   Ohio: OHIO_RULES,
   Pennsylvania: PENNSYLVANIA_RULES,
   'New Jersey': NEW_JERSEY_RULES,
-  Louisiana: LOUISIANA_RULES
+  Louisiana: LOUISIANA_RULES,
+  California: CALIFORNIA_RULES
 };
 
 export const PLAYABLE_STATES = Object.keys(STATE_RULES);
@@ -611,7 +665,8 @@ export function playoffQualifyText(rules: StateRules): string {
   const r = playoffs.regional;
   if (playoffs.format === 'REGIONAL_SEEDED' && r) {
     const byes = r.regionBracketSize - r.qualifiersPerRegion;
-    const byeWhere = r.statewideQualifiers ? 'on each side' : r.regions.every((g) => g.districts.length === 1) ? `in each ${label}` : 'in each playoff region';
+    const regionWord = r.regionWord ?? 'playoff region';
+    const byeWhere = r.statewideQualifiers ? 'on each side' : r.regions.every((g) => g.districts.length === 1) ? `in each ${label}` : `in each ${regionWord}`;
     const byeText = byes > 0 ? ` The top ${byes} ${byeWhere} get a first-round bye.` : '';
     if (r.statewideQualifiers)
       return `The top ${r.statewideQualifiers} in the power ranking make the playoffs, split ${r.regions.map((g) => g.name).join(' and ')}.${byeText}`;
@@ -619,7 +674,7 @@ export function playoffQualifyText(rules: StateRules): string {
     if (r.championsSeededFirst)
       return `${districtLabel} champions qualify and take the top seeds in their playoff region; the power ranking fills the rest of each ${r.regionBracketSize}-team region bracket.`;
     // Ohio: each playoff region holds several leagues
-    const group = r.regions.every((g) => g.districts.length === 1) ? label : 'playoff region';
+    const group = r.regions.every((g) => g.districts.length === 1) ? label : regionWord;
     return `The top ${r.qualifiersPerRegion} in each ${group} by the power ranking make the playoffs.${byeText}`;
   }
   return `The top ${playoffs.qualifiersPerDistrict} in each ${label} make the playoffs.`;

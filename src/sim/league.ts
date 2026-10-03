@@ -10,6 +10,7 @@ import ohioD1 from '../data/ohio-d1.json';
 import pennsylvania6A from '../data/pennsylvania-6a.json';
 import newJerseyG5 from '../data/new-jersey-g5.json';
 import louisiana5A from '../data/louisiana-5a.json';
+import californiaOpen from '../data/california-open.json';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { nameProfileForArea } from '../generators/names';
 import { OFF_SEASON_WEEKS, STATE_FINAL_WEEK } from './scheduleEngine';
@@ -73,7 +74,8 @@ const STATE_WORLDS: Record<string, { data: StateWorldData; leagueName: string; s
   Ohio: { data: ohioD1, leagueName: 'OHSAA Division I', splitDivisions: false, idPrefix: 'oh_d1_l', defaultSchool: 'Lakewood St. Edward' },
   Pennsylvania: { data: pennsylvania6A, leagueName: 'PIAA Class 6A', splitDivisions: false, idPrefix: 'pa_6a_l', defaultSchool: "St. Joseph's Prep" },
   'New Jersey': { data: newJerseyG5, leagueName: 'NJSIAA Group 5 & Non-Public A', splitDivisions: false, idPrefix: 'nj_g5_l', defaultSchool: 'Bergen Catholic' },
-  Louisiana: { data: louisiana5A, leagueName: 'LHSAA Class 5A', splitDivisions: false, idPrefix: 'la_5a_d', defaultSchool: 'Edna Karr' }
+  Louisiana: { data: louisiana5A, leagueName: 'LHSAA Class 5A', splitDivisions: false, idPrefix: 'la_5a_d', defaultSchool: 'Edna Karr' },
+  California: { data: californiaOpen, leagueName: 'CIF Open Division', splitDivisions: false, idPrefix: 'ca_open_l', defaultSchool: 'Mater Dei' }
 };
 
 /** A random school in the state's top class whose prestige fits the difficulty. */

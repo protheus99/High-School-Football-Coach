@@ -21,10 +21,10 @@ const TEST_RULES: StateRules = {
 };
 
 describe('State rules', () => {
-  it('eleven states are playable; Texas is the default for anything else', () => {
-    expect(PLAYABLE_STATES).toEqual(['Texas', 'Georgia', 'Florida', 'Maryland', 'North Carolina', 'Alabama', 'Tennessee', 'Ohio', 'Pennsylvania', 'New Jersey', 'Louisiana']);
+  it('every state in the game is playable; Texas is the default for anything else', () => {
+    expect(PLAYABLE_STATES).toEqual(['Texas', 'Georgia', 'Florida', 'Maryland', 'North Carolina', 'Alabama', 'Tennessee', 'Ohio', 'Pennsylvania', 'New Jersey', 'Louisiana', 'California']);
     expect(rulesForState('Georgia')).toBe(GEORGIA_RULES);
-    expect(rulesForState('California')).toBe(TEXAS_RULES);
+    expect(rulesForState('Nevada')).toBe(TEXAS_RULES);
     expect(rulesForState(undefined)).toBe(TEXAS_RULES);
     expect(ROUND_LABELS).toBe(TEXAS_RULES.playoffs.roundLabels);
   });
@@ -118,7 +118,7 @@ describe('Regional playoff states', () => {
     return b.divisions[0].championTeamId;
   };
 
-  it.each(['Florida', 'Maryland', 'North Carolina', 'Alabama', 'Pennsylvania', 'New Jersey'])('%s builds its whole class and crowns a champion in five rounds', (state) => {
+  it.each(['Florida', 'Maryland', 'North Carolina', 'Alabama', 'Pennsylvania', 'New Jersey', 'California'])('%s builds its whole class and crowns a champion in five rounds', (state) => {
     const { league, teams, bracket } = season(state);
     expect(teams.every((t) => t.state === state)).toBe(true);
     expect(playoffRoundCount(league)).toBe(5);
@@ -229,5 +229,19 @@ describe('Regional playoff states', () => {
     regionTeams[0].forEach((district) => expect(hosts.has(calculateDistrictStandings(district)[0].teamId)).toBe(true));
     expect(bracket.championshipTitle).toBe('LHSAA 5A State Championship');
     expect(finish(bracket)).toBeTruthy();
+  });
+
+  it('California: section champions, then South v South and North v North, then a North v South final', () => {
+    const { bracket } = season('California');
+    const r1 = bracket.divisions[0].rounds[0];
+    expect(new Set(r1.map((n) => n.region))).toEqual(new Set(['Southern Section', 'San Diego Section', 'Bay Area', 'Central Valley']));
+    let b = bracket;
+    for (let i = 0; i < 3; i++) b = advancePlayoffRound(b);
+    const bowls = b.divisions[0].rounds[3];
+    expect(bowls).toHaveLength(2);
+    const regionOf = new Map(r1.flatMap((n) => [[n.team1.id, n.region], [n.team2.id, n.region]]));
+    expect(new Set([regionOf.get(bowls[0].team1.id), regionOf.get(bowls[0].team2.id)])).toEqual(new Set(['Southern Section', 'San Diego Section']));
+    expect(new Set([regionOf.get(bowls[1].team1.id), regionOf.get(bowls[1].team2.id)])).toEqual(new Set(['Bay Area', 'Central Valley']));
+    expect(finish(b)).toBeTruthy();
   });
 });

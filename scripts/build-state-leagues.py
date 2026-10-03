@@ -323,6 +323,21 @@ def build_spec_worlds(leagues_dir: Path, out_dir: Path):
     districts.sort(key=lambda d: d['number'])
     write_world(out_dir / 'louisiana-5a.json', 'Louisiana', '5A', districts)
 
+    # California: the top tier of CIF's biggest sections (Southern Section leagues, San Diego, the Bay Area and the
+    # Central Valley). San Diego comes as two prestige tiers, dealt into two balanced leagues after the Southern
+    # Section, so the playoff regions are leagues 1-5, 6-7, 8-9 and 10-11
+    leagues, san_diego = [], []
+    for d in files['California']:
+        section, rest = d['districtName'].split(' — ', 1)
+        if '(Group' in rest:
+            san_diego.extend(d['schools'])
+            continue
+        match = re.match(r'^(.*?) \(([^()]*)\)$', rest)
+        leagues.append({'name': match.group(1) if match else rest, 'area': f"{section} ({match.group(2)})" if match else section, 'schools': d['schools']})
+    san_diego_leagues = [{'name': f"San Diego League {'AB'[j]}", 'area': 'San Diego Section', 'schools': s} for j, s in enumerate(deal(san_diego, 2))]
+    districts = [{'number': i + 1, **league} for i, league in enumerate(leagues[:5] + san_diego_leagues + leagues[5:])]
+    write_world(out_dir / 'california-open.json', 'California', 'Open Division', districts)
+
 
 def deal(schools: list, count: int) -> list:
     """Splits schools into `count` balanced leagues: snake order by prestige (1-2-3, 3-2-1, ...)."""
@@ -333,7 +348,18 @@ def deal(schools: list, count: int) -> list:
     return leagues
 
 
+# Schools that share a name within a state (team ids come from names): renamed the way they are told apart locally
+SCHOOL_RENAMES = {'California': {('Liberty', 'Lions'): 'Brentwood Liberty', ('Liberty', 'Patriots'): 'Bakersfield Liberty'}}
+
+
 def write_world(path: Path, state: str, classification: str, districts: list):
+    renames = SCHOOL_RENAMES.get(state, {})
+    for d in districts:
+        d['schools'] = [{**s, 'name': renames.get((s['name'], s['mascot']), s['name'])} for s in d['schools']]
+    names = [s['name'] for d in districts for s in d['schools']]
+    duplicates = sorted({n for n in names if names.count(n) > 1})
+    if duplicates:
+        raise SystemExit(f"{state}: duplicate school names {duplicates}; add them to SCHOOL_RENAMES")
     label = f"Class {classification}" if re.match(r'^[0-9]+A$', classification) else classification
     world = {'state': state, 'classification': classification, 'regions': [{'name': label, 'area': state, 'districts': districts}]}
     path.write_text(json.dumps(world, indent=1) + '\n', encoding='utf-8')

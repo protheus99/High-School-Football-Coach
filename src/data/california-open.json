@@ -1,0 +1,863 @@
+{
+ "state": "California",
+ "classification": "Open Division",
+ "regions": [
+  {
+   "name": "Open Division",
+   "area": "California",
+   "districts": [
+    {
+     "number": 1,
+     "name": "Trinity League",
+     "area": "Southern Section (Orange County / LA Metro)",
+     "schools": [
+      {
+       "name": "Mater Dei",
+       "mascot": "Monarchs",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 99,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "St. John Bosco",
+       "mascot": "Braves",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "prestige": 98,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Santa Margarita",
+       "mascot": "Eagles",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "prestige": 94,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Orange Lutheran",
+       "mascot": "Lancers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 90,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Servite",
+       "mascot": "Friars",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFD700",
+       "prestige": 89,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "JSerra Catholic",
+       "mascot": "Lions",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "Mission League",
+     "area": "Southern Section (LA / San Fernando Valley)",
+     "schools": [
+      {
+       "name": "Sierra Canyon",
+       "mascot": "Trailblazers",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFD700",
+       "prestige": 93,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Gardena Serra",
+       "mascot": "Cavaliers",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Chaminade",
+       "mascot": "Eagles",
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 84,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Bishop Amat",
+       "mascot": "Lancers",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Loyola",
+       "mascot": "Cubs",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 81,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Sherman Oaks Notre Dame",
+       "mascot": "Knights",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "prestige": 79,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Encino Crespi",
+       "mascot": "Celts",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 68,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "Big West & Baseline Leagues",
+     "area": "Southern Section (Inland Empire)",
+     "schools": [
+      {
+       "name": "Corona Centennial",
+       "mascot": "Huskies",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 96,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Murrieta Valley",
+       "mascot": "Nighthawks",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 87,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Rancho Cucamonga",
+       "mascot": "Cougars",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFC72C",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Norco",
+       "mascot": "Cougars",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "prestige": 84,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Upland",
+       "mascot": "Highlanders",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFC72C",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Chino Hills",
+       "mascot": "Huskies",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 78,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Vista Murrieta",
+       "mascot": "Broncos",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "prestige": 77,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Damien",
+       "mascot": "Spartans",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Eastvale Roosevelt",
+       "mascot": "Mustangs",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 74,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "Sunset & South Coast Leagues",
+     "area": "Southern Section (Orange County)",
+     "schools": [
+      {
+       "name": "Mission Viejo",
+       "mascot": "Diablos",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFD700",
+       "prestige": 92,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Los Alamitos",
+       "mascot": "Griffins",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 88,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Clemente",
+       "mascot": "Tritons",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "prestige": 86,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Huntington Beach Edison",
+       "mascot": "Chargers",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Newport Harbor",
+       "mascot": "Sailors",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 79,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Juan Hills",
+       "mascot": "Stallions",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Corona del Mar",
+       "mascot": "Sea Kings",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFD700",
+       "prestige": 77,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Fountain Valley",
+       "mascot": "Barons",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 62,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "Moore & Marmonte Leagues",
+     "area": "Southern Section (Long Beach / Ventura)",
+     "schools": [
+      {
+       "name": "Long Beach Poly",
+       "mascot": "Jackrabbits",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Oaks Christian",
+       "mascot": "Lions",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Simi Valley",
+       "mascot": "Pioneers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 83,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Newbury Park",
+       "mascot": "Panthers",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 82,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "St. Bonaventure",
+       "mascot": "Seraphs",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 81,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lakewood",
+       "mascot": "Lancers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Long Beach Millikan",
+       "mascot": "Rams",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFC72C",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Long Beach Jordan",
+       "mascot": "Panthers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 58,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Compton",
+       "mascot": "Tarbabes",
+       "primaryColor": "#006747",
+       "secondaryColor": "#000000",
+       "prestige": 51,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "name": "San Diego League A",
+     "area": "San Diego Section",
+     "schools": [
+      {
+       "name": "Lincoln",
+       "mascot": "Hornets",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 92,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mission Hills",
+       "mascot": "Grizzlies",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Granite Hills",
+       "mascot": "Eagles",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFC72C",
+       "prestige": 87,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Helix Charter",
+       "mascot": "Highlanders",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Torrey Pines",
+       "mascot": "Falcons",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 80,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Oceanside",
+       "mascot": "Pirates",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "prestige": 75,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "name": "San Diego League B",
+     "area": "San Diego Section",
+     "schools": [
+      {
+       "name": "Cathedral Catholic",
+       "mascot": "Dons",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 90,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Carlsbad",
+       "mascot": "Lancers",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFD700",
+       "prestige": 89,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "La Costa Canyon",
+       "mascot": "Mavericks",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "San Marcos",
+       "mascot": "Knights",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mater Dei Catholic",
+       "mascot": "Crusaders",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "prestige": 79,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mount Miguel",
+       "mascot": "Matadors",
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 8,
+     "name": "West Catholic Athletic League",
+     "area": "Central Coast Section (WCAL / Bay Area)",
+     "schools": [
+      {
+       "name": "San Mateo Serra (Junipero Serra)",
+       "mascot": "Padres",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "prestige": 94,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Saint Francis",
+       "mascot": "Lancers",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#000000",
+       "prestige": 89,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Archbishop Riordan",
+       "mascot": "Crusaders",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 87,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "St. Ignatius",
+       "mascot": "Wildcats",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Valley Christian",
+       "mascot": "Warriors",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 83,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Bellarmine College Prep",
+       "mascot": "Bells",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFC72C",
+       "prestige": 80,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Archbishop Mitty",
+       "mascot": "Monarchs",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Sacred Heart Cathedral",
+       "mascot": "Fightin' Irish",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 9,
+     "name": "East Bay (EBAL) & Bay Valley Leagues",
+     "area": "North Coast Section",
+     "schools": [
+      {
+       "name": "De La Salle",
+       "mascot": "Spartans",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 96,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Pittsburg",
+       "mascot": "Pirates",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#000000",
+       "prestige": 90,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "San Ramon Valley",
+       "mascot": "Wolves",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 88,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Monte Vista",
+       "mascot": "Mustangs",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "California High",
+       "mascot": "Grizzlies",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Clayton Valley Charter",
+       "mascot": "Ugly Eagles",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 81,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Amador Valley",
+       "mascot": "Dons",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Brentwood Liberty",
+       "mascot": "Lions",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Antioch",
+       "mascot": "Panthers",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 71,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 10,
+     "name": "Sierra Foothill & Delta Leagues",
+     "area": "Sac-Joaquin Section (Sacramento / Central Valley)",
+     "schools": [
+      {
+       "name": "Folsom",
+       "mascot": "Bulldogs",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 95,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Rocklin",
+       "mascot": "Thunder",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Oak Ridge",
+       "mascot": "Trojans",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 87,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Granite Bay",
+       "mascot": "Grizzlies",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "prestige": 85,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Del Oro",
+       "mascot": "Golden Eagles",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#B3A369",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "St. Mary's",
+       "mascot": "Rams",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#B3A369",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Monterey Trail",
+       "mascot": "Mustangs",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 81,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Elk Grove",
+       "mascot": "Thundering Herd",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "prestige": 79,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Whitney",
+       "mascot": "Wildcats",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Jesuit",
+       "mascot": "Marauders",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 76,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 11,
+     "name": "Tri-River Athletic Conference",
+     "area": "Central Section (TRAC / Fresno Metro)",
+     "schools": [
+      {
+       "name": "Clovis North",
+       "mascot": "Broncos",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 91,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Clovis East",
+       "mascot": "Timberwolves",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Central",
+       "mascot": "Grizzlies",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "prestige": 88,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Clovis High",
+       "mascot": "Cougars",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Clovis West",
+       "mascot": "Golden Eagles",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#000000",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Buchanan",
+       "mascot": "Bears",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 81,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Bakersfield Liberty",
+       "mascot": "Patriots",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Bakersfield High",
+       "mascot": "Drillers",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
