@@ -105,12 +105,13 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const topDistrict = ranked(districtPool).slice(0, 10);
   const topRegion = ranked(scoutingPool).slice(0, 10);
   const committedToMe = scoutingPool.filter((p) => currentCommitment(p, userTeamId)?.teamId === userTeamId);
-  const views: { id: PoolView; label: string; list: FeederProspect[] }[] = [
-    { id: 'DISTRICT', label: 'District Players', list: ranked(districtPool) },
-    { id: 'REGION', label: 'Region Players', list: ranked(scoutingPool) },
-    { id: 'TOP_DISTRICT', label: 'Top 10 in District', list: topDistrict },
-    { id: 'TOP_REGION', label: 'Top 10 in Region', list: topRegion },
-    { id: 'COMMITTED', label: 'Committed to You', list: committedToMe }
+  // The top 10 lists always hold ten, so only the other views show a count
+  const views: { id: PoolView; label: string; list: FeederProspect[]; count: boolean }[] = [
+    { id: 'DISTRICT', label: 'District', list: ranked(districtPool), count: true },
+    { id: 'REGION', label: 'Region', list: ranked(scoutingPool), count: true },
+    { id: 'TOP_DISTRICT', label: 'Top 10 in District', list: topDistrict, count: false },
+    { id: 'TOP_REGION', label: 'Top 10 in Region', list: topRegion, count: false },
+    { id: 'COMMITTED', label: 'Committed', list: committedToMe, count: true }
   ];
   const shown = views.find((v) => v.id === view)!.list;
   const rankLabel = (p: FeederProspect) => {
@@ -245,7 +246,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
           <div className="ui-chips" aria-label="Pool view" style={{ marginBottom: '6px' }}>
             {views.map((v) => (
               <button key={v.id} className="ui-chip" aria-pressed={view === v.id} onClick={() => setView(v.id)}>
-                {v.label} ({v.list.length})
+                {v.label}
+                {v.count && ` (${v.list.length})`}
               </button>
             ))}
           </div>
