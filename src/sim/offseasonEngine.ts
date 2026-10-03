@@ -20,6 +20,7 @@ const newFreshman = (pos: Position, team: Team, takenNames: Set<string>, adjustm
 };
 
 const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior' } as const;
+const STAFF_DEVELOPMENT_CAP = 0.5; // most extra growth a season the paid staff can give one player
 
 /**
  * Rolls a team into the next season in one step (graduation and progression, then the incoming class).
@@ -51,9 +52,10 @@ export function graduateAndProgress(
   team.roster.forEach((p) => {
     processOffSeasonProgression(p, team.staff.strengthCoach.conditioningRating + conditioningBonus);
     if (staffDevelopment) {
-      // Position coaches, the strength program and the JV staff add growth (fractions round up by chance)
+      // Position coaches, the strength program and the JV staff add growth (fractions round up by chance),
+      // at most +0.5 a season per player: about +2 over a four-year roster cycle, matching the game-day cap
       const young = p.classYear === 'Freshman' || p.classYear === 'Sophomore' ? staffDevelopment.young : 0;
-      const growth = (staffDevelopment.byPosition[p.position] ?? 0) + staffDevelopment.allPlayers + young;
+      const growth = Math.min(STAFF_DEVELOPMENT_CAP, (staffDevelopment.byPosition[p.position] ?? 0) + staffDevelopment.allPlayers + young);
       const whole = Math.floor(growth) + (Math.random() < growth - Math.floor(growth) ? 1 : 0);
       p.overallRating = Math.min(99, p.overallRating + whole);
     }
