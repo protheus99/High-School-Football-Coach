@@ -91,8 +91,8 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
       </div>
 
       {isProspects ? (
-        <div className="ui-chips" role="group" aria-label="Position" style={{ marginBottom: '12px' }}>
-          <button className="ui-chip" aria-pressed={selectedPosition === 'OVERALL_TOP_100'} onClick={() => setSelectedPosition('OVERALL_TOP_100')}>
+        <div className="ui-chip-grid" role="group" aria-label="Position" style={{ marginBottom: '12px' }}>
+          <button className="ui-chip" style={{ gridColumn: 'span 2' }} aria-pressed={selectedPosition === 'OVERALL_TOP_100'} onClick={() => setSelectedPosition('OVERALL_TOP_100')}>
             🔥 Top 100
           </button>
           {(['QB', 'RB', 'WR', 'TE', 'OT', 'OG', 'C', 'DE', 'DT', 'LB', 'CB', 'S', 'K', 'P'] as Position[]).map((pos) => (

@@ -12,11 +12,11 @@ export type RankingsSection = 'HOME' | 'DISTRICT' | 'ALL_DISTRICTS' | 'POLLS' | 
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 
-const TABS: { id: Exclude<RankingsSection, 'HOME'>; label: string }[] = [
-  { id: 'DISTRICT', label: '🏆 District' },
-  { id: 'POLLS', label: '🥇 Polls' },
-  { id: 'ALL_DISTRICTS', label: '🗺️ All Districts' },
-  { id: 'SCORES', label: '📋 Scoreboard' }
+const TABS: { id: Exclude<RankingsSection, 'HOME'>; label: string; short?: string }[] = [
+  { id: 'DISTRICT', label: '🏆 District', short: 'District' },
+  { id: 'POLLS', label: '🥇 Polls', short: 'Polls' },
+  { id: 'ALL_DISTRICTS', label: '🗺️ All Districts', short: 'All Districts' },
+  { id: 'SCORES', label: '📋 Scoreboard', short: 'Scores' }
 ];
 
 /** Rankings: district standings, the polls, every district and the scoreboard, under one sub navigation. */

@@ -71,10 +71,10 @@ const FEEDER_SUBTITLES: Record<FeederSection, string> = {
   NEEDS: "Holes in next season's roster by position"
 };
 
-const SECTIONS: { id: FeederSection; label: string }[] = [
-  { id: 'STUDENTS', label: '🧑‍🎓 New Students' },
-  { id: 'PROGRAMS', label: '🏟️ Off Season Programs' },
-  { id: 'NEEDS', label: '📋 Team Needs' }
+const SECTIONS: { id: FeederSection; label: string; short: string }[] = [
+  { id: 'STUDENTS', label: '🧑‍🎓 New Students', short: '🧑‍🎓 Students' },
+  { id: 'PROGRAMS', label: '🏟️ Off Season Programs', short: '🏟️ Programs' },
+  { id: 'NEEDS', label: '📋 Team Needs', short: '📋 Needs' }
 ];
 
 /** Feeders: next year's students, the off-season programs that find and win them, and the roster's needs. */
@@ -125,12 +125,12 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const topRegion = tops.region;
   const committedToMe = scoutingPool.filter((p) => currentCommitment(p, userTeamId)?.teamId === userTeamId);
   // The top 10 lists always hold ten, so only the other views show a count
-  const views: { id: PoolView; label: string; list: FeederProspect[]; count: boolean }[] = [
+  const views: { id: PoolView; label: string; short?: string; list: FeederProspect[]; count: boolean }[] = [
     { id: 'DISTRICT', label: 'District', list: ranked(districtPool), count: true },
     { id: 'REGION', label: 'Region', list: ranked(scoutingPool), count: true },
-    { id: 'TOP_DISTRICT', label: 'Top 10 in District', list: topDistrict, count: false },
-    { id: 'TOP_REGION', label: 'Top 10 in Region', list: topRegion, count: false },
-    { id: 'COMMITTED', label: 'Committed', list: committedToMe, count: true }
+    { id: 'COMMITTED', label: 'Committed', list: committedToMe, count: true },
+    { id: 'TOP_DISTRICT', label: 'Top 10 in District', short: 'Top 10 District', list: topDistrict, count: false },
+    { id: 'TOP_REGION', label: 'Top 10 in Region', short: 'Top 10 Region', list: topRegion, count: false }
   ];
   const shown = views.find((v) => v.id === view)!.list;
   const groupPositions = POSITION_GROUPS.find((g) => g.id === positionGroup)?.positions;
@@ -278,7 +278,14 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
           <div className="ui-chips" aria-label="Pool view" style={{ marginBottom: '6px' }}>
             {views.map((v) => (
               <button key={v.id} className="ui-chip" aria-pressed={view === v.id} onClick={() => setView(v.id)}>
-                {v.label}
+                {v.short ? (
+                  <>
+                    <span className="hide-sm">{v.label}</span>
+                    <span className="show-sm">{v.short}</span>
+                  </>
+                ) : (
+                  v.label
+                )}
                 {v.count && ` (${v.list.length})`}
               </button>
             ))}
@@ -289,12 +296,13 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
           </p>
 
           {/* Positions */}
-          <div className="ui-chips" aria-label="Position" style={{ marginBottom: '10px' }}>
+          <div className="ui-chip-grid" aria-label="Position" style={{ marginBottom: '10px' }}>
             {POSITION_GROUPS.map((g) => {
               const count = g.positions ? shown.filter((p) => g.positions!.includes(p.projectedPosition)).length : shown.length;
               return (
                 <button key={g.id} className="ui-chip" aria-pressed={positionGroup === g.id} onClick={() => setPositionGroup(g.id)}>
-                  {g.label} ({count})
+                  {g.label}
+                  <span className="ui-chip-count">{count}</span>
                 </button>
               );
             })}

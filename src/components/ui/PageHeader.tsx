@@ -14,7 +14,7 @@ export function PageHeader<T extends string>({
 }: {
   title: string;
   subtitle?: React.ReactNode;
-  tabs?: { id: T; label: string }[];
+  tabs?: { id: T; label: string; short?: string }[]; // short: the label on phones
   active?: T;
   onTab?: (id: T) => void;
   aside?: React.ReactNode;
@@ -32,7 +32,14 @@ export function PageHeader<T extends string>({
           <div className="ui-chips" role="tablist" aria-label={`${title} sections`} style={{ flex: '1 1 auto', minWidth: 0 }}>
             {tabs.map((t) => (
               <button key={t.id} role="tab" className="ui-chip" aria-selected={active === t.id} aria-pressed={active === t.id} onClick={() => onTab?.(t.id)}>
-                {t.label}
+                {t.short ? (
+                  <>
+                    <span className="hide-sm">{t.label}</span>
+                    <span className="show-sm">{t.short}</span>
+                  </>
+                ) : (
+                  t.label
+                )}
               </button>
             ))}
           </div>

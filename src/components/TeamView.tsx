@@ -7,11 +7,11 @@ import { PageHeader } from './ui/PageHeader';
 
 export type TeamSection = 'ROSTER' | 'PRACTICE' | 'COLLEGE' | 'OFFICE';
 
-const SECTIONS: { id: TeamSection; label: string }[] = [
-  { id: 'ROSTER', label: '📋 Roster' },
-  { id: 'PRACTICE', label: '🏋️ Practice' },
-  { id: 'COLLEGE', label: '🎓 College' },
-  { id: 'OFFICE', label: '🏢 Office' }
+const SECTIONS: { id: TeamSection; label: string; short: string }[] = [
+  { id: 'ROSTER', label: '📋 Roster', short: 'Roster' },
+  { id: 'PRACTICE', label: '🏋️ Practice', short: 'Practice' },
+  { id: 'COLLEGE', label: '🎓 College', short: 'College' },
+  { id: 'OFFICE', label: '🏢 Office', short: 'Office' }
 ];
 
 const SUBTITLES: Record<TeamSection, string> = {

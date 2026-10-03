@@ -172,6 +172,15 @@ h3 {
    Desktop enhancements
    --------------------------------------------------------------------------- */
 @media (min-width: 721px) {
+  .ui-chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .ui-chip-grid .ui-chip {
+    padding: 8px 14px;
+  }
+
   .hide-sm {
     display: inline;
   }
@@ -283,18 +292,31 @@ h3 {
 }
 
 /* Chips: a sideways-scrolling row of large toggle buttons (tabs, filters) */
+/* Rows of rounded buttons wrap onto a second line on phones, so every button stays visible */
 .ui-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
 }
 
-.ui-chips::-webkit-scrollbar {
-  display: none;
+/* Position filters: a fixed grid of five per row on phones, with the count under each label */
+.ui-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
 }
+.ui-chip-grid .ui-chip {
+  padding: 6px 2px;
+  text-align: center;
+  line-height: 1.15;
+}
+.ui-chip-count {
+  display: block;
+  font-size: 11px;
+  font-weight: normal;
+  opacity: 0.8;
+}
+
 
 .ui-chip {
   flex: 0 0 auto;
