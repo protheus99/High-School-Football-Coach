@@ -1,14 +1,6 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
-import {
-  FEEDER_SIGNING_WEEK,
-  getSeasonPhase,
-  getTeamGameForWeek,
-  LAST_REGULAR_SEASON_WEEK,
-  LAST_TRAINING_CAMP_WEEK,
-  SEASON_PHASE_LABELS,
-  SeasonPhase
-} from '../sim/scheduleEngine';
+import { FEEDER_SIGNING_WEEK, getSeasonPhase, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK, LAST_TRAINING_CAMP_WEEK, SEASON_PHASE_LABELS, SeasonPhase, firstPlayoffWeek } from '../sim/scheduleEngine';
 
 /** What happens in a week without a game. */
 function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signingThisSeason: boolean, roundDescription?: string): string {
@@ -51,8 +43,10 @@ export const ScheduleView: React.FC = () => {
   // Season built from the stored schedule, plus the user's playoff games from the bracket
   const schedule = Array.from({ length: totalWeeks }, (_, i) => {
     const weekNum = i + 1;
-    const roundIndex = weekNum - LAST_REGULAR_SEASON_WEEK - 1;
-    const base = { week: weekNum, type: getSeasonPhase(weekNum, playoffRounds), isCurrent: weekNum === currentWeek, isCompleted: weekNum < currentWeek };
+    const roundIndex = weekNum - firstPlayoffWeek(playoffRounds);
+    const base = { week: weekNum, type: getSeasonPhase(weekNum), isCurrent: weekNum === currentWeek, isCompleted: weekNum < currentWeek };
+    // A five-round state's open week before the playoffs
+    if (weekNum > LAST_REGULAR_SEASON_WEEK && roundIndex < 0) return { ...base, label: 'Open week', opponent: null, isHome: false, result: null };
 
     if (roundIndex >= 0 && playoffBracket) {
       const node = playoffBracket.divisions

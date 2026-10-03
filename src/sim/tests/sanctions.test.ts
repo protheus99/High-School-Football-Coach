@@ -43,9 +43,11 @@ describe('State association sanctions', () => {
 
     useGameStore.getState().advanceWeek(); // last regular-season week -> postseason
     const bracket = useGameStore.getState().playoffBracket!;
-    const bracketIds = bracket.divisions.flatMap((d) => d.rounds[0]).flatMap((n) => [n.team1.id, n.team2.id]);
+    const firstRound = bracket.divisions.flatMap((d) => d.rounds[0]);
+    const bracketIds = firstRound.flatMap((n) => [n.team1.id, n.team2.id]);
     expect(bracketIds).not.toContain(userTeamId);
-    expect(new Set(bracketIds).size).toBe(128);
+    // 128 slots; an AI program's feeder ban can leave a district short, and that slot becomes a bye
+    expect(new Set(bracketIds).size).toBe(128 - firstRound.filter((n) => n.isBye).length);
   });
 
   it('do not escalate while compliance is healthy', () => {

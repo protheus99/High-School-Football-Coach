@@ -8,7 +8,7 @@ import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
 import { FilmStudyModal } from './FilmStudyModal';
 import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
 import { getUserMatchup } from '../sim/userMatchup';
-import { findDistrict, findRegion, playoffRoundCount } from '../sim/league';
+import { findDistrict, findRegion } from '../sim/league';
 
 export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
 
@@ -132,7 +132,7 @@ export const DashboardView: React.FC<{
         onAutoSim={advanceWeek}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}
-        phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek, league ? playoffRoundCount(league) : 6)].replace('District', rulesForState(league?.state).districtLabel)}
+        phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek)].replace('District', rulesForState(league?.state).districtLabel)}
       />
 
     </div>

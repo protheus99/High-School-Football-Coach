@@ -3,7 +3,7 @@ import { Sheet } from './ui/Sheet';
 import { useGameStore } from '../store/gameStore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, leagueRegionTeams } from '../sim/league';
-import { LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
+import { bracketRoundWeek } from '../sim/playoffEngine';
 import { rulesForState } from '../sim/stateRules';
 import { Player, PlayerStats, Team } from '../types/game';
 
@@ -62,7 +62,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
           const mine = isHome ? n.team1Score : n.team2Score;
           const theirs = isHome ? n.team2Score : n.team1Score;
           games.push({
-            week: LAST_REGULAR_SEASON_WEEK + 1 + i,
+            week: bracketRoundWeek(playoffBracket, i),
             label: ROUND_LABELS[playoffBracket.roundNames[i]],
             opponent,
             isHome,

@@ -18,7 +18,7 @@ import {
   buildTexasLeague,
   Difficulty,
   findDistrict,
-  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, playoffRoundCount, seasonLength, buildStateWorld } from '../sim/league';
+  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, seasonLength, buildStateWorld } from '../sim/league';
 import {
   applyGameResult,
   FEEDER_SIGNING_WEEK,
@@ -85,7 +85,7 @@ import {
   processPostGameSeasonWear,
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
-import { buildPlayoffBracket, advancePlayoffRound, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
+import { buildPlayoffBracket, advancePlayoffRound, bracketRoundForWeek, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
 import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
@@ -350,7 +350,7 @@ interface GameStoreState {
 
 /** Feeder program events (clinics, 7-on-7, tryouts) run only in the off season. */
 export function feederEventsOpen(state: Pick<GameStoreState, 'currentWeek' | 'league'>): boolean {
-  return getSeasonPhase(state.currentWeek, state.league ? playoffRoundCount(state.league) : 6) === 'OFF_SEASON';
+  return getSeasonPhase(state.currentWeek) === 'OFF_SEASON';
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -503,8 +503,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
     const nextWeek = currentWeek + 1;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
-    const rounds = league ? playoffRoundCount(league) : 6;
-    const phase = getSeasonPhase(currentWeek, rounds);
+    const phase = getSeasonPhase(currentWeek);
     if (currentWeek === FEEDER_SIGNING_WEEK && get().currentYear >= get().feederClassYear) get().runFeederSigningDay();
 
     // Finish this week's schedule: every unplayed game (including the user's, if skipped) is simulated
@@ -603,7 +602,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // Playoff weeks: finish the current round (simulating the user's game if skipped) and seed the next
     const { playoffBracket } = get();
-    if (playoffBracket?.isPlayoffsActive) {
+    if (playoffBracket?.isPlayoffsActive && bracketRoundForWeek(playoffBracket, currentWeek) >= 0) {
       const userNode = findUserNode(playoffBracket, userTeamId)?.node;
       set({ playoffBracket: advancePlayoffRound(relinkBracketTeams(playoffBracket, leagueTeams)) });
       if (userNode?.winnerTeamId === userTeamId) {

@@ -18,10 +18,10 @@ import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { dilemmaChoiceCosts } from '../sim/dilemmaEngine';
 import { calculateDistrictStandings } from '../sim/districtEngine';
-import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
+import { findDistrict, seasonLength } from '../sim/league';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
 import { playoffQualifyText, rulesForState } from '../sim/stateRules';
-import { powerRatings } from '../sim/playoffEngine';
+import { bracketRoundForWeek, findUserNode, powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 
@@ -129,7 +129,6 @@ export const WeeklyAgenda: React.FC<{
   const team = leagueTeams.find((t) => t.id === userTeamId);
   if (!team) return null;
 
-  const rounds = league ? playoffRoundCount(league) : 6;
   const stateRules = rulesForState(league?.state);
   // The district opener's one-line reminder of what's at stake
   const openerRule =
@@ -143,7 +142,7 @@ export const WeeklyAgenda: React.FC<{
             ? `${stateRules.districtLabel.toLowerCase()} champions get a top playoff seed`
             : 'every win counts in the power ranking'
   const ROUND_LABELS = stateRules.playoffs.roundLabels;
-  const phase = getSeasonPhase(currentWeek, rounds);
+  const phase = getSeasonPhase(currentWeek);
   const totalWeeks = league ? seasonLength(league) : 28;
   const firstOffSeasonWeek = totalWeeks - 3;
   const isGamePhase = phase === 'NON_DISTRICT' || phase === 'DISTRICT_PLAY' || phase === 'STATE_PLAYOFFS';
@@ -490,6 +489,22 @@ export const WeeklyAgenda: React.FC<{
         });
       task = { id: 'preview', icon: '🗓️', title: 'Season preview', detail: preview.join(' · '), tone: 'info', link: { label: 'Schedule', onClick: () => onNavigate('OFFICE') } };
     }
+  } else if (phase === 'STATE_PLAYOFFS' && playoffBracket?.isPlayoffsActive && bracketRoundForWeek(playoffBracket, currentWeek) < 0) {
+    // A five-round state's open week: the field is set and the first round is next week
+    const mine = findUserNode(playoffBracket, userTeamId)?.node;
+    const opponent = mine && !mine.isBye ? (mine.team1.id === userTeamId ? mine.team2 : mine.team1) : undefined;
+    headline = {
+      id: 'open-week',
+      icon: mine ? '🎟️' : '📋',
+      title: mine ? 'Open week: you made the playoffs' : 'Open week: the playoff field is set',
+      detail: mine
+        ? mine.isBye
+          ? `You have a first-round bye. Rest up: injuries heal and the ${ROUND_LABELS[playoffBracket.roundNames[1]] ?? 'next round'} is in two weeks.`
+          : `${ROUND_LABELS[playoffBracket.roundNames[0]]} next week ${mine.team1.id === userTeamId ? 'vs' : 'at'} ${opponent!.name} (${opponent!.record.wins}-${opponent!.record.losses}). No game this week: rest, heal and study film.`
+        : "You didn't make the field. The season ends at the banquet: use the time for college recruiting and coach talents.",
+      tone: 'info',
+      link: { label: 'Bracket', onClick: () => onNavigate('SCOREBOARD') }
+    };
   } else if (phase === 'STATE_PLAYOFFS') {
     headline = {
       id: 'season-over',

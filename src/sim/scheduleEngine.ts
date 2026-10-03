@@ -12,6 +12,11 @@ export const FIRST_NON_DISTRICT_WEEK = 8;
 export const FIRST_DISTRICT_WEEK = 11;
 export const LAST_REGULAR_SEASON_WEEK = 17;
 export const OFF_SEASON_WEEKS = 4;
+// Every state shares one calendar and plays its title game in the same week (week 23). Texas's six playoff
+// rounds start in week 18; a five-round state starts a week later and has an open week 18.
+export const MAX_PLAYOFF_ROUNDS = 6;
+export const STATE_FINAL_WEEK = LAST_REGULAR_SEASON_WEEK + MAX_PLAYOFF_ROUNDS;
+export const firstPlayoffWeek = (rounds: number) => STATE_FINAL_WEEK - rounds + 1;
 const DISTRICT_POINT_DIFFERENTIAL_CAP = 17;
 
 export type SeasonPhase = 'SPRING_EVALUATION' | 'SUMMER_CAMP' | 'NON_DISTRICT' | 'DISTRICT_PLAY' | 'STATE_PLAYOFFS' | 'POST_SEASON' | 'OFF_SEASON';
@@ -27,13 +32,13 @@ export const SEASON_PHASE_LABELS: Record<SeasonPhase, string> = {
   OFF_SEASON: 'Off Season'
 };
 
-export function getSeasonPhase(week: number, playoffRounds = 6): SeasonPhase {
+export function getSeasonPhase(week: number): SeasonPhase {
   if (week <= PRESEASON_WEEKS) return 'SPRING_EVALUATION';
   if (week <= LAST_TRAINING_CAMP_WEEK) return 'SUMMER_CAMP';
   if (week < FIRST_DISTRICT_WEEK) return 'NON_DISTRICT';
   if (week <= LAST_REGULAR_SEASON_WEEK) return 'DISTRICT_PLAY';
-  if (week <= LAST_REGULAR_SEASON_WEEK + playoffRounds) return 'STATE_PLAYOFFS';
-  if (week === LAST_REGULAR_SEASON_WEEK + playoffRounds + 1) return 'POST_SEASON'; // the banquet and signing day
+  if (week <= STATE_FINAL_WEEK) return 'STATE_PLAYOFFS'; // including a five-round state's open week
+  if (week === STATE_FINAL_WEEK + 1) return 'POST_SEASON'; // the banquet and signing day
   return 'OFF_SEASON';
 }
 

@@ -1,6 +1,6 @@
 import { ScheduledGame, Team } from '../types/game';
 import { simulateMacroMatch, rollGameInjuries } from './macroSim';
-import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
+import { LAST_REGULAR_SEASON_WEEK, firstPlayoffWeek } from './scheduleEngine';
 import { calculateDistrictStandings } from './districtEngine';
 import { StateRules, TEXAS_RULES, rulesForState } from './stateRules';
 import { LeagueStructure, playoffRoundCount } from './league';
@@ -48,6 +48,7 @@ export interface PlayoffBracketState {
   isPlayoffsActive: boolean;
   roundNames: PlayoffRound[];
   currentRoundIndex: number;
+  firstWeek?: number; // the week of the first round (missing in older saves: week 18)
   divisions: PlayoffDivision[];
   championshipTitle?: string;
   championshipVenue?: string;
@@ -129,6 +130,18 @@ function regionFirstRound(region: string, districtSeeds: Team[][]): BracketNode[
  * otherwise all four qualifiers enter one bracket.
  */
 export function buildPlayoffBracket(
+  regions: { name: string; districts: Team[][] }[],
+  options: { splitDivisions: boolean; excludeTeamIds?: string[]; rules?: StateRules; schedule?: ScheduledGame[] }
+): PlayoffBracketState {
+  const bracket = buildBracket(regions, options);
+  return { ...bracket, firstWeek: firstPlayoffWeek(bracket.roundNames.length) };
+}
+
+/** The week a bracket's round is played; and the round played in a week (-1 before the first, e.g. an open week). */
+export const bracketRoundWeek = (bracket: PlayoffBracketState, roundIndex: number) => (bracket.firstWeek ?? LAST_REGULAR_SEASON_WEEK + 1) + roundIndex;
+export const bracketRoundForWeek = (bracket: PlayoffBracketState, week: number) => week - (bracket.firstWeek ?? LAST_REGULAR_SEASON_WEEK + 1);
+
+function buildBracket(
   regions: { name: string; districts: Team[][] }[],
   options: { splitDivisions: boolean; excludeTeamIds?: string[]; rules?: StateRules; schedule?: ScheduledGame[] }
 ): PlayoffBracketState {
@@ -392,7 +405,7 @@ export function advancePlayoffRound(bracketState: PlayoffBracketState): PlayoffB
     const nodes = division.rounds[roundIndex];
     nodes.forEach((node) => {
       if (node.winnerTeamId) return;
-      const week = LAST_REGULAR_SEASON_WEEK + 1 + roundIndex;
+      const week = bracketRoundWeek(bracketState, roundIndex);
       const res = simulateMacroMatch(`po_${node.matchupId}`, week, node.team1, node.team2, 'CLEAR');
       rollGameInjuries(node.team1, week);
       rollGameInjuries(node.team2, week);

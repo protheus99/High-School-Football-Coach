@@ -7,7 +7,7 @@ import northCarolina8A from '../data/north-carolina-8a.json';
 import alabama6A from '../data/alabama-6a.json';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { nameProfileForArea } from '../generators/names';
-import { LAST_REGULAR_SEASON_WEEK, OFF_SEASON_WEEKS } from './scheduleEngine';
+import { OFF_SEASON_WEEKS, STATE_FINAL_WEEK } from './scheduleEngine';
 import { rulesForState } from './stateRules';
 
 export interface LeagueDistrict {
@@ -276,5 +276,6 @@ export function playoffRoundCount(league: LeagueStructure): number {
 
 /** Pre season, camp and regular season + playoff rounds + the banquet week + the off season. */
 export function seasonLength(league: LeagueStructure): number {
-  return LAST_REGULAR_SEASON_WEEK + playoffRoundCount(league) + 1 + OFF_SEASON_WEEKS;
+  void league; // the same for every state: the title games share week 23
+  return STATE_FINAL_WEEK + 1 + OFF_SEASON_WEEKS;
 }

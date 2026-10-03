@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getSeasonPhase, SEASON_PHASE_LABELS } from '../scheduleEngine';
-import { playoffRoundCount, seasonLength } from '../league';
+import { seasonLength } from '../league';
 import { useGameStore } from '../../store/gameStore';
 import { TEMPLATES } from '../dilemmaTemplates';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
@@ -10,7 +10,7 @@ vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefin
 
 describe('Season calendar', () => {
   it('labels every week of a 6-round playoff season: 4 pre season, 3 camp, games, post season, 4 off season', () => {
-    const labels = Array.from({ length: 28 }, (_, i) => SEASON_PHASE_LABELS[getSeasonPhase(i + 1, 6)]);
+    const labels = Array.from({ length: 28 }, (_, i) => SEASON_PHASE_LABELS[getSeasonPhase(i + 1)]);
     const count = (label: string) => labels.filter((l) => l === label).length;
     expect(labels.slice(0, 4).every((l) => l === 'Pre Season')).toBe(true);
     expect(labels.slice(4, 7).every((l) => l === 'Training Camp')).toBe(true);
@@ -25,18 +25,17 @@ describe('Season calendar', () => {
     const store = useGameStore;
     store.getState().startNewSeason();
     const { league, currentYear } = store.getState();
-    const rounds = playoffRoundCount(league!);
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
-    expect(getSeasonPhase(store.getState().currentWeek, rounds)).toBe('POST_SEASON');
+    expect(getSeasonPhase(store.getState().currentWeek)).toBe('POST_SEASON');
 
     store.getState().finishBanquet();
     expect(store.getState().isBanquetActive).toBe(false);
-    expect(getSeasonPhase(store.getState().currentWeek, rounds)).toBe('OFF_SEASON');
+    expect(getSeasonPhase(store.getState().currentWeek)).toBe('OFF_SEASON');
     // Four off-season weeks (no second banquet), then the new year
     while (store.getState().currentWeek < seasonLength(league!)) {
       store.getState().advanceWeek();
       expect(store.getState().isBanquetActive).toBe(false);
-      expect(getSeasonPhase(store.getState().currentWeek, rounds)).toBe('OFF_SEASON');
+      expect(getSeasonPhase(store.getState().currentWeek)).toBe('OFF_SEASON');
     }
 
     store.getState().advanceWeek();
@@ -104,4 +103,23 @@ describe('Season calendar', () => {
     const heat = TEMPLATES.find((t) => t.id === 'HEAT_ADVISORY')!;
     expect(Array.from({ length: 28 }, (_, i) => i + 1).filter((w) => heat.appliesTo(team, w) !== null)).toEqual([5, 6, 7, 8]);
   });
+
+  it('every state plays its title game in week 23: a five-round state has an open week 18', async () => {
+    const { getUserMatchup } = await import('../userMatchup');
+    for (const [state, firstWeek] of [['Texas', 18], ['Georgia', 19]] as const) {
+      const store = useGameStore;
+      store.getState().newGame('MEDIUM', state);
+      while (store.getState().currentWeek < 18) store.getState().advanceWeek();
+      const bracket = store.getState().playoffBracket!;
+      expect(bracket.firstWeek).toBe(firstWeek);
+      if (firstWeek === 19) {
+        expect(getUserMatchup(store.getState())).toBeUndefined(); // no game in the open week
+        store.getState().advanceWeek();
+        expect(store.getState().playoffBracket!.currentRoundIndex).toBe(0); // the open week plays no round
+      }
+      while (!store.getState().isBanquetActive) store.getState().advanceWeek();
+      expect(store.getState().currentWeek).toBe(24);
+      expect(seasonLength(store.getState().league!)).toBe(28);
+    }
+  }, 120000);
 });

@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { findDistrict, findRegion, playoffRoundCount } from '../sim/league';
-import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
+import { findDistrict, findRegion } from '../sim/league';
+import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK, STATE_FINAL_WEEK } from '../sim/scheduleEngine';
+import { bracketRoundForWeek } from '../sim/playoffEngine';
 import { rulesForState } from '../sim/stateRules';
 
 type Scope = 'DISTRICT' | 'REGION' | 'ALL';
@@ -28,13 +29,14 @@ export const ScoreboardView: React.FC = () => {
   const records = useMemo(() => new Map(leagueTeams.map((t) => [t.id, `${t.record.wins}-${t.record.losses}`])), [leagueTeams]);
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
-  const lastGameWeek = LAST_REGULAR_SEASON_WEEK + (league ? playoffRoundCount(league) : 6);
+  const lastGameWeek = STATE_FINAL_WEEK;
   const ROUND_LABELS = rulesForState(league?.state).playoffs.roundLabels;
 
   const rowsForWeek = (week: number): ScoreRow[] => {
     if (week > LAST_REGULAR_SEASON_WEEK) {
-      const roundIndex = week - LAST_REGULAR_SEASON_WEEK - 1;
       if (!playoffBracket) return [];
+      const roundIndex = bracketRoundForWeek(playoffBracket, week);
+      if (roundIndex < 0) return []; // open week
       return playoffBracket.divisions.flatMap((d) =>
         (d.rounds[roundIndex] ?? []).filter((n) => !n.isBye).map((n) => ({
           id: n.matchupId,

@@ -1,6 +1,6 @@
 import { ScheduledGame, Team } from '../types/game';
 import { getTeamGameForWeek } from './scheduleEngine';
-import { currentRound, findUserNode, PlayoffBracketState } from './playoffEngine';
+import { bracketRoundForWeek, currentRound, findUserNode, PlayoffBracketState } from './playoffEngine';
 import { rulesForState } from './stateRules';
 
 export interface UserMatchup {
@@ -24,6 +24,7 @@ export function getUserMatchup(state: {
 }): UserMatchup | undefined {
   const { playoffBracket, userTeamId } = state;
   if (playoffBracket?.isPlayoffsActive) {
+    if (bracketRoundForWeek(playoffBracket, state.currentWeek) < 0) return undefined; // the open week before a five-round bracket
     const found = findUserNode(playoffBracket, userTeamId);
     if (!found || found.node.isBye) return undefined; // a bye: no game this week
     const { node, division } = found;
