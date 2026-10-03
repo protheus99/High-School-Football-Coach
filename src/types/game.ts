@@ -402,6 +402,8 @@ export interface FeederProspect {
   homeTeamId?: string; // the school the player is zoned to, when it isn't the user's
   userInducement?: boolean; // the user's boosters made an illegal offer
   actionsThisWeek?: string[]; // recruiting contacts the user already made this week (each once a week)
+  scope?: 'STATE' | 'NATIONAL'; // a wide-pool prospect: elsewhere in the state, or in another state
+  homeState?: string; // NATIONAL: the state he lives in
 }
 
 export type FeederOutcomeType = 'JOINED' | 'JV_TEAM' | 'NOT_PLAYING' | 'LEFT_AREA' | 'OTHER_SCHOOL';

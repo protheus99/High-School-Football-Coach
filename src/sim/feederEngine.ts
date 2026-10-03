@@ -43,7 +43,9 @@ export const CONTACT_ORDER: ContactAction[] = ['TEXT', 'EMAIL', 'CALL', 'VISIT',
 
 /** Interest a contact adds: the full amount early, less once he is warm (60+) and less again once he is near committing (80+). */
 export function contactGain(p: FeederProspect, action: ContactAction): number {
-  const base = CONTACT_ACTIONS[action].interest * (p.source === 'STAR_RECRUIT' ? 0.5 : 1);
+  // Stars are harder to impress; faraway kids (the State and National lists) too
+  const distance = p.scope === 'NATIONAL' ? 0.5 : p.scope === 'STATE' ? 0.75 : 1;
+  const base = CONTACT_ACTIONS[action].interest * (p.source === 'STAR_RECRUIT' ? 0.5 : 1) * distance;
   const scale = p.interestScore >= 80 ? 0.6 : p.interestScore >= 60 ? 0.8 : 1;
   return Math.max(1, Math.round(base * scale));
 }

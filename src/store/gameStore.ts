@@ -89,6 +89,7 @@ import { buildPlayoffBracket, advancePlayoffRound, bracketRoundForWeek, compactB
 import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
+import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
 import { buildNationalWorld, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
@@ -254,6 +255,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     playoffBracket: state.playoffBracket && compactBracket(state.playoffBracket),
     sanctionLevel: state.sanctionLevel,
     statewideRecruits: state.statewideRecruits,
+    widePool: state.widePool,
     userViolationHeat: state.userViolationHeat,
     pendingUserBan: state.pendingUserBan,
     onHotSeat: state.onHotSeat,
@@ -297,6 +299,7 @@ interface GameStoreState {
   feederEventsThisWeek: FeederEventType[];
   lastFeederResults: FeederOutcome[] | null; // how last year's class turned out
   statewideRecruits: FeederProspect[]; // elite out-of-area recruits contested by the top AI programs
+  widePool: FeederProspect[]; // prospects beyond the region: the rest of the state (Texas) and the other states
   userViolationHeat: number; // hidden evidence of the user's recruiting violations
   pendingUserBan: boolean; // caught at year end: banned from next season's playoffs
   newsArticles: NewsArticle[];
@@ -373,6 +376,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   feederEventsThisWeek: [],
   lastFeederResults: null,
   statewideRecruits: [],
+  widePool: [],
   userViolationHeat: 0,
   pendingUserBan: false,
   onHotSeat: false,
@@ -418,6 +422,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       userTeamId,
       scoutingPool: generateFeederPool(userTeam, ctx),
       statewideRecruits: generateStatewideElite(ctx),
+      widePool: generateWidePool(ctx, league.state ?? 'Texas', nationalLeagues),
       feederClassYear: get().currentYear + 1,
       seasonRecap: null,
       userViolationHeat: 0,
@@ -472,6 +477,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       playoffBracket: save.league && save.playoffBracket ? relinkBracketTeams(save.playoffBracket, world.teams) : null,
       sanctionLevel: save.sanctionLevel ?? 0,
       statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
+      widePool: save.widePool ?? generateWidePool(buildRecruitingContext(world.league, world.teams, userTeam.id), world.league.state ?? 'Texas', nationalLeagues),
       userViolationHeat: save.userViolationHeat ?? 0,
       pendingUserBan: save.pendingUserBan ?? false,
       onHotSeat: save.onHotSeat ?? false,
@@ -591,6 +597,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         statewideRecruits: advanceRivalRecruiting(get().statewideRecruits, ctx, nextWeek)
       });
     }
+    // The State and National lists: zoned schools keep working their kids, contacts reset
+    set({ widePool: advanceWidePool(get().widePool) });
 
     // In-season investigations: evidence of recruiting violations can surface any week
     if (currentWeek <= LAST_REGULAR_SEASON_WEEK) {
@@ -1014,14 +1022,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
   },
 
-  removeFeederProspect: (prospectId) => set({ scoutingPool: get().scoutingPool.filter((p) => p.id !== prospectId) }),
+  removeFeederProspect: (prospectId) =>
+    set({ scoutingPool: get().scoutingPool.filter((p) => p.id !== prospectId), widePool: get().widePool.filter((p) => p.id !== prospectId) }),
 
   contactFeederProspect: (prospectId, action) => {
-    const { coachPoints, scoutingPool } = get();
-    const prospect = scoutingPool.find((p) => p.id === prospectId);
+    const { coachPoints, scoutingPool, widePool } = get();
+    const prospect = scoutingPool.find((p) => p.id === prospectId) ?? widePool.find((p) => p.id === prospectId);
     const { cost } = CONTACT_ACTIONS[action];
     if (!prospect || coachPoints < cost || prospect.actionsThisWeek?.includes(action)) return;
-    set({ coachPoints: coachPoints - cost, scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? contactProspect(p, action) : p)) });
+    const contact = (p: FeederProspect) => (p.id === prospectId ? contactProspect(p, action) : p);
+    set({ coachPoints: coachPoints - cost, ...(prospect.scope ? { widePool: widePool.map(contact) } : { scoutingPool: scoutingPool.map(contact) }) });
   },
 
   visitFeederProspect: (prospectId) => {
@@ -1081,8 +1091,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const ctx = recruitingContext(get());
     const feederClass = resolveFeederClass(scoutingPool, userTeam, ctx);
     const elite = ctx ? resolveStatewideElite(get().statewideRecruits, ctx) : { signings: [] as RivalSigning[], headlines: [] as string[] };
+    // The State and National lists sign too: the user's wins join the class
+    const wide = ctx ? resolveWidePool(get().widePool, ctx) : { joined: [] as Player[], rivalSignings: [] as RivalSigning[], outcomes: [] as FeederOutcome[] };
+    feederClass.joined.push(...wide.joined);
+    feederClass.outcomes.push(...wide.outcomes);
     const rivalIncoming = new Map<string, Player[]>();
-    [...feederClass.rivalSignings, ...elite.signings].forEach(({ teamId, player }) => {
+    [...feederClass.rivalSignings, ...wide.rivalSignings, ...elite.signings].forEach(({ teamId, player }) => {
       rivalIncoming.set(teamId, [...(rivalIncoming.get(teamId) ?? []), player]);
     });
     leagueTeams.forEach((team) => {
@@ -1091,7 +1105,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
     enforceVarsityRosterLimit(userTeam, feederClass.joined, feederClass.outcomes);
     // The pool is shared across the region: report only on the user's own pipeline (and anyone who chose the user)
-    const pipelineIds = new Set(scoutingPool.filter(inUserPipeline).map((p) => p.id));
+    const pipelineIds = new Set([...scoutingPool.filter(inUserPipeline), ...get().widePool.filter((p) => p.coachContacts > 0)].map((p) => p.id));
     const outcomes = feederClass.outcomes.filter((o) => pipelineIds.has(o.prospectId) || o.outcome === 'JOINED' || o.outcome === 'JV_TEAM');
     updateStarRatings(leagueTeams, false);
 
@@ -1119,6 +1133,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({
       scoutingPool: generateFeederPool(userTeam, ctx),
       statewideRecruits: ctx ? generateStatewideElite(ctx) : [],
+      widePool: ctx ? generateWidePool(ctx, get().league?.state ?? 'Texas', get().nationalLeagues) : [],
       lastFeederResults: outcomes,
       feederClassYear: currentYear + 1,
       newsArticles: [classArticle, ...eliteNews, ...get().newsArticles],

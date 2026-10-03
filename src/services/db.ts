@@ -28,6 +28,7 @@ export interface GameSaveRecord {
   playoffBracket?: PlayoffBracketState | null;
   sanctionLevel?: 0 | 1 | 2 | 3;
   statewideRecruits?: FeederProspect[];
+  widePool?: FeederProspect[]; // the State and National prospect lists
   userViolationHeat?: number;
   pendingUserBan?: boolean;
   onHotSeat?: boolean; // board warning from last season's review

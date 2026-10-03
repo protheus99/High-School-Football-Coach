@@ -24,6 +24,7 @@ import {
   userJoinProbability
 } from '../sim/feederEngine';
 import { FACTOR_LABELS, RecruitingContext, buildRecruitingContext, choiceShares, topPriority } from '../sim/feederCompetition';
+import { wideJoinProbability } from '../sim/widePool';
 
 const SOURCE_COLORS: Record<ProspectSource, string> = {
   FEEDER_MIDDLE_SCHOOL: '#2563EB',
@@ -50,7 +51,9 @@ function outlook(chance: number): { label: string; color: string } {
 }
 
 export type FeederSection = 'STUDENTS' | 'PROGRAMS' | 'NEEDS';
-type PoolView = 'DISTRICT' | 'REGION' | 'TOP_DISTRICT' | 'TOP_REGION' | 'COMMITTED';
+type PoolScope = 'DISTRICT' | 'REGION' | 'STATE' | 'NATIONAL';
+type PoolFilter = 'ALL' | 'TOP10' | 'COMMITTED';
+const PAGE_SIZE = 20; // prospect cards shown at a time (the State and National lists run to 100+)
 
 /** Position tabs above the prospect list (lines and the secondary grouped). */
 const POSITION_GROUPS: { id: string; label: string; positions?: Position[] }[] = [
@@ -97,6 +100,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     contactFeederProspect,
     removeFeederProspect,
     statewideRecruits,
+    widePool,
     league,
     leagueTeams,
     currentYear,
@@ -105,9 +109,25 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
   // The pool scopes in the state's words; a one-region league's "region" pool is the whole state class
   const districtWord = rulesForState(league?.state).districtLabel;
-  const regionWord = league && league.regions.length === 1 ? 'State' : districtWord === 'Region' ? 'Area' : 'Region';
-  const [view, setView] = useState<PoolView>('DISTRICT');
-  const [positionGroup, setPositionGroup] = useState<string>('ALL');
+  const multiRegion = !!league && league.regions.length > 1;
+  const regionWord = !multiRegion ? 'State' : districtWord === 'Region' ? 'Area' : 'Region';
+  const [scope, setScopeState] = useState<PoolScope>('DISTRICT');
+  const [filter, setFilterState] = useState<PoolFilter>('ALL');
+  const [positionGroup, setPositionGroupState] = useState<string>('ALL');
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  // Any change of list starts again at the first page
+  const setScope = (s: PoolScope) => {
+    setScopeState(s);
+    setVisible(PAGE_SIZE);
+  };
+  const setFilter = (f: PoolFilter) => {
+    setFilterState(f);
+    setVisible(PAGE_SIZE);
+  };
+  const setPositionGroup = (g: string) => {
+    setPositionGroupState(g);
+    setVisible(PAGE_SIZE);
+  };
   const [feedback, setFeedback] = useState<string | null>(null);
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   if (!userTeam) return null;
@@ -127,27 +147,41 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const tops = ctx ? topTenLists(scoutingPool, ctx) : { region: [], district: [] };
   const topDistrict = tops.district;
   const topRegion = tops.region;
-  const committedToMe = scoutingPool.filter((p) => currentCommitment(p, userTeamId)?.teamId === userTeamId);
-  // The top 10 lists always hold ten, so only the other views show a count
-  const views: { id: PoolView; label: string; short?: string; list: FeederProspect[]; count: boolean }[] = [
-    { id: 'DISTRICT', label: districtWord, list: ranked(districtPool), count: true },
-    { id: 'REGION', label: regionWord, list: ranked(scoutingPool), count: true },
-    { id: 'COMMITTED', label: 'Committed', list: committedToMe, count: true },
-    { id: 'TOP_DISTRICT', label: `Top 10 in ${districtWord}`, short: `Top 10 ${districtWord}`, list: topDistrict, count: false },
-    { id: 'TOP_REGION', label: `Top 10 in ${regionWord}`, short: `Top 10 ${regionWord}`, list: topRegion, count: false }
+  // Scopes widen out: district, region (Texas only), the whole state, the nation. A one-region state's region
+  // pool is already the whole state.
+  const statePool = multiRegion ? [...scoutingPool, ...widePool.filter((p) => p.scope === 'STATE')] : scoutingPool;
+  const scopes: { id: PoolScope; label: string; list: FeederProspect[] }[] = [
+    { id: 'DISTRICT', label: districtWord, list: districtPool },
+    ...(multiRegion ? [{ id: 'REGION' as const, label: regionWord, list: scoutingPool }] : []),
+    { id: 'STATE', label: 'State', list: statePool },
+    { id: 'NATIONAL', label: 'National', list: [...scoutingPool, ...widePool] }
   ];
-  const shown = views.find((v) => v.id === view)!.list;
+  const scopeList = ranked((scopes.find((s) => s.id === scope) ?? scopes[0]).list);
+  const scopeName = (scopes.find((s) => s.id === scope) ?? scopes[0]).label;
+  const isA = (p: FeederProspect) => p.truePotential === 'A' || p.truePotential === 'A+';
+  // Top 10: the district's five best A-level and five best B-level; wider scopes their ten best A-level
+  const top10 = scope === 'DISTRICT' ? topDistrict : scope === 'REGION' ? topRegion : scopeList.filter(isA).slice(0, 10);
+  const committedToMe = scopeList.filter((p) => currentCommitment(p, userTeamId)?.teamId === userTeamId);
+  const filters: { id: PoolFilter; label: string; count?: number }[] = [
+    { id: 'ALL', label: 'All', count: scopeList.length },
+    { id: 'TOP10', label: 'Top 10' },
+    { id: 'COMMITTED', label: 'Committed', count: committedToMe.length }
+  ];
+  const shown = filter === 'TOP10' ? top10 : filter === 'COMMITTED' ? committedToMe : scopeList;
   const groupPositions = POSITION_GROUPS.find((g) => g.id === positionGroup)?.positions;
   const byPosition = groupPositions ? shown.filter((p) => groupPositions.includes(p.projectedPosition)) : shown;
+  const page = byPosition.slice(0, visible);
   const rankLabel = (p: FeederProspect) => {
-    // The district list shows district ranks; elsewhere a region ranking comes first
-    if (view === 'TOP_DISTRICT') return `#${topDistrict.indexOf(p) + 1} in ${districtWord}`;
+    if (filter === 'TOP10') return `#${top10.indexOf(p) + 1} in ${scopeName}`;
+    if (p.scope) return p.scope === 'NATIONAL' ? `${p.homeState} prospect` : 'Elsewhere in the state';
     const r = topRegion.indexOf(p);
     if (r >= 0) return `#${r + 1} in ${regionWord}`;
     const d = topDistrict.indexOf(p);
     return d >= 0 ? `#${d + 1} in ${districtWord}` : undefined;
   };
-  const schoolName = (id: string) => (id === userTeamId ? 'You' : (ctx?.teamsById.get(id)?.name ?? 'Rival'));
+  // Schools by name: league programs from the context, faraway ones from the prospect's suitor list
+  const schoolName = (id: string, p?: FeederProspect) =>
+    id === userTeamId ? 'You' : (ctx?.teamsById.get(id)?.name ?? p?.suitors.find((s) => s.teamId === id)?.teamName ?? 'Rival');
 
   const handleEvent = (type: FeederEventType) => {
     const discovered = runFeederEvent(type);
@@ -278,25 +312,26 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             </div>
           )}
 
-          {/* Pool views */}
-          <div className="ui-chips" aria-label="Pool view" style={{ marginBottom: '6px' }}>
-            {views.map((v) => (
-              <button key={v.id} className="ui-chip" aria-pressed={view === v.id} onClick={() => setView(v.id)}>
-                {v.short ? (
-                  <>
-                    <span className="hide-sm">{v.label}</span>
-                    <span className="show-sm">{v.short}</span>
-                  </>
-                ) : (
-                  v.label
-                )}
-                {v.count && ` (${v.list.length})`}
+          {/* Pool: how far to look (scope), then which list (filter) */}
+          <div aria-label="Pool scope" style={{ display: 'grid', gridTemplateColumns: `repeat(${scopes.length}, 1fr)`, gap: '6px', marginBottom: '6px' }}>
+            {scopes.map((s) => (
+              <button key={s.id} className="ui-chip" aria-pressed={scope === s.id} onClick={() => setScope(s.id)} style={{ justifyContent: 'center' }}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <div className="ui-chips" aria-label="Pool filter" style={{ marginBottom: '6px' }}>
+            {filters.map((f) => (
+              <button key={f.id} className="ui-chip" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>
+                {f.label}
+                {f.count !== undefined && <span className="ui-chip-count">{f.count}</span>}
               </button>
             ))}
           </div>
           <p className="ui-muted" style={{ margin: '0 0 10px 0', fontSize: '12px' }}>
-            Every program in the {regionWord.toLowerCase()} recruits this pool. At {COMMIT_THRESHOLD}+ interest a prospect commits; on signing day the school with the highest
-            interest signs him, and a tie at the top is a coin flip.
+            {scope === 'NATIONAL' || (scope === 'STATE' && multiRegion)
+              ? `Faraway prospects are long shots: contacts earn ${scope === 'NATIONAL' ? 'half' : 'three quarters of'} the usual interest, and even with his commitment his family has to agree to move. His zoned school is working him too.`
+              : `Every program in the ${(scope === 'DISTRICT' ? regionWord : scopeName).toLowerCase()} recruits this pool. At ${COMMIT_THRESHOLD}+ interest a prospect commits; on signing day the school with the highest interest signs him, and a tie at the top is a coin flip.`}
           </p>
 
           {/* Positions */}
@@ -314,18 +349,18 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
 
           {/* Prospects */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '10px' }}>
-            {byPosition.map((p) => (
+            {page.map((p) => (
               <ProspectCard
                 key={p.id}
                 prospect={p}
-                chance={userJoinProbability(p, userTeam.prestige, ctx)}
+                chance={p.scope ? wideJoinProbability(p, userTeamId) : userJoinProbability(p, userTeam.prestige, ctx)}
                 coachPoints={coachPoints}
                 onContact={(action) => contactFeederProspect(p.id, action)}
                 rank={rankLabel(p)}
-                schools={schoolInterest(p, userTeamId).slice(0, 3).map((e) => ({ name: schoolName(e.teamId), interest: e.interest, isYou: e.teamId === userTeamId }))}
+                schools={schoolInterest(p, userTeamId).slice(0, 3).map((e) => ({ name: schoolName(e.teamId, p), interest: e.interest, isYou: e.teamId === userTeamId }))}
                 commitment={(() => {
                   const c = currentCommitment(p, userTeamId);
-                  return c ? { name: schoolName(c.teamId), interest: c.interest, isYou: c.teamId === userTeamId, tied: c.tied } : null;
+                  return c ? { name: schoolName(c.teamId, p), interest: c.interest, isYou: c.teamId === userTeamId, tied: c.tied } : null;
                 })()}
                 positionFilled={(needs.find((n) => n.position === p.projectedPosition)?.need ?? 1) === 0}
                 onRemove={() => {
@@ -336,6 +371,11 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             ))}
             {byPosition.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No prospects in this group.</div>}
           </div>
+          {byPosition.length > page.length && (
+            <button className="ui-btn ui-btn-block" style={{ marginTop: '10px' }} onClick={() => setVisible(visible + PAGE_SIZE)}>
+              Show {Math.min(PAGE_SIZE, byPosition.length - page.length)} more ({byPosition.length - page.length} left)
+            </button>
+          )}
 
           {ctx && statewideRecruits.length > 0 && <StatewideElitePanel recruits={statewideRecruits} ctx={ctx} />}
         </>
