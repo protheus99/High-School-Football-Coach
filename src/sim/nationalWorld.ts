@@ -4,6 +4,7 @@ import { applyGameResult, generateSeasonSchedule, LAST_REGULAR_SEASON_WEEK } fro
 import { simulateMacroMatch } from './macroSim';
 import { advancePlayoffRound, bracketRoundForWeek, buildPlayoffBracket, PlayoffBracketState, relinkBracketTeams } from './playoffEngine';
 import { PLAYABLE_STATES, rulesForState } from './stateRules';
+import { applyRunAheadRound, gameKey, WeekResults } from './runAhead';
 
 // ---------------------------------------------------------------------------
 // The national world: every playable state other than the user's plays the same calendar as a light league,
@@ -26,6 +27,10 @@ export interface LightLeague {
  */
 export function buildLightLeague(state: string, year: number, previous?: LightLeague): LightLeague {
   const { league, teams } = buildStateWorld(state, undefined, true);
+  // Team ids come from school names, which repeat across states (West Forsyth: Georgia and North Carolina)
+  const suffix = `__${state.toLowerCase().replace(/[^a-z]+/g, '_')}`;
+  teams.forEach((t) => (t.id += suffix));
+  league.regions.forEach((r) => r.districts.forEach((d) => (d.teamIds = d.teamIds.map((id) => id + suffix))));
   const before = new Map((previous?.teams ?? []).map((t) => [t.id, t]));
   const champions = new Set(previous?.bracket?.divisions.map((d) => d.championTeamId).filter(Boolean));
   teams.forEach((t) => {
@@ -51,8 +56,9 @@ export function buildNationalWorld(userState: string, year: number, previous: Li
   );
 }
 
-/** Plays one week of a light league: its regular-season games, then (from week 17) its playoffs. */
-export function simulateLightWeek(light: LightLeague, week: number): void {
+/** Plays one week of a light league: its regular-season games, then (from week 17) its playoffs. Games already
+ * simulated ahead (run-ahead results) keep those scores. */
+export function simulateLightWeek(light: LightLeague, week: number, ahead: WeekResults | null = null): void {
   if (week <= LAST_REGULAR_SEASON_WEEK) {
     const byId = new Map(light.teams.map((t) => [t.id, t]));
     light.schedule
@@ -61,7 +67,8 @@ export function simulateLightWeek(light: LightLeague, week: number): void {
         const home = byId.get(g.homeTeamId);
         const away = byId.get(g.awayTeamId);
         if (!home || !away) return;
-        const box = simulateMacroMatch(g.gameId, g.week, home, away);
+        const pre = ahead?.week === week ? ahead.games[gameKey(light.state, g.gameId)] : undefined;
+        const box = pre ?? simulateMacroMatch(g.gameId, g.week, home, away);
         g.homeScore = box.homeScore;
         g.awayScore = box.awayScore;
         applyGameResult(home, away, box.homeScore, box.awayScore, g.isDistrictGame);
@@ -76,7 +83,10 @@ export function simulateLightWeek(light: LightLeague, week: number): void {
     }
     return;
   }
-  if (light.bracket?.isPlayoffsActive && bracketRoundForWeek(light.bracket, week) >= 0) light.bracket = advancePlayoffRound(light.bracket);
+  if (light.bracket?.isPlayoffsActive && bracketRoundForWeek(light.bracket, week) >= 0) {
+    applyRunAheadRound(light.bracket, light.state, ahead, week);
+    light.bracket = advancePlayoffRound(light.bracket);
+  }
 }
 
 /** Plays freshly built light leagues forward through a week (loading a save from before the national world). */

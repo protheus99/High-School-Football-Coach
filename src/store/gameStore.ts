@@ -90,6 +90,7 @@ import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
+import { applyRunAheadRound, gameKey, runAheadWeek, WeekResults } from '../sim/runAhead';
 import { buildNationalWorld, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
@@ -256,6 +257,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     sanctionLevel: state.sanctionLevel,
     statewideRecruits: state.statewideRecruits,
     widePool: state.widePool,
+    weekResults: state.weekResults,
     userViolationHeat: state.userViolationHeat,
     pendingUserBan: state.pendingUserBan,
     onHotSeat: state.onHotSeat,
@@ -264,6 +266,17 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
 }
 
 const AUTOSAVE_SLOT = 'current_save';
+
+/**
+ * Runs `work` when the browser is idle (after the coach's screen has updated): the run-ahead simulation of the
+ * week's other games. Tests skip it; their games are simulated at Advance Week as before.
+ */
+function whenIdle(work: () => void): void {
+  if (import.meta.env?.MODE === 'test' || typeof window === 'undefined') return;
+  const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+  if (idle) idle(work, { timeout: 2000 });
+  else setTimeout(work, 50);
+}
 
 /** The user's district as team objects (shared with leagueTeams). */
 export function userDistrictTeams(league: LeagueStructure, teams: Team[], userTeamId: string): Team[] {
@@ -300,6 +313,8 @@ interface GameStoreState {
   lastFeederResults: FeederOutcome[] | null; // how last year's class turned out
   statewideRecruits: FeederProspect[]; // elite out-of-area recruits contested by the top AI programs
   widePool: FeederProspect[]; // prospects beyond the region: the rest of the state (Texas) and the other states
+  weekResults: WeekResults | null; // this week's other games, simulated ahead (shown live during the coach's game)
+  runAhead: () => WeekResults; // simulates this week's other games now if they haven't been (idempotent)
   userViolationHeat: number; // hidden evidence of the user's recruiting violations
   pendingUserBan: boolean; // caught at year end: banned from next season's playoffs
   newsArticles: NewsArticle[];
@@ -377,6 +392,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   lastFeederResults: null,
   statewideRecruits: [],
   widePool: [],
+  weekResults: null,
   userViolationHeat: 0,
   pendingUserBan: false,
   onHotSeat: false,
@@ -423,6 +439,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       scoutingPool: generateFeederPool(userTeam, ctx),
       statewideRecruits: generateStatewideElite(ctx),
       widePool: generateWidePool(ctx, league.state ?? 'Texas', nationalLeagues),
+      weekResults: null,
       feederClassYear: get().currentYear + 1,
       seasonRecap: null,
       userViolationHeat: 0,
@@ -477,6 +494,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       playoffBracket: save.league && save.playoffBracket ? relinkBracketTeams(save.playoffBracket, world.teams) : null,
       sanctionLevel: save.sanctionLevel ?? 0,
       statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
+      weekResults: save.weekResults?.week === save.currentWeek ? save.weekResults : null,
       widePool: save.widePool ?? generateWidePool(buildRecruitingContext(world.league, world.teams, userTeam.id), world.league.state ?? 'Texas', nationalLeagues),
       userViolationHeat: save.userViolationHeat ?? 0,
       pendingUserBan: save.pendingUserBan ?? false,
@@ -506,6 +524,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
       scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p) ? save.scoutingPool : generateFeederPool(userTeam)
     });
+    whenIdle(() => get().runAhead());
   },
 
   saveGame: async (saveName) => {
@@ -528,7 +547,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const phase = getSeasonPhase(currentWeek);
     if (currentWeek === FEEDER_SIGNING_WEEK && get().currentYear >= get().feederClassYear) get().runFeederSigningDay();
 
-    // Finish this week's schedule: every unplayed game (including the user's, if skipped) is simulated
+    // Finish this week's schedule: every unplayed game (including the user's, if skipped) is simulated, or
+    // takes its run-ahead result
+    const ahead = get().weekResults?.week === currentWeek ? get().weekResults : null;
+    const userState = league?.state ?? 'Texas';
     const teamsById = new Map(leagueTeams.map((t) => [t.id, t]));
     seasonSchedule
       .filter((g) => g.week === currentWeek && g.homeScore === undefined)
@@ -536,7 +558,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         const home = teamsById.get(g.homeTeamId);
         const away = teamsById.get(g.awayTeamId);
         if (!home || !away) return;
-        const box = simulateMacroMatch(g.gameId, g.week, home, away);
+        const box = ahead?.games[gameKey(userState, g.gameId)] ?? simulateMacroMatch(g.gameId, g.week, home, away);
         rollGameInjuries(home, g.week);
         rollGameInjuries(away, g.week);
         g.homeScore = box.homeScore;
@@ -545,7 +567,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       });
 
     // The rest of the country plays the same week (regular season, then each state's playoffs)
-    get().nationalLeagues.forEach((light) => simulateLightWeek(light, currentWeek));
+    get().nationalLeagues.forEach((light) => simulateLightWeek(light, currentWeek, ahead));
 
     // Coach Points: the weekly allowance plus a bonus for a regular-season win; unspent CP carries over.
     // Program events can run once per week.
@@ -631,7 +653,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { playoffBracket } = get();
     if (playoffBracket?.isPlayoffsActive && bracketRoundForWeek(playoffBracket, currentWeek) >= 0) {
       const userNode = findUserNode(playoffBracket, userTeamId)?.node;
-      set({ playoffBracket: advancePlayoffRound(relinkBracketTeams(playoffBracket, leagueTeams)) });
+      const linked = relinkBracketTeams(playoffBracket, leagueTeams);
+      // Games played ahead keep their results (their injuries are rolled here, as the round is decided)
+      const before = new Set(linked.divisions.flatMap((d) => d.rounds[linked.currentRoundIndex] ?? []).filter((n) => n.winnerTeamId).map((n) => n.matchupId));
+      applyRunAheadRound(linked, league?.state ?? 'Texas', get().weekResults, currentWeek);
+      linked.divisions
+        .flatMap((d) => d.rounds[linked.currentRoundIndex] ?? [])
+        .filter((n) => n.winnerTeamId && !n.isBye && !before.has(n.matchupId))
+        .forEach((n) => [n.team1, n.team2].forEach((t) => rollGameInjuries(t, currentWeek)));
+      set({ playoffBracket: advancePlayoffRound(linked) });
       if (userNode?.winnerTeamId === userTeamId) {
         userTeam.programMeters.schoolBoardTrust = Math.min(100, userTeam.programMeters.schoolBoardTrust + BOARD_RESULT_DELTA.playoffWin);
         set({ coachPoints: get().coachPoints + winBonus(true, get().coachTalents) });
@@ -789,10 +819,20 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       leagueTeams: [...leagueTeams] // sanctions/forfeits above can change records too
     };
 
-    set(updatedState);
+    set({ ...updatedState, weekResults: null });
 
     // Auto-save state to IndexedDB in background
     persistSaveGame(buildSaveRecord(get(), AUTOSAVE_SLOT, `Week ${nextWeek} - ${userTeam.name}`));
+    // The rest of the week's games play out in the background while the coach makes his decisions
+    whenIdle(() => get().runAhead());
+  },
+
+  runAhead: () => {
+    const { weekResults, currentWeek } = get();
+    if (weekResults?.week === currentWeek) return weekResults;
+    const results = runAheadWeek(get());
+    set({ weekResults: results });
+    return results;
   },
 
   startPostseason: () => {

@@ -9,6 +9,7 @@ import { PlayAlert } from './PlayAlert';
 import { PlayAlertData, PreSnap, alertsForPlay } from '../sim/playAlerts';
 import { readableOnWhite } from '../utils/color';
 import { PlayCallingPanel } from './PlayCallingPanel';
+import { AroundTheLeague } from './AroundTheLeague';
 
 interface LiveMatchProps {
   initialState: GameSimulationState;
@@ -228,6 +229,9 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         onCallDefense={handleDefensiveCall}
         disabled={autoPlay || gameState.isGameOver || leveragePrompt !== null}
       />
+
+      {/* Other games this week, at this game's clock */}
+      <AroundTheLeague quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={gameState.isGameOver} />
 
       {/* Play-by-Play Stream (collapsible) */}
       <button
