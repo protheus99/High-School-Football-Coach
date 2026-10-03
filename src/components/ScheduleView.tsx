@@ -11,28 +11,27 @@ import {
 } from '../sim/scheduleEngine';
 
 /** What happens in a week without a game. */
-function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signingThisSeason: boolean): string {
+function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signingThisSeason: boolean, bracketSet: boolean): string {
   switch (phase) {
     case 'SPRING_EVALUATION':
       // A new game's first season has no signing day: its rosters already hold this year's freshmen
-      if (!signingThisSeason) return 'Feeder visits · college camps (signing day is next season)';
-      if (week < FEEDER_SIGNING_WEEK) return 'Final feeder visits before signing day';
-      if (week === FEEDER_SIGNING_WEEK) return '✍️ Feeder signing day: prospects pick their school';
-      return 'Newcomers join the program · college camps';
+      if (signingThisSeason && week < FEEDER_SIGNING_WEEK) return 'Final feeder visits before signing day';
+      if (signingThisSeason && week === FEEDER_SIGNING_WEEK) return '✍️ Feeder signing day: prospects pick their school';
+      return 'New student enrollment · College recruiting';
     case 'SUMMER_CAMP':
-      return week === LAST_TRAINING_CAMP_WEEK ? '📋 Depth chart set for the season' : 'Two-a-days or three-a-days';
+      return week === LAST_TRAINING_CAMP_WEEK ? '📋 Depth chart set for the season' : 'High intensity training';
     case 'STATE_PLAYOFFS':
-      return 'No game this round';
+      return bracketSet ? 'No game this round' : 'Playoff game if you qualify (top 4 in the district)';
     case 'POST_SEASON':
-      return '🏆 Awards banquet and college signing day';
+      return '🎓 Seniors graduation and signing';
     case 'OFF_SEASON':
-      return isLastWeek ? 'Seniors graduate as the week ends' : '🔍 Feeder clinics, 7-on-7 nights and tryouts';
+      return isLastWeek ? 'The new school year begins as the week ends' : '🔍 Feeder clinics, 7-on-7 nights and tryouts';
     default:
       return 'Bye week';
   }
 }
 import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
-import { ROUND_LABELS } from '../sim/playoffEngine';
+import { ROUND_LABELS, roundNamesFor } from '../sim/playoffEngine';
 import { Team } from '../types/game';
 
 export const ScheduleView: React.FC = () => {
@@ -43,6 +42,9 @@ export const ScheduleView: React.FC = () => {
 
   const totalWeeks = league ? seasonLength(league) : 20;
   const playoffRounds = league ? playoffRoundCount(league) : 6;
+  // UIL round names for weeks 18-23 (Bi-District, Area, Regional Semifinal, Regional Final, State Semifinal, State Championship)
+  const stateRounds = league ? Math.log2(league.regions.length) : 2;
+  const leagueRoundNames = roundNamesFor(playoffRounds - stateRounds, stateRounds);
   const districtName = league ? findDistrict(league, userTeamId)?.name : undefined;
 
   // Season built from the stored schedule, plus the user's playoff games from the bracket
@@ -61,7 +63,7 @@ export const ScheduleView: React.FC = () => {
       const opponentScore = isHome ? node?.team2Score : node?.team1Score;
       return {
         ...base,
-        label: playoffBracket.roundNames[roundIndex] ? ROUND_LABELS[playoffBracket.roundNames[roundIndex]] : undefined,
+        label: playoffBracket.roundNames[roundIndex] ? ROUND_LABELS[playoffBracket.roundNames[roundIndex]] : leagueRoundNames[roundIndex] && ROUND_LABELS[leagueRoundNames[roundIndex]],
         opponent,
         isHome,
         result: node?.winnerTeamId ? `${node.winnerTeamId === userTeamId ? 'W' : 'L'} ${userScore}-${opponentScore}` : null
@@ -77,7 +79,7 @@ export const ScheduleView: React.FC = () => {
 
     return {
       ...base,
-      label: undefined as string | undefined,
+      label: roundIndex >= 0 && roundIndex < playoffRounds ? ROUND_LABELS[leagueRoundNames[roundIndex]] : (undefined as string | undefined),
       opponent: leagueTeams.find((t) => t.id === opponentId) ?? null,
       isHome,
       result: !played
@@ -139,7 +141,7 @@ export const ScheduleView: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div style={{ color: '#64748B', fontSize: '13px', marginTop: '2px' }}>{weekNote(game.week, game.type, game.week === totalWeeks, currentYear >= feederClassYear)}</div>
+                <div style={{ color: '#64748B', fontSize: '13px', marginTop: '2px' }}>{weekNote(game.week, game.type, game.week === totalWeeks, currentYear >= feederClassYear, !!playoffBracket)}</div>
               )}
             </div>
           </React.Fragment>

@@ -50,7 +50,7 @@ export interface PlayoffBracketState {
 }
 
 /** Round names: region rounds count up from Bi-District, state rounds count down to the final. */
-function roundNamesFor(regionRounds: number, stateRounds: number): PlayoffRound[] {
+export function roundNamesFor(regionRounds: number, stateRounds: number): PlayoffRound[] {
   const region: PlayoffRound[][] = [[], ['REGIONAL_FINAL'], ['BI_DISTRICT', 'REGIONAL_FINAL'], ['BI_DISTRICT', 'AREA', 'REGIONAL_FINAL'],
     ['BI_DISTRICT', 'AREA', 'REGIONAL_SEMIFINAL', 'REGIONAL_FINAL']];
   const state: PlayoffRound[][] = [[], ['STATE_FINAL'], ['STATE_SEMIFINAL', 'STATE_FINAL']];
