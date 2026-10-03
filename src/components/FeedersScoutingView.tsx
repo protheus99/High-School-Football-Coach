@@ -8,6 +8,7 @@ import { PageHeader } from './ui/PageHeader';
 import {
   FEEDER_EVENTS,
   FeederEventType,
+  MAX_POOL_SIZE,
   PROSPECT_ACTION_COSTS,
   SOURCE_LABELS,
   COMMIT_THRESHOLD,
@@ -94,6 +95,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const weeklyIncome = weeklyCpIncome(currentWeek, coachTalents, userTeam.programMeters.schoolBoardTrust);
   const eventCost = (type: FeederEventType) => feederEventCost(FEEDER_EVENTS[type].cost, coachTalents);
   const eventsOpen = feederEventsOpen({ currentWeek, league });
+  const pipelineFull = scoutingPool.filter((p) => !p.homeTeamId).length >= MAX_POOL_SIZE;
   const needs = teamNeeds(userTeam, scoutingPool, seniorsStillHere(currentYear, feederClassYear, currentWeek));
   const topNeeds = priorityNeeds(needs).slice(0, 4);
   // The pool is shared by every program in the region: views by district, region, the top 10s and commitments
@@ -157,6 +159,16 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
 
       {section === 'PROGRAMS' && (
         <>
+          {/* Programs can't add anyone once the user's own pipeline is at its limit */}
+          {pipelineFull && (
+            <div role="status" style={{ background: '#FFFBEB', border: '1px solid #FCD34D', color: '#92400E', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', marginBottom: '10px' }}>
+              <strong>Your pipeline is full ({MAX_POOL_SIZE}).</strong> Programs can still warm up your prospects, but they won&apos;t find new ones until you
+              remove some.{' '}
+              <button onClick={() => onSection('STUDENTS')} style={{ background: 'none', border: 'none', padding: 0, color: '#1D4ED8', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}>
+                New Students →
+              </button>
+            </div>
+          )}
           <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#64748B' }}>
             Each program can run once a week during the four off-season weeks after the banquet.
             {topNeeds.length > 0 && ` Your biggest needs: ${topNeeds.map((n) => n.position).join(', ')}.`}

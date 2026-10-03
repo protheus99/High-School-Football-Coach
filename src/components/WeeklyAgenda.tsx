@@ -11,7 +11,7 @@ import {
   getSeasonPhase,
   getTeamGameForWeek
 } from '../sim/scheduleEngine';
-import { FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, PROSPECT_ACTION_COSTS, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
+import { FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, PROSPECT_ACTION_COSTS, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
 import { COACH_TALENTS, collegeActionCost, feederEventCost, talentBlocker, weeklyCpIncome } from '../sim/coachPoints';
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
@@ -334,7 +334,9 @@ export const WeeklyAgenda: React.FC<{
       id: 'feeder-events',
       icon: '🔍',
       title,
-      detail: `Clinics and events find and win over next year's players. They pick their school on signing day (pre season week ${FEEDER_SIGNING_WEEK}).`,
+      detail: scoutingPool.filter((p) => !p.homeTeamId).length >= MAX_POOL_SIZE
+        ? `Your pipeline is full (${MAX_POOL_SIZE}): programs warm up your prospects but won't find new ones until you remove some.`
+        : `Clinics and events find and win over next year's players. They pick their school on signing day (pre season week ${FEEDER_SIGNING_WEEK}).`,
       tone: 'todo',
       actions: events.map((e) => {
         const cost = feederEventCost(FEEDER_EVENTS[e].cost, coachTalents);
