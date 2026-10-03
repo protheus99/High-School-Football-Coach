@@ -4,6 +4,7 @@ import { FEEDER_SIGNING_WEEK } from '../sim/scheduleEngine';
 import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
 import { FeederOutcomeType, FeederProspect, Player, ProspectSource } from '../types/game';
 import { PositionNeed, priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
+import { PageHeader } from './ui/PageHeader';
 import {
   FEEDER_EVENTS,
   FeederEventType,
@@ -45,6 +46,12 @@ function outlook(chance: number): { label: string; color: string } {
 
 export type FeederSection = 'STUDENTS' | 'PROGRAMS' | 'NEEDS';
 type PoolView = 'DISTRICT' | 'REGION' | 'TOP_DISTRICT' | 'TOP_REGION' | 'COMMITTED';
+
+const FEEDER_SUBTITLES: Record<FeederSection, string> = {
+  STUDENTS: 'Every student who could join a program next year',
+  PROGRAMS: 'Off-season events that find and win over prospects',
+  NEEDS: "Holes in next season's roster by position"
+};
 
 const SECTIONS: { id: FeederSection; label: string }[] = [
   { id: 'STUDENTS', label: '🧑‍🎓 New Students' },
@@ -124,22 +131,16 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   };
 
   return (
+    <>
+    <PageHeader
+      title="Feeders"
+      subtitle={FEEDER_SUBTITLES[section]}
+      tabs={SECTIONS}
+      active={section}
+      onTab={onSection}
+      aside={`Pool: ${scoutingPool.filter((p) => !p.homeTeamId).length} / ${MAX_POOL_SIZE}`}
+    />
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
-        <h2 style={{ margin: 0 }}>Feeder Pipeline</h2>
-        <div style={{ display: 'flex', gap: '8px', fontSize: '13px', fontWeight: 'bold' }}>
-          <span style={pillStyle('#DBEAFE', '#1E40AF')}>₡{coachPoints} · +₡{weeklyIncome}/wk</span>
-          <span style={pillStyle('#F1F5F9', '#334155')}>Program Prestige: {userTeam.prestige}</span>
-          <span style={pillStyle('#F1F5F9', '#334155')}>Pool: {scoutingPool.length} / {MAX_POOL_SIZE}</span>
-        </div>
-      </div>
-      <div className="ui-chips" role="tablist" aria-label="Feeder sections" style={{ marginBottom: '12px' }}>
-        {SECTIONS.map((s) => (
-          <button key={s.id} role="tab" className="ui-chip" aria-selected={section === s.id} aria-pressed={section === s.id} onClick={() => onSection(s.id)}>
-            {s.label}
-          </button>
-        ))}
-      </div>
 
       {feedback && <div style={{ background: '#EEF2FF', color: '#3730A3', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', marginBottom: '12px' }}>{feedback}</div>}
 
@@ -241,9 +242,9 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
           )}
 
           {/* Pool views */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
+          <div className="ui-chips" aria-label="Pool view" style={{ marginBottom: '6px' }}>
             {views.map((v) => (
-              <button key={v.id} onClick={() => setView(v.id)} style={tabStyle(view === v.id)}>
+              <button key={v.id} className="ui-chip" aria-pressed={view === v.id} onClick={() => setView(v.id)}>
                 {v.label} ({v.list.length})
               </button>
             ))}
@@ -285,6 +286,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
         </>
       )}
     </div>
+    </>
   );
 };
 
@@ -440,20 +442,6 @@ const StatewideElitePanel: React.FC<{ recruits: FeederProspect[]; ctx: Recruitin
     </div>
   </div>
 );
-
-const pillStyle = (background: string, color: string): React.CSSProperties => ({ background, color, padding: '5px 12px', borderRadius: '6px' });
-
-const tabStyle = (active: boolean): React.CSSProperties => ({
-  minHeight: '40px', // comfortable tap target
-  padding: '8px 12px',
-  borderRadius: '6px',
-  border: '1px solid #CBD5E1',
-  background: active ? '#0F172A' : '#fff',
-  color: active ? '#fff' : '#334155',
-  fontSize: '12px',
-  fontWeight: 'bold',
-  cursor: 'pointer'
-});
 
 const actionBtn = (color: string, disabled: boolean): React.CSSProperties => ({
   minHeight: '40px', // comfortable tap target

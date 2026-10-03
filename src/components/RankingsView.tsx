@@ -33,7 +33,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
 
   return (
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
-      <h2 style={{ margin: '0 0 4px 0' }}>🏆 {title}</h2>
+      <h3 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>{title}</h3>
       <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
         Week {polls.week} rankings · composite strength and quality wins
       </p>

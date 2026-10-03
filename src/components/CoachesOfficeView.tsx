@@ -16,15 +16,14 @@ export const CoachesOfficeView: React.FC = () => {
     <div className="ui-screen" style={{ maxWidth: '900px' }}>
       {showSkillTree && <CoachRPGSkillTreeModal onClose={() => setShowSkillTree(false)} />}
 
-      <h2 style={{ margin: '0 0 10px 0' }}>Coach&apos;s Office</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '8px' }}>
-        <button className={`ui-btn${subTab === 'STRATEGY' ? ' ui-btn-primary' : ''}`} aria-pressed={subTab === 'STRATEGY'} onClick={() => setSubTab('STRATEGY')}>
+      <div className="ui-chips" aria-label="Office view" style={{ marginBottom: '8px' }}>
+        <button className="ui-chip" aria-pressed={subTab === 'STRATEGY'} onClick={() => setSubTab('STRATEGY')}>
           Strategy &amp; Staff
         </button>
-        <button className={`ui-btn${subTab === 'SCHEDULE' ? ' ui-btn-primary' : ''}`} aria-pressed={subTab === 'SCHEDULE'} onClick={() => setSubTab('SCHEDULE')}>
+        <button className="ui-chip" aria-pressed={subTab === 'SCHEDULE'} onClick={() => setSubTab('SCHEDULE')}>
           Schedule
         </button>
-        <button className={`ui-btn${subTab === 'TROPHIES' ? ' ui-btn-primary' : ''}`} aria-pressed={subTab === 'TROPHIES'} onClick={() => setSubTab('TROPHIES')}>
+        <button className="ui-chip" aria-pressed={subTab === 'TROPHIES'} onClick={() => setSubTab('TROPHIES')}>
           🏆 Trophies
         </button>
       </div>

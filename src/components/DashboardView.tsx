@@ -95,20 +95,21 @@ export const DashboardView: React.FC<{
       )}
 
       {/* Header Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 'clamp(22px, 6vw, 32px)' }}>
+      {/* Team name (shortened with … when long) with Advance Week always on the right */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '12px', marginBottom: '20px' }}>
+        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+          <h1 style={{ margin: 0, fontSize: 'clamp(20px, 6vw, 32px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${userTeam.name} ${userTeam.mascot}`}>
             {userTeam.name} {userTeam.mascot}
           </h1>
-          <div style={{ color: '#6B7280' }}>
-            {district?.name ?? 'Class 6A'}{region ? ` · ${region.name}` : ''} | Record: {userTeam.record.wins}-{userTeam.record.losses} (District: {userTeam.record.districtWins}-{userTeam.record.districtLosses})
+          <div style={{ color: '#6B7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {district?.name ?? 'Class 6A'}
+            {region ? ` · ${region.name}` : ''} · {userTeam.record.wins}-{userTeam.record.losses} ({userTeam.record.districtWins}-{userTeam.record.districtLosses})
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button className="ui-btn ui-btn-dark" onClick={handleAdvanceWeek}>
-            ⏭️ Advance Week
-          </button>
-        </div>
+        <button className="ui-btn ui-btn-dark" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} onClick={handleAdvanceWeek} aria-label="Advance Week">
+          ⏭️ <span className="hide-sm">Advance Week</span>
+          <span className="show-sm">Advance</span>
+        </button>
       </div>
 
       {/* This week's to-do list: quick decisions and links */}

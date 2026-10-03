@@ -95,7 +95,6 @@ export const CollegeRecruitingView: React.FC = () => {
         }}
       >
         <div>
-          <h2 style={{ margin: 0 }}>🎓 College Recruiting</h2>
           <p
             style={{
               margin: '4px 0 0 0',

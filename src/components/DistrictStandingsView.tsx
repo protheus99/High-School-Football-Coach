@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
-import { findDistrict } from '../sim/league';
 import { AllDistrictsStandingsView } from './AllDistrictsStandingsView';
 import { StandingsList } from './ui/StandingsList';
 
@@ -9,7 +8,6 @@ export const DistrictStandingsView: React.FC = () => {
   const { districtTeams, league, userTeamId } = useGameStore();
   const [showAll, setShowAll] = useState(false);
   const standings = calculateDistrictStandings(districtTeams);
-  const districtName = (league && findDistrict(league, userTeamId)?.name) ?? 'District';
   const districtCount = league?.regions.reduce((n, r) => n + r.districts.length, 0) ?? 4;
   const bracketSize = districtCount * (league?.splitDivisions ? 2 : 4);
   const qualifyText = league?.splitDivisions
@@ -20,7 +18,6 @@ export const DistrictStandingsView: React.FC = () => {
 
   return (
     <div className="ui-screen" style={{ maxWidth: '900px' }}>
-      <h2 style={{ margin: '0 0 4px 0' }}>{districtName}</h2>
       <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
         {qualifyText} Tiebreakers cap point differential at &plusmn;17 per game.
       </p>

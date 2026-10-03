@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PageHeader } from './ui/PageHeader';
 import { DataList } from './ui/DataList';
 import {
   PlayerRankingsAndStatsState,
@@ -65,21 +66,18 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
   ];
 
   return (
+    <>
+    <PageHeader
+      title="Leaders"
+      subtitle={`${isProspects ? 'Prospect rankings' : 'Stat leaders'} · week ${rankingsState.week} · tap a player for his profile`}
+      tabs={[
+        { id: 'PROSPECT_RANKINGS' as const, label: '🎓 Prospects' },
+        { id: 'STAT_LEADERS' as const, label: '📊 Stat Leaders' }
+      ]}
+      active={activeTab}
+      onTab={setActiveTab}
+    />
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
-      <h2 style={{ margin: '0 0 4px 0' }}>🌟 {isProspects ? 'Prospect Rankings' : 'Stat Leaders'}</h2>
-      <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
-        Week {rankingsState.week} · tap a player for his profile
-      </p>
-
-      {/* Mode switch */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
-        <button className={`ui-btn${isProspects ? ' ui-btn-primary' : ''}`} aria-pressed={isProspects} onClick={() => setActiveTab('PROSPECT_RANKINGS')}>
-          🎓 Prospects
-        </button>
-        <button className={`ui-btn${!isProspects ? ' ui-btn-primary' : ''}`} aria-pressed={!isProspects} onClick={() => setActiveTab('STAT_LEADERS')}>
-          📊 Stat leaders
-        </button>
-      </div>
 
       <div className="ui-chips" role="group" aria-label="Scope" style={{ marginBottom: '6px' }}>
         <button className="ui-chip" aria-pressed={scope === 'NATIONAL'} onClick={() => setScope('NATIONAL')}>
@@ -143,5 +141,6 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
         ]}
       />
     </div>
+    </>
   );
 };

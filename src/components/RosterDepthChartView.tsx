@@ -38,12 +38,11 @@ export const RosterDepthChartView: React.FC = () => {
         />
       )}
 
-      <h2 style={{ margin: '0 0 10px 0' }}>Roster</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
-        <button className={`ui-btn${view === 'CHART' ? ' ui-btn-primary' : ''}`} aria-pressed={view === 'CHART'} onClick={() => setView('CHART')}>
+      <div className="ui-chips" aria-label="Roster view" style={{ marginBottom: '14px' }}>
+        <button className="ui-chip" aria-pressed={view === 'CHART'} onClick={() => setView('CHART')}>
           Depth Chart
         </button>
-        <button className={`ui-btn${view === 'ROSTER' ? ' ui-btn-primary' : ''}`} aria-pressed={view === 'ROSTER'} onClick={() => setView('ROSTER')}>
+        <button className="ui-chip" aria-pressed={view === 'ROSTER'} onClick={() => setView('ROSTER')}>
           Full Roster
         </button>
       </div>

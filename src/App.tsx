@@ -36,7 +36,7 @@ export const App: React.FC = () => {
   const [tab, setTab] = useState<AppTab>('DASHBOARD');
   const [teamSection, setTeamSection] = useState<TeamSection>('ROSTER');
   const [feederSection, setFeederSection] = useState<FeederSection>('STUDENTS');
-  const [rankingsSection, setRankingsSection] = useState<RankingsSection>('HOME');
+  const [rankingsSection, setRankingsSection] = useState<RankingsSection>('DISTRICT');
   const [activeMatch, setActiveMatch] = useState<GameSimulationState | null>(null);
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [showBracketModal, setShowBracketModal] = useState(false);
@@ -301,7 +301,7 @@ export const App: React.FC = () => {
             key={t.id}
             onClick={() => {
               setTab(t.id);
-              if (t.id === 'RANKINGS') setRankingsSection('HOME');
+              if (t.id === 'RANKINGS') setRankingsSection('DISTRICT');
             }}
             aria-current={tab === t.id ? 'page' : undefined}
             style={navBtnStyle(tab === t.id)}

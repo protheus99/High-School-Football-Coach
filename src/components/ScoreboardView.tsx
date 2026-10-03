@@ -94,7 +94,6 @@ export const ScoreboardView: React.FC = () => {
 
   return (
     <div className="ui-screen" style={{ maxWidth: '800px' }}>
-      <h2 style={{ margin: '0 0 8px 0' }}>Scoreboard</h2>
       <div className="ui-chips" aria-label="Which games" style={{ marginBottom: '8px' }}>
         {(
           [

@@ -43,7 +43,7 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackB
           ← My district
         </button>
       )}
-      <h2 style={{ margin: '0 0 4px 0' }}>All District Standings</h2>
+      {!hideBackButton && <h2 style={{ margin: '0 0 4px 0' }}>All District Standings</h2>}
       <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
         {league.name}. Top 4 in each district make the playoffs.
       </p>
