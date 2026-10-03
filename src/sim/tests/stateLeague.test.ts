@@ -28,10 +28,10 @@ describe('State worlds', () => {
     expect(nearestDistrictIndexes(2, 1)).toEqual([0]);
   });
 
-  it('builds a Pennsylvania world entirely from Pennsylvania districts (not playable yet)', () => {
-    const { districts, world } = stateWorld('Pennsylvania', 5);
+  it('builds a California world entirely from California districts (not playable yet)', () => {
+    const { districts, world } = stateWorld('California', 5);
     expect(world.league.regions.flatMap((r) => r.districts)).toHaveLength(4);
-    expect(world.teams.every((t) => t.state === 'Pennsylvania')).toBe(true);
+    expect(world.teams.every((t) => t.state === 'California')).toBe(true);
     const fileSchools = [5, ...nearestDistrictIndexes(districts.length, 5)].flatMap((i) => readDistrict(districts[i].file).schools.map((s) => s.name));
     expect(world.teams.map((t) => t.name).sort()).toEqual(fileSchools.sort());
     const userDistrict = readDistrict(districts[5].file);
@@ -48,8 +48,8 @@ describe('State worlds', () => {
     expect(world.teams.every((t) => t.state === 'Maryland')).toBe(true);
   });
 
-  it('plays a full season with an all-Pennsylvania schedule and bracket', () => {
-    const { world } = stateWorld('Pennsylvania', 2);
+  it('plays a full season with an all-California schedule and bracket', () => {
+    const { world } = stateWorld('California', 2);
     const store = useGameStore;
     store.getState().startNewSeason(world);
     const paIds = new Set(world.teams.map((t) => t.id));
@@ -63,6 +63,6 @@ describe('State worlds', () => {
     });
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
     store.getState().transitionToNextYear();
-    expect(store.getState().leagueTeams.every((t) => t.state === 'Pennsylvania')).toBe(true);
+    expect(store.getState().leagueTeams.every((t) => t.state === 'California')).toBe(true);
   }, 120000);
 });

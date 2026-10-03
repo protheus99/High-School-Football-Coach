@@ -1,0 +1,592 @@
+{
+ "state": "New Jersey",
+ "classification": "Group 5",
+ "regions": [
+  {
+   "name": "Group 5",
+   "area": "New Jersey",
+   "districts": [
+    {
+     "number": 1,
+     "name": "Non-Public A League A",
+     "area": "Non-Public A",
+     "schools": [
+      {
+       "name": "Bergen Catholic",
+       "mascot": "Crusaders",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 99,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Delbarton",
+       "mascot": "Green Wave",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 94,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "St. Peter's Prep",
+       "mascot": "Marauders",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "prestige": 93,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Red Bank Catholic",
+       "mascot": "Caseys",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFD700",
+       "prestige": 87,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Donovan Catholic",
+       "mascot": "Griffins",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Pope John XXIII",
+       "mascot": "Lions",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 79,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Paul VI",
+       "mascot": "Eagles",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 76,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "Non-Public A League B",
+     "area": "Non-Public A",
+     "schools": [
+      {
+       "name": "Don Bosco Prep",
+       "mascot": "Ironmen",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 97,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "St. Joseph Regional",
+       "mascot": "Green Knights",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "prestige": 96,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Seton Hall Prep",
+       "mascot": "Pirates",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "prestige": 90,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "St. Augustine Prep",
+       "mascot": "Hermits",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "St. Joseph (Metuchen)",
+       "mascot": "Falcons",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Paramus Catholic",
+       "mascot": "Paladins",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Notre Dame",
+       "mascot": "Irish",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "Group 5 North League A",
+     "area": "Group 5 North",
+     "schools": [
+      {
+       "name": "Passaic County Tech",
+       "mascot": "Bulldogs",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFD700",
+       "prestige": 92,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Elizabeth",
+       "mascot": "Minutemen",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Montclair",
+       "mascot": "Mounties",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Clifton",
+       "mascot": "Mustangs",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 78,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Morristown",
+       "mascot": "Colonials",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "prestige": 77,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Paterson Eastside",
+       "mascot": "Ghosts",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 68,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Bayonne",
+       "mascot": "Bees",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 67,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "Group 5 North League B",
+     "area": "Group 5 North",
+     "schools": [
+      {
+       "name": "Phillipsburg",
+       "mascot": "Stateliners",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#000000",
+       "prestige": 91,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "East Orange Campus",
+       "mascot": "Jaguars",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Bridgewater-Raritan",
+       "mascot": "Panthers",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#000000",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Westfield",
+       "mascot": "Blue Devils",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFC72C",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Plainfield",
+       "mascot": "Cardinals",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Bloomfield",
+       "mascot": "Bengals",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFD700",
+       "prestige": 70,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Passaic High",
+       "mascot": "Indians",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 55,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "Group 5 North League C",
+     "area": "Group 5 North",
+     "schools": [
+      {
+       "name": "West Orange",
+       "mascot": "Mountaineers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Ridgewood",
+       "mascot": "Maroons",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 88,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Piscataway",
+       "mascot": "Chiefs",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 82,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Union High",
+       "mascot": "Farmers",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Linden",
+       "mascot": "Tigers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFC72C",
+       "prestige": 74,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Livingston",
+       "mascot": "Lancers",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 73,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Barringer",
+       "mascot": "Blue Bears",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 48,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "name": "Group 5 Central",
+     "area": "Group 5 Central",
+     "schools": [
+      {
+       "name": "Toms River North",
+       "mascot": "Mariners",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#000000",
+       "prestige": 94,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Kingsway",
+       "mascot": "Dragons",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hillsborough",
+       "mascot": "Raiders",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFC72C",
+       "prestige": 87,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Southern Regional",
+       "mascot": "Rams",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "prestige": 84,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Hunterdon Central",
+       "mascot": "Red Devils",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Sayreville",
+       "mascot": "Bombers",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 80,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Egg Harbor Township",
+       "mascot": "Eagles",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFC72C",
+       "prestige": 79,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Williamstown",
+       "mascot": "Braves",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 76,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Freehold Township",
+       "mascot": "Patriots",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#B3A369",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "South Brunswick",
+       "mascot": "Vikings",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Vineland",
+       "mascot": "Fighting Clan",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFC72C",
+       "prestige": 71,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Trenton Central",
+       "mascot": "Tornadoes",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFD700",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "name": "Group 5 South",
+     "area": "Group 5 South",
+     "schools": [
+      {
+       "name": "Washington Township",
+       "mascot": "Minutemen",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 92,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cherokee",
+       "mascot": "Chiefs",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#B3A369",
+       "prestige": 89,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Rancocas Valley",
+       "mascot": "Red Devils",
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Manalapan",
+       "mascot": "Braves",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 85,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lenape",
+       "mascot": "Indians",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Atlantic County Tech",
+       "mascot": "Red Hawks",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Edison",
+       "mascot": "Eagles",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#B3A369",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Eastern",
+       "mascot": "Vikings",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#000000",
+       "prestige": 77,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Old Bridge",
+       "mascot": "Knights",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFD700",
+       "prestige": 74,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Cherry Hill East",
+       "mascot": "Cougars",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "prestige": 73,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "East Brunswick",
+       "mascot": "Bears",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFC72C",
+       "prestige": 70,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Jackson Memorial",
+       "mascot": "Jaguars",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "prestige": 69,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

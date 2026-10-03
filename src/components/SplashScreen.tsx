@@ -99,7 +99,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               ))}
             </div>
             <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
-              {rulesForState(state).governingBody} {rulesForState(state).classification.startsWith('Division') ? '' : 'Class '}{rulesForState(state).classification} · title game at {rulesForState(state).playoffs.championshipVenue}
+              {rulesForState(state).governingBody} {/^\d+A$/.test(rulesForState(state).classification) ? 'Class ' : ''}{rulesForState(state).classification} · title game at {rulesForState(state).playoffs.championshipVenue}
             </p>
             <h2 style={sectionTitle}>Choose a Difficulty</h2>
             <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>

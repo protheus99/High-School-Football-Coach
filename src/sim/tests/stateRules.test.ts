@@ -21,8 +21,8 @@ const TEST_RULES: StateRules = {
 };
 
 describe('State rules', () => {
-  it('eight states are playable; Texas is the default for anything else', () => {
-    expect(PLAYABLE_STATES).toEqual(['Texas', 'Georgia', 'Florida', 'Maryland', 'North Carolina', 'Alabama', 'Tennessee', 'Ohio']);
+  it('eleven states are playable; Texas is the default for anything else', () => {
+    expect(PLAYABLE_STATES).toEqual(['Texas', 'Georgia', 'Florida', 'Maryland', 'North Carolina', 'Alabama', 'Tennessee', 'Ohio', 'Pennsylvania', 'New Jersey', 'Louisiana']);
     expect(rulesForState('Georgia')).toBe(GEORGIA_RULES);
     expect(rulesForState('California')).toBe(TEXAS_RULES);
     expect(rulesForState(undefined)).toBe(TEXAS_RULES);
@@ -118,7 +118,7 @@ describe('Regional playoff states', () => {
     return b.divisions[0].championTeamId;
   };
 
-  it.each(['Florida', 'Maryland', 'North Carolina', 'Alabama'])('%s builds its whole class and crowns a champion in five rounds', (state) => {
+  it.each(['Florida', 'Maryland', 'North Carolina', 'Alabama', 'Pennsylvania', 'New Jersey'])('%s builds its whole class and crowns a champion in five rounds', (state) => {
     const { league, teams, bracket } = season(state);
     expect(teams.every((t) => t.state === state)).toBe(true);
     expect(playoffRoundCount(league)).toBe(5);
@@ -210,5 +210,24 @@ describe('Regional playoff states', () => {
     expect(b.divisions[0].rounds[4]).toHaveLength(2);
     b.divisions[0].rounds[4].forEach((n) => expect(n.region).toBeUndefined());
     expect(finish(b)).toBeTruthy();
+  });
+
+  it('Pennsylvania: league champions take the top seeds in their playoff region', () => {
+    const { regionTeams, bracket } = season('Pennsylvania');
+    const champions = new Set(regionTeams[0].map((d) => calculateDistrictStandings(d)[0].teamId));
+    const r1 = bracket.divisions[0].rounds[0];
+    // Ten league champions across four regions: every one is seeded and hosts its first game
+    champions.forEach((id) => expect(r1.some((n) => n.team1.id === id)).toBe(true));
+  });
+
+  it('Louisiana: a 32-team bracket by power rating, district champions hosting', () => {
+    const { league, regionTeams, bracket } = season('Louisiana');
+    expect(playoffRoundCount(league)).toBe(5);
+    const r1 = bracket.divisions[0].rounds[0];
+    expect(r1).toHaveLength(16);
+    const hosts = new Set(r1.map((n) => n.team1.id));
+    regionTeams[0].forEach((district) => expect(hosts.has(calculateDistrictStandings(district)[0].teamId)).toBe(true));
+    expect(bracket.championshipTitle).toBe('LHSAA 5A State Championship');
+    expect(finish(bracket)).toBeTruthy();
   });
 });

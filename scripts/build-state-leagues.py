@@ -280,18 +280,61 @@ def build_spec_worlds(leagues_dir: Path, out_dir: Path):
         regions.setdefault(int(match.group(1)), {'area': match.group(2), 'schools': []})['schools'].extend(d['schools'])
     districts = []
     for number in sorted(regions):
-        schools = sorted(regions[number]['schools'], key=lambda s: -s['prestige'])
-        leagues = [[], [], []]
-        for i, school in enumerate(schools):
-            row, col = divmod(i, 3)
-            leagues[col if row % 2 == 0 else 2 - col].append(school)
-        for j, league_schools in enumerate(leagues):
+        for j, league_schools in enumerate(deal(regions[number]['schools'], 3)):
             districts.append({'number': len(districts) + 1, 'name': f"Region {number} League {'ABC'[j]}", 'area': regions[number]['area'], 'schools': league_schools})
     write_world(out_dir / 'ohio-d1.json', 'Ohio', 'Division I', districts)
 
+    # Pennsylvania 6A: PIAA districts in the spec's order; District 1, 3 and 11 come split into prestige tiers, so
+    # each is dealt into balanced leagues (same number of leagues as tiers)
+    groups = {}
+    for d in files['Pennsylvania']:
+        parent = re.match(r'^(District [\d &]+?)\s*(?:/|—|$)', d['districtName']).group(1).strip()
+        area = re.search(r'— (.*?)(?: \(Group \d+\))?$', d['districtName'])
+        area_name = (area.group(1) if area else 'Pennsylvania').replace('Class 6A (', 'WPIAL (')
+        entry = groups.setdefault(parent, {'area': area_name, 'tiers': 0, 'schools': []})
+        entry['tiers'] += 1
+        entry['schools'].extend(d['schools'])
+    districts = []
+    for parent, entry in groups.items():
+        leagues = deal(entry['schools'], entry['tiers'])
+        for j, league_schools in enumerate(leagues):
+            name = parent if len(leagues) == 1 else f"{parent} League {'ABC'[j]}"
+            districts.append({'number': len(districts) + 1, 'name': name, 'area': entry['area'], 'schools': league_schools})
+    write_world(out_dir / 'pennsylvania-6a.json', 'Pennsylvania', '6A', districts)
+
+    # New Jersey: Non-Public A and Public Group 5 (North and South super sections), each dealt into leagues;
+    # the South's 24 schools become two leagues of 12 (Central and South) so each playoff region has a full field
+    def nj(prefix: str) -> list:
+        return [s for d in files['New Jersey'] if d['districtName'].startswith(prefix) for s in d['schools']]
+    districts = []
+    for name, schools, count in [('Non-Public A', nj('NJSIAA Non-Public Group A'), 2), ('Group 5 North', nj('Public Group 5 — North'), 3)]:
+        for j, league_schools in enumerate(deal(schools, count)):
+            districts.append({'number': len(districts) + 1, 'name': f"{name} League {'ABC'[j]}", 'area': name, 'schools': league_schools})
+    for j, league_schools in enumerate(deal(nj('Public Group 5 — South'), 2)):
+        name = ['Group 5 Central', 'Group 5 South'][j]
+        districts.append({'number': len(districts) + 1, 'name': name, 'area': name, 'schools': league_schools})
+    write_world(out_dir / 'new-jersey-g5.json', 'New Jersey', 'Group 5', districts)
+
+    # Louisiana: the ten 5A districts as they are
+    districts = []
+    for d in files['Louisiana']:
+        match = re.match(r'^District (\d+)-5A \((.*)\)$', d['districtName'])
+        districts.append({'number': int(match.group(1)), 'name': f"District {match.group(1)}-5A", 'area': match.group(2), 'schools': d['schools']})
+    districts.sort(key=lambda d: d['number'])
+    write_world(out_dir / 'louisiana-5a.json', 'Louisiana', '5A', districts)
+
+
+def deal(schools: list, count: int) -> list:
+    """Splits schools into `count` balanced leagues: snake order by prestige (1-2-3, 3-2-1, ...)."""
+    leagues = [[] for _ in range(count)]
+    for i, school in enumerate(sorted(schools, key=lambda s: -s['prestige'])):
+        row, col = divmod(i, count)
+        leagues[col if row % 2 == 0 else count - 1 - col].append(school)
+    return leagues
+
 
 def write_world(path: Path, state: str, classification: str, districts: list):
-    label = classification if classification.startswith('Division') else f"Class {classification}"
+    label = f"Class {classification}" if re.match(r'^[0-9]+A$', classification) else classification
     world = {'state': state, 'classification': classification, 'regions': [{'name': label, 'area': state, 'districts': districts}]}
     path.write_text(json.dumps(world, indent=1) + '\n', encoding='utf-8')
     print(f"{state} world: {len(districts)} districts, {sum(len(d['schools']) for d in districts)} schools")

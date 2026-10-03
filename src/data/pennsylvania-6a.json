@@ -1,0 +1,730 @@
+{
+ "state": "Pennsylvania",
+ "classification": "6A",
+ "regions": [
+  {
+   "name": "Class 6A",
+   "area": "Pennsylvania",
+   "districts": [
+    {
+     "number": 1,
+     "name": "District 12",
+     "area": "Philadelphia (PCL Red Division & Public League)",
+     "schools": [
+      {
+       "name": "St. Joseph's Prep",
+       "mascot": "Hawks",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFC72C",
+       "prestige": 99,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "La Salle College High",
+       "mascot": "Explorers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 94,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Roman Catholic",
+       "mascot": "Cahillites",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "prestige": 93,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Father Judge",
+       "mascot": "Crusaders",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 82,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Northeast High",
+       "mascot": "Vikings",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFD700",
+       "prestige": 79,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Abraham Lincoln",
+       "mascot": "Railsplitters",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 77,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Central High",
+       "mascot": "Lancers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 72,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "George Washington",
+       "mascot": "Eagles",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "prestige": 68,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Frankford",
+       "mascot": "Pioneers",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 64,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Fels High",
+       "mascot": "Panthers",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 48,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "District 7",
+     "area": "WPIAL (Western PA / Pittsburgh Metro)",
+     "schools": [
+      {
+       "name": "Pittsburgh Central Catholic",
+       "mascot": "Vikings",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 96,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "North Allegheny",
+       "mascot": "Tigers",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFD700",
+       "prestige": 92,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Seneca Valley",
+       "mascot": "Raiders",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#B3A369",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mt. Lebanon",
+       "mascot": "Blue Devils",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Canon-McMillan",
+       "mascot": "Big Macs",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 81,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Norwin",
+       "mascot": "Knights",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 80,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hempfield Area",
+       "mascot": "Spartans",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 76,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "District 1 League A",
+     "area": "Suburban Philadelphia (Bucks, Montgomery & Chester Counties)",
+     "schools": [
+      {
+       "name": "Central Bucks West",
+       "mascot": "Bucks",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 91,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Downingtown West",
+       "mascot": "Whippets",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#B3A369",
+       "prestige": 87,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Downingtown East",
+       "mascot": "Cougars",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 86,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Pennsbury",
+       "mascot": "Falcons",
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 81,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Souderton",
+       "mascot": "Indians",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFC72C",
+       "prestige": 80,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Owen J. Roberts",
+       "mascot": "Wildcats",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Quakertown",
+       "mascot": "Panthers",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Harry S. Truman",
+       "mascot": "Tigers",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#000000",
+       "prestige": 54,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "District 1 League B",
+     "area": "Suburban Philadelphia (Bucks, Montgomery & Chester Counties)",
+     "schools": [
+      {
+       "name": "Central Bucks South",
+       "mascot": "Titans",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 90,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Garnet Valley",
+       "mascot": "Jaguars",
+       "primaryColor": "#006747",
+       "secondaryColor": "#B3A369",
+       "prestige": 88,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Pennridge",
+       "mascot": "Rams",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Coatesville",
+       "mascot": "Red Raiders",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Neshaminy",
+       "mascot": "Redskins",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "prestige": 79,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Council Rock South",
+       "mascot": "Golden Hawks",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 76,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Bensalem",
+       "mascot": "Owls",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Cheltenham",
+       "mascot": "Panthers",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 65,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "District 1 League C",
+     "area": "Suburban Philadelphia (Bucks, Montgomery & Chester Counties)",
+     "schools": [
+      {
+       "name": "North Penn",
+       "mascot": "Knights",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "prestige": 89,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Spring-Ford",
+       "mascot": "Rams",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Central Bucks East",
+       "mascot": "Patriots",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Perkiomen Valley",
+       "mascot": "Vikings",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFC72C",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Haverford High",
+       "mascot": "Fords",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFC72C",
+       "prestige": 78,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Ridley",
+       "mascot": "Green Raiders",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 77,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Boyertown",
+       "mascot": "Bears",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "prestige": 70,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Abington",
+       "mascot": "Galloping Ghosts",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "prestige": 69,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "name": "District 3 League A",
+     "area": "South Central PA (Harrisburg, Lancaster & York)",
+     "schools": [
+      {
+       "name": "Harrisburg High",
+       "mascot": "Cougars",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "prestige": 94,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "State College Area",
+       "mascot": "Little Lions",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cumberland Valley",
+       "mascot": "Eagles",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#B3A369",
+       "prestige": 86,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Chambersburg",
+       "mascot": "Trojans",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Central Dauphin East",
+       "mascot": "Panthers",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#B3A369",
+       "prestige": 79,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Carlisle",
+       "mascot": "Thundering Herd",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "prestige": 75,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Penn Manor",
+       "mascot": "Comets",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 73,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "name": "District 3 League B",
+     "area": "South Central PA (Harrisburg, Lancaster & York)",
+     "schools": [
+      {
+       "name": "Central York",
+       "mascot": "Panthers",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 90,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Manheim Township",
+       "mascot": "Blue Streaks",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 89,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Wilson (West Lawn)",
+       "mascot": "Bulldogs",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#000000",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Central Dauphin",
+       "mascot": "Rams",
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "prestige": 83,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Hempfield (D3)",
+       "mascot": "Black Knights",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Altoona Area",
+       "mascot": "Mountain Lions",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 76,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Cedar Crest",
+       "mascot": "Falcons",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 72,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Reading High",
+       "mascot": "Red Knights",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 8,
+     "name": "District 11 League A",
+     "area": "Lehigh Valley (EPC South / Mountain Valley)",
+     "schools": [
+      {
+       "name": "Parkland",
+       "mascot": "Trojans",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#000000",
+       "prestige": 91,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Bethlehem Freedom",
+       "mascot": "Patriots",
+       "primaryColor": "#006747",
+       "secondaryColor": "#B3A369",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Easton Area",
+       "mascot": "Red Rovers",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 82,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Stroudsburg",
+       "mascot": "Mountaineers",
+       "primaryColor": "#006747",
+       "secondaryColor": "#000000",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "East Stroudsburg South",
+       "mascot": "Cavaliers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "prestige": 74,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 9,
+     "name": "District 11 League B",
+     "area": "Lehigh Valley (EPC South / Mountain Valley)",
+     "schools": [
+      {
+       "name": "Nazareth Area",
+       "mascot": "Blue Eagles",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#B3A369",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Emmaus",
+       "mascot": "Green Hornets",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#000000",
+       "prestige": 86,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Northampton",
+       "mascot": "Konkrete Kids",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Bethlehem Liberty",
+       "mascot": "Hurricanes",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFD700",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Allentown Dieruff",
+       "mascot": "Huskies",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Allentown William Allen",
+       "mascot": "Canaries",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFC72C",
+       "prestige": 58,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 10,
+     "name": "District 10 & 2",
+     "area": "Northwest & Northeast PA",
+     "schools": [
+      {
+       "name": "Erie McDowell",
+       "mascot": "Trojans",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 87,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hazleton Area",
+       "mascot": "Cougars",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFD700",
+       "prestige": 76,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Wilkes-Barre Area",
+       "mascot": "Wolfpack",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Erie High",
+       "mascot": "Royals",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#000000",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Scranton High",
+       "mascot": "Knights",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFD700",
+       "prestige": 71,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

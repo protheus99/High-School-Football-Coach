@@ -232,6 +232,140 @@ export const OHIO_RULES: StateRules = {
   overtime: { startYardsFromGoal: 10 }
 };
 
+/**
+ * Pennsylvania PIAA Class 6A: 72 programs in PIAA districts (District 1, 3 and 11 split into leagues). Modeled on
+ * the Florida format, the closest fit to PIAA's district-champions-first path: four playoff regions of eight,
+ * league champions take the top seeds and the ranking fills the rest; region champions meet in the state
+ * semifinals.
+ */
+export const PENNSYLVANIA_RULES: StateRules = {
+  state: 'Pennsylvania',
+  governingBody: 'PIAA',
+  classification: '6A',
+  districtLabel: 'League',
+  playoffs: {
+    format: 'REGIONAL_SEEDED',
+    qualifiersPerDistrict: 1,
+    bracketSize: 32,
+    divisionSplit: 'NONE',
+    divisionNames: ['Class 6A'],
+    regional: {
+      regions: [
+        { name: 'District 1', districts: [3, 4, 5] },
+        { name: 'Philadelphia & Lehigh Valley', districts: [1, 8, 9] },
+        { name: 'South Central', districts: [6, 7] },
+        { name: 'Western', districts: [2, 10] }
+      ],
+      selection: 'RANKING',
+      qualifiersPerRegion: 8,
+      championsSeededFirst: true,
+      regionBracketSize: 8,
+      regionalRounds: 3
+    },
+    ...fiveRounds(
+      ['First Round', 'Quarterfinal', 'Region Final', 'State Semifinal', 'State Championship'],
+      [
+        'Opening round: eight teams per region; league champions take the top seeds',
+        'Final four in each region',
+        'The winner is region champion',
+        'Region champions meet for a spot in the title game',
+        'The title game at Cumberland Valley High School in Mechanicsburg'
+      ]
+    ),
+    championshipTitle: 'PIAA 6A State Championship',
+    championshipVenue: 'Cumberland Valley High School (Mechanicsburg, PA)'
+  },
+  // PIAA: pass four full-credit subjects each grading period
+  academics: { ruleName: 'Pass 4 full-credit subjects', minimumGpa: 1.7, atRiskGpa: 2.0 },
+  mercyRuleMargin: 35, // PIAA: running clock with a 35-point lead in the second half
+  overtime: { startYardsFromGoal: 10 }
+};
+
+/**
+ * New Jersey NJSIAA: 59 programs in Non-Public A and Public Group 5 (North and South). Modeled on the Maryland
+ * format, the closest fit to NJSIAA's power-point sectional seeding: the top eight in each of four playoff
+ * regions by ranking, two sectional rounds, then the two survivors from each region meet other regions in
+ * the state quarterfinals. (In reality Non-Public A and Group 5 crown separate champions.)
+ */
+export const NEW_JERSEY_RULES: StateRules = {
+  state: 'New Jersey',
+  governingBody: 'NJSIAA',
+  classification: 'Group 5',
+  districtLabel: 'League',
+  playoffs: {
+    format: 'REGIONAL_SEEDED',
+    qualifiersPerDistrict: 0,
+    bracketSize: 32,
+    divisionSplit: 'NONE',
+    divisionNames: ['Group 5 & Non-Public A'],
+    regional: {
+      regions: [
+        { name: 'Non-Public A', districts: [1, 2] },
+        { name: 'North', districts: [3, 4, 5] },
+        { name: 'Central', districts: [6] },
+        { name: 'South', districts: [7] }
+      ],
+      selection: 'RANKING',
+      qualifiersPerRegion: 8,
+      championsSeededFirst: false,
+      regionBracketSize: 8,
+      regionalRounds: 2
+    },
+    ...fiveRounds(
+      ['Sectional Quarterfinal', 'Sectional Semifinal', 'State Quarterfinal', 'State Semifinal', 'State Championship'],
+      [
+        'Opening round: the top eight in each section by power points',
+        'Two from each section reach the state quarterfinals',
+        'The final eight, across sections',
+        'The final four',
+        'The title game at MetLife Stadium in East Rutherford'
+      ]
+    ),
+    championshipTitle: 'NJSIAA State Championship',
+    championshipVenue: 'MetLife Stadium (East Rutherford, NJ)'
+  },
+  // NJSIAA: pass 30 credits (a quarter of graduation requirements) the previous year
+  academics: { ruleName: 'Pass 30 credits a year', minimumGpa: 1.7, atRiskGpa: 2.0 },
+  mercyRuleMargin: 35,
+  overtime: { startYardsFromGoal: 10 }
+};
+
+/**
+ * Louisiana LHSAA Class 5A: 68 programs in ten districts. Modeled on the Georgia format, the closest fit to
+ * LHSAA's power-rating seeding: one 32-team bracket seeded by the statewide power ranking, with district
+ * champions guaranteed a top-16 seed. Finals at the Superdome. (In reality select and non-select schools
+ * play separate brackets.)
+ */
+export const LOUISIANA_RULES: StateRules = {
+  state: 'Louisiana',
+  governingBody: 'LHSAA',
+  classification: '5A',
+  districtLabel: 'District',
+  playoffs: {
+    format: 'STATEWIDE_RANKING',
+    qualifiersPerDistrict: 1,
+    bracketSize: 32,
+    divisionSplit: 'NONE',
+    divisionNames: ['Class 5A'],
+    ...fiveRounds(
+      ['Bi-District', 'Regional', 'Quarterfinals', 'Semifinals', 'State Championship'],
+      [
+        'Opening round: 32 teams seeded by the LHSAA power rating; district champions host',
+        'Sixteen teams left',
+        'The final eight',
+        'The final four',
+        'The title game at the Caesars Superdome in New Orleans'
+      ]
+    ),
+    championshipTitle: 'LHSAA 5A State Championship',
+    championshipVenue: 'Caesars Superdome (New Orleans, LA)'
+  },
+  // LHSAA: pass six units the previous semester with a passing average
+  academics: { ruleName: 'Pass 6 units', minimumGpa: 1.7, atRiskGpa: 2.0 },
+  mercyRuleMargin: 35,
+  overtime: { startYardsFromGoal: 10 }
+};
+
 // Round names and descriptions for a 5-round (32-slot) bracket: the first four region-round slots and the final
 function fiveRounds(labels: string[], descriptions: string[]) {
   const [first, second, third, fourth, final] = labels;
@@ -438,7 +572,10 @@ export const STATE_RULES: Record<string, StateRules> = {
   'North Carolina': NORTH_CAROLINA_RULES,
   Alabama: ALABAMA_RULES,
   Tennessee: TENNESSEE_RULES,
-  Ohio: OHIO_RULES
+  Ohio: OHIO_RULES,
+  Pennsylvania: PENNSYLVANIA_RULES,
+  'New Jersey': NEW_JERSEY_RULES,
+  Louisiana: LOUISIANA_RULES
 };
 
 export const PLAYABLE_STATES = Object.keys(STATE_RULES);

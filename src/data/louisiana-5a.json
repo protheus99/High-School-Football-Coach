@@ -1,0 +1,694 @@
+{
+ "state": "Louisiana",
+ "classification": "5A",
+ "regions": [
+  {
+   "name": "Class 5A",
+   "area": "Louisiana",
+   "districts": [
+    {
+     "number": 1,
+     "name": "District 1-5A",
+     "area": "Shreveport-Bossier Metro & Northwest LA",
+     "schools": [
+      {
+       "name": "Evangel Christian",
+       "mascot": "Eagles",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFC72C",
+       "prestige": 95,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Parkway",
+       "mascot": "Panthers",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#000000",
+       "prestige": 91,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Captain Shreve",
+       "mascot": "Gators",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Airline",
+       "mascot": "Vikings",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 87,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "C.E. Byrd",
+       "mascot": "Yellow Jackets",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "prestige": 85,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Natchitoches Central",
+       "mascot": "Chiefs",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 79,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Benton",
+       "mascot": "Tigers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 77,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Haughton",
+       "mascot": "Buccaneers",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Huntington",
+       "mascot": "Raiders",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 71,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "District 2-5A",
+     "area": "North Central LA & Monroe Metro",
+     "schools": [
+      {
+       "name": "Ruston",
+       "mascot": "Bearcats",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 98,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Alexandria Senior High (ASH)",
+       "mascot": "Trojans",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFC72C",
+       "prestige": 93,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Neville",
+       "mascot": "Tigers",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#B3A369",
+       "prestige": 92,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "West Monroe",
+       "mascot": "Rebels",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFD700",
+       "prestige": 90,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Ouachita Parish",
+       "mascot": "Lions",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 89,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Pineville",
+       "mascot": "Rebels",
+       "primaryColor": "#003087",
+       "secondaryColor": "#000000",
+       "prestige": 65,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "District 3-5A",
+     "area": "Lafayette Metro & Southwest Coast / Lake Charles",
+     "schools": [
+      {
+       "name": "Acadiana",
+       "mascot": "Rams",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFC72C",
+       "prestige": 95,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Southside",
+       "mascot": "Sharks",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 91,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Carencro",
+       "mascot": "Golden Bears",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 86,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Sam Houston",
+       "mascot": "Broncos",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Barbe",
+       "mascot": "Buccaneers",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#000000",
+       "prestige": 82,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Sulphur",
+       "mascot": "Golden Tornadoes",
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 77,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "New Iberia",
+       "mascot": "Yellowjackets",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 75,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Lafayette High",
+       "mascot": "Mighty Lions",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "District 4-5A",
+     "area": "Baton Rouge Capital City",
+     "schools": [
+      {
+       "name": "Catholic-Baton Rouge",
+       "mascot": "Bears",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFD700",
+       "prestige": 98,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Zachary",
+       "mascot": "Broncos",
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 95,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Central-Baton Rouge",
+       "mascot": "Wildcats",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 90,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Woodlawn-Baton Rouge",
+       "mascot": "Panthers",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFC72C",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Scotlandville",
+       "mascot": "Hornets",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Liberty Magnet",
+       "mascot": "Patriots",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 68,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "District 5-5A",
+     "area": "Ascension & Livingston Parishes",
+     "schools": [
+      {
+       "name": "Dutchtown",
+       "mascot": "Griffins",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 91,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "St. Amant",
+       "mascot": "Gators",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Walker",
+       "mascot": "Wildcats",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 83,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "East Ascension",
+       "mascot": "Spartans",
+       "primaryColor": "#006747",
+       "secondaryColor": "#B3A369",
+       "prestige": 82,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Denham Springs",
+       "mascot": "Yellow Jackets",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Live Oak",
+       "mascot": "Eagles",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "prestige": 75,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Prairieville",
+       "mascot": "Caneheads",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#000000",
+       "prestige": 60,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "name": "District 6-5A",
+     "area": "Northshore / St. Tammany & Tangipahoa",
+     "schools": [
+      {
+       "name": "Mandeville",
+       "mascot": "Skippers",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "St. Paul's",
+       "mascot": "Wolves",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFD700",
+       "prestige": 88,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Covington",
+       "mascot": "Lions",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 84,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Ponchatoula",
+       "mascot": "Green Wave",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hammond",
+       "mascot": "Tornadoes",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "name": "District 7-5A",
+     "area": "Slidell & St. Bernard Parish",
+     "schools": [
+      {
+       "name": "Chalmette",
+       "mascot": "Owls",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 84,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Slidell",
+       "mascot": "Tigers",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Northshore",
+       "mascot": "Panthers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Fontainebleau",
+       "mascot": "Bulldogs",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFD700",
+       "prestige": 77,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Salmen",
+       "mascot": "Spartans",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 8,
+     "name": "District 8-5A",
+     "area": "River Parishes & Bayou Region",
+     "schools": [
+      {
+       "name": "Destrehan",
+       "mascot": "Wildcats",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 96,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hahnville",
+       "mascot": "Tigers",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFD700",
+       "prestige": 90,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "East St. John",
+       "mascot": "Wildcats",
+       "primaryColor": "#000000",
+       "secondaryColor": "#000000",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Thibodaux",
+       "mascot": "Tigers",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Terrebonne",
+       "mascot": "Tigers",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Central Lafourche",
+       "mascot": "Trojans",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#000000",
+       "prestige": 74,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "H.L. Bourgeois",
+       "mascot": "Braves",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFC72C",
+       "prestige": 66,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 9,
+     "name": "District 9-5A",
+     "area": "The Historic New Orleans Catholic League",
+     "schools": [
+      {
+       "name": "Edna Karr",
+       "mascot": "Cougars",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 99,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "St. Augustine",
+       "mascot": "Purple Knights",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 96,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Archbishop Rummel",
+       "mascot": "Raiders",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 93,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "John Curtis Christian",
+       "mascot": "Patriots",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "prestige": 92,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Brother Martin",
+       "mascot": "Crusaders",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "prestige": 90,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Warren Easton",
+       "mascot": "Eagles",
+       "primaryColor": "#000000",
+       "secondaryColor": "#B3A369",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Jesuit",
+       "mascot": "Blue Jays",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 87,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Holy Cross",
+       "mascot": "Tigers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 10,
+     "name": "District 10-5A",
+     "area": "Jefferson Parish Westbank & Eastbank",
+     "schools": [
+      {
+       "name": "John Ehret",
+       "mascot": "Patriots",
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "West Jefferson",
+       "mascot": "Buccaneers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "prestige": 79,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "East Jefferson",
+       "mascot": "Warriors",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 77,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Bonnabel",
+       "mascot": "Bruins",
+       "primaryColor": "#003087",
+       "secondaryColor": "#000000",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Riverdale",
+       "mascot": "Scottish Rebels",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "L.W. Higgins",
+       "mascot": "Hurricanes",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 68,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Benjamin Franklin",
+       "mascot": "Falcons",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 50,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
