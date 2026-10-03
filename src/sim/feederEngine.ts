@@ -42,19 +42,20 @@ export const CONTACT_ACTIONS: Record<ContactAction, { label: string; cost: numbe
 export const CONTACT_ORDER: ContactAction[] = ['TEXT', 'EMAIL', 'CALL', 'VISIT', 'INVITE', 'WINE_AND_DINE'];
 
 /** Interest a contact adds: the full amount early, less once he is warm (60+) and less again once he is near committing (80+). */
-export function contactGain(p: FeederProspect, action: ContactAction): number {
+export function contactGain(p: FeederProspect, action: ContactAction, staffBonus = 0): number {
   // Stars are harder to impress; faraway kids (the State and National lists) too
   const distance = p.scope === 'NATIONAL' ? 0.5 : p.scope === 'STATE' ? 0.75 : 1;
-  const base = CONTACT_ACTIONS[action].interest * (p.source === 'STAR_RECRUIT' ? 0.5 : 1) * distance;
+  // The JV head coach's Feeder Pipeline adds a share on top
+  const base = CONTACT_ACTIONS[action].interest * (p.source === 'STAR_RECRUIT' ? 0.5 : 1) * distance * (1 + staffBonus);
   const scale = p.interestScore >= 80 ? 0.6 : p.interestScore >= 60 ? 0.8 : 1;
   return Math.max(1, Math.round(base * scale));
 }
 
 /** One contact with a prospect (the caller checks Coach Points and the once-a-week limit). */
-export function contactProspect(p: FeederProspect, action: ContactAction): FeederProspect {
+export function contactProspect(p: FeederProspect, action: ContactAction, staffBonus = 0): FeederProspect {
   const contacted = {
     ...p,
-    interestScore: clamp(p.interestScore + contactGain(p, action), 0, 100),
+    interestScore: clamp(p.interestScore + contactGain(p, action, staffBonus), 0, 100),
     coachContacts: p.coachContacts + 1,
     actionsThisWeek: [...(p.actionsThisWeek ?? []), action]
   };

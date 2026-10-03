@@ -192,8 +192,8 @@ export const COACH_ROLES: CoachRoleInfo[] = [
     edgeCap: 0,
     effects: [
       { id: 'front_office_hustle', name: 'Front Office Hustle', description: 'More weekly Coach Points', kind: 'COACH_POINTS', amount: 0.3 },
-      { id: 'booster_liaison', name: 'Booster Liaison', description: 'Booster approval drifts up', kind: 'PROGRAM' },
-      { id: 'compliance_officer', name: 'Compliance Officer', description: 'Compliance recovers faster', kind: 'PROGRAM' }
+      { id: 'booster_liaison', name: 'Booster Liaison', description: 'Keeps the boosters happy: approval rises a little every week', kind: 'PROGRAM', amount: 1 },
+      { id: 'compliance_officer', name: 'Compliance Officer', description: 'Keeps the program clean: compliance recovers a little every week', kind: 'PROGRAM', amount: 1 }
     ]
   },
   {
@@ -201,7 +201,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
     title: 'JV Head Coach',
     edgeCap: 0,
     effects: [
-      { id: 'feeder_pipeline', name: 'Feeder Pipeline', description: 'More interest from feeder programs', kind: 'RECRUITING', amount: 0.1 },
+      { id: 'feeder_pipeline', name: 'Feeder Pipeline', description: 'Every recruiting contact with a feeder prospect earns more interest', kind: 'RECRUITING', amount: 0.1 },
       { id: 'youth_development', name: 'Youth Development', description: 'Freshmen grow +1 a season', kind: 'DEVELOPMENT', amount: 1 }
     ]
   },
@@ -262,8 +262,20 @@ export function staffBonuses(staff: HiredCoach[]): {
   coachPointMultiplier: number;
   weeklyCoachPoints: number;
   feederInterest: number;
+  boosterDrift: number; // booster approval points a week
+  complianceDrift: number; // compliance points a week
 } {
-  const out = { developmentByPosition: {} as Partial<Record<Position, number>>, allPlayersDevelopment: 0, freshmanDevelopment: 0, injuryReduction: 0, coachPointMultiplier: 1, weeklyCoachPoints: 0, feederInterest: 0 };
+  const out = {
+    developmentByPosition: {} as Partial<Record<Position, number>>,
+    allPlayersDevelopment: 0,
+    freshmanDevelopment: 0,
+    injuryReduction: 0,
+    coachPointMultiplier: 1,
+    weeklyCoachPoints: 0,
+    feederInterest: 0,
+    boosterDrift: 0,
+    complianceDrift: 0
+  };
   staff.forEach((coach) => {
     const info = COACH_ROLES.find((r) => r.role === coach.role);
     if (!info) return;
@@ -278,6 +290,8 @@ export function staffBonuses(staff: HiredCoach[]): {
         else if (e.kind === 'INJURY') out.injuryReduction += (e.amount ?? 0) * k;
         else if (e.kind === 'COACH_POINTS') out.coachPointMultiplier += (e.amount ?? 0) * k;
         else if (e.kind === 'RECRUITING') out.feederInterest += (e.amount ?? 0) * k;
+        else if (e.id === 'booster_liaison') out.boosterDrift += (e.amount ?? 0) * k;
+        else if (e.id === 'compliance_officer') out.complianceDrift += (e.amount ?? 0) * k;
       });
   });
   return out;
@@ -289,11 +303,6 @@ export function eliteStaff(): HiredCoach[] {
     const best = [...info.effects].sort((a, b) => (b.gameDayEdge ?? 0) - (a.gameDayEdge ?? 0)).slice(0, effectSlots(99));
     return { role: info.role, name: info.title, rating: 99, effectIds: best.map((e) => e.id) };
   });
-}
-
-/** A coach's tier by rating (the price tier once purchases exist). */
-export function coachTier(rating: number): 'Bronze' | 'Silver' | 'Gold' | 'Elite' {
-  return rating >= 95 ? 'Elite' : rating >= 85 ? 'Gold' : rating >= 70 ? 'Silver' : 'Bronze';
 }
 
 /** One coach's game-day edge on its own (before the staff-wide cap). */
@@ -312,4 +321,32 @@ export function generateCandidates(role: CoachRole, randomName: () => string): H
     const shuffled = [...info.effects].sort(() => Math.random() - 0.5);
     return { role, name: randomName(), rating, effectIds: shuffled.slice(0, effectSlots(rating)).map((e) => e.id) };
   });
+}
+
+export type CoachGrade = 'S+' | 'S' | 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D+' | 'D';
+
+/** Grade bands by rating (the lowest rating each grade starts at). */
+const GRADE_BANDS: [number, CoachGrade][] = [
+  [96, 'S+'],
+  [91, 'S'],
+  [86, 'A+'],
+  [81, 'A'],
+  [76, 'B+'],
+  [71, 'B'],
+  [66, 'C+'],
+  [61, 'C'],
+  [56, 'D+'],
+  [0, 'D']
+];
+
+/** The grade players see for a coach (the rating and multipliers stay behind the scenes). */
+export function coachGrade(rating: number): CoachGrade {
+  return GRADE_BANDS.find(([min]) => Math.round(rating) >= min)![1];
+}
+
+/** The staff's overall grade: its coaches' average rating, with empty roles counting as the lowest grade. */
+export function staffGrade(staff: HiredCoach[]): CoachGrade | null {
+  if (staff.length === 0) return null;
+  const total = COACH_ROLES.reduce((s, r) => s + (staff.find((c) => c.role === r.role)?.rating ?? 50), 0);
+  return coachGrade(total / COACH_ROLES.length);
 }

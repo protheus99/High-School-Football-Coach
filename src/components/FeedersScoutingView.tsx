@@ -28,6 +28,7 @@ import {
 } from '../sim/feederEngine';
 import { FACTOR_LABELS, RecruitingContext, buildRecruitingContext, choiceShares, topPriority } from '../sim/feederCompetition';
 import { wideJoinProbability } from '../sim/widePool';
+import { staffBonuses } from '../sim/coachingStaff';
 
 const SOURCE_COLORS: Record<ProspectSource, string> = {
   FEEDER_MIDDLE_SCHOOL: '#2563EB',
@@ -104,6 +105,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     removeFeederProspect,
     statewideRecruits,
     widePool,
+    coachingStaff,
     league,
     leagueTeams,
     currentYear,
@@ -112,6 +114,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
   // The pool scopes in the state's words; a one-region league's "region" pool is the whole state class
   const districtWord = rulesForState(league?.state).districtLabel;
+  const interestBonus = staffBonuses(coachingStaff).feederInterest;
   const multiRegion = !!league && league.regions.length > 1;
   const regionWord = !multiRegion ? 'State' : districtWord === 'Region' ? 'Area' : 'Region';
   const [scope, setScopeState] = useState<PoolScope>('DISTRICT');
@@ -359,6 +362,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                 chance={p.scope ? wideJoinProbability(p, userTeamId) : userJoinProbability(p, userTeam.prestige, ctx)}
                 coachPoints={coachPoints}
                 onContact={(action) => contactFeederProspect(p.id, action)}
+                interestBonus={interestBonus}
                 rank={rankLabel(p)}
                 schools={schoolInterest(p, userTeamId).slice(0, 3).map((e) => ({ name: schoolName(e.teamId, p), interest: e.interest, isYou: e.teamId === userTeamId }))}
                 commitment={(() => {
@@ -398,7 +402,8 @@ const ProspectCard: React.FC<{
   rank?: string;
   schools: { name: string; interest: number; isYou: boolean }[];
   commitment: { name: string; interest: number; isYou: boolean; tied: boolean } | null;
-}> = ({ prospect: p, chance, coachPoints, onContact, positionFilled, onRemove, rank, schools, commitment }) => {
+  interestBonus: number; // the staff's Feeder Pipeline
+}> = ({ prospect: p, chance, coachPoints, onContact, positionFilled, onRemove, rank, schools, commitment, interestBonus }) => {
   const [confirmRemove, setConfirmRemove] = useState(false);
   // Evaluated once scouted or at 50+ interest: his potential, speed and strength show
   const scouted = isEvaluated(p);
@@ -493,7 +498,7 @@ const ProspectCard: React.FC<{
           return (
             <button key={action} onClick={() => onContact(action)} disabled={disabled} style={{ ...actionBtn('#2563EB', disabled), padding: '6px 4px', lineHeight: 1.2 }}>
               {done ? `✓ ${label}` : label}
-              <span style={{ display: 'block', fontSize: '11px', fontWeight: 'normal' }}>{done ? 'this week' : `₡${cost} · +${contactGain(p, action)}`}</span>
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: 'normal' }}>{done ? 'this week' : `₡${cost} · +${contactGain(p, action, interestBonus)}`}</span>
             </button>
           );
         })}

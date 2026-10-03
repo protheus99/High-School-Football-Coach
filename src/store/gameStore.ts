@@ -746,6 +746,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
     if (exposureArticles.length > 0) set({ newsArticles: [...exposureArticles, ...get().newsArticles] });
 
+    // The Director of Football Operations works the boosters and the compliance office every week
+    // (meters stay whole numbers: a fraction of a point lands as a full point that often)
+    const programStaff = staffBonuses(get().coachingStaff);
+    const wholePoints = (x: number) => Math.floor(x) + (Math.random() < x - Math.floor(x) ? 1 : 0);
+    userTeam.programMeters.boosterApproval = Math.min(100, userTeam.programMeters.boosterApproval + wholePoints(programStaff.boosterDrift));
+    userTeam.programMeters.complianceScore = Math.min(100, userTeam.programMeters.complianceScore + wholePoints(programStaff.complianceDrift));
+
     // State association sanctions escalate each regular-season week compliance stays below 40
     const { sanctionLevel } = get();
     if (currentWeek <= LAST_REGULAR_SEASON_WEEK && userTeam.programMeters.complianceScore < COMPLIANCE_SANCTION_THRESHOLD && sanctionLevel < 3) {
@@ -1160,7 +1167,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const prospect = scoutingPool.find((p) => p.id === prospectId) ?? widePool.find((p) => p.id === prospectId);
     const { cost } = CONTACT_ACTIONS[action];
     if (!prospect || coachPoints < cost || prospect.actionsThisWeek?.includes(action)) return;
-    const contact = (p: FeederProspect) => (p.id === prospectId ? contactProspect(p, action) : p);
+    const bonus = staffBonuses(get().coachingStaff).feederInterest;
+    const contact = (p: FeederProspect) => (p.id === prospectId ? contactProspect(p, action, bonus) : p);
     set({ coachPoints: coachPoints - cost, ...(prospect.scope ? { widePool: widePool.map(contact) } : { scoutingPool: scoutingPool.map(contact) }) });
   },
 

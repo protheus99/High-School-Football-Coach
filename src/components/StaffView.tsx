@@ -2,32 +2,42 @@ import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import {
   COACH_ROLES,
-  CoachRole,
+  CoachGrade,
   coachGameDayEdge,
-  coachTier,
-  effectStrength,
+  coachGrade,
+  CoachRole,
   generateCandidates,
   HiredCoach,
   staffBonuses,
-  STAFF_DEVELOPMENT_CAP,
-  staffGameDayEdge
+  staffGameDayEdge,
+  staffGrade
 } from '../sim/coachingStaff';
 import { randomPlayerName } from '../generators/names';
 
-const TIER_COLORS: Record<ReturnType<typeof coachTier>, string> = { Bronze: '#B45309', Silver: '#64748B', Gold: '#CA8A04', Elite: '#7C3AED' };
-const MAX_EDGE = 2;
+const GRADE_COLORS: Record<CoachGrade, string> = {
+  'S+': '#7C3AED',
+  S: '#8B5CF6',
+  'A+': '#B45309',
+  A: '#CA8A04',
+  'B+': '#2563EB',
+  B: '#3B82F6',
+  'C+': '#059669',
+  C: '#10B981',
+  'D+': '#64748B',
+  D: '#94A3B8'
+};
 
 /**
- * The paid coaching staff: what the staff adds (game-day edge out of the +2.0 cap, Coach Points, development,
- * injuries), every role with its coach and effects, and candidates to hire. Hiring is a placeholder until
- * purchases exist.
+ * The coaching staff, in the players' terms: each coach's letter grade (S+ down to D) and what their effects do,
+ * the staff's overall grade and the benefits it brings. The numbers behind them (the game-day edge out of its
+ * +2.0 cap, every multiplier) show only in development builds. Hiring is a placeholder until purchases exist.
  */
 export const StaffView: React.FC = () => {
   const { coachingStaff, setCoachingStaff } = useGameStore();
   const [openRole, setOpenRole] = useState<CoachRole | null>(null);
   const [candidates, setCandidates] = useState<Partial<Record<CoachRole, HiredCoach[]>>>({});
-  const edge = staffGameDayEdge(coachingStaff);
   const bonus = staffBonuses(coachingStaff);
+  const grade = staffGrade(coachingStaff);
   const name = () => {
     const n = randomPlayerName();
     return `${n.firstName} ${n.lastName}`;
@@ -44,32 +54,31 @@ export const StaffView: React.FC = () => {
     setOpenRole(null);
   };
   const release = (role: CoachRole) => setCoachingStaff(coachingStaff.filter((c) => c.role !== role));
-  // A player's extra growth a season: his position coach, the strength program and the JV staff, at most +0.5
-  const devTotal = Math.min(STAFF_DEVELOPMENT_CAP, Math.max(0, ...Object.values(bonus.developmentByPosition).map((v) => v ?? 0)) + bonus.allPlayersDevelopment + bonus.freshmanDevelopment);
+
+  // What the staff brings, in words
+  const benefits = [
+    staffGameDayEdge(coachingStaff) > 0 && 'Sharper on game day',
+    bonus.weeklyCoachPoints > 0 && 'More Coach Points every week',
+    (Object.values(bonus.developmentByPosition).some((v) => (v ?? 0) > 0) || bonus.allPlayersDevelopment > 0 || bonus.freshmanDevelopment > 0) && 'Faster player development',
+    bonus.injuryReduction > 0 && 'Fewer injuries',
+    bonus.boosterDrift > 0 && 'Happier boosters',
+    bonus.complianceDrift > 0 && 'A cleaner program',
+    bonus.feederInterest > 0 && 'Stronger recruiting contacts'
+  ].filter((b): b is string => !!b);
 
   return (
     <div className="ui-screen" style={{ maxWidth: '900px' }}>
-      {/* What the staff adds */}
-      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px 14px', marginBottom: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '6px' }}>
-          <span>Game-day edge</span>
-          <span style={{ color: '#4F46E5' }}>
-            +{edge.toFixed(2)} of +{MAX_EDGE.toFixed(1)}
-          </span>
+      {/* The staff at a glance */}
+      <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px 14px', marginBottom: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+        {grade ? <GradeBadge grade={grade} large /> : <span style={badgeStyle('#CBD5E1', true)}>–</span>}
+        <div style={{ minWidth: 0, fontSize: '13px' }}>
+          <div style={{ fontWeight: 'bold' }}>
+            Staff grade · {coachingStaff.length} of {COACH_ROLES.length} roles filled
+          </div>
+          <div style={{ color: '#475569', marginTop: '2px' }}>{benefits.length > 0 ? benefits.join(' · ') : 'Hire assistants to give the program an edge.'}</div>
         </div>
-        <div style={{ background: '#E2E8F0', height: '8px', borderRadius: '4px' }} aria-hidden="true">
-          <div style={{ width: `${(edge / MAX_EDGE) * 100}%`, background: '#4F46E5', height: '100%', borderRadius: '4px' }} />
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginTop: '10px', fontSize: '12px', color: '#334155' }}>
-          <span>₡ +{bonus.weeklyCoachPoints}/week{bonus.coachPointMultiplier > 1 ? ` · +${Math.round((bonus.coachPointMultiplier - 1) * 100)}% income` : ''}</span>
-          <span>📈 Development up to +{devTotal.toFixed(1)}/season</span>
-          <span>🩹 Injuries −{Math.round(bonus.injuryReduction * 100)}%</span>
-          <span>🧑‍🏫 {coachingStaff.length} of {COACH_ROLES.length} hired</span>
-        </div>
-        <p className="ui-muted" style={{ margin: '8px 0 0', fontSize: '12px' }}>
-          Coaches help but never decide games: the whole staff adds at most +2.0 on game day (about 73% against an equal team).
-        </p>
       </div>
+      {import.meta.env.DEV && <DebugPanel staff={coachingStaff} />}
 
       {/* Every role */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '10px' }}>
@@ -80,14 +89,11 @@ export const StaffView: React.FC = () => {
             <div key={info.role} style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '12px', fontSize: '13px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'nowrap' }}>
                 <strong style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</strong>
-                {coach ? <RatingBadge rating={coach.rating} /> : <span style={{ color: '#94A3B8', fontSize: '12px' }}>Vacant</span>}
+                {coach ? <GradeBadge grade={coachGrade(coach.rating)} /> : <span style={{ color: '#94A3B8', fontSize: '12px' }}>Vacant</span>}
               </div>
               {coach && (
                 <>
-                  <div style={{ color: '#475569', margin: '2px 0 6px' }}>
-                    {coach.name}
-                    {coachGameDayEdge(coach) > 0 && <span style={{ color: '#4F46E5' }}> · +{coachGameDayEdge(coach).toFixed(2)} game day</span>}
-                  </div>
+                  <div style={{ color: '#475569', margin: '2px 0 6px' }}>{coach.name}</div>
                   <EffectList coach={coach} />
                 </>
               )}
@@ -104,14 +110,12 @@ export const StaffView: React.FC = () => {
               {open && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
                   {(candidates[info.role] ?? []).map((c) => (
-                    <div key={c.name} style={{ background: '#fff', border: `1px solid ${TIER_COLORS[coachTier(c.rating)]}`, borderRadius: '8px', padding: '10px' }}>
+                    <div key={c.name} style={{ background: '#fff', border: `1px solid ${GRADE_COLORS[coachGrade(c.rating)]}`, borderRadius: '8px', padding: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontWeight: 'bold', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
-                        <RatingBadge rating={c.rating} />
+                        <GradeBadge grade={coachGrade(c.rating)} />
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 6px' }}>
-                        {coachTier(c.rating)} tier{coachGameDayEdge(c) > 0 ? ` · +${coachGameDayEdge(c).toFixed(2)} game day` : ''} · price to be set
-                      </div>
+                      <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 6px' }}>Grade {coachGrade(c.rating)} · price to be set</div>
                       <EffectList coach={c} />
                       <button className="ui-btn ui-btn-block" style={{ marginTop: '8px', background: '#4F46E5', borderColor: '#4F46E5', color: '#fff' }} onClick={() => hire(c)}>
                         Hire {c.name.split(' ')[1] ?? c.name} (purchases coming soon)
@@ -128,16 +132,27 @@ export const StaffView: React.FC = () => {
   );
 };
 
-const RatingBadge: React.FC<{ rating: number }> = ({ rating }) => (
-  <span style={{ flex: '0 0 auto', background: TIER_COLORS[coachTier(rating)], color: '#fff', borderRadius: '999px', padding: '1px 8px', fontSize: '12px', fontWeight: 'bold' }}>
-    {rating}
+const badgeStyle = (color: string, large = false): React.CSSProperties => ({
+  flex: '0 0 auto',
+  background: color,
+  color: '#fff',
+  borderRadius: large ? '10px' : '999px',
+  padding: large ? '6px 10px' : '1px 9px',
+  fontSize: large ? '20px' : '12px',
+  fontWeight: 'bold',
+  minWidth: large ? '44px' : undefined,
+  textAlign: 'center'
+});
+
+const GradeBadge: React.FC<{ grade: CoachGrade; large?: boolean }> = ({ grade, large }) => (
+  <span style={badgeStyle(GRADE_COLORS[grade], large)} aria-label={`Grade ${grade}`}>
+    {grade}
   </span>
 );
 
-/** A coach's effects, each at the strength the coach's rating delivers. */
+/** A coach's effects, in words. */
 const EffectList: React.FC<{ coach: HiredCoach }> = ({ coach }) => {
   const info = COACH_ROLES.find((r) => r.role === coach.role)!;
-  const k = effectStrength(coach.rating);
   return (
     <ul style={{ margin: 0, paddingLeft: '18px', color: '#334155', fontSize: '12px' }}>
       {info.effects
@@ -145,9 +160,24 @@ const EffectList: React.FC<{ coach: HiredCoach }> = ({ coach }) => {
         .map((e) => (
           <li key={e.id}>
             <strong>{e.name}</strong>: {e.description}
-            {e.kind === 'GAME_DAY' && e.gameDayEdge ? ` (+${(e.gameDayEdge * k).toFixed(2)})` : ''}
           </li>
         ))}
     </ul>
+  );
+};
+
+/** Development builds only: the numbers behind the grades (game-day edge out of the +2.0 cap, every bonus). */
+const DebugPanel: React.FC<{ staff: HiredCoach[] }> = ({ staff }) => {
+  const edge = staffGameDayEdge(staff);
+  const bonus = staffBonuses(staff);
+  return (
+    <details style={{ background: '#FEFCE8', border: '1px dashed #CA8A04', borderRadius: '8px', padding: '8px 12px', marginBottom: '12px', fontSize: '12px' }}>
+      <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Debug: staff numbers</summary>
+      <div>
+        Game-day edge +{edge.toFixed(2)} of +2.00 · CP +{bonus.weeklyCoachPoints}/week ×{bonus.coachPointMultiplier.toFixed(2)} · injuries −{Math.round(bonus.injuryReduction * 100)}% ·
+        boosters +{bonus.boosterDrift.toFixed(2)}/wk · compliance +{bonus.complianceDrift.toFixed(2)}/wk · contacts +{Math.round(bonus.feederInterest * 100)}%
+      </div>
+      <div style={{ marginTop: '4px' }}>{staff.map((c) => `${c.role.toLowerCase().replace(/_/g, ' ')} ${c.rating} (+${coachGameDayEdge(c).toFixed(2)})`).join(' · ') || 'No coaches hired'}</div>
+    </details>
   );
 };

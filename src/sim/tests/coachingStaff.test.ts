@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { COACH_ROLES, eliteStaff, HiredCoach, staffBonuses, staffGameDayEdge } from '../coachingStaff';
+import { COACH_ROLES, coachGrade, eliteStaff, HiredCoach, staffBonuses, staffGameDayEdge, staffGrade } from '../coachingStaff';
+import { contactGain } from '../feederEngine';
 import { buildStateWorld } from '../league';
 import { simulateMacroMatch } from '../macroSim';
 import { simulateSnap } from '../matchEngine';
@@ -64,4 +65,22 @@ describe('Coaching staff', () => {
     expect(wins / games).toBeGreaterThan(0.6);
     expect(wins / games).toBeLessThan(0.82);
   }, 120000);
+
+  it('grades coaches S+ down to D by rating', () => {
+    const cases: [number, string][] = [[100, 'S+'], [96, 'S+'], [95, 'S'], [91, 'S'], [90, 'A+'], [86, 'A+'], [85, 'A'], [81, 'A'], [80, 'B+'], [76, 'B+'], [75, 'B'], [71, 'B'], [70, 'C+'], [66, 'C+'], [65, 'C'], [61, 'C'], [60, 'D+'], [56, 'D+'], [55, 'D'], [40, 'D']];
+    cases.forEach(([rating, grade]) => expect(coachGrade(rating)).toBe(grade));
+    expect(staffGrade([])).toBeNull();
+    expect(staffGrade(eliteStaff())).toBe('S+');
+  });
+
+  it('the Director of Football Operations and the JV head coach have real effects', () => {
+    const dfo: HiredCoach = { role: 'FOOTBALL_OPERATIONS', name: 'D', rating: 99, effectIds: ['booster_liaison', 'compliance_officer'] };
+    const jv: HiredCoach = { role: 'JV_HEAD_COACH', name: 'J', rating: 99, effectIds: ['feeder_pipeline'] };
+    const bonus = staffBonuses([dfo, jv]);
+    expect(bonus.boosterDrift).toBeCloseTo(1, 5);
+    expect(bonus.complianceDrift).toBeCloseTo(1, 5);
+    expect(bonus.feederInterest).toBeCloseTo(0.1, 5);
+    const prospect = { scope: undefined, source: 'FEEDER_MIDDLE_SCHOOL', interestScore: 30 } as unknown as Parameters<typeof contactGain>[0];
+    expect(contactGain(prospect, 'WINE_AND_DINE', bonus.feederInterest)).toBeGreaterThan(contactGain(prospect, 'WINE_AND_DINE'));
+  });
 });
