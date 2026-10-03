@@ -1,16 +1,51 @@
 import { Team, RankedTeamEntry, StateAndNationalPolls, RankMovement } from '../types/game';
 import { clamp } from './math/variance';
+import type { PlayoffBracketState } from './playoffEngine';
+
+/** A team's playoff games this season (byes don't count) and whether it won its state title. */
+export interface PostseasonRecord {
+  wins: number;
+  losses: number;
+  champion: boolean;
+}
+
+/** Playoff records for every team in the given brackets (the coach's state and every other state). */
+export function postseasonRecords(brackets: (PlayoffBracketState | null | undefined)[]): Map<string, PostseasonRecord> {
+  const records = new Map<string, PostseasonRecord>();
+  const entry = (id: string) => {
+    if (!records.has(id)) records.set(id, { wins: 0, losses: 0, champion: false });
+    return records.get(id)!;
+  };
+  brackets.forEach((bracket) =>
+    bracket?.divisions.forEach((division) => {
+      division.rounds.flat().forEach((n) => {
+        if (n.isBye || !n.winnerTeamId) return;
+        const loser = n.winnerTeamId === n.team1.id ? n.team2.id : n.team1.id;
+        entry(n.winnerTeamId).wins++;
+        entry(loser).losses++;
+      });
+      if (division.championTeamId) entry(division.championTeamId).champion = true;
+    })
+  );
+  return records;
+}
+
+/** Poll points a state title is worth on top of the playoff wins themselves. */
+const CHAMPION_BONUS = 60;
 
 /**
  * Calculates poll rating points for a team based on Record, SoS, Prestige, and Quality Wins.
  */
-export function calculateTeamPollRating(team: Team, allTeams: Team[]): {
+export function calculateTeamPollRating(team: Team, allTeams: Team[], postseason?: PostseasonRecord): {
   pollPoints: number;
   sos: number;
   qualityWins: number;
 } {
-  const totalGames = team.record.wins + team.record.losses;
-  const winPct = totalGames > 0 ? team.record.wins / totalGames : 0.5;
+  // The whole season counts: regular season plus playoffs
+  const wins = team.record.wins + (postseason?.wins ?? 0);
+  const losses = team.record.losses + (postseason?.losses ?? 0);
+  const totalGames = wins + losses;
+  const winPct = totalGames > 0 ? wins / totalGames : 0.5;
 
   // 1. Strength of Schedule (SoS) calculation from opponent prestige & win rates
   let opponentPrestigeSum = 0;
@@ -52,9 +87,11 @@ export function calculateTeamPollRating(team: Team, allTeams: Team[]): {
   let rawPollPoints = winRecordScore + sosScore + prestigeScore + qualityWinScore + pointDiffBonus;
 
   // Penalize losing teams heavily (teams with 2+ losses cannot easily hold top national spots)
-  if (team.record.losses === 1) rawPollPoints *= 0.88;
-  if (team.record.losses === 2) rawPollPoints *= 0.72;
-  if (team.record.losses >= 3) rawPollPoints *= 0.50;
+  if (losses === 1) rawPollPoints *= 0.88;
+  if (losses === 2) rawPollPoints *= 0.72;
+  if (losses >= 3) rawPollPoints *= 0.50;
+  // A state title outranks a team that lost in its bracket
+  if (postseason?.champion) rawPollPoints += CHAMPION_BONUS;
 
   return {
     pollPoints: Math.round(rawPollPoints),
@@ -69,16 +106,19 @@ export function calculateTeamPollRating(team: Team, allTeams: Team[]): {
 export function generateNationalAndStatePolls(
   allTeams: Team[],
   previousPolls: StateAndNationalPolls | null,
-  currentWeek: number
+  currentWeek: number,
+  postseason: Map<string, PostseasonRecord> = new Map()
 ): StateAndNationalPolls {
-  // 1. Calculate ratings for every loaded team
+  // 1. Calculate ratings for every loaded team (playoff games count once the playoffs start)
   const evaluatedTeams = allTeams.map((team) => {
-    const { pollPoints, sos, qualityWins } = calculateTeamPollRating(team, allTeams);
+    const post = postseason.get(team.id);
+    const { pollPoints, sos, qualityWins } = calculateTeamPollRating(team, allTeams, post);
     return {
       team,
       pollPoints,
       sos,
-      qualityWins
+      qualityWins,
+      record: { wins: team.record.wins + (post?.wins ?? 0), losses: team.record.losses + (post?.losses ?? 0) }
     };
   });
 
@@ -118,7 +158,7 @@ export function generateNationalAndStatePolls(
       mascot: entry.team.mascot,
       state: entry.team.state || 'Texas',
       classification: entry.team.classification,
-      record: { wins: entry.team.record.wins, losses: entry.team.record.losses },
+      record: entry.record,
       pollPoints: entry.pollPoints,
       strengthOfSchedule: entry.sos,
       firstPlaceVotes: rank === 1 ? 52 : rank === 2 ? 10 : rank === 3 ? 3 : 0,
@@ -142,7 +182,7 @@ export function generateNationalAndStatePolls(
       mascot: entry.team.mascot,
       state: entry.team.state || 'Texas',
       classification: entry.team.classification,
-      record: { wins: entry.team.record.wins, losses: entry.team.record.losses },
+      record: entry.record,
       pollPoints: entry.pollPoints,
       strengthOfSchedule: entry.sos,
       firstPlaceVotes: 0,
@@ -176,7 +216,7 @@ export function generateNationalAndStatePolls(
         mascot: entry.team.mascot,
         state: stateName,
         classification: entry.team.classification,
-        record: { wins: entry.team.record.wins, losses: entry.team.record.losses },
+        record: entry.record,
         pollPoints: entry.pollPoints,
         strengthOfSchedule: entry.sos,
         firstPlaceVotes: rank === 1 ? 45 : 0,

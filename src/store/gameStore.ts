@@ -88,7 +88,7 @@ import {
 import { buildPlayoffBracket, advancePlayoffRound, bracketRoundForWeek, compactBracket, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
 import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
-import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
+import { generateNationalAndStatePolls, postseasonRecords } from '../sim/nationalRankingEngine';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
 import { applyRunAheadRound, gameKey, runAheadWeek, WeekResults } from '../sim/runAhead';
 import { buildNationalWorld, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
@@ -519,7 +519,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       feederEventsThisWeek: [],
       newsArticles: [],
       nationalLeagues,
-      polls: generateNationalAndStatePolls(everyone, null, save.currentWeek),
+      polls: generateNationalAndStatePolls(everyone, null, save.currentWeek, postseasonRecords([save.playoffBracket ?? null, ...nationalLeagues.map((l) => l.bracket)])),
       playerRankings: generatePlayerRankingsAndLeaderboards(everyone, save.currentWeek),
       // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
       scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p) ? save.scoutingPool : generateFeederPool(userTeam)
@@ -727,7 +727,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const seniors = userTeam.roster.filter((p) => p.classYear === 'Senior');
       const { signings, prestigeChanges } = runSigningDay(leagueTeams, get().currentYear);
       const news = signingDayNews(signings, prestigeChanges.get(userTeamId) ?? 0, userTeam, get().currentYear, nextWeek);
-      set({ currentWeek: nextWeek, graduatingSeniors: seniors, isBanquetActive: true, newsArticles: [...news, ...get().newsArticles] });
+      // The final polls and leaders, with every state's title game in
+      const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
+      set({
+        currentWeek: nextWeek,
+        graduatingSeniors: seniors,
+        isBanquetActive: true,
+        newsArticles: [...news, ...get().newsArticles],
+        polls: generateNationalAndStatePolls(everyone, polls, nextWeek, postseasonRecords([get().playoffBracket, ...get().nationalLeagues.map((l) => l.bracket)])),
+        playerRankings: generatePlayerRankingsAndLeaderboards(everyone, nextWeek),
+        leagueTeams: [...leagueTeams]
+      });
       return;
     }
 
@@ -788,7 +798,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // 2. Recalculate National & State Team Polls
     const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
-    const updatedPolls = generateNationalAndStatePolls(everyone, polls, nextWeek);
+    const updatedPolls = generateNationalAndStatePolls(everyone, polls, nextWeek, postseasonRecords([get().playoffBracket, ...get().nationalLeagues.map((l) => l.bracket)]));
 
     // 3. Recalculate Player Stats Leaderboards & Positional Prospect Rankings
     const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, nextWeek);

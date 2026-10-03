@@ -49,10 +49,13 @@ describe('League season schedule', () => {
     expect(schedule.every((g) => g.week >= FIRST_NON_DISTRICT_WEEK && g.week <= LAST_REGULAR_SEASON_WEEK)).toBe(true);
   });
 
-  it('plays district opponents in district weeks and non-district opponents from the same region', () => {
+  it('plays district opponents in district weeks and non-district opponents from the same region (bar a few fill-ins)', () => {
     for (const team of teams) {
       const district = findDistrict(league, team.id)!;
       const region = findRegion(league, team.id)!;
+      // An odd-sized region leaves a team idle some weeks: it may meet an idle team from another region instead
+      const crossRegion = gamesFor(team.id).filter((g) => !region.districts.some((d) => d.teamIds.includes(g.homeTeamId === team.id ? g.awayTeamId : g.homeTeamId)));
+      expect(crossRegion.length).toBeLessThanOrEqual(3);
       for (const game of gamesFor(team.id)) {
         const opponent = game.homeTeamId === team.id ? game.awayTeamId : game.homeTeamId;
         if (game.isDistrictGame) {
@@ -60,7 +63,6 @@ describe('League season schedule', () => {
           expect(game.week).toBeGreaterThanOrEqual(FIRST_DISTRICT_WEEK);
         } else {
           expect(district.teamIds).not.toContain(opponent);
-          expect(region.districts.some((d) => d.teamIds.includes(opponent))).toBe(true);
           // Non-district weeks, or a fill-in game in a week the team's district round robin leaves open
           if (game.week >= FIRST_DISTRICT_WEEK) expect(gamesFor(team.id).filter((g) => g.week === game.week)).toHaveLength(1);
         }

@@ -40,6 +40,12 @@ describe('National world', () => {
     Object.values(s.polls!.stateRankings).forEach((poll) => expect(poll).toHaveLength(25));
     expect(Object.keys(s.playerRankings!.stateStatLeaders).sort()).toEqual([...PLAYABLE_STATES].sort());
     expect(new Set(s.polls!.nationalTop25.map((e) => e.state)).size).toBeGreaterThan(1);
+    // The final poll (at the banquet) counts the playoffs: a state champion is #1, with its playoff wins on its record
+    expect(s.polls!.week).toBe(s.currentWeek);
+    const champions = new Set([...(s.playoffBracket?.divisions ?? []), ...s.nationalLeagues.flatMap((l) => l.bracket?.divisions ?? [])].map((d) => d.championTeamId));
+    const top = s.polls!.nationalTop25[0];
+    expect(champions.has(top.teamId)).toBe(true);
+    expect(top.record.wins + top.record.losses).toBeGreaterThan(10);
   }, 120000);
 
   it('saves brackets by team id and relinks them on load', async () => {
