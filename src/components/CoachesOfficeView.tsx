@@ -18,7 +18,7 @@ export const CoachesOfficeView: React.FC = () => {
 
       <div className="ui-chips" aria-label="Office view" style={{ marginBottom: '8px' }}>
         <button className="ui-chip" aria-pressed={subTab === 'STRATEGY'} onClick={() => setSubTab('STRATEGY')}>
-          Strategy &amp; Staff
+          Strategy
         </button>
         <button className="ui-chip" aria-pressed={subTab === 'SCHEDULE'} onClick={() => setSubTab('SCHEDULE')}>
           Schedule
@@ -41,27 +41,9 @@ export const CoachesOfficeView: React.FC = () => {
         <ScheduleView />
       ) : (
         <>
-          {/* Assistant Coaching Staff */}
-          <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '16px' }}>
-            <h3 style={{ margin: '0 0 12px 0' }}>Coaching Staff</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', fontSize: '13px' }}>
-              <div>
-                <div style={{ fontWeight: 'bold' }}>{userTeam.staff.offensiveCoordinator.name}</div>
-                <div style={{ color: '#6B7280' }}>Offensive Coordinator</div>
-                <div>Play Calling: {userTeam.staff.offensiveCoordinator.playCalling}</div>
-              </div>
-              <div>
-                <div style={{ fontWeight: 'bold' }}>{userTeam.staff.defensiveCoordinator.name}</div>
-                <div style={{ color: '#6B7280' }}>Defensive Coordinator</div>
-                <div>Tackling Tech: {userTeam.staff.defensiveCoordinator.tacklingTech}</div>
-              </div>
-              <div>
-                <div style={{ fontWeight: 'bold' }}>{userTeam.staff.strengthCoach.name}</div>
-                <div style={{ color: '#6B7280' }}>Strength & Conditioning</div>
-                <div>Conditioning: {userTeam.staff.strengthCoach.conditioningRating}</div>
-              </div>
-            </div>
-          </div>
+          <p className="ui-muted" style={{ margin: 0, fontSize: '13px' }}>
+            Your assistant coaches are on the Staff tab.
+          </p>
         </>
       )}
     </div>

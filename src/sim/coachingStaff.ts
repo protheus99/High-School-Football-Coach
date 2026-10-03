@@ -233,6 +233,9 @@ export const effectStrength = (rating: number) => Math.max(0, Math.min(1, (ratin
 /** Effects a coach of this rating comes with: 1 (50-69), 2 (70-94), 3 (95-99). */
 export const effectSlots = (rating: number) => (rating >= 95 ? 3 : rating >= 70 ? 2 : 1);
 
+/** Most extra growth a season the staff can give one player: about +2 over a four-year roster cycle, matching the game-day cap. */
+export const STAFF_DEVELOPMENT_CAP = 0.5;
+
 /** Coach Points every hired assistant adds each week, whatever their effects. */
 export const COACH_WEEKLY_CP = 5;
 
@@ -246,12 +249,7 @@ const DIMINISHING = 2.2;
  * coach's cap), added up, counted in full to +1.0 and at 1/2.2 beyond, never more than +2.0.
  */
 export function staffGameDayEdge(staff: HiredCoach[]): number {
-  const raw = staff.reduce((total, coach) => {
-    const info = COACH_ROLES.find((r) => r.role === coach.role);
-    if (!info) return total;
-    const edge = info.effects.filter((e) => coach.effectIds.includes(e.id) && e.kind === 'GAME_DAY').reduce((s, e) => s + (e.gameDayEdge ?? 0), 0);
-    return total + Math.min(info.edgeCap, edge * effectStrength(coach.rating));
-  }, 0);
+  const raw = staff.reduce((total, coach) => total + coachGameDayEdge(coach), 0);
   return Math.min(MAX_GAME_DAY_EDGE, raw <= 1 ? raw : 1 + (raw - 1) / DIMINISHING);
 }
 
@@ -290,5 +288,28 @@ export function eliteStaff(): HiredCoach[] {
   return COACH_ROLES.map((info) => {
     const best = [...info.effects].sort((a, b) => (b.gameDayEdge ?? 0) - (a.gameDayEdge ?? 0)).slice(0, effectSlots(99));
     return { role: info.role, name: info.title, rating: 99, effectIds: best.map((e) => e.id) };
+  });
+}
+
+/** A coach's tier by rating (the price tier once purchases exist). */
+export function coachTier(rating: number): 'Bronze' | 'Silver' | 'Gold' | 'Elite' {
+  return rating >= 95 ? 'Elite' : rating >= 85 ? 'Gold' : rating >= 70 ? 'Silver' : 'Bronze';
+}
+
+/** One coach's game-day edge on its own (before the staff-wide cap). */
+export function coachGameDayEdge(coach: HiredCoach): number {
+  const info = COACH_ROLES.find((r) => r.role === coach.role);
+  if (!info) return 0;
+  const edge = info.effects.filter((e) => coach.effectIds.includes(e.id) && e.kind === 'GAME_DAY').reduce((s, e) => s + (e.gameDayEdge ?? 0), 0);
+  return Math.min(info.edgeCap, edge * effectStrength(coach.rating));
+}
+
+/** Candidates for a role: a good, a strong and an elite coach, each with effects drawn from the role's list. */
+export function generateCandidates(role: CoachRole, randomName: () => string): HiredCoach[] {
+  const info = COACH_ROLES.find((r) => r.role === role)!;
+  const roll = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
+  return [roll(60, 69), roll(76, 86), roll(93, 99)].map((rating) => {
+    const shuffled = [...info.effects].sort(() => Math.random() - 0.5);
+    return { role, name: randomName(), rating, effectIds: shuffled.slice(0, effectSlots(rating)).map((e) => e.id) };
   });
 }

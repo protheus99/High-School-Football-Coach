@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { COACH_ROLES, eliteStaff, HiredCoach, staffBonuses, staffGameDayEdge } from '../coachingStaff';
 import { buildStateWorld } from '../league';
 import { simulateMacroMatch } from '../macroSim';
+import { simulateSnap } from '../matchEngine';
+import { generateDistrictTeams } from '../../generators/rosterGenerator';
+import { GameSimulationState, Team } from '../../types/game';
 
 describe('Coaching staff', () => {
   it('has the 17 roles, every effect valid', () => {
@@ -43,4 +46,22 @@ describe('Coaching staff', () => {
     expect(bonus.developmentByPosition.QB).toBeCloseTo(1, 5);
     expect(bonus.injuryReduction).toBeCloseTo(0.2, 5);
   });
+
+  it('live games feel the same edge as simulated ones (+2: about 71% against an equal team)', () => {
+    const [base] = generateDistrictTeams();
+    const clone = (id: string): Team => ({ ...JSON.parse(JSON.stringify(base)), id, name: id });
+    let wins = 0;
+    const games = 400;
+    for (let i = 0; i < games; i++) {
+      const a = clone('A');
+      const b = clone('B');
+      a.gameDayEdge = 2;
+      const [home, away] = i % 2 === 0 ? [a, b] : [b, a];
+      const state: GameSimulationState = { gameId: `g${i}`, homeTeam: home, awayTeam: away, homeScore: 0, awayScore: 0, weather: 'CLEAR', temperatureFahrenheit: 65, windSpeedMph: 5, teamMomentum: 0, currentQuarter: 1, clockSecondsRemaining: 720, possessionTeamId: home.id, down: 1, distance: 10, yardLine: 25, isMercyRuleActive: false, isGameOver: false, eventLog: [] };
+      while (!state.isGameOver) simulateSnap(state);
+      if ((home === a ? state.homeScore - state.awayScore : state.awayScore - state.homeScore) > 0) wins++;
+    }
+    expect(wins / games).toBeGreaterThan(0.6);
+    expect(wins / games).toBeLessThan(0.82);
+  }, 120000);
 });

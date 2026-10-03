@@ -1,6 +1,7 @@
 import { Player, Position, Team } from '../types/game';
 import { DEPTH_TEMPLATE, rebuildDepthChart } from './depthChart';
 import { generateProceduralPlayer, programTalent } from '../generators/rosterGenerator';
+import { STAFF_DEVELOPMENT_CAP } from './coachingStaff';
 import { processOffSeasonProgression } from './playerEngine';
 import { createEmptyPlayerStats } from './playerStats';
 import { randomInt } from './math/variance';
@@ -20,7 +21,6 @@ const newFreshman = (pos: Position, team: Team, takenNames: Set<string>, adjustm
 };
 
 const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior' } as const;
-const STAFF_DEVELOPMENT_CAP = 0.5; // most extra growth a season the paid staff can give one player
 
 /**
  * Rolls a team into the next season in one step (graduation and progression, then the incoming class).

@@ -21,6 +21,10 @@ import { rulesForState } from './stateRules';
 // Teams resting their starters on the current snap (set at the start of each simulateSnap call)
 let restingTeamIds = new Set<string>();
 const NEVER_RESTED: Position[] = ['K', 'P'];
+// A team-rating point of staff edge in the live engine's per-snap matchup scale (calibrated in tests to match the
+// simulated-game engine: +2 is about 73% against an equal team)
+const LIVE_EDGE_SCALE = 1;
+
 const isResting = (team: Team, pos: Position) => restingTeamIds.has(team.id) && !NEVER_RESTED.includes(pos);
 
 // Helper to safely get starter/sub by position and stamina
@@ -78,6 +82,10 @@ export function calculateMatchupDelta(
   const cb = getActivePlayer(defense, 'CB');
   const s = getActivePlayer(defense, 'S');
 
+  // The coach's paid staff: its game-day edge (team-rating points, capped at +2) helps every snap, on offense
+  // and on defense, the same amount it adds in simulated games
+  const staffEdge = LIVE_EDGE_SCALE * ((offense.gameDayEdge ?? 0) - (defense.gameDayEdge ?? 0));
+  const withEdge = <T extends { delta: number }>(result: T): T => ({ ...result, delta: result.delta + staffEdge });
   let delta = 0;
 
   switch (concept) {
@@ -95,7 +103,7 @@ export function calculateMatchupDelta(
         0.15 * s.attributes.tackling;
 
       delta = offScore - defScore;
-      return { delta, ballCarrier: rb, tackler: lb };
+      return withEdge({ delta, ballCarrier: rb, tackler: lb });
     }
 
     case 'OUTSIDE_RUN': {
@@ -111,7 +119,7 @@ export function calculateMatchupDelta(
         0.25 * cb.attributes.tackling;
 
       delta = offScore - defScore;
-      return { delta, ballCarrier: rb, tackler: de };
+      return withEdge({ delta, ballCarrier: rb, tackler: de });
     }
 
     case 'SHORT_PASS': {
@@ -127,7 +135,7 @@ export function calculateMatchupDelta(
         0.20 * (de.attributes.passRush * 0.5 + dt.attributes.passRush * 0.5);
 
       delta = offScore - defScore;
-      return { delta, passer: qb, receiver: wr, tackler: cb, sacker: de };
+      return withEdge({ delta, passer: qb, receiver: wr, tackler: cb, sacker: de });
     }
 
     case 'DEEP_PASS': {
@@ -143,7 +151,7 @@ export function calculateMatchupDelta(
         0.30 * de.attributes.passRush;
 
       delta = offScore - defScore;
-      return { delta, passer: qb, receiver: wr, tackler: s, sacker: de };
+      return withEdge({ delta, passer: qb, receiver: wr, tackler: s, sacker: de });
     }
 
     default:
