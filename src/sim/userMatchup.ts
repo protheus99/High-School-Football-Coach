@@ -21,6 +21,7 @@ export function getUserMatchup(state: {
   leagueTeams: Team[];
   userTeamId: string;
   playoffBracket: PlayoffBracketState | null;
+  nationalLeagues?: { teams: Team[] }[]; // an out-of-state opponent plays in another state's league
 }): UserMatchup | undefined {
   const { playoffBracket, userTeamId } = state;
   if (playoffBracket?.isPlayoffsActive) {
@@ -43,14 +44,19 @@ export function getUserMatchup(state: {
 
   const scheduled = getTeamGameForWeek(state.seasonSchedule, state.currentWeek, userTeamId);
   if (!scheduled) return undefined;
-  const home = state.leagueTeams.find((t) => t.id === scheduled.homeTeamId);
-  const away = state.leagueTeams.find((t) => t.id === scheduled.awayTeamId);
+  const find = (id: string) => state.leagueTeams.find((t) => t.id === id) ?? state.nationalLeagues?.flatMap((l) => l.teams).find((t) => t.id === id);
+  const home = find(scheduled.homeTeamId);
+  const away = find(scheduled.awayTeamId);
   if (!home || !away) return undefined;
   return {
     gameId: scheduled.gameId,
     home,
     away,
-    label: scheduled.isDistrictGame ? 'District game' : 'Non-district game',
+    label: scheduled.isDistrictGame
+      ? 'District game'
+      : home.state && away.state && home.state !== away.state
+        ? `Out-of-state game (${home.id === state.userTeamId ? away.state : home.state})`
+        : 'Non-district game',
     isPlayoff: false,
     isPlayed: scheduled.homeScore !== undefined,
     homeScore: scheduled.homeScore,

@@ -198,8 +198,10 @@ export function powerRatings(teams: Team[], schedule: ScheduledGame[]): Map<stri
     return games ? t!.record.wins / games : 0;
   };
   const average = (values: number[]) => (values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0);
-  const opponentsWinPct = (id: string) => average((opponents.get(id) ?? []).map(winPct));
-  return new Map(teams.map((t) => [t.id, winPct(t.id) * opponentsWinPct(t.id) * average((opponents.get(t.id) ?? []).map(opponentsWinPct))]));
+  // Opponents outside the list (an out-of-state game) don't count toward the strength of schedule
+  const known = (id: string) => (opponents.get(id) ?? []).filter((o) => byId.has(o));
+  const opponentsWinPct = (id: string) => average(known(id).map(winPct));
+  return new Map(teams.map((t) => [t.id, winPct(t.id) * opponentsWinPct(t.id) * average(known(t.id).map(opponentsWinPct))]));
 }
 
 /** Standard bracket order for seeds 1..n: adjacent pairs meet, and the top seeds can only meet late. */

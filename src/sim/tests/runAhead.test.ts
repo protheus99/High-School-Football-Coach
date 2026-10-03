@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
 import { useGameStore } from '../../store/gameStore';
-import { gameKey, playoffKey, PrecomputedGame, scoreAt, scoreTimeline, scoringPlays } from '../runAhead';
+import { gameKey, INTERSTATE, playoffKey, PrecomputedGame, scoreAt, scoreTimeline, scoringPlays } from '../runAhead';
 import { FIRST_NON_DISTRICT_WEEK } from '../scheduleEngine';
 import { findUserNode } from '../playoffEngine';
 
@@ -45,21 +45,25 @@ describe('Run-ahead', () => {
     const playedBefore = qb.stats.gamesPlayed;
     const ahead = store.getState().runAhead();
     expect(store.getState().runAhead()).toBe(ahead); // once per week
-    const { seasonSchedule, userTeamId, nationalLeagues } = store.getState();
+    const { seasonSchedule, userTeamId, nationalLeagues, interstateGames } = store.getState();
+    // Week 8 is the national out-of-state week: those games are stored under INTERSTATE
+    const outOfState = new Set(interstateGames.map((g) => g.gameId));
+    const keyOf = (state: string, id: string) => gameKey(outOfState.has(id) ? INTERSTATE : state, id);
     const otherGames = seasonSchedule.filter((g) => g.week === week && g.homeTeamId !== userTeamId && g.awayTeamId !== userTeamId);
-    otherGames.forEach((g) => expect(ahead.games[gameKey('Georgia', g.gameId)]).toBeDefined());
+    expect(otherGames.length).toBeGreaterThan(0);
+    otherGames.forEach((g) => expect(ahead.games[keyOf('Georgia', g.gameId)]).toBeDefined());
     const fl = nationalLeagues.find((l) => l.state === 'Florida')!;
-    const flGames = fl.schedule.filter((g) => g.week === week);
-    flGames.forEach((g) => expect(ahead.games[gameKey('Florida', g.gameId)]).toBeDefined());
-    expect(Object.keys(ahead.games).some((k) => k.startsWith('Georgia|team_') || k.includes(userTeamId))).toBe(false);
+    const flGames = [...fl.schedule, ...interstateGames.filter((g) => fl.teams.some((t) => t.id === g.homeTeamId || t.id === g.awayTeamId))].filter((g) => g.week === week && g.homeTeamId !== userTeamId && g.awayTeamId !== userTeamId);
+    flGames.forEach((g) => expect(ahead.games[keyOf('Florida', g.gameId)]).toBeDefined());
+    expect(Object.keys(ahead.games).some((k) => k.includes(userTeamId))).toBe(false);
 
     store.getState().advanceWeek();
     otherGames.forEach((g) => {
-      const pre = ahead.games[gameKey('Georgia', g.gameId)];
+      const pre = ahead.games[keyOf('Georgia', g.gameId)];
       expect([g.homeScore, g.awayScore]).toEqual([pre.homeScore, pre.awayScore]);
     });
     flGames.forEach((g) => {
-      const pre = ahead.games[gameKey('Florida', g.gameId)];
+      const pre = ahead.games[keyOf('Florida', g.gameId)];
       expect([g.homeScore, g.awayScore]).toEqual([pre.homeScore, pre.awayScore]);
     });
     const qbGames = flGames.filter((g) => g.homeTeamId === fl.teams[0].id || g.awayTeamId === fl.teams[0].id).length;

@@ -16,13 +16,13 @@ export const DashboardView: React.FC<{
   onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
   onNavigate: (tab: AgendaTab) => void;
 }> = ({ onLaunchGame, onNavigate }) => {
-  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, nationalLeagues } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showFilmModal, setShowFilmModal] = useState(false);
   const [showSimWarning, setShowSimWarning] = useState(false);
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
-  const game = getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket });
+  const game = getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket, nationalLeagues });
   const isHome = game?.home.id === userTeamId;
   const opponent = game && (isHome ? game.away : game.home);
   const isPlayed = game?.isPlayed ?? false;

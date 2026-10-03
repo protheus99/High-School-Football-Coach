@@ -4,6 +4,7 @@ import { findDistrict, findRegion } from '../sim/league';
 import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK, STATE_FINAL_WEEK } from '../sim/scheduleEngine';
 import { bracketRoundForWeek } from '../sim/playoffEngine';
 import { rulesForState } from '../sim/stateRules';
+import { nationalTeams } from '../sim/nationalWorld';
 
 type Scope = 'DISTRICT' | 'REGION' | 'ALL';
 
@@ -20,13 +21,15 @@ interface ScoreRow {
 
 /** Last week's results and this week's games around the league (regular season and playoffs). */
 export const ScoreboardView: React.FC = () => {
-  const { league, leagueTeams, seasonSchedule, playoffBracket, currentWeek, userTeamId, openTeamProfile } = useGameStore();
+  const { league, leagueTeams, seasonSchedule, playoffBracket, currentWeek, userTeamId, openTeamProfile, nationalLeagues } = useGameStore();
   const [scope, setScope] = useState<Scope>('DISTRICT');
   const [search, setSearch] = useState('');
 
-  const names = useMemo(() => new Map(leagueTeams.map((t) => [t.id, t.name])), [leagueTeams]);
+  // Out-of-state opponents play in other states' leagues
+  const allTeams = useMemo(() => nationalTeams(leagueTeams, nationalLeagues), [leagueTeams, nationalLeagues]);
+  const names = useMemo(() => new Map(allTeams.map((t) => [t.id, t.name])), [allTeams]);
   // Current overall record (regular season), shown next to every team
-  const records = useMemo(() => new Map(leagueTeams.map((t) => [t.id, `${t.record.wins}-${t.record.losses}`])), [leagueTeams]);
+  const records = useMemo(() => new Map(allTeams.map((t) => [t.id, `${t.record.wins}-${t.record.losses}`])), [allTeams]);
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
   const lastGameWeek = STATE_FINAL_WEEK;

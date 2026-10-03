@@ -21,6 +21,7 @@ import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, seasonLength } from '../sim/league';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
 import { finishSpotsPerDistrict, playoffQualifyText, rulesForState } from '../sim/stateRules';
+import { nationalTeams } from '../sim/nationalWorld';
 import { bracketRoundForWeek, findUserNode, powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
@@ -93,6 +94,7 @@ export const WeeklyAgenda: React.FC<{
   const store = useGameStore();
   const {
     leagueTeams,
+    nationalLeagues,
     districtTeams,
     userTeamId,
     currentWeek,
@@ -484,7 +486,7 @@ export const WeeklyAgenda: React.FC<{
         .filter((g) => g !== undefined)
         .map((g) => {
           const home = g!.homeTeamId === userTeamId;
-          const opp = leagueTeams.find((t) => t.id === (home ? g!.awayTeamId : g!.homeTeamId));
+          const opp = nationalTeams(leagueTeams, nationalLeagues).find((t) => t.id === (home ? g!.awayTeamId : g!.homeTeamId));
           return `Wk ${g!.week} ${home ? 'vs' : 'at'} ${opp?.name ?? '?'}`;
         });
       task = { id: 'preview', icon: '🗓️', title: 'Season preview', detail: preview.join(' · '), tone: 'info', link: { label: 'Schedule', onClick: () => onNavigate('OFFICE') } };

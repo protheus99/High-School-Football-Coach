@@ -5,6 +5,7 @@ import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, leagueRegionTeams } from '../sim/league';
 import { bracketRoundWeek } from '../sim/playoffEngine';
 import { rulesForState } from '../sim/stateRules';
+import { nationalTeams } from '../sim/nationalWorld';
 import { Player, PlayerStats, Team } from '../types/game';
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
@@ -25,7 +26,7 @@ const LEADERS: { stat: keyof PlayerStats; label: string; unit: string }[] = [
  * the top college prospects. Ratings stay hidden for other programs (stats and star ratings are public).
  */
 export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; onOpenPlayer: (player: Player) => void }> = ({ teamId, onClose, onOpenPlayer }) => {
-  const { leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, polls, openTeamProfile } = useGameStore();
+  const { leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, polls, openTeamProfile, nationalLeagues } = useGameStore();
   const team = leagueTeams.find((t) => t.id === teamId);
   if (!team) return null;
   const isUser = team.id === userTeamId;
@@ -37,7 +38,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
   const standing = calculateDistrictStandings(districtTeams).find((r) => r.teamId === team.id);
   const stateRank = polls?.stateRankings[team.state ?? '']?.find((e) => e.teamId === team.id)?.rank;
   const nationalRank = polls?.nationalTop25.find((e) => e.teamId === team.id)?.rank;
-  const byId = new Map(leagueTeams.map((t) => [t.id, t]));
+  const byId = new Map(nationalTeams(leagueTeams, nationalLeagues).map((t) => [t.id, t]));
 
   // Regular season from the schedule, then playoff games from the bracket
   const games: { week: number; label?: string; opponent?: Team; isHome: boolean; result?: string; won?: boolean }[] = seasonSchedule

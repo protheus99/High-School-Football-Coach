@@ -43,6 +43,8 @@ export interface WeekResults {
 
 /** The key a game is stored under: its state and its schedule id (playoff games: playoffKey). */
 export const gameKey = (state: string, id: string) => `${state}|${id}`;
+/** The 'state' out-of-state games are stored under. */
+export const INTERSTATE = 'Interstate';
 /** A playoff game's id: its division and matchup (Texas's two divisions reuse first-round matchup ids). */
 export const playoffKey = (divisionIndex: number, matchupId: string) => `po_${divisionIndex}_${matchupId}`;
 
@@ -142,10 +144,20 @@ export function runAheadWeek(game: {
   userTeamId: string;
   playoffBracket: PlayoffBracketState | null;
   nationalLeagues: LightLeague[];
+  interstateGames?: ScheduledGame[];
 }): WeekResults {
   const week = game.currentWeek;
   const userState = game.league?.state ?? 'Texas';
+  const everyone = new Map([...game.leagueTeams, ...game.nationalLeagues.flatMap((l) => l.teams)].map((t) => [t.id, t]));
+  const interstate = (game.interstateGames ?? [])
+    .filter((g) => g.week === week && g.homeScore === undefined && g.homeTeamId !== game.userTeamId && g.awayTeamId !== game.userTeamId)
+    .flatMap((g) => {
+      const home = everyone.get(g.homeTeamId);
+      const away = everyone.get(g.awayTeamId);
+      return home && away ? [precomputed(gameKey(INTERSTATE, g.gameId), INTERSTATE, home, away, week, `${home.state} v ${away.state}`)] : [];
+    });
   const results = [
+    ...interstate,
     ...scheduleGames(game.seasonSchedule, game.leagueTeams, userState, week, game.userTeamId),
     ...bracketGames(game.playoffBracket, userState, week, game.userTeamId),
     ...game.nationalLeagues.flatMap((l) => [...scheduleGames(l.schedule, l.teams, l.state, week), ...bracketGames(l.bracket, l.state, week)])

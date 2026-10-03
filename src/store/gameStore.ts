@@ -90,7 +90,8 @@ import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls, postseasonRecords } from '../sim/nationalRankingEngine';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
-import { applyRunAheadRound, gameKey, runAheadWeek, WeekResults } from '../sim/runAhead';
+import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
+import { expandToFullRoster, INTERSTATE_WEEK, scheduleInterstateGames } from '../sim/interstate';
 import { buildNationalWorld, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
@@ -258,6 +259,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     statewideRecruits: state.statewideRecruits,
     widePool: state.widePool,
     weekResults: state.weekResults,
+    interstateGames: state.interstateGames,
     userViolationHeat: state.userViolationHeat,
     pendingUserBan: state.pendingUserBan,
     onHotSeat: state.onHotSeat,
@@ -266,6 +268,30 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
 }
 
 const AUTOSAVE_SLOT = 'current_save';
+
+/**
+ * The season's out-of-state games for every state. The league's own are added to its schedule (the same
+ * objects, so a result shows in both), and the coach's out-of-state opponents get full rosters for a live game.
+ */
+function planInterstate(state: string, teams: Team[], schedule: ScheduledGame[], nationalLeagues: LightLeague[], year: number, userTeamId: string): ScheduledGame[] {
+  const games = scheduleInterstateGames([{ state, teams, schedule }, ...nationalLeagues.map((l) => ({ state: l.state, teams: l.teams, schedule: l.schedule }))], year, userTeamId);
+  const ids = new Set(teams.map((t) => t.id));
+  schedule.push(...games.filter((g) => ids.has(g.homeTeamId) || ids.has(g.awayTeamId)));
+  const lightTeams = new Map(nationalLeagues.flatMap((l) => l.teams).map((t) => [t.id, t]));
+  games
+    .filter((g) => g.homeTeamId === userTeamId || g.awayTeamId === userTeamId)
+    .forEach((g) => {
+      const opponent = lightTeams.get(g.homeTeamId === userTeamId ? g.awayTeamId : g.homeTeamId);
+      if (opponent) expandToFullRoster(opponent);
+    });
+  return games;
+}
+
+/** After loading: the schedule's out-of-state games point at the national list's objects again. */
+function relinkInterstate(schedule: ScheduledGame[], interstate: ScheduledGame[]): ScheduledGame[] {
+  const byId = new Map(interstate.map((g) => [g.gameId, g]));
+  return schedule.map((g) => byId.get(g.gameId) ?? g);
+}
 
 /**
  * Runs `work` when the browser is idle (after the coach's screen has updated): the run-ahead simulation of the
@@ -314,6 +340,7 @@ interface GameStoreState {
   statewideRecruits: FeederProspect[]; // elite out-of-area recruits contested by the top AI programs
   widePool: FeederProspect[]; // prospects beyond the region: the rest of the state (Texas) and the other states
   weekResults: WeekResults | null; // this week's other games, simulated ahead (shown live during the coach's game)
+  interstateGames: ScheduledGame[]; // the season's out-of-state games, every state (the league's are also in its schedule)
   runAhead: () => WeekResults; // simulates this week's other games now if they haven't been (idempotent)
   userViolationHeat: number; // hidden evidence of the user's recruiting violations
   pendingUserBan: boolean; // caught at year end: banned from next season's playoffs
@@ -393,6 +420,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   statewideRecruits: [],
   widePool: [],
   weekResults: null,
+  interstateGames: [],
   userViolationHeat: 0,
   pendingUserBan: false,
   onHotSeat: false,
@@ -428,13 +456,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     updateStarRatings(teams, false);
     const nationalLeagues = buildNationalWorld(league.state ?? 'Texas', get().currentYear);
     const everyone = nationalTeams(teams, nationalLeagues);
+    const seasonSchedule = generateSeasonSchedule(leagueRegionTeams(league, teams), get().currentYear, { reservedWeeks: [INTERSTATE_WEEK] });
+    const interstateGames = planInterstate(league.state ?? 'Texas', teams, seasonSchedule, nationalLeagues, get().currentYear, userTeamId);
 
     set({
       currentWeek: 1,
       league,
       leagueTeams: teams,
       districtTeams,
-      seasonSchedule: generateSeasonSchedule(leagueRegionTeams(league, teams), get().currentYear),
+      seasonSchedule,
+      interstateGames,
       userTeamId,
       scoutingPool: generateFeederPool(userTeam, ctx),
       statewideRecruits: generateStatewideElite(ctx),
@@ -490,7 +521,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       league: world.league,
       leagueTeams: world.teams,
       districtTeams: userDistrictTeams(world.league, world.teams, userTeam.id),
-      seasonSchedule: save.league && save.seasonSchedule ? save.seasonSchedule : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
+      // The league's out-of-state games are the same objects as the national list's
+      seasonSchedule: save.league && save.seasonSchedule ? relinkInterstate(save.seasonSchedule, save.interstateGames ?? []) : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
+      interstateGames: save.interstateGames ?? [],
       playoffBracket: save.league && save.playoffBracket ? relinkBracketTeams(save.playoffBracket, world.teams) : null,
       sanctionLevel: save.sanctionLevel ?? 0,
       statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
@@ -568,6 +601,20 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // The rest of the country plays the same week (regular season, then each state's playoffs)
     get().nationalLeagues.forEach((light) => simulateLightWeek(light, currentWeek, ahead));
+    // Out-of-state games (the coach's own, if he skipped it, too)
+    const everyTeam = new Map(nationalTeams(leagueTeams, get().nationalLeagues).map((t) => [t.id, t]));
+    get().interstateGames
+      .filter((g) => g.week === currentWeek && g.homeScore === undefined)
+      .forEach((g) => {
+        const home = everyTeam.get(g.homeTeamId);
+        const away = everyTeam.get(g.awayTeamId);
+        if (!home || !away) return;
+        const box = ahead?.games[gameKey(INTERSTATE, g.gameId)] ?? simulateMacroMatch(g.gameId, g.week, home, away);
+        [home, away].filter((t) => teamsById.has(t.id)).forEach((t) => rollGameInjuries(t, g.week));
+        g.homeScore = box.homeScore;
+        g.awayScore = box.awayScore;
+        applyGameResult(home, away, box.homeScore, box.awayScore, false);
+      });
 
     // Coach Points: the weekly allowance plus a bonus for a regular-season win; unspent CP carries over.
     // Program events can run once per week.
@@ -957,6 +1004,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // The other states start their new season too (programs keep their prestige, nudged by last season)
     const nationalLeagues = buildNationalWorld(league?.state ?? 'Texas', currentYear + 1, get().nationalLeagues);
     const everyone = nationalTeams(leagueTeams, nationalLeagues);
+    const nextSchedule = league ? generateSeasonSchedule(leagueRegionTeams(league, leagueTeams), currentYear + 1, { reservedWeeks: [INTERSTATE_WEEK] }) : [];
+    const interstateGames = league ? planInterstate(league.state ?? 'Texas', leagueTeams, nextSchedule, nationalLeagues, currentYear + 1, userTeamId) : [];
     const newPolls = generateNationalAndStatePolls(everyone, null, 1);
     const newPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, 1);
 
@@ -979,7 +1028,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       newsArticles: [...boardNews, ...investigationNews, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams],
-      seasonSchedule: league ? generateSeasonSchedule(leagueRegionTeams(league, leagueTeams), currentYear + 1) : []
+      seasonSchedule: nextSchedule,
+      interstateGames
     });
   },
 
@@ -1005,8 +1055,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   // Applies a finished live game: the scheduled result and team records (regular season only) and player season stats
   recordUserGame: (finalState) => {
     const { districtTeams, leagueTeams, seasonSchedule, currentWeek, userTeamId, playoffBracket } = get();
-    const home = leagueTeams.find((t) => t.id === finalState.homeTeam.id);
-    const away = leagueTeams.find((t) => t.id === finalState.awayTeam.id);
+    const everyTeam = nationalTeams(leagueTeams, get().nationalLeagues);
+    const home = everyTeam.find((t) => t.id === finalState.homeTeam.id);
+    const away = everyTeam.find((t) => t.id === finalState.awayTeam.id);
 
     const scheduled = playoffBracket ? undefined : getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
     if (scheduled && scheduled.homeScore === undefined && home && away) {

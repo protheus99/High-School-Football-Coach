@@ -55,7 +55,10 @@ describe('State worlds', () => {
     const store = useGameStore;
     store.getState().startNewSeason(world);
     const ids = new Set(world.teams.map((t) => t.id));
-    expect(store.getState().seasonSchedule.every((g) => ids.has(g.homeTeamId) && ids.has(g.awayTeamId))).toBe(true);
+    // In-state games only, apart from the season-opening out-of-state games
+    const outOfState = new Set(store.getState().interstateGames.map((g) => g.gameId));
+    expect(store.getState().seasonSchedule.filter((g) => !outOfState.has(g.gameId)).every((g) => ids.has(g.homeTeamId) && ids.has(g.awayTeamId))).toBe(true);
+    expect(store.getState().seasonSchedule.filter((g) => outOfState.has(g.gameId)).every((g) => g.week <= 9)).toBe(true);
     expect(store.getState().leagueTeams.filter((t) => t.id !== world.userTeamId).every((t) => t.feederProfile)).toBe(true);
     while (!store.getState().playoffBracket) store.getState().advanceWeek();
     const bracket = store.getState().playoffBracket!;

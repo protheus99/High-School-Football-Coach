@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { GameQuarter, PrecomputedGame, scoreAt } from '../sim/runAhead';
+import { GameQuarter, INTERSTATE, PrecomputedGame, scoreAt } from '../sim/runAhead';
 
 const OPEN_KEY = 'hsfhc.aroundTheLeagueOpen';
 const MAX_ROWS = 10;
@@ -28,7 +28,11 @@ export const AroundTheLeague: React.FC<{ quarter: GameQuarter; clock: number; is
   const userState = league?.state ?? 'Texas';
   const districtIds = new Set(districtTeams.map((t) => t.id));
   const rank = new Map((polls?.nationalTop25 ?? []).map((e) => [e.teamId, e.rank]));
-  const local = results.filter((g) => g.state === userState && (g.label || (districtIds.has(g.homeId) && districtIds.has(g.awayId))));
+  const local = results.filter(
+    (g) =>
+      (g.state === userState && (g.label || (districtIds.has(g.homeId) && districtIds.has(g.awayId)))) ||
+      (g.state === INTERSTATE && (districtIds.has(g.homeId) || districtIds.has(g.awayId)))
+  );
   const ranked = results
     .filter((g) => !local.includes(g) && (rank.has(g.homeId) || rank.has(g.awayId)))
     .sort((a, b) => Math.min(rank.get(a.homeId) ?? 99, rank.get(a.awayId) ?? 99) - Math.min(rank.get(b.homeId) ?? 99, rank.get(b.awayId) ?? 99));

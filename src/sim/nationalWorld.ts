@@ -1,6 +1,6 @@
 import { ScheduledGame, Team } from '../types/game';
 import { buildStateWorld, LeagueStructure, leagueRegionTeams } from './league';
-import { applyGameResult, generateSeasonSchedule, LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
+import { applyGameResult, FIRST_NON_DISTRICT_WEEK, generateSeasonSchedule, LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 import { simulateMacroMatch } from './macroSim';
 import { advancePlayoffRound, bracketRoundForWeek, buildPlayoffBracket, PlayoffBracketState, relinkBracketTeams } from './playoffEngine';
 import { PLAYABLE_STATES, rulesForState } from './stateRules';
@@ -42,7 +42,8 @@ export function buildLightLeague(state: string, year: number, previous?: LightLe
     t.lightRating = (t.lightRating ?? 60) + (prestige - t.prestige) * 0.3;
     t.prestige = prestige;
   });
-  return { state, league, teams, schedule: generateSeasonSchedule(leagueRegionTeams(league, teams), year), bracket: null };
+  // Week 8 stays open for the national out-of-state week
+  return { state, league, teams, schedule: generateSeasonSchedule(leagueRegionTeams(league, teams), year, { reservedWeeks: [FIRST_NON_DISTRICT_WEEK] }), bracket: null };
 }
 
 /** Every playable state except the user's, as light leagues. */

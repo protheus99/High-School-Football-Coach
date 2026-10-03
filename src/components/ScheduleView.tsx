@@ -28,7 +28,7 @@ import { rulesForState } from '../sim/stateRules';
 import { Team } from '../types/game';
 
 export const ScheduleView: React.FC = () => {
-  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, currentYear, feederClassYear, openTeamProfile } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, currentYear, feederClassYear, openTeamProfile, nationalLeagues } = useGameStore();
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
   if (!userTeam) return null;
@@ -75,7 +75,7 @@ export const ScheduleView: React.FC = () => {
     return {
       ...base,
       label: roundIndex >= 0 && roundIndex < playoffRounds ? ROUND_LABELS[leagueRounds[roundIndex]] : (undefined as string | undefined),
-      opponent: leagueTeams.find((t) => t.id === opponentId) ?? null,
+      opponent: leagueTeams.find((t) => t.id === opponentId) ?? nationalLeagues.flatMap((l) => l.teams).find((t) => t.id === opponentId) ?? null,
       isHome,
       result: !played
         ? null

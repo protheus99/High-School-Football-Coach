@@ -50,6 +50,7 @@ export const App: React.FC = () => {
     league,
     districtTeams,
     leagueTeams,
+    nationalLeagues,
     seasonSchedule,
     userTeamId,
     currentWeek,
@@ -75,7 +76,7 @@ export const App: React.FC = () => {
   const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED', offensiveScheme?: OffensiveScheme) => {
     if (!userTeam) return;
     // This week's game: the scheduled game, or the current playoff game
-    const matchup = getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket });
+    const matchup = getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket, nationalLeagues });
     if (!matchup || matchup.isPlayed) return;
     const { home, away } = matchup;
 

@@ -76,7 +76,10 @@ export function roundRobinRounds(teamIds: string[]): [string, string][][] {
  * Builds the regular season for a whole league (region -> district -> teams): three non-district weeks
  * against other districts in the same region (rotating district pairings), then each district's round robin.
  */
-export function generateSeasonSchedule(regions: Team[][][], year: number): ScheduledGame[] {
+export function generateSeasonSchedule(regions: Team[][][], year: number, options: { reservedWeeks?: number[] } = {}): ScheduledGame[] {
+  // Weeks left open for games outside the league (the national out-of-state week)
+  const reserved = new Set(options.reservedWeeks ?? []);
+  const nonDistrictWeeks = Array.from({ length: FIRST_DISTRICT_WEEK - FIRST_NON_DISTRICT_WEEK }, (_, k) => FIRST_NON_DISTRICT_WEEK + k).filter((w) => !reserved.has(w));
   const games: ScheduledGame[] = [];
   const addGame = (week: number, homeTeamId: string, awayTeamId: string, isDistrictGame: boolean) =>
     games.push({ gameId: `y${year}_w${week}_${homeTeamId}_${awayTeamId}`, week, homeTeamId, awayTeamId, isDistrictGame });
@@ -88,8 +91,8 @@ export function generateSeasonSchedule(regions: Team[][][], year: number): Sched
     // Non-district: week k pairs district i with district i XOR (k + 1) (1-2/3-4, then 1-3/2-4, then 1-4/2-3).
     // Other district counts (5 conferences, say) leave these weeks open for the fill-in games below.
     const powerOfTwo = (districts.length & (districts.length - 1)) === 0;
-    for (let k = 0; powerOfTwo && k < FIRST_DISTRICT_WEEK - FIRST_NON_DISTRICT_WEEK; k++) {
-      const week = FIRST_NON_DISTRICT_WEEK + k;
+    for (let k = 0; powerOfTwo && k < nonDistrictWeeks.length; k++) {
+      const week = nonDistrictWeeks[k];
       districts.forEach((a, i) => {
         const partner = districts.length === 2 ? 1 - i : i ^ (k + 1);
         if (partner <= i || partner >= districts.length) return; // each pairing once; odd districts get a bye
@@ -127,11 +130,11 @@ export function generateSeasonSchedule(regions: Team[][][], year: number): Sched
         );
       });
 
-    fillIdleWeeks(games, districts, addGame);
+    fillIdleWeeks(games, districts, addGame, reserved);
     allDistricts.push(...districts);
   }
   // Teams a region couldn't place (odd-sized regions leave one idle most weeks) meet idle teams from other regions
-  if (regions.length > 1) fillIdleWeeks(games, allDistricts, addGame);
+  if (regions.length > 1) fillIdleWeeks(games, allDistricts, addGame, reserved);
 
   return games;
 }
@@ -142,11 +145,16 @@ export function generateSeasonSchedule(regions: Team[][][], year: number): Sched
  * preferring opponents from another district. This runs after every other game is booked, so a fill-in game
  * never repeats a regular one; a few random tries are made and the one that books the most games is kept.
  */
-function fillIdleWeeks(games: ScheduledGame[], districts: string[][], addGame: (week: number, home: string, away: string, isDistrictGame: boolean) => void): void {
+function fillIdleWeeks(
+  games: ScheduledGame[],
+  districts: string[][],
+  addGame: (week: number, home: string, away: string, isDistrictGame: boolean) => void,
+  reserved: Set<number> = new Set()
+): void {
   const districtOf = new Map(districts.flatMap((ids, d) => ids.map((id) => [id, d] as const)));
   const regionIds = new Set(districts.flat());
   const regionGames = games.filter((g) => regionIds.has(g.homeTeamId));
-  const weeks = Array.from({ length: LAST_REGULAR_SEASON_WEEK - FIRST_NON_DISTRICT_WEEK + 1 }, (_, w) => FIRST_NON_DISTRICT_WEEK + w);
+  const weeks = Array.from({ length: LAST_REGULAR_SEASON_WEEK - FIRST_NON_DISTRICT_WEEK + 1 }, (_, w) => FIRST_NON_DISTRICT_WEEK + w).filter((w) => !reserved.has(w));
   const bookedIn = new Map(weeks.map((week) => [week, new Set(regionGames.filter((g) => g.week === week).flatMap((g) => [g.homeTeamId, g.awayTeamId]))]));
   // Tightest weeks first (fewest idle teams), so wide-open weeks don't use up the pairings they need
   const weekOrder = [...weeks].sort((a, b) => bookedIn.get(b)!.size - bookedIn.get(a)!.size);
