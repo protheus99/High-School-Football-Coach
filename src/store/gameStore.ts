@@ -110,6 +110,7 @@ import {
   winBonus
 } from '../sim/coachPoints';
 import { BOARD_RESULT_DELTA, PRACTICE_DISCIPLINE, boardReview, pickSuspension } from '../sim/programMeters';
+import { rulesForState } from '../sim/stateRules';
 
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
 const INDUCEMENT_CP_COST = 20;
@@ -678,6 +679,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // report cards ("No Pass, No Play"). AI programs keep their struggling students in study hall; the
     // user handles grades through dilemmas.
     const isGameWeek = phase === 'NON_DISTRICT' || phase === 'DISTRICT_PLAY' || phase === 'STATE_PLAYOFFS';
+    const stateRules = rulesForState(league?.state);
     const inCamp = phase === 'SUMMER_CAMP';
     const { campSchedule } = get();
     leagueTeams.forEach((team) => {
@@ -686,7 +688,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         processWeeklyInjuryHealing(p, currentWeek);
         if (isGameWeek) processPostGameSeasonWear(p, p.depthChartTier === 1 ? 52 : 12, isUser ? practiceIntensity : 'STANDARD');
         // Report cards every third week once the school year and season are under way
-        if (nextWeek % 3 === 0 && nextWeek >= FIRST_NON_DISTRICT_WEEK) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p) ? 0.1 : 0);
+        if (nextWeek % 3 === 0 && nextWeek >= FIRST_NON_DISTRICT_WEEK) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p, stateRules) ? 0.1 : 0, stateRules);
       });
     });
     // Morale: training camp brings the team together; in season, full-contact practices build it and
@@ -775,6 +777,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       league.regions.map((region, i) => ({ name: region.name, districts: regionTeams[i] })),
       {
         splitDivisions: league.splitDivisions,
+        rules: rulesForState(league.state),
         excludeTeamIds: [
           ...(sanctionLevel >= 3 ? [userTeamId] : []),
           ...leagueTeams.filter((t) => t.feederProfile?.bannedSeason === get().currentYear).map((t) => t.id)

@@ -76,9 +76,9 @@ export const TEMPLATES: DilemmaTemplate[] = [
   {
     id: 'TEAM_GRADES',
     // Between report cards, when several players are close to the "No Pass, No Play" line
-    appliesTo: (team, week) => when(isGameWeek(week) && week % 3 === 1 && team.roster.filter(isAcademicallyAtRisk).length >= 3),
+    appliesTo: (team, week) => when(isGameWeek(week) && week % 3 === 1 && team.roster.filter((p) => isAcademicallyAtRisk(p)).length >= 3),
     build: (team) => {
-      const atRisk = team.roster.filter(isAcademicallyAtRisk).sort((a, b) => b.overallRating - a.overallRating);
+      const atRisk = team.roster.filter((p) => isAcademicallyAtRisk(p)).sort((a, b) => b.overallRating - a.overallRating);
       const shown = atRisk.slice(0, 3).map(name).join(', ');
       const boost = (amount: number) => atRisk.map((p) => ({ playerId: p.id, amount }));
       return {

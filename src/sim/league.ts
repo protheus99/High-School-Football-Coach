@@ -3,6 +3,7 @@ import texas6A from '../data/texas-6a.json';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { nameProfileForArea } from '../generators/names';
 import { LAST_REGULAR_SEASON_WEEK, OFF_SEASON_WEEKS } from './scheduleEngine';
+import { rulesForState } from './stateRules';
 
 export interface LeagueDistrict {
   id: string;
@@ -225,7 +226,9 @@ export function findRegion(league: LeagueStructure, teamId: string): LeagueRegio
 
 /** Rounds needed: each region's qualifiers play down to a champion, then region champions meet. */
 export function playoffRoundCount(league: LeagueStructure): number {
-  const qualifiersPerDistrict = league.splitDivisions ? 2 : 4;
+  const { playoffs } = rulesForState(league.state);
+  const split = league.splitDivisions && playoffs.divisionSplit === 'TOP_ENROLLMENT_HALF';
+  const qualifiersPerDistrict = split ? playoffs.qualifiersPerDistrict / playoffs.divisionNames.length : playoffs.qualifiersPerDistrict;
   const regionQualifiers = (league.regions[0]?.districts.length ?? 0) * qualifiersPerDistrict;
   return Math.log2(regionQualifiers) + Math.log2(league.regions.length);
 }

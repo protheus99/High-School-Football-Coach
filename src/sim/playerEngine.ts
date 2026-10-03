@@ -5,6 +5,7 @@ import {
   PotentialGrade
 } from '../types/game';
 import { clamp, randomInt } from './math/variance';
+import { StateRules, TEXAS_RULES } from './stateRules';
 
 /**
  * Handles in-game stamina depletion and fatigue recovery on the sideline.
@@ -93,20 +94,18 @@ export function processWeeklyInjuryHealing(player: Player, week?: number): void 
 /**
  * Evaluates 3-week academic report cards for "No Pass, No Play" eligibility.
  */
-const AT_RISK_GPA = 2.3; // within reach of the 2.0 "No Pass, No Play" line
-
-/** Ineligible, or close enough to the 2.0 line to be in danger. */
-export function isAcademicallyAtRisk(player: Player): boolean {
-  return !player.academics.isEligible || player.academics.gpa < AT_RISK_GPA;
+/** Ineligible, or close enough to the state's eligibility line to be in danger (Texas: under 2.3, the line is 2.0). */
+export function isAcademicallyAtRisk(player: Player, rules: StateRules = TEXAS_RULES): boolean {
+  return !player.academics.isEligible || player.academics.gpa < rules.academics.atRiskGpa;
 }
 
-export function evaluateAcademicReport(player: Player, support = 0): void {
+export function evaluateAcademicReport(player: Player, support = 0, rules: StateRules = TEXAS_RULES): void {
   let gpaDelta = (Math.random() * 0.6 - 0.3) + support; // support: AI programs keep struggling players in study hall
   if (player.attributes.footballIQ > 75) gpaDelta += 0.1;
 
   player.academics.gpa = clamp(Number((player.academics.gpa + gpaDelta).toFixed(2)), 1.2, 4.0);
 
-  if (player.academics.gpa < 2.0) {
+  if (player.academics.gpa < rules.academics.minimumGpa) {
     player.academics.isEligible = false;
     player.academics.consecutiveFailingWeeks += 3;
   } else {

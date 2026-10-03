@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { rulesForState } from '../sim/stateRules';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { AllDistrictsStandingsView } from './AllDistrictsStandingsView';
 import { StandingsList } from './ui/StandingsList';
@@ -9,10 +10,12 @@ export const DistrictStandingsView: React.FC = () => {
   const [showAll, setShowAll] = useState(false);
   const standings = calculateDistrictStandings(districtTeams);
   const districtCount = league?.regions.reduce((n, r) => n + r.districts.length, 0) ?? 4;
-  const bracketSize = districtCount * (league?.splitDivisions ? 2 : 4);
-  const qualifyText = league?.splitDivisions
-    ? `Top 4 teams qualify; they are split by enrollment into the Division 1 and Division 2 ${bracketSize}-team state brackets.`
-    : `Top 4 teams qualify for the ${bracketSize}-team state tournament.`;
+  const { playoffs } = rulesForState(league?.state);
+  const split = !!league?.splitDivisions && playoffs.divisionSplit === 'TOP_ENROLLMENT_HALF';
+  const bracketSize = districtCount * (split ? playoffs.qualifiersPerDistrict / playoffs.divisionNames.length : playoffs.qualifiersPerDistrict);
+  const qualifyText = split
+    ? `Top ${playoffs.qualifiersPerDistrict} teams qualify; they are split by enrollment into the ${playoffs.divisionNames.join(' and ')} ${bracketSize}-team state brackets.`
+    : `Top ${playoffs.qualifiersPerDistrict} teams qualify for the ${bracketSize}-team state tournament.`;
 
   if (showAll) return <AllDistrictsStandingsView onBack={() => setShowAll(false)} />;
 

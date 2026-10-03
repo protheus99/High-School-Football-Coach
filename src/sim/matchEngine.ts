@@ -16,6 +16,7 @@ import { calculateGaussianVariance, clamp, randomInt } from './math/variance';
 import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 import { compareDepth } from './depthChart';
 import { disciplinePlayQualityPenalty } from './programMeters';
+import { rulesForState } from './stateRules';
 
 // Teams resting their starters on the current snap (set at the start of each simulateSnap call)
 let restingTeamIds = new Set<string>();
@@ -437,16 +438,17 @@ function turnoverReturnYards(defender: Player | undefined, offense: Team): numbe
   return Math.max(0, Math.round(defenderSpeed * 0.3 - pursuit * 0.2 + calculateGaussianVariance(0, 8)));
 }
 
-const OVERTIME_START_YARD_LINE = 90; // opponent's 10-yard line
+/** Overtime possessions start this many yards from the goal line (the state's rule; Texas: the 10). */
+const overtimeYardsFromGoal = (state: GameSimulationState) => rulesForState(state.homeTeam.state).overtime.startYardsFromGoal;
 
 /** Starts a Kansas Plan overtime period; returns commentary. */
 function startOvertimePeriod(state: GameSimulationState, period: number, firstOffenseTeamId: string): string {
   state.currentQuarter = 'OT';
   state.clockSecondsRemaining = 0;
   state.overtime = { period, possessionsCompleted: 0, firstOffenseTeamId };
-  setFirstDown(state, firstOffenseTeamId, OVERTIME_START_YARD_LINE);
+  setFirstDown(state, firstOffenseTeamId, 100 - overtimeYardsFromGoal(state));
   const team = firstOffenseTeamId === state.homeTeam.id ? state.homeTeam : state.awayTeam;
-  return ` OVERTIME ${period}: ${team.name} ball at the 10.`;
+  return ` OVERTIME ${period}: ${team.name} ball at the ${overtimeYardsFromGoal(state)}.`;
 }
 
 /**
@@ -754,7 +756,7 @@ export function simulateSnap(
       if (!isSecondPossession) {
         const secondTeam = ot.firstOffenseTeamId === state.homeTeam.id ? state.awayTeam : state.homeTeam;
         ot.possessionsCompleted = 1;
-        setFirstDown(state, secondTeam.id, OVERTIME_START_YARD_LINE);
+        setFirstDown(state, secondTeam.id, 100 - overtimeYardsFromGoal(state));
         commentary += ` ${secondTeam.name} takes its overtime possession at the 10.`;
       } else if (state.homeScore !== state.awayScore) {
         state.isGameOver = true;
@@ -794,8 +796,9 @@ export function simulateSnap(
   }
   state.clockSecondsRemaining = Math.max(0, state.clockSecondsRemaining);
 
-  // Mercy Rule Check (35+ point differential in 2nd half)
-  if (typeof state.currentQuarter === 'number' && state.currentQuarter >= 3 && Math.abs(state.homeScore - state.awayScore) >= 35) {
+  // Running clock once a second-half lead reaches the state's mercy-rule margin (none if the state has no mercy rule)
+  const mercyMargin = rulesForState(state.homeTeam.state).mercyRuleMargin;
+  if (mercyMargin !== null && typeof state.currentQuarter === 'number' && state.currentQuarter >= 3 && Math.abs(state.homeScore - state.awayScore) >= mercyMargin) {
     state.isMercyRuleActive = true;
   }
 

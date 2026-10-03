@@ -2,7 +2,7 @@ import { Team } from '../types/game';
 import { simulateMacroMatch, rollGameInjuries } from './macroSim';
 import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 import { calculateDistrictStandings } from './districtEngine';
-import { STATE_CHAMPIONSHIP_CONFIGS } from './stateRulesEngine';
+import { StateRules, TEXAS_RULES } from './stateRules';
 
 export type PlayoffRound =
   | 'BI_DISTRICT'
@@ -12,14 +12,8 @@ export type PlayoffRound =
   | 'STATE_SEMIFINAL'
   | 'STATE_FINAL';
 
-export const ROUND_LABELS: Record<PlayoffRound, string> = {
-  BI_DISTRICT: 'Bi-District',
-  AREA: 'Area',
-  REGIONAL_SEMIFINAL: 'Regional Semifinal',
-  REGIONAL_FINAL: 'Regional Final',
-  STATE_SEMIFINAL: 'State Semifinal',
-  STATE_FINAL: 'State Championship'
-};
+/** Round names shown in the game (the playable state's: Texas UIL). */
+export const ROUND_LABELS: Record<PlayoffRound, string> = TEXAS_RULES.playoffs.roundLabels;
 
 /** One line on what each round is (the schedule shows it for weeks without the user's game). */
 export const ROUND_DESCRIPTIONS: Record<PlayoffRound, string> = {
@@ -30,8 +24,6 @@ export const ROUND_DESCRIPTIONS: Record<PlayoffRound, string> = {
   STATE_SEMIFINAL: 'Region champions meet for a spot in the title game',
   STATE_FINAL: 'The title game at AT&T Stadium in Arlington'
 };
-
-const QUALIFIERS_PER_DISTRICT = 4;
 
 export interface BracketNode {
   matchupId: string;
@@ -71,16 +63,16 @@ export function roundNamesFor(regionRounds: number, stateRounds: number): Playof
 }
 
 /** A district's qualifiers in district-finish order (excluding banned teams). */
-function districtQualifiers(teams: Team[], excludeTeamIds: string[]): Team[] {
+function districtQualifiers(teams: Team[], excludeTeamIds: string[], count: number): Team[] {
   const eligible = teams.filter((t) => !excludeTeamIds.includes(t.id));
   return calculateDistrictStandings(eligible)
-    .slice(0, QUALIFIERS_PER_DISTRICT)
+    .slice(0, count)
     .map((row) => eligible.find((t) => t.id === row.teamId)!);
 }
 
 /** UIL 6A split: the two largest-enrollment qualifiers go to Division 1, the other two to Division 2 (each keeps finish order). */
-function splitByEnrollment(qualifiers: Team[]): [Team[], Team[]] {
-  const largest = [...qualifiers].sort((a, b) => (b.enrollment ?? 0) - (a.enrollment ?? 0)).slice(0, 2);
+function splitByEnrollment(qualifiers: Team[], perDivision: number): [Team[], Team[]] {
+  const largest = [...qualifiers].sort((a, b) => (b.enrollment ?? 0) - (a.enrollment ?? 0)).slice(0, perDivision);
   return [qualifiers.filter((t) => largest.includes(t)), qualifiers.filter((t) => !largest.includes(t))];
 }
 
@@ -129,16 +121,19 @@ function regionFirstRound(region: string, districtSeeds: Team[][]): BracketNode[
  */
 export function buildPlayoffBracket(
   regions: { name: string; districts: Team[][] }[],
-  options: { splitDivisions: boolean; excludeTeamIds?: string[] }
+  options: { splitDivisions: boolean; excludeTeamIds?: string[]; rules?: StateRules }
 ): PlayoffBracketState {
   const exclude = options.excludeTeamIds ?? [];
-  const divisionNames = options.splitDivisions ? ['Division 1', 'Division 2'] : ['State'];
+  const { playoffs } = options.rules ?? TEXAS_RULES;
+  // A split league uses the state's divisions (the enrollment split); otherwise one statewide bracket
+  const split = options.splitDivisions && playoffs.divisionSplit === 'TOP_ENROLLMENT_HALF';
+  const divisionNames = split ? playoffs.divisionNames : ['State'];
 
   const divisions: PlayoffDivision[] = divisionNames.map((name, divisionIndex) => {
     const firstRound = regions.flatMap((region) => {
       const seeds = region.districts.map((teams) => {
-        const qualifiers = districtQualifiers(teams, exclude);
-        return options.splitDivisions ? splitByEnrollment(qualifiers)[divisionIndex] : qualifiers;
+        const qualifiers = districtQualifiers(teams, exclude, playoffs.qualifiersPerDistrict);
+        return split ? splitByEnrollment(qualifiers, playoffs.qualifiersPerDistrict / divisionNames.length)[divisionIndex] : qualifiers;
       });
       return regionFirstRound(region.name, seeds);
     });
@@ -147,14 +142,13 @@ export function buildPlayoffBracket(
 
   const regionGames = divisions[0].rounds[0].length / Math.max(1, regions.length);
   const regionRounds = Math.log2(regionGames * 2);
-  const uil = STATE_CHAMPIONSHIP_CONFIGS.UIL;
   return {
     isPlayoffsActive: true,
     roundNames: roundNamesFor(regionRounds, Math.log2(regions.length)),
     currentRoundIndex: 0,
     divisions,
-    championshipTitle: uil.championshipTrophyTitle,
-    championshipVenue: uil.championshipVenueName
+    championshipTitle: playoffs.championshipTitle,
+    championshipVenue: playoffs.championshipVenue
   };
 }
 

@@ -4,6 +4,7 @@ import { Sheet } from './ui/Sheet';
 import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueImporter';
 import { AUTOSAVE_ID, loadSaveGame } from '../services/db';
 import { buildCustomLeague, buildStateLeague, buildTexasLeague, GameWorld, nearestDistrictIndexes, StateDistrictFile } from '../sim/league';
+import { PLAYABLE_STATES } from '../sim/stateRules';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { districtTeams, saveGame, loadGame } = useGameStore();
@@ -17,7 +18,8 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}leagues/index.json`)
       .then((r) => (r.ok ? r.json() : []))
-      .then((index: LeagueIndexEntry[]) => setLeagueIndex(index))
+      // Only playable states are offered (Texas for now); the other states' data waits for their rules
+      .then((index: LeagueIndexEntry[]) => setLeagueIndex(index.filter((s) => PLAYABLE_STATES.includes(s.state))))
       .catch(() => setLeagueIndex([]));
   }, []);
   const stateDistricts = leagueIndex.find((s) => s.state === selectedState)?.districts ?? [];

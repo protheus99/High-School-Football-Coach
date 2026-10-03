@@ -2,6 +2,7 @@ import { NarrativeDilemma, Team, DilemmaChoice, Player } from '../types/game';
 import { generateProceduralPlayer } from '../generators/rosterGenerator';
 import { promoteToStarter, rebuildDepthChart } from './depthChart';
 import { TEMPLATES, pick, starters } from './dilemmaTemplates';
+import { rulesForState } from './stateRules';
 
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices (library in dilemmaTemplates.ts)
 const DILEMMA_CHANCE = 0.6; // not every week brings a crisis
@@ -80,7 +81,7 @@ export function executeDilemmaDecision(userTeam: Team, choice: DilemmaChoice): v
     const ply = findPlayer(playerId);
     if (!ply) return;
     ply.academics.gpa = Math.min(4, Math.max(1.2, Number((ply.academics.gpa + amount).toFixed(2))));
-    ply.academics.isEligible = ply.academics.gpa >= 2.0;
+    ply.academics.isEligible = ply.academics.gpa >= rulesForState(userTeam.state).academics.minimumGpa;
   });
 
   if (sidelinePlayer) {
