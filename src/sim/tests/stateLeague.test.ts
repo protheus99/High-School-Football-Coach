@@ -55,7 +55,7 @@ describe('State worlds', () => {
     const ohioIds = new Set(world.teams.map((t) => t.id));
     expect(store.getState().seasonSchedule.every((g) => ohioIds.has(g.homeTeamId) && ohioIds.has(g.awayTeamId))).toBe(true);
     expect(store.getState().leagueTeams.filter((t) => t.id !== world.userTeamId).every((t) => t.feederProfile)).toBe(true);
-    while (store.getState().currentWeek < 15) store.getState().advanceWeek();
+    while (!store.getState().playoffBracket) store.getState().advanceWeek();
     const bracket = store.getState().playoffBracket!;
     bracket.divisions.flatMap((d) => d.rounds[0]).forEach((n) => {
       expect(ohioIds.has(n.team1.id)).toBe(true);

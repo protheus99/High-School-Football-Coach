@@ -16,8 +16,8 @@ vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefin
 describe('Coach Points', () => {
   it('earns a weekly allowance and win bonuses', () => {
     expect(weeklyCpIncome(1, [])).toBe(100);
-    expect(weeklyCpIncome(6, [])).toBe(40);
-    expect(weeklyCpIncome(6, ['BIGGER_BUDGET'])).toBe(50);
+    expect(weeklyCpIncome(9, [])).toBe(40); // game week
+    expect(weeklyCpIncome(9, ['BIGGER_BUDGET'])).toBe(50);
     expect(winBonus(false, [])).toBe(10);
     expect(winBonus(true, ['BIGGER_BUDGET', 'DEEP_POCKETS'])).toBe(40);
     expect(formatCP(12000)).toBe('₡12,000');

@@ -2,7 +2,7 @@ import { OffensiveScheme, DefensiveScheme, Team } from '../types/game';
 import texas6A from '../data/texas-6a.json';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { nameProfileForArea } from '../generators/names';
-import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
+import { LAST_REGULAR_SEASON_WEEK, OFF_SEASON_WEEKS } from './scheduleEngine';
 
 export interface LeagueDistrict {
   id: string;
@@ -230,7 +230,7 @@ export function playoffRoundCount(league: LeagueStructure): number {
   return Math.log2(regionQualifiers) + Math.log2(league.regions.length);
 }
 
-/** Regular season + playoff rounds + the banquet week. */
+/** Pre season, camp and regular season + playoff rounds + the banquet week + the off season. */
 export function seasonLength(league: LeagueStructure): number {
-  return LAST_REGULAR_SEASON_WEEK + playoffRoundCount(league) + 2; // + post-season (banquet) week + off-season week
+  return LAST_REGULAR_SEASON_WEEK + playoffRoundCount(league) + 1 + OFF_SEASON_WEEKS;
 }

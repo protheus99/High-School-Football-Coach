@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { simulateRegularSeason } from '../scheduleEngine';
+import { LAST_REGULAR_SEASON_WEEK, simulateRegularSeason } from '../scheduleEngine';
 import { calculateDistrictStandings } from '../districtEngine';
 import { buildCustomLeague, buildTexasLeague, leagueRegionTeams, LeagueStructure } from '../league';
 import { advancePlayoffRound, buildPlayoffBracket, findUserNode, recordPlayoffResult } from '../playoffEngine';
@@ -100,14 +100,14 @@ describe('Custom-world playoffs', () => {
 });
 
 describe('Postseason through the store', () => {
-  it('runs the Texas playoffs in weeks 15-20 and reaches the banquet in week 21', () => {
+  it('runs the Texas playoffs in weeks 18-23 and reaches the banquet in week 24', () => {
     useGameStore.getState().startNewSeason();
-    while (!useGameStore.getState().isBanquetActive && useGameStore.getState().currentWeek < 30) {
+    while (!useGameStore.getState().isBanquetActive && useGameStore.getState().currentWeek < 40) {
       useGameStore.getState().advanceWeek();
     }
     const { playoffBracket, isBanquetActive, currentWeek } = useGameStore.getState();
     expect(isBanquetActive).toBe(true);
-    expect(currentWeek).toBe(21);
+    expect(currentWeek).toBe(LAST_REGULAR_SEASON_WEEK + 6 + 1);
     expect(playoffBracket?.isPlayoffsActive).toBe(false);
     playoffBracket!.divisions.forEach((d) => expect(d.championTeamId).toBeTruthy());
   }, 120000);

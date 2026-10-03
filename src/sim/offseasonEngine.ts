@@ -21,9 +21,8 @@ const newFreshman = (pos: Position, team: Team, takenNames: Set<string>, adjustm
 const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior' } as const;
 
 /**
- * Rolls a team into the next season: seniors graduate, everyone else moves up a class and
- * progresses, newcomers from the feeder pipeline join (already in their new grade), remaining
- * open spots are filled with freshmen, season stats and eligibility reset, and the depth chart is rebuilt.
+ * Rolls a team into the next season in one step (graduation and progression, then the incoming class).
+ * The game splits these: the year turns over at week 1, newcomers arrive after feeder signing day.
  */
 export function advanceTeamToNextSeason(
   team: Team,
@@ -31,6 +30,16 @@ export function advanceTeamToNextSeason(
   freshmanAdjustment = 0, // AI feeder strategy: stronger or weaker generated freshman classes
   conditioningBonus = 0 // the user's Weight Room Fanatic talent
 ): { graduated: Player[]; freshmen: Player[] } {
+  const graduated = graduateAndProgress(team, conditioningBonus);
+  const freshmen = addIncomingClass(team, incomingPlayers, freshmanAdjustment);
+  return { graduated, freshmen };
+}
+
+/**
+ * New year: seniors graduate, everyone else moves up a class and progresses, season stats and
+ * eligibility reset, and the depth chart is rebuilt from who is left.
+ */
+export function graduateAndProgress(team: Team, conditioningBonus = 0): Player[] {
   const graduated = team.roster.filter((p) => p.classYear === 'Senior');
   team.roster = team.roster.filter((p) => p.classYear !== 'Senior');
 
@@ -42,7 +51,15 @@ export function advanceTeamToNextSeason(
     p.academics.isEligible = true;
     p.academics.consecutiveFailingWeeks = 0;
   });
+  rebuildDepthChart(team.roster);
+  return graduated;
+}
 
+/**
+ * Feeder signing day: newcomers from the pipeline join (already in their grade), remaining open spots are
+ * filled with freshmen, and the depth chart is rebuilt.
+ */
+export function addIncomingClass(team: Team, incomingPlayers: Player[] = [], freshmanAdjustment = 0): Player[] {
   const freshmen: Player[] = [];
   const takenNames = new Set(team.roster.map((p) => `${p.firstName} ${p.lastName}`));
   const countAt = (pos: Position) => team.roster.filter((p) => p.position === pos).length;
@@ -61,5 +78,5 @@ export function advanceTeamToNextSeason(
   });
 
   rebuildDepthChart(team.roster);
-  return { graduated, freshmen };
+  return freshmen;
 }

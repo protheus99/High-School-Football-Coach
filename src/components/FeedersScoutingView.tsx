@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { useGameStore } from '../store/gameStore';
+import { feederEventsOpen, useGameStore } from '../store/gameStore';
+import { FEEDER_SIGNING_WEEK } from '../sim/scheduleEngine';
 import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
 import { FeederOutcomeType, FeederProspect, ProspectSource } from '../types/game';
 import {
@@ -54,7 +55,9 @@ export const FeedersScoutingView: React.FC = () => {
     offerFeederInducement,
     statewideRecruits,
     league,
-    leagueTeams
+    leagueTeams,
+    currentYear,
+    feederClassYear
   } = useGameStore();
   const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
   const [filter, setFilter] = useState<ProspectSource | 'ALL'>('ALL');
@@ -64,6 +67,7 @@ export const FeedersScoutingView: React.FC = () => {
 
   const weeklyIncome = weeklyCpIncome(currentWeek, coachTalents, userTeam.programMeters.schoolBoardTrust);
   const eventCost = (type: FeederEventType) => feederEventCost(FEEDER_EVENTS[type].cost, coachTalents);
+  const eventsOpen = feederEventsOpen({ currentWeek, league });
   const sources = Object.keys(SOURCE_LABELS) as ProspectSource[];
   const shown = scoutingPool.filter((p) => filter === 'ALL' || p.source === filter);
 
@@ -88,7 +92,7 @@ export const FeedersScoutingView: React.FC = () => {
       </div>
       <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#64748B' }}>
         Next season&apos;s newcomers come from this pool. Not everyone will come out: your clinics, events and personal visits decide
-        who does. {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; spring and summer are the time to build the pipeline.'}
+        who does. {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; the off season is the time to build the pipeline.'}
       </p>
 
       {feedback && <div style={{ background: '#EEF2FF', color: '#3730A3', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', marginBottom: '12px' }}>{feedback}</div>}
@@ -121,8 +125,23 @@ export const FeedersScoutingView: React.FC = () => {
         </div>
       )}
 
-      {/* Program events */}
+      {/* Signing day */}
+      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', marginBottom: '14px' }}>
+        ✍️ <strong>Signing day:</strong>{' '}
+        {currentYear >= feederClassYear && currentWeek <= FEEDER_SIGNING_WEEK
+          ? currentWeek === FEEDER_SIGNING_WEEK
+            ? 'this week is the last chance. Prospects pick their school when the week ends.'
+            : `pre season week ${FEEDER_SIGNING_WEEK}, next week.`
+          : `pre season week ${FEEDER_SIGNING_WEEK} of ${feederClassYear}. Visits and pitches count until then.`}
+      </div>
+
+      {/* Program events: off season only */}
       <h3 style={{ margin: '0 0 8px 0', fontSize: '15px' }}>Off-Season Program Events</h3>
+      {!feederEventsOpen({ currentWeek, league }) && (
+        <p className="ui-muted" style={{ margin: '0 0 8px 0', fontSize: '13px' }}>
+          Clinics, 7-on-7 nights and tryouts run during the four off-season weeks after the banquet.
+        </p>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px', marginBottom: '18px' }}>
         {(Object.keys(FEEDER_EVENTS) as FeederEventType[]).map((type) => {
           const event = FEEDER_EVENTS[type];
@@ -131,8 +150,12 @@ export const FeedersScoutingView: React.FC = () => {
             <div key={type} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px' }}>
               <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{event.label}</div>
               <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 8px' }}>{event.description}</div>
-              <button onClick={() => handleEvent(type)} disabled={done || coachPoints < eventCost(type)} style={actionBtn('#0F766E', done || coachPoints < eventCost(type))}>
-                {done ? 'Held this week' : `Host (₡${eventCost(type)})`}
+              <button
+                onClick={() => handleEvent(type)}
+                disabled={!eventsOpen || done || coachPoints < eventCost(type)}
+                style={actionBtn('#0F766E', !eventsOpen || done || coachPoints < eventCost(type))}
+              >
+                {!eventsOpen ? 'Off season only' : done ? 'Held this week' : `Host (₡${eventCost(type)})`}
               </button>
             </div>
           );

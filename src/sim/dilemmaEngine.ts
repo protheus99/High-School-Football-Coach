@@ -5,14 +5,26 @@ import { TEMPLATES, pick, starters } from './dilemmaTemplates';
 
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices (library in dilemmaTemplates.ts)
 const DILEMMA_CHANCE = 0.6; // not every week brings a crisis
-export const DILEMMA_COOLDOWN_WEEKS = 21; // with 51 scenarios, none repeats within a season
+export const DILEMMA_COOLDOWN_WEEKS = 28; // with 51 scenarios, none repeats within a season
 export const EXPOSURE_CHANCE: Record<DilemmaChoice['tier'], number> = { GOOD: 0, COMPROMISE: 0, RISKY: 0.15, CORRUPT: 0.3 };
 
 /**
  * Picks this week's dilemma (if any): about 60% of weeks, never repeating a scenario used earlier
  * in the season. The academic check (every third week) takes priority when a starter is failing.
  */
-export function generateWeeklyDilemma(week: number, userTeam: Team, recentTemplateIds: string[] = []): NarrativeDilemma | null {
+/**
+ * The scenario library was written for a shorter calendar (weeks 1-2 spring, 3-4 summer, games from week 5).
+ * Real weeks map onto it: pre season (1-4) -> 1-2, training camp (5-7) -> 3-4, and every later week moves
+ * back three, which keeps game weeks and report-card weeks lined up.
+ */
+export function dilemmaCalendarWeek(week: number): number {
+  if (week <= 4) return Math.ceil(week / 2);
+  if (week <= 7) return week === 5 ? 3 : 4;
+  return week - 3;
+}
+
+export function generateWeeklyDilemma(realWeek: number, userTeam: Team, recentTemplateIds: string[] = []): NarrativeDilemma | null {
+  const week = dilemmaCalendarWeek(realWeek);
   const eligible = TEMPLATES
     .filter((t) => !recentTemplateIds.includes(t.id))
     .map((t) => ({ template: t, subject: t.appliesTo(userTeam, week) }))
@@ -26,9 +38,9 @@ export function generateWeeklyDilemma(week: number, userTeam: Team, recentTempla
 
   const player = chosen.subject === true ? undefined : (chosen.subject as Player);
   return {
-    id: `dil_${chosen.template.id.toLowerCase()}_${week}`,
+    id: `dil_${chosen.template.id.toLowerCase()}_${realWeek}`,
     templateId: chosen.template.id,
-    weekTriggered: week,
+    weekTriggered: realWeek,
     ...chosen.template.build(userTeam, week, player)
   };
 }

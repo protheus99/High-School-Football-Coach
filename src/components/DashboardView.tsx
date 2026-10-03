@@ -11,11 +11,11 @@ import { getUserMatchup } from '../sim/userMatchup';
 import { findDistrict, findRegion, playoffRoundCount } from '../sim/league';
 
 const PHASE_MESSAGES: Record<string, string> = {
-  SPRING_EVALUATION: 'Spring evaluation: scout 8th-grade feeders and run 7-on-7 drills. No game this week.',
-  SUMMER_CAMP: 'Summer two-a-days: install schemes and build conditioning. No game this week.',
+  SPRING_EVALUATION: 'Pre season: finalize your feeder class before signing day, then welcome the newcomers. No game this week.',
+  SUMMER_CAMP: 'Training camp: install schemes, build conditioning and settle the depth chart. No game this week.',
   STATE_PLAYOFFS: 'Your playoff run is over. Follow the rest of the tournament in the Bracket.',
   POST_SEASON: 'Post season: awards banquet and signing day.',
-  OFF_SEASON: 'Off season: last chance to grow the feeder pipeline. Advance Week to graduate the seniors and start next season.'
+  OFF_SEASON: 'Off season: run clinics, 7-on-7 nights and tryouts to grow next year\'s feeder pipeline. After the last off-season week the seniors graduate and a new season begins.'
 };
 
 export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';

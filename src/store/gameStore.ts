@@ -18,8 +18,16 @@ import {
   buildTexasLeague,
   Difficulty,
   findDistrict,
-  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, playoffRoundCount } from '../sim/league';
-import { applyGameResult, forfeitMostRecentDistrictWin, generateSeasonSchedule, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
+  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, playoffRoundCount, seasonLength } from '../sim/league';
+import {
+  applyGameResult,
+  FEEDER_SIGNING_WEEK,
+  forfeitMostRecentDistrictWin,
+  generateSeasonSchedule,
+  getSeasonPhase,
+  getTeamGameForWeek,
+  LAST_REGULAR_SEASON_WEEK
+} from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
 import { randomInt } from '../sim/math/variance';
 import {
@@ -80,7 +88,7 @@ import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngin
 import { persistSaveGame } from '../services/db';
 import type { GameSaveRecord } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
-import { advanceTeamToNextSeason } from '../sim/offseasonEngine';
+import { addIncomingClass, graduateAndProgress } from '../sim/offseasonEngine';
 import { moveInDepthChart, setDepthTier } from '../sim/depthChart';
 import { ASSISTANT_DRILLS_PER_WEEK, DrillFocus, runAssistantDrills } from '../sim/drillEngine';
 import {
@@ -101,7 +109,12 @@ const COMPLIANCE_SANCTION_THRESHOLD = 40;
 const INDUCEMENT_CP_COST = 20;
 const BAN_HEAT_THRESHOLD = 50; // getting caught with this much evidence brings a postseason ban
 
-const MID_SEASON_STAR_UPDATE_WEEK = 8;
+const MID_SEASON_STAR_UPDATE_WEEK = 11;
+
+/** Training camp schedule: more practices develop more players but wear the team down. */
+export type CampSchedule = 'TWO_A_DAY' | 'THREE_A_DAY';
+const CAMP_DRILL_MULTIPLIER: Record<CampSchedule, number> = { TWO_A_DAY: 2, THREE_A_DAY: 3 };
+const CAMP_MORALE: Record<CampSchedule, number> = { TWO_A_DAY: 2, THREE_A_DAY: 1 }; // the team comes together
 const STATEWIDE_RECRUITING_HEADLINES = 2; // five-star commitments elsewhere in the state, per week
 
 /** Headlines from a week of college recruiting: the user's players, plus five-star news statewide. */
@@ -207,6 +220,8 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     coachTalents: state.coachTalents,
     practiceIntensity: state.practiceIntensity,
     drillFocus: state.drillFocus,
+    campSchedule: state.campSchedule,
+    feederClassYear: state.feederClassYear,
     districtTeams: state.districtTeams,
     activeDilemma: state.activeDilemma,
     scoutingPool: state.scoutingPool,
@@ -271,6 +286,8 @@ interface GameStoreState {
   coachTalents: TalentId[]; // skill-tree talents bought with CP
   practiceIntensity: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT';
   drillFocus: DrillFocus; // assistants run position drills each week with this focus
+  campSchedule: CampSchedule; // training camp: two-a-days or three-a-days
+  feederClassYear: number; // the season the current pipeline's class arrives (signing day is week 2 of that season)
   lastDrillReport: string[]; // who the assistants worked with last week
 
   // Postseason & Offseason state
@@ -300,10 +317,17 @@ interface GameStoreState {
   updatePlayerTier: (playerId: string, tier: DepthChartTier) => void;
   moveDepthChartPlayer: (playerId: string, direction: -1 | 1) => void; // up/down one string in his slot
   setDrillFocus: (focus: DrillFocus) => void;
+  setCampSchedule: (schedule: CampSchedule) => void;
+  runFeederSigningDay: () => void; // end of pre season week 2: prospects pick a school, newcomers join every roster
   startPostseason: () => void;
   advancePlayoffGame: (userScore?: { homeScore: number; awayScore: number }) => void;
   finishBanquet: () => void; // banquet done: on to the off-season week
   transitionToNextYear: () => void;
+}
+
+/** Feeder program events (clinics, 7-on-7, tryouts) run only in the off season. */
+export function feederEventsOpen(state: Pick<GameStoreState, 'currentWeek' | 'league'>): boolean {
+  return getSeasonPhase(state.currentWeek, state.league ? playoffRoundCount(state.league) : 6) === 'OFF_SEASON';
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -334,6 +358,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   coachTalents: [],
   practiceIntensity: 'STANDARD',
   drillFocus: 'BALANCED',
+  campSchedule: 'TWO_A_DAY',
+  feederClassYear: 2027,
   lastDrillReport: [],
   playoffBracket: null,
   graduatingSeniors: [],
@@ -360,6 +386,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       userTeamId,
       scoutingPool: generateFeederPool(userTeam, ctx),
       statewideRecruits: generateStatewideElite(ctx),
+      feederClassYear: get().currentYear + 1,
       userViolationHeat: 0,
       pendingUserBan: false,
       onHotSeat: false,
@@ -414,6 +441,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       coachTalents: save.coachTalents ?? [],
       practiceIntensity: save.practiceIntensity,
       drillFocus: save.drillFocus ?? 'BALANCED',
+      campSchedule: save.campSchedule ?? 'TWO_A_DAY',
+      // Older saves: the pipeline was always next season's class
+      feederClassYear: save.feederClassYear ?? year + 1,
       lastDrillReport: [],
       activeDilemma: save.activeDilemma,
       activeGame: null,
@@ -439,12 +469,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   advanceWeek: () => {
     const { currentWeek, districtTeams, leagueTeams, seasonSchedule, userTeamId, practiceIntensity, polls, league } = get();
     // Advancing out of the off-season week starts next year
-    if (league && currentWeek > LAST_REGULAR_SEASON_WEEK + playoffRoundCount(league) + 1) {
+    if (league && currentWeek >= seasonLength(league)) {
       get().transitionToNextYear();
       return;
     }
     const nextWeek = currentWeek + 1;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
+    const rounds = league ? playoffRoundCount(league) : 6;
+    const phase = getSeasonPhase(currentWeek, rounds);
+    if (currentWeek === FEEDER_SIGNING_WEEK && get().currentYear >= get().feederClassYear) get().runFeederSigningDay();
 
     // Finish this week's schedule: every unplayed game (including the user's, if skipped) is simulated
     const teamsById = new Map(leagueTeams.map((t) => [t.id, t]));
@@ -603,7 +636,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
 
     // Banquet once the state championship games are decided: signing day for every senior in the state
-    if (get().playoffBracket?.isPlayoffsActive === false) {
+    if (phase === 'STATE_PLAYOFFS' && get().playoffBracket?.isPlayoffsActive === false) {
       const seniors = userTeam.roster.filter((p) => p.classYear === 'Senior');
       const { signings, prestigeChanges } = runSigningDay(leagueTeams, get().currentYear);
       const news = signingDayNews(signings, prestigeChanges.get(userTeamId) ?? 0, userTeam, get().currentYear, nextWeek);
@@ -614,16 +647,33 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // 1. Weekly triage for every program: injuries heal, season wear builds, and every third week brings
     // report cards ("No Pass, No Play"). AI programs keep their struggling students in study hall; the
     // user handles grades through dilemmas.
+    const isGameWeek = phase === 'NON_DISTRICT' || phase === 'DISTRICT_PLAY' || phase === 'STATE_PLAYOFFS';
+    const inCamp = phase === 'SUMMER_CAMP';
+    const { campSchedule } = get();
     leagueTeams.forEach((team) => {
       const isUser = team.id === userTeamId;
       team.roster.forEach((p) => {
         processWeeklyInjuryHealing(p, currentWeek);
-        processPostGameSeasonWear(p, p.depthChartTier === 1 ? 52 : 12, isUser ? practiceIntensity : 'STANDARD');
+        if (isGameWeek) processPostGameSeasonWear(p, p.depthChartTier === 1 ? 52 : 12, isUser ? practiceIntensity : 'STANDARD');
         if (nextWeek % 3 === 0) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p) ? 0.1 : 0);
       });
     });
-    // Discipline: full-contact practices build it, walkthroughs let it slip; below 50 starters get suspended
-    meters.lockerRoomDiscipline = Math.max(0, Math.min(100, meters.lockerRoomDiscipline + PRACTICE_DISCIPLINE[practiceIntensity]));
+    // Morale: training camp brings the team together; in season, full-contact practices build it and
+    // walkthroughs let it slip. Below 50, starters get suspended.
+    const moraleChange = inCamp ? CAMP_MORALE[campSchedule] : isGameWeek ? PRACTICE_DISCIPLINE[practiceIntensity] : 0;
+    meters.lockerRoomDiscipline = Math.max(0, Math.min(100, meters.lockerRoomDiscipline + moraleChange));
+    // Three-a-days grind: extra wear and the odd practice injury
+    const campReport: string[] = [];
+    if (inCamp && campSchedule === 'THREE_A_DAY') {
+      let banged = 0;
+      userTeam.roster.forEach((p) => {
+        processPostGameSeasonWear(p, 20, 'CONTACT');
+        if (p.condition.injuryStatus !== 'HEALTHY' || Math.random() > 0.015) return;
+        Object.assign(p.condition, { injuryStatus: 'DINGED', injuryWeeksRemaining: 1, injuredInWeek: currentWeek });
+        banged++;
+      });
+      if (banged > 0) campReport.push(`Three-a-days: ${banged} player${banged === 1 ? '' : 's'} banged up in practice.`);
+    }
     const suspended = currentWeek < LAST_REGULAR_SEASON_WEEK + 6 ? pickSuspension(userTeam) : undefined;
     if (suspended) {
       Object.assign(suspended.condition, { injuryStatus: 'DINGED', injuryWeeksRemaining: 1, injuredInWeek: currentWeek, isSuspended: true });
@@ -643,7 +693,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       });
     }
     // Assistants run this week's position drills with the coach's focus
-    const lastDrillReport = runAssistantDrills(userTeam.roster, get().drillFocus, drillsPerWeek(ASSISTANT_DRILLS_PER_WEEK, get().coachTalents));
+    // (training camp multiplies the reps: two-a-days double them, three-a-days triple them)
+    const drillCount = drillsPerWeek(ASSISTANT_DRILLS_PER_WEEK, get().coachTalents) * (inCamp ? CAMP_DRILL_MULTIPLIER[campSchedule] : 1);
+    const lastDrillReport = [...campReport, ...runAssistantDrills(userTeam.roster, get().drillFocus, drillCount)];
 
     // 2. Recalculate National & State Team Polls
     const updatedPolls = generateNationalAndStatePolls(leagueTeams, polls, nextWeek);
@@ -714,10 +766,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   transitionToNextYear: () => {
-    const { districtTeams, leagueTeams, league, userTeamId, currentYear, scoutingPool } = get();
-    // Every program graduates seniors, moves classes up, progresses, refills positions and resets its depth chart;
-    // the user's signed feeder prospects arrive as freshmen at their projected positions
-    // The user's feeder class decides (rivals compete for many of them); elite recruits pick among top programs
+    const { districtTeams, leagueTeams, league, userTeamId, currentYear } = get();
+    // Every program graduates seniors, moves classes up and progresses; newcomers arrive after feeder signing
+    // day (pre season week 2), when the pipeline's prospects pick their schools
     const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
     // The school board's season-end review
     const review = boardReview(userTeam.programMeters.schoolBoardTrust, get().onHotSeat);
@@ -739,17 +790,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
             }
           ]
         : [];
-    const ctx = recruitingContext(get());
-    const feederClass = resolveFeederClass(scoutingPool, userTeam, ctx);
-    const elite = ctx ? resolveStatewideElite(get().statewideRecruits, ctx) : { signings: [] as RivalSigning[], headlines: [] as string[] };
-    const rivalIncoming = new Map<string, Player[]>();
-    [...feederClass.rivalSignings, ...elite.signings].forEach(({ teamId, player }) => {
-      rivalIncoming.set(teamId, [...(rivalIncoming.get(teamId) ?? []), player]);
-    });
-    leagueTeams.forEach((team) => {
-      if (team.id === userTeamId) advanceTeamToNextSeason(team, feederClass.joined, 0, offseasonConditioningBonus(get().coachTalents));
-      else advanceTeamToNextSeason(team, rivalIncoming.get(team.id) ?? [], STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL']);
-    });
+    leagueTeams.forEach((team) => graduateAndProgress(team, team.id === userTeamId ? offseasonConditioningBonus(get().coachTalents) : 0));
     // New recruiting cycle: offers carry over, exposure and calls reset, stars re-evaluated after progression
     resetSeasonRecruiting(leagueTeams);
     updateStarRatings(leagueTeams, false);
@@ -785,28 +826,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     } else {
       userViolationHeat = Math.round(userViolationHeat * HEAT_DECAY);
     }
-    const eliteNews: NewsArticle[] = elite.headlines.map((headline, i) => ({
-      id: `news_elite_${currentYear}_${i}`,
-      week: 1,
-      outlet: 'PREP_GRIDIRON_TALK',
-      headline,
-      content: 'One of the most sought-after newcomers in the state has picked a program.',
-      impactSentiment: 'NEUTRAL'
-    }));
-    enforceVarsityRosterLimit(userTeam, feederClass.joined, feederClass.outcomes);
-    const joinedCount = feederClass.outcomes.filter((o) => o.outcome === 'JOINED').length;
-    const classArticle: NewsArticle = {
-      id: `news_feeder_class_${currentYear + 1}`,
-      week: 1,
-      outlet: 'TOWN_JOURNAL',
-      headline: `${userTeam.name} Welcomes ${joinedCount} Newcomers to the Program`,
-      content: `${joinedCount} of ${scoutingPool.length} prospects in the pipeline came out for the team. ${
-        feederClass.outcomes.filter((o) => o.outcome === 'OTHER_SCHOOL').length
-      } enrolled elsewhere and ${feederClass.outcomes.filter((o) => o.outcome === 'LEFT_AREA').length} moved away.`,
-      impactSentiment: joinedCount >= scoutingPool.length / 2 ? 'POSITIVE' : 'NEUTRAL',
-      featuredTeamName: userTeam.name
-    };
-
     if (currentYear % 2 === 0) {
       processStateRealignment(districtTeams);
     }
@@ -827,15 +846,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       graduatingSeniors: [],
       polls: newPolls,
       playerRankings: newPlayerRankings,
-      scoutingPool: generateFeederPool(userTeam, ctx),
-      statewideRecruits: ctx ? generateStatewideElite(ctx) : [],
       userViolationHeat,
       pendingUserBan,
-      lastFeederResults: feederClass.outcomes,
       feederEventsThisWeek: [],
       coachPoints: get().coachPoints + weeklyCpIncome(1, get().coachTalents, userTeam.programMeters.schoolBoardTrust),
       onHotSeat: review === 'HOT_SEAT',
-      newsArticles: [...boardNews, classArticle, ...investigationNews, ...eliteNews, ...get().newsArticles],
+      newsArticles: [...boardNews, ...investigationNews, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams],
       seasonSchedule: league ? generateSeasonSchedule(leagueRegionTeams(league, leagueTeams), currentYear + 1) : []
@@ -903,7 +919,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   runFeederEvent: (type) => {
     const { coachPoints, feederEventsThisWeek, scoutingPool, districtTeams, userTeamId } = get();
     const cost = feederEventCost(FEEDER_EVENTS[type].cost, get().coachTalents);
-    if (coachPoints < cost || feederEventsThisWeek.includes(type)) return [];
+    if (coachPoints < cost || feederEventsThisWeek.includes(type) || !feederEventsOpen(get())) return [];
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     const result = runFeederEvent(scoutingPool, type, userTeam, recruitingContext(get()));
     set({ coachPoints: coachPoints - cost, scoutingPool: result.pool, feederEventsThisWeek: [...feederEventsThisWeek, type] });
@@ -978,6 +994,58 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   setDrillFocus: (focus) => set({ drillFocus: focus }),
+  setCampSchedule: (schedule) => set({ campSchedule: schedule }),
+
+  // Feeder signing day: the user's pipeline and the statewide elite pick their schools, every program's
+  // incoming class joins (open spots filled with freshmen), and the next cycle's pipeline opens
+  runFeederSigningDay: () => {
+    const { leagueTeams, districtTeams, userTeamId, scoutingPool, currentYear, currentWeek } = get();
+    const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
+    const ctx = recruitingContext(get());
+    const feederClass = resolveFeederClass(scoutingPool, userTeam, ctx);
+    const elite = ctx ? resolveStatewideElite(get().statewideRecruits, ctx) : { signings: [] as RivalSigning[], headlines: [] as string[] };
+    const rivalIncoming = new Map<string, Player[]>();
+    [...feederClass.rivalSignings, ...elite.signings].forEach(({ teamId, player }) => {
+      rivalIncoming.set(teamId, [...(rivalIncoming.get(teamId) ?? []), player]);
+    });
+    leagueTeams.forEach((team) => {
+      if (team.id === userTeamId) addIncomingClass(team, feederClass.joined);
+      else addIncomingClass(team, rivalIncoming.get(team.id) ?? [], STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL']);
+    });
+    enforceVarsityRosterLimit(userTeam, feederClass.joined, feederClass.outcomes);
+    updateStarRatings(leagueTeams, false);
+
+    const week = currentWeek + 1;
+    const eliteNews: NewsArticle[] = elite.headlines.map((headline, i) => ({
+      id: `news_elite_${currentYear}_${i}`,
+      week,
+      outlet: 'PREP_GRIDIRON_TALK',
+      headline,
+      content: 'One of the most sought-after newcomers in the state has picked a program.',
+      impactSentiment: 'NEUTRAL'
+    }));
+    const joinedCount = feederClass.outcomes.filter((o) => o.outcome === 'JOINED').length;
+    const classArticle: NewsArticle = {
+      id: `news_feeder_class_${currentYear}`,
+      week,
+      outlet: 'TOWN_JOURNAL',
+      headline: `Signing Day: ${userTeam.name} Welcomes ${joinedCount} Newcomers to the Program`,
+      content: `${joinedCount} of ${scoutingPool.length} prospects in the pipeline chose ${userTeam.name}. ${
+        feederClass.outcomes.filter((o) => o.outcome === 'OTHER_SCHOOL').length
+      } enrolled elsewhere and ${feederClass.outcomes.filter((o) => o.outcome === 'LEFT_AREA').length} moved away.`,
+      impactSentiment: joinedCount >= scoutingPool.length / 2 ? 'POSITIVE' : 'NEUTRAL',
+      featuredTeamName: userTeam.name
+    };
+    set({
+      scoutingPool: generateFeederPool(userTeam, ctx),
+      statewideRecruits: ctx ? generateStatewideElite(ctx) : [],
+      lastFeederResults: feederClass.outcomes,
+      feederClassYear: currentYear + 1,
+      newsArticles: [classArticle, ...eliteNews, ...get().newsArticles],
+      districtTeams: [...districtTeams],
+      leagueTeams: [...leagueTeams]
+    });
+  },
 
 
 }));

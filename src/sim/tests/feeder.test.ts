@@ -158,27 +158,39 @@ describe('Year-end decisions', () => {
 });
 
 describe('Feeder pipeline through the store', () => {
-  it('spends CP, limits events to once a week, and turns the pool into next year\'s class', () => {
+  it('spends CP, holds events only in the off season, and turns the pool into a class on signing day', () => {
     const store = useGameStore;
     store.getState().startNewSeason();
     expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS);
     const pool = store.getState().scoutingPool;
 
-    store.getState().runFeederEvent('YOUTH_CLINIC');
-    expect(store.getState().coachPoints).toBe(100 - 50);
-    store.getState().runFeederEvent('YOUTH_CLINIC'); // already held this week
-    expect(store.getState().coachPoints).toBe(50);
+    // Program events wait for the off season; personal visits work any time before signing day
+    expect(store.getState().runFeederEvent('YOUTH_CLINIC')).toEqual([]);
+    expect(store.getState().coachPoints).toBe(100);
     store.getState().visitFeederProspect(pool[0].id);
+    expect(store.getState().coachPoints).toBe(85);
     expect(store.getState().scoutingPool.find((p) => p.id === pool[0].id)!.coachContacts).toBe(1);
 
-    while (store.getState().currentWeek < 5) store.getState().advanceWeek();
-    // Unspent CP carries over: 35 left + three 100-CP summer weeks + week 5, plus any win bonuses
-    expect(store.getState().coachPoints).toBeGreaterThanOrEqual(35 + 3 * weeklyCoachPoints(2) + weeklyCoachPoints(5));
-    expect(weeklyCoachPoints(5)).toBeLessThan(weeklyCoachPoints(1));
+    // A new game's rosters already hold this year's freshmen: no signing day until next season
+    while (store.getState().currentWeek < 9) store.getState().advanceWeek();
+    expect(store.getState().lastFeederResults).toBeNull();
+    // Unspent CP carries over: 85 left + seven 100-CP pre season/camp weeks + the first game week
+    expect(store.getState().coachPoints).toBeGreaterThanOrEqual(85 + 7 * weeklyCoachPoints(2) + weeklyCoachPoints(9));
+    expect(weeklyCoachPoints(9)).toBeLessThan(weeklyCoachPoints(1));
 
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
+    store.getState().finishBanquet(); // off season
+    const cp = store.getState().coachPoints;
+    store.getState().runFeederEvent('YOUTH_CLINIC');
+    expect(store.getState().coachPoints).toBe(cp - 50);
+    store.getState().runFeederEvent('YOUTH_CLINIC'); // already held this week
+    expect(store.getState().coachPoints).toBe(cp - 50);
+
+    const year = store.getState().currentYear;
+    while (store.getState().currentYear === year) store.getState().advanceWeek(); // off season ends: new year
+    while (store.getState().currentWeek < 2) store.getState().advanceWeek();
     const finalPool = store.getState().scoutingPool;
-    store.getState().transitionToNextYear();
+    store.getState().advanceWeek(); // signing day closes pre season week 2
     const { lastFeederResults, scoutingPool } = store.getState();
     expect(lastFeederResults).toHaveLength(finalPool.length);
     expect(scoutingPool.length).toBeGreaterThanOrEqual(MIN_POOL_SIZE);

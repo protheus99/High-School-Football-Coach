@@ -1,4 +1,5 @@
 import { FeederOutcome, FeederOutcomeType, FeederProspect, Player, PlayerClass, Position, PotentialGrade, ProspectSource, Team } from '../types/game';
+import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 import { generateProceduralPlayer, rollTalent } from '../generators/rosterGenerator';
 import { NameProfile, randomPlayerName } from '../generators/names';
 import { RecruitingContext, assignSuitors, choiceShares, pickHomeRival, rollPriorities } from './feederCompetition';
@@ -257,7 +258,7 @@ export function runFeederEvent(
 
 /** Families occasionally move into the district during the year. */
 export function maybeMoveInArrival(pool: FeederProspect[], team: Team, week: number, ctx?: RecruitingContext): FeederProspect | null {
-  if (week > 12 || pool.length >= MAX_POOL_SIZE || Math.random() > 0.12) return null;
+  if (week > LAST_REGULAR_SEASON_WEEK || pool.length >= MAX_POOL_SIZE || Math.random() > 0.12) return null;
   return createCompetedProspect('MOVE_IN', team, new Set(pool.map((p) => p.name)), ctx);
 }
 

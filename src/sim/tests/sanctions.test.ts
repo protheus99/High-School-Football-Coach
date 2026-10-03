@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
-import { applyGameResult, forfeitMostRecentDistrictWin } from '../scheduleEngine';
+import { applyGameResult, forfeitMostRecentDistrictWin, LAST_REGULAR_SEASON_WEEK } from '../scheduleEngine';
 import { ScheduledGame } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -34,14 +34,14 @@ describe('State association sanctions', () => {
     const { userTeamId } = useGameStore.getState();
     const team = () => useGameStore.getState().districtTeams.find((t) => t.id === userTeamId)!;
 
-    while (useGameStore.getState().currentWeek < 14) {
+    while (useGameStore.getState().currentWeek < LAST_REGULAR_SEASON_WEEK) {
       team().programMeters.complianceScore = 10; // keep the program in violation
       useGameStore.getState().advanceWeek();
     }
     expect(useGameStore.getState().sanctionLevel).toBe(3);
     expect(useGameStore.getState().newsArticles.some((a) => a.headline.startsWith('Postseason Ban'))).toBe(true);
 
-    useGameStore.getState().advanceWeek(); // week 14 -> postseason
+    useGameStore.getState().advanceWeek(); // last regular-season week -> postseason
     const bracket = useGameStore.getState().playoffBracket!;
     const bracketIds = bracket.divisions.flatMap((d) => d.rounds[0]).flatMap((n) => [n.team1.id, n.team2.id]);
     expect(bracketIds).not.toContain(userTeamId);

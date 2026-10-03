@@ -146,12 +146,14 @@ describe('Competition through the store', () => {
     expect(store.getState().userViolationHeat).toBeGreaterThan(0);
     expect(store.getState().scoutingPool.find((p) => p.id === prospect.id)!.userInducement).toBe(true);
 
-    while (store.getState().currentWeek < 15) store.getState().advanceWeek();
+    while (!store.getState().playoffBracket) store.getState().advanceWeek();
     const bracketIds = store.getState().playoffBracket!.divisions.flatMap((d) => d.rounds[0]).flatMap((n) => [n.team1.id, n.team2.id]);
     expect(bracketIds).not.toContain(cheater.id);
 
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
     store.getState().transitionToNextYear();
+    // Prospects pick their schools as pre season week 2 ends
+    while (store.getState().currentWeek <= 2) store.getState().advanceWeek();
     const { lastFeederResults } = store.getState();
     lastFeederResults!
       .filter((o) => o.destinationTeamId)

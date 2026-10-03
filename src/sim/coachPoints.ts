@@ -1,4 +1,5 @@
 import { boardCpModifier } from './programMeters';
+import { getSeasonPhase } from './scheduleEngine';
 
 // ---------------------------------------------------------------------------
 // Coach Points (CP): the single currency for the head coach's time and influence.
@@ -9,9 +10,10 @@ import { boardCpModifier } from './programMeters';
 //        coach talents in the skill tree.
 // ---------------------------------------------------------------------------
 
-/** Weekly allowance before talents: full time in spring and summer, less once games start. */
+/** Weekly allowance before talents: full time in pre season, training camp and the off season; less once games start. */
 export function weeklyCoachPoints(week: number): number {
-  return week <= 4 ? 100 : 40;
+  const phase = getSeasonPhase(week);
+  return phase === 'SPRING_EVALUATION' || phase === 'SUMMER_CAMP' || phase === 'OFF_SEASON' ? 100 : 40;
 }
 
 export const STARTING_COACH_POINTS = 100;

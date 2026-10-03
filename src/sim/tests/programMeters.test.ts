@@ -34,8 +34,8 @@ describe('Board Trust', () => {
   it('raises or cuts the weekly Coach Points', () => {
     expect(boardCpModifier(85)).toBe(10);
     expect(boardCpModifier(30)).toBe(-10);
-    expect(weeklyCpIncome(6, [], 85)).toBe(50);
-    expect(weeklyCpIncome(6, [], 30)).toBe(30);
+    expect(weeklyCpIncome(9, [], 85)).toBe(50);
+    expect(weeklyCpIncome(9, [], 30)).toBe(30);
   });
 
   it('puts the coach on the hot seat, then fires him after a second bad season', () => {

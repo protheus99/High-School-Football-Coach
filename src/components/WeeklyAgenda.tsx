@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { useGameStore } from '../store/gameStore';
+import { feederEventsOpen, useGameStore } from '../store/gameStore';
+import { FEEDER_SIGNING_WEEK, FIRST_TRAINING_CAMP_WEEK, LAST_TRAINING_CAMP_WEEK, PRESEASON_WEEKS } from '../sim/scheduleEngine';
+import { PROSPECT_ACTION_COSTS } from '../sim/feederEngine';
 import { collegeActionCost, feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
 import { FEEDER_EVENTS, FeederEventType } from '../sim/feederEngine';
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
@@ -65,7 +67,14 @@ export const WeeklyAgenda: React.FC<{
     collegeRecruitAction,
     drillFocus,
     setDrillFocus,
-    lastDrillReport
+    lastDrillReport,
+    league,
+    scoutingPool,
+    feederClassYear,
+    visitFeederProspect,
+    lastFeederResults,
+    campSchedule,
+    setCampSchedule
   } = useGameStore();
   // Confirmation for the last quick action; it belongs to the week it happened in
   const [flashState, setFlashState] = useState<{ text: string; week: number } | null>(null);
@@ -139,14 +148,86 @@ export const WeeklyAgenda: React.FC<{
     });
   }
 
-  // 5. Feeder program events (once each per week, paid with CP)
+  // 5a. Pre season: feeder signing day (week 2 is the last chance to win prospects over)
+  const signingThisSeason = currentYear >= feederClassYear && currentWeek <= FEEDER_SIGNING_WEEK;
+  if (signingThisSeason) {
+    const onTheFence = scoutingPool
+      .filter((p) => p.interestScore >= 30 && p.interestScore <= 75)
+      .sort((a, b) => b.interestScore - a.interestScore)
+      .slice(0, 3);
+    const visitCost = onTheFence.length * PROSPECT_ACTION_COSTS.VISIT;
+    const lastChance = currentWeek === FEEDER_SIGNING_WEEK;
+    items.push({
+      id: 'signing',
+      icon: '✍️',
+      title: lastChance ? 'Feeder signing day: last chance to win prospects over' : 'Feeder signing day is next week',
+      detail: `${scoutingPool.length} prospects pick their school when week ${FEEDER_SIGNING_WEEK} ends.${
+        onTheFence.length ? ` Still deciding: ${onTheFence.map((p) => `${p.projectedPosition} ${p.name}`).join(', ')}.` : ''
+      }`,
+      tone: lastChance ? 'urgent' : 'todo',
+      actions: onTheFence.length
+        ? [
+            {
+              label: `Home visits for ${onTheFence.length} (₡${visitCost})`,
+              primary: true,
+              disabled: coachPoints < visitCost,
+              onClick: () => {
+                onTheFence.forEach((p) => visitFeederProspect(p.id));
+                setFlash(`Visited ${onTheFence.length} prospect${onTheFence.length === 1 ? '' : 's'} before signing day.`);
+              }
+            }
+          ]
+        : undefined,
+      link: { label: 'Feeders', onClick: () => onNavigate('FEEDERS') }
+    });
+  } else if (currentWeek > FEEDER_SIGNING_WEEK && currentWeek <= PRESEASON_WEEKS && lastFeederResults?.length) {
+    const joined = lastFeederResults.filter((o) => o.outcome === 'JOINED').length;
+    items.push({
+      id: 'newcomers',
+      icon: '🆕',
+      title: `${joined} newcomer${joined === 1 ? '' : 's'} joined from signing day`,
+      detail: 'Meet them on the roster before training camp starts.',
+      tone: 'info',
+      link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
+    });
+  }
+
+  // 5b. Training camp: practice schedule, and depth chart selection closes camp
+  if (currentWeek >= FIRST_TRAINING_CAMP_WEEK && currentWeek <= LAST_TRAINING_CAMP_WEEK) {
+    items.push({
+      id: 'camp',
+      icon: '⛺',
+      title: `Training camp: ${campSchedule === 'THREE_A_DAY' ? 'three-a-days' : 'two-a-days'} (week ${currentWeek - FIRST_TRAINING_CAMP_WEEK + 1} of ${LAST_TRAINING_CAMP_WEEK - FIRST_TRAINING_CAMP_WEEK + 1})`,
+      detail:
+        campSchedule === 'THREE_A_DAY'
+          ? 'Three practices a day: triple the drill reps, but more wear and practice injuries; the team bonds a little.'
+          : 'Two practices a day: double the drill reps and the team comes together.',
+      tone: 'todo',
+      actions: [
+        { label: 'Two-a-days', primary: campSchedule === 'TWO_A_DAY', onClick: () => setCampSchedule('TWO_A_DAY') },
+        { label: 'Three-a-days', primary: campSchedule === 'THREE_A_DAY', onClick: () => setCampSchedule('THREE_A_DAY') }
+      ]
+    });
+    if (currentWeek === LAST_TRAINING_CAMP_WEEK) {
+      items.push({
+        id: 'depth-chart',
+        icon: '📋',
+        title: 'Final camp event: set your depth chart',
+        detail: 'The season opens next week. Lock in your starters and backups.',
+        tone: 'urgent',
+        link: { label: 'Depth chart', onClick: () => onNavigate('ROSTER') }
+      });
+    }
+  }
+
+  // 5c. Off season: feeder program events (once each per week, paid with CP)
   const events = (Object.keys(FEEDER_EVENTS) as FeederEventType[]).filter((e) => !feederEventsThisWeek.includes(e));
-  if (events.length > 0 && events.some((e) => coachPoints >= feederEventCost(FEEDER_EVENTS[e].cost, coachTalents))) {
+  if (feederEventsOpen({ currentWeek, league }) && events.length > 0 && events.some((e) => coachPoints >= feederEventCost(FEEDER_EVENTS[e].cost, coachTalents))) {
     items.push({
       id: 'feeders',
       icon: '🔍',
-      title: 'Grow your feeder pipeline',
-      detail: 'Clinics and events bring in and win over next year’s players.',
+      title: 'Off season: grow your feeder pipeline',
+      detail: `Clinics and events bring in and win over next year’s players. They pick their school on signing day (pre season week ${FEEDER_SIGNING_WEEK}).`,
       tone: 'todo',
       actions: events.map((e) => ({
         label: `${FEEDER_EVENTS[e].label} (₡${feederEventCost(FEEDER_EVENTS[e].cost, coachTalents)})`,

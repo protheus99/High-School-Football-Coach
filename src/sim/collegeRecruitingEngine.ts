@@ -59,7 +59,7 @@ const JUNIOR_OFFER_MIN_SCORE = 74; // juniors hear from colleges only as 3-star 
 const JUNIOR_COMMIT_MIN_SCORE = 82; // only 4-star juniors and up commit early
 const FLIP_MARGIN = 10;
 const FLIP_CHANCE = 0.4;
-export const CAMP_WEEKS = 4; // summer camp circuit runs during the first weeks
+export const CAMP_WEEKS = 7; // the summer camp circuit runs through pre season and training camp
 
 export const COLLEGE_ACTION_COSTS = { FILM: 5, CALL: 10, CAMP: 20 };
 
@@ -256,7 +256,7 @@ export function rollOffer(player: Player, team: Team, week: number, year: number
   // Late in the year, Division I programs invite overlooked seniors to walk on
   if (
     player.classYear === 'Senior' &&
-    week >= 12 &&
+    week >= 15 &&
     score >= 66 &&
     score < 81 &&
     !r.offers.some((o) => isDivisionOne(o.tier)) &&
@@ -334,7 +334,7 @@ function commitChance(player: Player, week: number): number {
   if (player.classYear === 'Junior') {
     return score >= JUNIOR_COMMIT_MIN_SCORE && r.offers.some((o) => o.tier === 'POWER_4') ? 0.03 : 0;
   }
-  let chance = 0.03 + 0.012 * r.offers.length + (week >= 10 ? 0.05 : 0) + (week >= 15 ? 0.08 : 0);
+  let chance = 0.03 + 0.012 * r.offers.length + (week >= 13 ? 0.05 : 0) + (week >= 18 ? 0.08 : 0);
   // Players who expect a higher level wait for it
   const top = lanesFor(score, player.position)[0];
   const best = bestOffer(player);

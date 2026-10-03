@@ -1,5 +1,6 @@
 import { Team } from '../types/game';
 import { simulateMacroMatch, rollGameInjuries } from './macroSim';
+import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 import { calculateDistrictStandings } from './districtEngine';
 import { STATE_CHAMPIONSHIP_CONFIGS } from './stateRulesEngine';
 
@@ -199,9 +200,10 @@ export function advancePlayoffRound(bracketState: PlayoffBracketState): PlayoffB
     const nodes = division.rounds[roundIndex];
     nodes.forEach((node) => {
       if (node.winnerTeamId) return;
-      const res = simulateMacroMatch(`po_${node.matchupId}`, 15 + roundIndex, node.team1, node.team2, 'CLEAR');
-      rollGameInjuries(node.team1, 15 + roundIndex);
-      rollGameInjuries(node.team2, 15 + roundIndex);
+      const week = LAST_REGULAR_SEASON_WEEK + 1 + roundIndex;
+      const res = simulateMacroMatch(`po_${node.matchupId}`, week, node.team1, node.team2, 'CLEAR');
+      rollGameInjuries(node.team1, week);
+      rollGameInjuries(node.team2, week);
       node.team1Score = res.homeScore;
       node.team2Score = res.awayScore;
       node.winnerTeamId = res.homeScore > res.awayScore ? node.team1.id : node.team2.id;

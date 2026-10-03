@@ -35,6 +35,8 @@ export interface GameSaveRecord {
   dilemmaLog?: DilemmaRecord[];
   difficulty?: Difficulty;
   drillFocus?: DrillFocus;
+  campSchedule?: 'TWO_A_DAY' | 'THREE_A_DAY';
+  feederClassYear?: number;
 }
 
 /** Lightweight listing for the load screen (full saves are ~10 MB each). */

@@ -273,11 +273,10 @@ export function inducementHeat(p: FeederProspect): number {
 }
 
 /**
- * Rivals keep working their targets during the spring and season (weeks 1-12). Low-ethics programs may
- * have boosters make an illegal offer to a valuable prospect, which adds heat to that program.
+ * Rivals keep working their targets all year, until feeder signing day in pre season. Low-ethics programs
+ * may have boosters make an illegal offer to a valuable prospect, which adds heat to that program.
  */
-export function advanceRivalRecruiting(pool: FeederProspect[], ctx: RecruitingContext, week: number): FeederProspect[] {
-  if (week > 12) return pool;
+export function advanceRivalRecruiting(pool: FeederProspect[], ctx: RecruitingContext, _week: number): FeederProspect[] {
   return pool.map((p) => {
     if (p.suitors.length === 0) return p;
     const suitors = p.suitors.map((s) => {
