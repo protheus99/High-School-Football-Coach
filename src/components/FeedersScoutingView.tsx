@@ -65,6 +65,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     runFeederEvent,
     scoutFeederProspect,
     visitFeederProspect,
+    removeFeederProspect,
     pitchFeederStar,
     offerFeederInducement,
     statewideRecruits,
@@ -235,6 +236,11 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                 onVisit={() => visitFeederProspect(p.id)}
                 onPitch={() => pitchFeederStar(p.id)}
                 onInduce={() => offerFeederInducement(p.id)}
+            positionFilled={(needs.find((n) => n.position === p.projectedPosition)?.need ?? 1) === 0}
+            onRemove={() => {
+              removeFeederProspect(p.id);
+              setFeedback(`${p.name} was removed from your list.`);
+            }}
               />
             ))}
             {shown.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No prospects in this group.</div>}
@@ -255,7 +261,10 @@ const ProspectCard: React.FC<{
   onVisit: () => void;
   onPitch: () => void;
   onInduce: () => void;
-}> = ({ prospect: p, chance, coachPoints, onScout, onVisit, onPitch, onInduce }) => {
+  positionFilled: boolean;
+  onRemove: () => void;
+}> = ({ prospect: p, chance, coachPoints, onScout, onVisit, onPitch, onInduce, positionFilled, onRemove }) => {
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const scouted = p.revealedPotential !== 'UNKNOWN';
   const look = outlook(chance);
   const notes: string[] = [];
@@ -264,13 +273,32 @@ const ProspectCard: React.FC<{
   if (p.source === 'TRYOUT') notes.push('General student trying out');
   if (p.source === 'OUT_OF_DISTRICT') notes.push('Pulling a player from his zoned school is a long shot');
   if (p.isTransferRisk) notes.push('Family may relocate');
+  if (positionFilled) notes.push(`${p.projectedPosition} is already filled for next season`);
 
   return (
     <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderLeft: `4px solid ${SOURCE_COLORS[p.source]}`, borderRadius: '8px', padding: '12px', fontSize: '13px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
         <strong style={{ fontSize: '14px' }}>{p.name}</strong>
-        <span style={{ fontWeight: 'bold' }}>{p.projectedPosition}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 'bold' }}>{p.projectedPosition}</span>
+          {!confirmRemove && (
+            <button onClick={() => setConfirmRemove(true)} aria-label={`Remove ${p.name} from the list`} title="Remove from the list" style={removeBtn}>
+              ✕
+            </button>
+          )}
+        </span>
       </div>
+      {confirmRemove && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', margin: '6px 0', padding: '8px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '6px', fontSize: '12px' }}>
+          <span style={{ flex: '1 1 140px' }}>Remove {p.name} from your list? He won&apos;t come back.</span>
+          <button onClick={onRemove} style={actionBtn('#B91C1C', false)}>
+            Remove
+          </button>
+          <button onClick={() => setConfirmRemove(false)} style={actionBtn('#64748B', false)}>
+            Keep
+          </button>
+        </div>
+      )}
       <div style={{ color: '#6B7280', fontSize: '12px' }}>
         {SOURCE_LABELS[p.source]} · {p.middleSchool} · Incoming {p.incomingClass}
       </div>
@@ -444,4 +472,15 @@ const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void }
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{rest.map((n) => row(n, false))}</div>
     </div>
   );
+};
+
+const removeBtn: React.CSSProperties = {
+  minWidth: '32px',
+  minHeight: '32px',
+  border: '1px solid #CBD5E1',
+  borderRadius: '6px',
+  background: '#fff',
+  color: '#64748B',
+  fontWeight: 'bold',
+  cursor: 'pointer'
 };

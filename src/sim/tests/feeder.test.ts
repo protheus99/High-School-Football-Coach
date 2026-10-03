@@ -203,3 +203,15 @@ describe('Feeder pipeline through the store', () => {
     });
   }, 120000);
 });
+
+describe('Removing prospects', () => {
+  it('drops a prospect from the pipeline for good', () => {
+    const store = useGameStore;
+    store.getState().startNewSeason();
+    const [first, second] = store.getState().scoutingPool;
+    store.getState().removeFeederProspect(first.id);
+    const pool = store.getState().scoutingPool;
+    expect(pool.some((p) => p.id === first.id)).toBe(false);
+    expect(pool.some((p) => p.id === second.id)).toBe(true);
+  });
+});

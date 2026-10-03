@@ -324,6 +324,7 @@ interface GameStoreState {
   runFeederEvent: (type: FeederEventType) => FeederProspect[]; // returns newly discovered prospects
   scoutFeederProspect: (prospectId: string) => void;
   visitFeederProspect: (prospectId: string) => void;
+  removeFeederProspect: (prospectId: string) => void; // drop a prospect the program doesn't want (frees a pipeline spot)
   pitchFeederStar: (prospectId: string) => void;
   offerFeederInducement: (prospectId: string) => void; // illegal booster offer: big pull, adds heat
   collegeRecruitAction: (playerId: string, action: CollegeAction) => CollegeActionResult; // promote a player to colleges
@@ -971,6 +972,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? scoutProspect(p) : p))
     });
   },
+
+  removeFeederProspect: (prospectId) => set({ scoutingPool: get().scoutingPool.filter((p) => p.id !== prospectId) }),
 
   visitFeederProspect: (prospectId) => {
     const { coachPoints, scoutingPool } = get();
