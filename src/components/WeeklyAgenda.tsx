@@ -19,8 +19,9 @@ import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { dilemmaChoiceCosts } from '../sim/dilemmaEngine';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
-import { ROUND_LABELS } from '../sim/playoffEngine';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
+import { rulesForState } from '../sim/stateRules';
+import { powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 
@@ -129,6 +130,8 @@ export const WeeklyAgenda: React.FC<{
   if (!team) return null;
 
   const rounds = league ? playoffRoundCount(league) : 6;
+  const stateRules = rulesForState(league?.state);
+  const ROUND_LABELS = stateRules.playoffs.roundLabels;
   const phase = getSeasonPhase(currentWeek, rounds);
   const totalWeeks = league ? seasonLength(league) : 28;
   const firstOffSeasonWeek = totalWeeks - 3;
@@ -382,7 +385,9 @@ export const WeeklyAgenda: React.FC<{
       : currentWeek === FIRST_NON_DISTRICT_WEEK
         ? 'Season opener'
         : currentWeek === FIRST_DISTRICT_WEEK
-          ? 'District opener: the top 4 make the playoffs'
+          ? stateRules.playoffs.format === 'STATEWIDE_RANKING'
+            ? `${stateRules.districtLabel} opener: ${stateRules.districtLabel.toLowerCase()} champions are guaranteed a playoff spot`
+            : `${stateRules.districtLabel} opener: the top ${stateRules.playoffs.qualifiersPerDistrict} make the playoffs`
           : undefined;
     const opp = game.opponent;
     headline = {
@@ -538,8 +543,22 @@ export const WeeklyAgenda: React.FC<{
       });
     }
   }
-  // The playoff race (weeks 14-17)
-  if (phase === 'DISTRICT_PLAY' && currentWeek >= LAST_REGULAR_SEASON_WEEK - 3 && myRow) {
+  // The playoff race (weeks 14-17): a statewide power ranking (Georgia) ...
+  if (phase === 'DISTRICT_PLAY' && currentWeek >= LAST_REGULAR_SEASON_WEEK - 3 && myRow && stateRules.playoffs.format === 'STATEWIDE_RANKING') {
+    const ratings = powerRatings(leagueTeams, seasonSchedule);
+    const powerRank = [...leagueTeams].sort((a, b) => (ratings.get(b.id) ?? 0) - (ratings.get(a.id) ?? 0)).findIndex((t) => t.id === userTeamId) + 1;
+    const size = stateRules.playoffs.bracketSize;
+    extras.push({
+      id: 'race',
+      icon: powerRank <= size || myRow.rank === 1 ? '📊' : '⚠️',
+      title: `Playoff race: #${powerRank} in the power ranking`,
+      detail: `The top ${size} make the playoffs and ${stateRules.districtLabel.toLowerCase()} champions are guaranteed a top-${size / 2} seed. You're ${ordinal(myRow.rank)} in ${districtName} (${myRow.districtRecord}).`,
+      tone: 'todo',
+      link: { label: 'Standings', onClick: () => onNavigate('DISTRICT') }
+    });
+  }
+  // ... or the top N of each district (Texas)
+  if (phase === 'DISTRICT_PLAY' && currentWeek >= LAST_REGULAR_SEASON_WEEK - 3 && myRow && stateRules.playoffs.format === 'DISTRICT_FINISH') {
     const remaining = (id: string) => seasonSchedule.filter((g) => g.isDistrictGame && g.homeScore === undefined && (g.homeTeamId === id || g.awayTeamId === id)).length;
     const wins = (id: string) => districtTeams.find((t) => t.id === id)?.record.districtWins ?? 0;
     const others = standings.filter((r) => r.teamId !== userTeamId).map((r) => r.teamId);

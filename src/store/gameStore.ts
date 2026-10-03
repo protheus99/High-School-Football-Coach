@@ -18,7 +18,7 @@ import {
   buildTexasLeague,
   Difficulty,
   findDistrict,
-  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, playoffRoundCount, seasonLength } from '../sim/league';
+  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, playoffRoundCount, seasonLength, buildStateWorld } from '../sim/league';
 import {
   applyGameResult,
   FEEDER_SIGNING_WEEK,
@@ -320,7 +320,7 @@ interface GameStoreState {
 
   // Actions
   startNewSeason: (world?: GameWorld) => void; // default: the Texas 6A world
-  newGame: (difficulty: Difficulty) => string; // random Texas school for the difficulty; returns its name
+  newGame: (difficulty: Difficulty, state?: string) => string; // random school in the state (Texas by default) for the difficulty; returns its name
   loadGame: (save: GameSaveRecord) => void;
   saveGame: (saveName?: string) => Promise<string>; // new save slot; returns its id
   advanceWeek: () => void;
@@ -435,10 +435,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
   },
 
-  newGame: (difficulty) => {
-    const school = pickSchoolForDifficulty(difficulty);
+  newGame: (difficulty, state = 'Texas') => {
+    const school = pickSchoolForDifficulty(difficulty, state);
     set({ currentYear: 2026, difficulty });
-    get().startNewSeason(buildTexasLeague(school));
+    get().startNewSeason(buildStateWorld(state, school));
     return school;
   },
 
@@ -778,6 +778,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       {
         splitDivisions: league.splitDivisions,
         rules: rulesForState(league.state),
+        schedule: get().seasonSchedule,
         excludeTeamIds: [
           ...(sanctionLevel >= 3 ? [userTeamId] : []),
           ...leagueTeams.filter((t) => t.feederProfile?.bannedSeason === get().currentYear).map((t) => t.id)

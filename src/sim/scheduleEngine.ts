@@ -157,9 +157,10 @@ export function applyGameResult(home: Team, away: Team, homeScore: number, awayS
 }
 
 /** Plays out a whole league's regular season in the background (dev tools and tests). */
-export function simulateRegularSeason(regions: Team[][][], year: number): void {
+export function simulateRegularSeason(regions: Team[][][], year: number): ScheduledGame[] {
   const teams = regions.flat(2);
-  for (const game of generateSeasonSchedule(regions, year)) {
+  const schedule = generateSeasonSchedule(regions, year);
+  for (const game of schedule) {
     const home = teams.find((t) => t.id === game.homeTeamId)!;
     const away = teams.find((t) => t.id === game.awayTeamId)!;
     const box = simulateMacroMatch(game.gameId, game.week, home, away);
@@ -167,6 +168,7 @@ export function simulateRegularSeason(regions: Team[][][], year: number): void {
     game.awayScore = box.awayScore;
     applyGameResult(home, away, box.homeScore, box.awayScore, game.isDistrictGame);
   }
+  return schedule;
 }
 
 /**

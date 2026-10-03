@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { findDistrict, findRegion, playoffRoundCount } from '../sim/league';
 import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
-import { ROUND_LABELS } from '../sim/playoffEngine';
+import { rulesForState } from '../sim/stateRules';
 
 type Scope = 'DISTRICT' | 'REGION' | 'ALL';
 
@@ -29,6 +29,7 @@ export const ScoreboardView: React.FC = () => {
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
   const lastGameWeek = LAST_REGULAR_SEASON_WEEK + (league ? playoffRoundCount(league) : 6);
+  const ROUND_LABELS = rulesForState(league?.state).playoffs.roundLabels;
 
   const rowsForWeek = (week: number): ScoreRow[] => {
     if (week > LAST_REGULAR_SEASON_WEEK) {
@@ -57,7 +58,7 @@ export const ScoreboardView: React.FC = () => {
         awayName: names.get(g.awayTeamId) ?? 'Unknown',
         homeScore: g.homeScore,
         awayScore: g.awayScore,
-        tag: g.forfeitedByTeamId ? 'Forfeit' : g.isDistrictGame ? 'District' : undefined
+        tag: g.forfeitedByTeamId ? 'Forfeit' : g.isDistrictGame ? rulesForState(league?.state).districtLabel : undefined
       }));
   };
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { rulesForState } from '../sim/stateRules';
 import { OffensiveScheme } from '../types/game';
 import { PreGameStrategyModal } from './PreGameStrategyModal';
 import { Sheet } from './ui/Sheet';
@@ -131,7 +132,7 @@ export const DashboardView: React.FC<{
         onAutoSim={advanceWeek}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}
-        phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek, league ? playoffRoundCount(league) : 6)]}
+        phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek, league ? playoffRoundCount(league) : 6)].replace('District', rulesForState(league?.state).districtLabel)}
       />
 
     </div>

@@ -1,6 +1,7 @@
 import { ScheduledGame, Team } from '../types/game';
 import { getTeamGameForWeek } from './scheduleEngine';
-import { currentRound, findUserNode, PlayoffBracketState, ROUND_LABELS } from './playoffEngine';
+import { currentRound, findUserNode, PlayoffBracketState } from './playoffEngine';
+import { rulesForState } from './stateRules';
 
 export interface UserMatchup {
   gameId: string;
@@ -31,7 +32,7 @@ export function getUserMatchup(state: {
       gameId: `po_${node.matchupId}`,
       home: node.team1,
       away: node.team2,
-      label: `${divisionLabel}${ROUND_LABELS[currentRound(playoffBracket)]}`,
+      label: `${divisionLabel}${rulesForState(node.team1.state).playoffs.roundLabels[currentRound(playoffBracket)]}`,
       isPlayoff: true,
       isPlayed: node.winnerTeamId !== undefined,
       homeScore: node.team1Score,

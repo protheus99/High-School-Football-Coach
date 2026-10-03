@@ -4,7 +4,7 @@ import { useGameStore } from '../store/gameStore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, leagueRegionTeams } from '../sim/league';
 import { LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
-import { ROUND_LABELS } from '../sim/playoffEngine';
+import { rulesForState } from '../sim/stateRules';
 import { Player, PlayerStats, Team } from '../types/game';
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
@@ -29,6 +29,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
   const team = leagueTeams.find((t) => t.id === teamId);
   if (!team) return null;
   const isUser = team.id === userTeamId;
+  const ROUND_LABELS = rulesForState(league?.state).playoffs.roundLabels;
 
   const district = league ? findDistrict(league, team.id) : undefined;
   const districtTeams = league && district ? leagueRegionTeams(league, leagueTeams).flat().find((d) => d.some((t) => t.id === team.id)) ?? [] : [];

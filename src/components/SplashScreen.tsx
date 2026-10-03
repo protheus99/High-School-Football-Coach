@@ -1,3 +1,4 @@
+import { PLAYABLE_STATES, rulesForState } from '../sim/stateRules';
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { DIFFICULTY_PRESTIGE, Difficulty } from '../sim/league';
@@ -30,11 +31,12 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
       .catch(() => setSaves([]));
   }, [view]);
 
+  const [state, setState] = useState('Texas');
   const startNew = (difficulty: Difficulty) => {
     setBusy(true);
     // Let the button state paint before building the 254-team world
     setTimeout(() => {
-      newGame(difficulty);
+      newGame(difficulty, state);
       setBusy(false);
       onEnterGame();
     }, 20);
@@ -67,7 +69,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ fontSize: '48px' }}>🏈</div>
           <h1 style={{ margin: '4px 0', fontSize: 'clamp(26px, 6vw, 40px)', letterSpacing: '1px', color: '#F8FAFC' }}>HIGH SCHOOL FOOTBALL HEAD COACH</h1>
-          <p style={{ margin: 0, color: '#94A3B8', fontSize: '15px' }}>Friday nights in Texas. Your program, your call.</p>
+          <p style={{ margin: 0, color: '#94A3B8', fontSize: '15px' }}>Friday nights under the lights. Your program, your call.</p>
         </div>
 
         {view === 'MENU' && (
@@ -88,9 +90,17 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
 
         {view === 'NEW' && (
           <div>
+            <h2 style={sectionTitle}>Choose a State</h2>
+            <div className="ui-chips" aria-label="State" style={{ justifyContent: 'center', marginBottom: '16px' }}>
+              {PLAYABLE_STATES.map((st) => (
+                <button key={st} className="ui-chip" aria-pressed={state === st} onClick={() => setState(st)}>
+                  {st} · {rulesForState(st).governingBody} {rulesForState(st).classification}
+                </button>
+              ))}
+            </div>
             <h2 style={sectionTitle}>Choose a Difficulty</h2>
             <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
-              You&apos;ll be hired at a random Texas 6A school in the matching prestige range.
+              You&apos;ll be hired at a random {state} {rulesForState(state).classification} school in the matching prestige range.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
               {DIFFICULTIES.map((d) => (

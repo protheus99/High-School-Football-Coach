@@ -13,7 +13,9 @@ export const DistrictStandingsView: React.FC = () => {
   const { playoffs } = rulesForState(league?.state);
   const split = !!league?.splitDivisions && playoffs.divisionSplit === 'TOP_ENROLLMENT_HALF';
   const bracketSize = districtCount * (split ? playoffs.qualifiersPerDistrict / playoffs.divisionNames.length : playoffs.qualifiersPerDistrict);
-  const qualifyText = split
+  const qualifyText = playoffs.format === 'STATEWIDE_RANKING'
+    ? `${rulesForState(league?.state).districtLabel} champions are guaranteed a playoff spot and a top-${playoffs.bracketSize / 2} seed; the rest of the ${playoffs.bracketSize}-team bracket is filled by the statewide power ranking.`
+    : split
     ? `Top ${playoffs.qualifiersPerDistrict} teams qualify; they are split by enrollment into the ${playoffs.divisionNames.join(' and ')} ${bracketSize}-team state brackets.`
     : `Top ${playoffs.qualifiersPerDistrict} teams qualify for the ${bracketSize}-team state tournament.`;
 

@@ -1,5 +1,6 @@
 import { OffensiveScheme, DefensiveScheme, Team } from '../types/game';
 import texas6A from '../data/texas-6a.json';
+import georgia7A from '../data/georgia-7a.json';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { nameProfileForArea } from '../generators/names';
 import { LAST_REGULAR_SEASON_WEEK, OFF_SEASON_WEEKS } from './scheduleEngine';
@@ -37,11 +38,34 @@ export const DIFFICULTY_PRESTIGE: Record<Difficulty, { min: number; max: number 
   HARD: { min: 60, max: 79 }
 };
 
-/** A random Texas 6A school whose prestige fits the difficulty. */
-export function pickSchoolForDifficulty(difficulty: Difficulty): string {
+/** A playable state's bundled top class: regions of districts of schools (built from the design spec / official alignments). */
+interface StateWorldData {
+  regions: {
+    name: string;
+    area: string;
+    districts: {
+      number: number;
+      name: string;
+      area: string;
+      schools: { name: string; mascot: string; primaryColor: string; secondaryColor: string; prestige: number; offenseScheme: string; defenseScheme: string }[];
+    }[];
+  }[];
+}
+
+/** Every playable state's world: its data, league name, whether its brackets split by enrollment, and the default school. */
+const STATE_WORLDS: Record<string, { data: StateWorldData; leagueName: string; splitDivisions: boolean; idPrefix: string; defaultSchool: string }> = {
+  Texas: { data: texas6A, leagueName: 'UIL Class 6A', splitDivisions: true, idPrefix: 'tx_6a_d', defaultSchool: DEFAULT_USER_SCHOOL },
+  Georgia: { data: georgia7A, leagueName: 'GHSA Class 7A', splitDivisions: false, idPrefix: 'ga_7a_r', defaultSchool: 'Buford' }
+};
+
+/** A random school in the state's top class whose prestige fits the difficulty. */
+export function pickSchoolForDifficulty(difficulty: Difficulty, state = 'Texas'): string {
   const { min, max } = DIFFICULTY_PRESTIGE[difficulty];
-  const schools = texas6A.regions.flatMap((r) => r.districts.flatMap((d) => d.schools)).filter((s) => s.prestige >= min && s.prestige <= max);
-  return schools[Math.floor(Math.random() * schools.length)].name;
+  const all = (STATE_WORLDS[state] ?? STATE_WORLDS.Texas).data.regions.flatMap((r) => r.districts.flatMap((d) => d.schools));
+  const fits = all.filter((s) => s.prestige >= min && s.prestige <= max);
+  // Smaller states may have no school in a band: take the closest prestige instead
+  const pool = fits.length > 0 ? fits : [...all].sort((a, b) => Math.abs(a.prestige - (min + max) / 2) - Math.abs(b.prestige - (min + max) / 2)).slice(0, 3);
+  return pool[Math.floor(Math.random() * pool.length)].name;
 }
 
 /** A built game world and the team the user coaches. */
@@ -53,13 +77,20 @@ export interface GameWorld {
 
 /** All of Texas 6A from the design spec's database: 4 regions, 32 districts, every varsity program. */
 export function buildTexasLeague(userSchool = DEFAULT_USER_SCHOOL): GameWorld {
+  return buildStateWorld('Texas', userSchool);
+}
+
+/** A playable state's whole top class (Texas 6A, Georgia 7A), with the user at the given school. */
+export function buildStateWorld(state: string, userSchool?: string): GameWorld {
+  const world = STATE_WORLDS[state] ?? STATE_WORLDS.Texas;
+  const stateName = STATE_WORLDS[state] ? state : 'Texas';
   const teams: Team[] = [];
-  const regions: LeagueRegion[] = texas6A.regions.map((region) => ({
+  const regions: LeagueRegion[] = world.data.regions.map((region) => ({
     name: region.name,
     area: region.area,
     districts: region.districts.map((district) => {
       const districtTeams = generateDistrictTeams(
-        `tx_6a_d${district.number}`,
+        `${world.idPrefix}${district.number}`,
         district.schools.map((s) => ({
           name: s.name,
           mascot: s.mascot,
@@ -69,15 +100,15 @@ export function buildTexasLeague(userSchool = DEFAULT_USER_SCHOOL): GameWorld {
           offenseScheme: s.offenseScheme as OffensiveScheme,
           defenseScheme: s.defenseScheme as DefensiveScheme
         })),
-        { talentFromPrestige: true, state: 'Texas', nameProfile: nameProfileForArea(district.area) }
+        { talentFromPrestige: true, state: stateName, nameProfile: nameProfileForArea(district.area) }
       );
       teams.push(...districtTeams);
-      return { id: `tx_6a_d${district.number}`, name: district.name, area: district.area, teamIds: districtTeams.map((t) => t.id) };
+      return { id: `${world.idPrefix}${district.number}`, name: district.name, area: district.area, teamIds: districtTeams.map((t) => t.id) };
     })
   }));
 
-  const userTeamId = (teams.find((t) => t.name === userSchool) ?? teams.find((t) => t.name === DEFAULT_USER_SCHOOL) ?? teams[0]).id;
-  return { league: { name: 'UIL Class 6A', state: 'Texas', splitDivisions: true, regions }, teams, userTeamId };
+  const userTeamId = (teams.find((t) => t.name === userSchool) ?? teams.find((t) => t.name === world.defaultSchool) ?? teams[0]).id;
+  return { league: { name: world.leagueName, state: stateName, splitDivisions: world.splitDivisions, regions }, teams, userTeamId };
 }
 
 /**
@@ -227,6 +258,7 @@ export function findRegion(league: LeagueStructure, teamId: string): LeagueRegio
 /** Rounds needed: each region's qualifiers play down to a champion, then region champions meet. */
 export function playoffRoundCount(league: LeagueStructure): number {
   const { playoffs } = rulesForState(league.state);
+  if (playoffs.format === 'STATEWIDE_RANKING') return Math.log2(playoffs.bracketSize);
   const split = league.splitDivisions && playoffs.divisionSplit === 'TOP_ENROLLMENT_HALF';
   const qualifiersPerDistrict = split ? playoffs.qualifiersPerDistrict / playoffs.divisionNames.length : playoffs.qualifiersPerDistrict;
   const regionQualifiers = (league.regions[0]?.districts.length ?? 0) * qualifiersPerDistrict;

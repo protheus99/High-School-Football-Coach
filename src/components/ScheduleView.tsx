@@ -31,7 +31,8 @@ function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signing
   }
 }
 import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
-import { ROUND_DESCRIPTIONS, ROUND_LABELS, roundNamesFor } from '../sim/playoffEngine';
+import { leagueRoundNames } from '../sim/playoffEngine';
+import { rulesForState } from '../sim/stateRules';
 import { Team } from '../types/game';
 
 export const ScheduleView: React.FC = () => {
@@ -42,9 +43,9 @@ export const ScheduleView: React.FC = () => {
 
   const totalWeeks = league ? seasonLength(league) : 20;
   const playoffRounds = league ? playoffRoundCount(league) : 6;
-  // UIL round names for weeks 18-23 (Bi-District, Area, Regional Semifinal, Regional Final, State Semifinal, State Championship)
-  const stateRounds = league ? Math.log2(league.regions.length) : 2;
-  const leagueRoundNames = roundNamesFor(playoffRounds - stateRounds, stateRounds);
+  // The state's round names for the playoff weeks (Texas: Bi-District ... State Championship; Georgia: First Round ... State Championship)
+  const { roundLabels: ROUND_LABELS, roundDescriptions: ROUND_DESCRIPTIONS } = rulesForState(league?.state).playoffs;
+  const leagueRounds = league ? leagueRoundNames(league) : [];
   const districtName = league ? findDistrict(league, userTeamId)?.name : undefined;
 
   // Season built from the stored schedule, plus the user's playoff games from the bracket
@@ -63,7 +64,7 @@ export const ScheduleView: React.FC = () => {
       const opponentScore = isHome ? node?.team2Score : node?.team1Score;
       return {
         ...base,
-        label: playoffBracket.roundNames[roundIndex] ? ROUND_LABELS[playoffBracket.roundNames[roundIndex]] : leagueRoundNames[roundIndex] && ROUND_LABELS[leagueRoundNames[roundIndex]],
+        label: playoffBracket.roundNames[roundIndex] ? ROUND_LABELS[playoffBracket.roundNames[roundIndex]] : leagueRounds[roundIndex] && ROUND_LABELS[leagueRounds[roundIndex]],
         opponent,
         isHome,
         result: node?.winnerTeamId ? `${node.winnerTeamId === userTeamId ? 'W' : 'L'} ${userScore}-${opponentScore}` : null
@@ -79,7 +80,7 @@ export const ScheduleView: React.FC = () => {
 
     return {
       ...base,
-      label: roundIndex >= 0 && roundIndex < playoffRounds ? ROUND_LABELS[leagueRoundNames[roundIndex]] : (undefined as string | undefined),
+      label: roundIndex >= 0 && roundIndex < playoffRounds ? ROUND_LABELS[leagueRounds[roundIndex]] : (undefined as string | undefined),
       opponent: leagueTeams.find((t) => t.id === opponentId) ?? null,
       isHome,
       result: !played
@@ -106,7 +107,7 @@ export const ScheduleView: React.FC = () => {
             {/* A header where each phase begins */}
             {(i === 0 || schedule[i - 1].type !== game.type) && (
               <h4 style={{ margin: i === 0 ? '0' : '10px 0 0', fontSize: '13px', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {SEASON_PHASE_LABELS[game.type]}{' '}
+                {SEASON_PHASE_LABELS[game.type].replace('District', rulesForState(league?.state).districtLabel)}{' '}
                 <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>
                   · {(() => {
                     const last = schedule.filter((g) => g.type === game.type).pop()!.week;
@@ -148,7 +149,7 @@ export const ScheduleView: React.FC = () => {
                     game.type,
                     game.week === totalWeeks,
                     currentYear >= feederClassYear,
-                    leagueRoundNames[game.week - LAST_REGULAR_SEASON_WEEK - 1] && ROUND_DESCRIPTIONS[leagueRoundNames[game.week - LAST_REGULAR_SEASON_WEEK - 1]]
+                    leagueRounds[game.week - LAST_REGULAR_SEASON_WEEK - 1] && ROUND_DESCRIPTIONS[leagueRounds[game.week - LAST_REGULAR_SEASON_WEEK - 1]]
                   )}</div>
               )}
             </div>

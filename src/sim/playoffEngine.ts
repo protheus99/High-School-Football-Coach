@@ -1,8 +1,9 @@
-import { Team } from '../types/game';
+import { ScheduledGame, Team } from '../types/game';
 import { simulateMacroMatch, rollGameInjuries } from './macroSim';
 import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 import { calculateDistrictStandings } from './districtEngine';
-import { StateRules, TEXAS_RULES } from './stateRules';
+import { StateRules, TEXAS_RULES, rulesForState } from './stateRules';
+import { LeagueStructure, playoffRoundCount } from './league';
 
 export type PlayoffRound =
   | 'BI_DISTRICT'
@@ -50,6 +51,14 @@ export interface PlayoffBracketState {
   divisions: PlayoffDivision[];
   championshipTitle?: string;
   championshipVenue?: string;
+}
+
+/** The rounds a league's playoffs will have (before the bracket exists): by its state's format and size. */
+export function leagueRoundNames(league: LeagueStructure): PlayoffRound[] {
+  const rules = rulesForState(league.state);
+  if (rules.playoffs.format === 'STATEWIDE_RANKING') return roundNamesFor(Math.log2(rules.playoffs.bracketSize) - 1, 1);
+  const stateRounds = Math.log2(league.regions.length);
+  return roundNamesFor(playoffRoundCount(league) - stateRounds, stateRounds);
 }
 
 /** Round names: region rounds count up from Bi-District, state rounds count down to the final. */
@@ -121,10 +130,11 @@ function regionFirstRound(region: string, districtSeeds: Team[][]): BracketNode[
  */
 export function buildPlayoffBracket(
   regions: { name: string; districts: Team[][] }[],
-  options: { splitDivisions: boolean; excludeTeamIds?: string[]; rules?: StateRules }
+  options: { splitDivisions: boolean; excludeTeamIds?: string[]; rules?: StateRules; schedule?: ScheduledGame[] }
 ): PlayoffBracketState {
   const exclude = options.excludeTeamIds ?? [];
   const { playoffs } = options.rules ?? TEXAS_RULES;
+  if (playoffs.format === 'STATEWIDE_RANKING') return buildRankedBracket(regions, exclude, options.rules ?? TEXAS_RULES, options.schedule ?? []);
   // A split league uses the state's divisions (the enrollment split); otherwise one statewide bracket
   const split = options.splitDivisions && playoffs.divisionSplit === 'TOP_ENROLLMENT_HALF';
   const divisionNames = split ? playoffs.divisionNames : ['State'];
@@ -147,6 +157,95 @@ export function buildPlayoffBracket(
     roundNames: roundNamesFor(regionRounds, Math.log2(regions.length)),
     currentRoundIndex: 0,
     divisions,
+    championshipTitle: playoffs.championshipTitle,
+    championshipVenue: playoffs.championshipVenue
+  };
+}
+
+/**
+ * Power ratings in the GHSA style: a team's win % x its opponents' win % x its opponents' opponents' win %
+ * (regular-season games), a strength-of-schedule measure like the NCAA's RPI.
+ */
+export function powerRatings(teams: Team[], schedule: ScheduledGame[]): Map<string, number> {
+  const opponents = new Map<string, string[]>();
+  schedule
+    .filter((g) => g.homeScore !== undefined)
+    .forEach((g) => {
+      opponents.set(g.homeTeamId, [...(opponents.get(g.homeTeamId) ?? []), g.awayTeamId]);
+      opponents.set(g.awayTeamId, [...(opponents.get(g.awayTeamId) ?? []), g.homeTeamId]);
+    });
+  const byId = new Map(teams.map((t) => [t.id, t]));
+  const winPct = (id: string) => {
+    const t = byId.get(id);
+    const games = t ? t.record.wins + t.record.losses : 0;
+    return games ? t!.record.wins / games : 0;
+  };
+  const average = (values: number[]) => (values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0);
+  const opponentsWinPct = (id: string) => average((opponents.get(id) ?? []).map(winPct));
+  return new Map(teams.map((t) => [t.id, winPct(t.id) * opponentsWinPct(t.id) * average((opponents.get(t.id) ?? []).map(opponentsWinPct))]));
+}
+
+/** Standard bracket order for seeds 1..n: adjacent pairs meet, and the top seeds can only meet late. */
+function seedOrder(n: number): number[] {
+  let order = [1];
+  while (order.length < n) {
+    const size = order.length * 2;
+    order = order.flatMap((s) => [s, size + 1 - s]);
+  }
+  return order;
+}
+
+/**
+ * One statewide bracket seeded by power rating (Georgia GHSA). Every district (region) champion is
+ * guaranteed a top-half seed: a champion ranked lower takes the last top-half spot and the others move down.
+ */
+function buildRankedBracket(regions: { name: string; districts: Team[][] }[], exclude: string[], rules: StateRules, schedule: ScheduledGame[]): PlayoffBracketState {
+  const { playoffs } = rules;
+  const size = playoffs.bracketSize;
+  const half = size / 2;
+  const eligible = regions.flatMap((r) => r.districts.flat()).filter((t) => !exclude.includes(t.id));
+  const ratings = powerRatings(eligible, schedule);
+  const champions = new Set(
+    regions.flatMap((r) =>
+      r.districts.map((teams) => calculateDistrictStandings(teams.filter((t) => !exclude.includes(t.id)))[0]?.teamId).filter((id): id is string => !!id)
+    )
+  );
+  const ranked = [...eligible].sort((a, b) => (ratings.get(b.id) ?? 0) - (ratings.get(a.id) ?? 0) || b.prestige - a.prestige);
+  const top = ranked.slice(0, half);
+  const rest = ranked.slice(half);
+  rest.filter((t) => champions.has(t.id)).forEach((champion) => {
+    const bumped = [...top].reverse().find((t) => !champions.has(t.id));
+    if (bumped) {
+      top.splice(top.indexOf(bumped), 1);
+      rest.unshift(bumped);
+    }
+    rest.splice(rest.indexOf(champion), 1);
+    top.push(champion);
+  });
+  rest.sort((a, b) => (ratings.get(b.id) ?? 0) - (ratings.get(a.id) ?? 0) || b.prestige - a.prestige);
+  const seeds = [...top, ...rest].slice(0, size);
+
+  const order = seedOrder(size);
+  const firstRound: BracketNode[] = [];
+  for (let i = 0; i < size / 2; i++) {
+    const high = seeds[order[2 * i] - 1];
+    const low = seeds[order[2 * i + 1] - 1];
+    if (!high && !low) continue;
+    const team1 = (high ?? low)!;
+    const bye = !high || !low;
+    firstRound.push({
+      matchupId: `state_r1_${i + 1}`,
+      round: 'BI_DISTRICT',
+      team1, // the higher seed hosts
+      team2: bye ? team1 : low!,
+      ...(bye ? { isBye: true, winnerTeamId: team1.id } : {})
+    });
+  }
+  return {
+    isPlayoffsActive: true,
+    roundNames: roundNamesFor(Math.log2(size) - 1, 1),
+    currentRoundIndex: 0,
+    divisions: [{ name: playoffs.divisionNames[0] ?? 'State', rounds: [firstRound] }],
     championshipTitle: playoffs.championshipTitle,
     championshipVenue: playoffs.championshipVenue
   };

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { BracketNode, PlayoffBracketState, ROUND_LABELS, findUserNode, userDivisionIndex } from '../sim/playoffEngine';
+import { BracketNode, PlayoffBracketState, findUserNode, userDivisionIndex } from '../sim/playoffEngine';
+import { rulesForState } from '../sim/stateRules';
+import { useGameStore } from '../store/gameStore';
 import { Team } from '../types/game';
 import { Sheet } from './ui/Sheet';
 
@@ -10,6 +12,7 @@ interface PlayoffModalProps {
 }
 
 export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({ bracketState, userTeamId, onClose }) => {
+  const ROUND_LABELS = rulesForState(useGameStore((st) => st.league?.state)).playoffs.roundLabels;
   const { divisions, roundNames, currentRoundIndex, isPlayoffsActive } = bracketState;
   const userDivision = userDivisionIndex(bracketState, userTeamId);
   const [divisionIndex, setDivisionIndex] = useState(userDivision ?? 0);

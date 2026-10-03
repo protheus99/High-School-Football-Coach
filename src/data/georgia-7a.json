@@ -1,0 +1,578 @@
+{
+ "state": "Georgia",
+ "classification": "7A",
+ "regions": [
+  {
+   "name": "Class 7A",
+   "area": "Georgia",
+   "districts": [
+    {
+     "number": 1,
+     "name": "Region 1-7A",
+     "area": "South Georgia & Coast",
+     "schools": [
+      {
+       "name": "Camden County",
+       "city": "Kingsland",
+       "mascot": "Wildcats",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 73,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Colquitt County",
+       "city": "Moultrie",
+       "mascot": "Packers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFC72C",
+       "prestige": 90,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lowndes",
+       "city": "Valdosta",
+       "mascot": "Vikings",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 86,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Richmond Hill",
+       "city": "Richmond Hill",
+       "mascot": "Wildcats",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Valdosta",
+       "city": "Valdosta",
+       "mascot": "Wildcats",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "Region 2-7A",
+     "area": "West Metro & Coweta",
+     "schools": [
+      {
+       "name": "Carrollton",
+       "city": "Carrollton",
+       "mascot": "Trojans",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 94,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Douglas County",
+       "city": "Douglasville",
+       "mascot": "Tigers",
+       "primaryColor": "#000000",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "East Coweta",
+       "city": "Sharpsburg",
+       "mascot": "Indians",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "prestige": 76,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Northgate",
+       "city": "Newnan",
+       "mascot": "Vikings",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#000000",
+       "prestige": 70,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Westlake",
+       "city": "Atlanta",
+       "mascot": "Lions",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "Region 3-7A",
+     "area": "Cobb & Atlanta",
+     "schools": [
+      {
+       "name": "Campbell",
+       "city": "Smyrna",
+       "mascot": "Spartans",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 66,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Harrison",
+       "city": "Kennesaw",
+       "mascot": "Hoyas",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "prestige": 74,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Hillgrove",
+       "city": "Powder Springs",
+       "mascot": "Hawks",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#B3A369",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Kennesaw Mountain",
+       "city": "Kennesaw",
+       "mascot": "Mustangs",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 72,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "McEachern",
+       "city": "Powder Springs",
+       "mascot": "Indians",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#000000",
+       "prestige": 78,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "North Atlanta",
+       "city": "Atlanta",
+       "mascot": "Warriors",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 62,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Pebblebrook",
+       "city": "Mableton",
+       "mascot": "Falcons",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFC72C",
+       "prestige": 64,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "Region 4-7A",
+     "area": "Gwinnett South, DeKalb & Rockdale",
+     "schools": [
+      {
+       "name": "Archer",
+       "city": "Lawrenceville",
+       "mascot": "Tigers",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "prestige": 72,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Grayson",
+       "city": "Loganville",
+       "mascot": "Rams",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 95,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lakeside (DeKalb)",
+       "city": "Atlanta",
+       "mascot": "Vikings",
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "prestige": 60,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Newton",
+       "city": "Covington",
+       "mascot": "Rams",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Rockdale County",
+       "city": "Conyers",
+       "mascot": "Bulldogs",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFC72C",
+       "prestige": 64,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "South Gwinnett",
+       "city": "Snellville",
+       "mascot": "Comets",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 66,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "Region 5-7A",
+     "area": "Cobb, Cherokee & Paulding",
+     "schools": [
+      {
+       "name": "Cherokee",
+       "city": "Canton",
+       "mascot": "Warriors",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#B3A369",
+       "prestige": 68,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Etowah",
+       "city": "Woodstock",
+       "mascot": "Eagles",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 70,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Marietta",
+       "city": "Marietta",
+       "mascot": "Blue Devils",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 78,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "North Cobb",
+       "city": "Kennesaw",
+       "mascot": "Warriors",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "North Paulding",
+       "city": "Dallas",
+       "mascot": "Wolfpack",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 70,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Paulding County",
+       "city": "Dallas",
+       "mascot": "Patriots",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "prestige": 62,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Walton",
+       "city": "Marietta",
+       "mascot": "Raiders",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 87,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Wheeler",
+       "city": "Marietta",
+       "mascot": "Wildcats",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 66,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "name": "Region 6-7A",
+     "area": "Forsyth County",
+     "schools": [
+      {
+       "name": "Denmark",
+       "city": "Alpharetta",
+       "mascot": "Danes",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "prestige": 74,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Forsyth Central",
+       "city": "Cumming",
+       "mascot": "Bulldogs",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "prestige": 66,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Lambert",
+       "city": "Suwanee",
+       "mascot": "Longhorns",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "North Forsyth",
+       "city": "Cumming",
+       "mascot": "Raiders",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#B3A369",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "South Forsyth",
+       "city": "Cumming",
+       "mascot": "War Eagles",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 70,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "West Forsyth",
+       "city": "Cumming",
+       "mascot": "Wolverines",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 72,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "name": "Region 7-7A",
+     "area": "Gwinnett Central",
+     "schools": [
+      {
+       "name": "Berkmar",
+       "city": "Lilburn",
+       "mascot": "Patriots",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFD700",
+       "prestige": 46,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Brookwood",
+       "city": "Snellville",
+       "mascot": "Broncos",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFC72C",
+       "prestige": 75,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Duluth",
+       "city": "Duluth",
+       "mascot": "Wildcats",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "prestige": 62,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Norcross",
+       "city": "Norcross",
+       "mascot": "Blue Devils",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#000000",
+       "prestige": 82,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "North Gwinnett",
+       "city": "Suwanee",
+       "mascot": "Bulldogs",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Parkview",
+       "city": "Lilburn",
+       "mascot": "Panthers",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Peachtree Ridge",
+       "city": "Suwanee",
+       "mascot": "Lions",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 68,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 8,
+     "name": "Region 8-7A",
+     "area": "Gwinnett North & Buford",
+     "schools": [
+      {
+       "name": "Buford",
+       "city": "Buford",
+       "mascot": "Wolves",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFD700",
+       "prestige": 98,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Central Gwinnett",
+       "city": "Lawrenceville",
+       "mascot": "Black Knights",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 60,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Collins Hill",
+       "city": "Suwanee",
+       "mascot": "Eagles",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Dacula",
+       "city": "Dacula",
+       "mascot": "Falcons",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 74,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Discovery",
+       "city": "Lawrenceville",
+       "mascot": "Titans",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 58,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Mill Creek",
+       "city": "Hoschton",
+       "mascot": "Hawks",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 91,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Seckinger",
+       "city": "Buford",
+       "mascot": "Jaguars",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFD700",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

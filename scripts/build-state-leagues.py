@@ -235,7 +235,29 @@ def build_texas_world(lines, out_file: Path):
     print(f"Texas world: {len(regions)} regions, {len(districts)} districts, {sum(len(d['schools']) for d in districts)} schools")
 
 
+# Curated states that get a bundled statewide world (like Texas) in src/data: state -> output file
+STATE_WORLD_FILES = {'Georgia': 'georgia-7a.json'}
+
+
+def build_curated_worlds(out_dir: Path):
+    """A playable state's whole top class as one structure: one league region holding every district."""
+    parsed = parse(Path(sys.argv[1]).read_text(encoding='utf-8').split('\n'))
+    curated = curated_states(parsed)
+    for state, file in STATE_WORLD_FILES.items():
+        info = curated[state]
+        districts = []
+        for number, (name, schools) in enumerate(info['districts'].items(), start=1):
+            match = re.match(r'^(.*?)\s*\((.*)\)$', name)
+            districts.append({'number': number, 'name': match.group(1) if match else name, 'area': match.group(2) if match else state,
+                              'schools': schools})
+        world = {'state': state, 'classification': info['classification'],
+                 'regions': [{'name': f"Class {info['classification']}", 'area': state, 'districts': districts}]}
+        (out_dir / file).write_text(json.dumps(world, indent=1) + '\n', encoding='utf-8')
+        print(f"{state} world: {len(districts)} districts, {sum(len(d['schools']) for d in districts)} schools")
+
+
 if __name__ == '__main__':
     main()
+    build_curated_worlds(Path(__file__).resolve().parent.parent / 'src' / 'data')
     build_texas_world(Path(sys.argv[1]).read_text(encoding='utf-8').split('\n'),
                       Path(__file__).resolve().parent.parent / 'src' / 'data' / 'texas-6a.json')
