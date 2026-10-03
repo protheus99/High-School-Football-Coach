@@ -8,7 +8,6 @@ import { PageHeader } from './ui/PageHeader';
 import {
   FEEDER_EVENTS,
   FeederEventType,
-  MAX_POOL_SIZE,
   PROSPECT_ACTION_COSTS,
   SOURCE_LABELS,
   COMMIT_THRESHOLD,
@@ -139,7 +138,6 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
       tabs={SECTIONS}
       active={section}
       onTab={onSection}
-      aside={`Pool: ${scoutingPool.filter((p) => !p.homeTeamId).length} / ${MAX_POOL_SIZE}`}
     />
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
 
