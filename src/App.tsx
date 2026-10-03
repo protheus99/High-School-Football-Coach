@@ -8,6 +8,7 @@ import { TeamView, TeamSection } from './components/TeamView';
 import { RankingsHub, RankingsSection } from './components/RankingsHub';
 import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
+import { TeamProfileSheet } from './components/TeamProfileSheet';
 import { LiveMatchScreen } from './components/LiveMatchScreen';
 import { SaveLoadManagerModal } from './components/SaveLoadManagerModal';
 import { CoachRPGSkillTreeModal } from './components/CoachRPGSkillTreeModal';
@@ -59,6 +60,8 @@ export const App: React.FC = () => {
     playoffBracket,
     isBanquetActive,
     firedFrom,
+    viewedTeamId,
+    openTeamProfile,
     graduatingSeniors,
     finishBanquet,
     advancePlayoffGame,
@@ -198,6 +201,7 @@ export const App: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
       {showSaveLoadModal && <SaveLoadManagerModal onClose={() => setShowSaveLoadModal(false)} />}
+      {viewedTeamId && <TeamProfileSheet teamId={viewedTeamId} onClose={() => openTeamProfile(null)} onOpenPlayer={setSelectedPlayerDetail} />}
       {selectedPlayerDetail && (
         <PlayerDetailModal
           player={selectedPlayerDetail}

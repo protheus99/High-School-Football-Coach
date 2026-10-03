@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { findDistrict, findRegion, playoffRoundCount } from '../sim/league';
 import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK } from '../sim/scheduleEngine';
@@ -17,33 +17,22 @@ interface ScoreRow {
   tag?: string;
 }
 
-/** Scores and results from every game in the league, week by week (regular season and playoffs). */
+/** Last week's results and this week's games around the league (regular season and playoffs). */
 export const ScoreboardView: React.FC = () => {
-  const { league, leagueTeams, seasonSchedule, playoffBracket, currentWeek, userTeamId } = useGameStore();
-  const rounds = league ? playoffRoundCount(league) : 0;
-  const lastWeek = LAST_REGULAR_SEASON_WEEK + rounds;
-  const weeks = Array.from({ length: lastWeek - FIRST_NON_DISTRICT_WEEK + 1 }, (_, i) => FIRST_NON_DISTRICT_WEEK + i);
-  // Default: the most recent week with results
-  const defaultWeek = Math.min(lastWeek, Math.max(FIRST_NON_DISTRICT_WEEK, currentWeek - 1));
-  const [week, setWeek] = useState(defaultWeek);
+  const { league, leagueTeams, seasonSchedule, playoffBracket, currentWeek, userTeamId, openTeamProfile } = useGameStore();
   const [scope, setScope] = useState<Scope>('DISTRICT');
   const [search, setSearch] = useState('');
-  // Keep the chosen week's chip visible in the scrolling week row
-  const weekRow = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    weekRow.current?.querySelector<HTMLElement>('[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
-  }, [week]);
 
   const names = useMemo(() => new Map(leagueTeams.map((t) => [t.id, t.name])), [leagueTeams]);
   // Current overall record (regular season), shown next to every team
   const records = useMemo(() => new Map(leagueTeams.map((t) => [t.id, `${t.record.wins}-${t.record.losses}`])), [leagueTeams]);
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
-  const isPlayoffWeek = week > LAST_REGULAR_SEASON_WEEK;
-  const roundIndex = week - LAST_REGULAR_SEASON_WEEK - 1;
+  const lastGameWeek = LAST_REGULAR_SEASON_WEEK + (league ? playoffRoundCount(league) : 6);
 
-  const rows: ScoreRow[] = useMemo(() => {
-    if (isPlayoffWeek) {
+  const rowsForWeek = (week: number): ScoreRow[] => {
+    if (week > LAST_REGULAR_SEASON_WEEK) {
+      const roundIndex = week - LAST_REGULAR_SEASON_WEEK - 1;
       if (!playoffBracket) return [];
       return playoffBracket.divisions.flatMap((d) =>
         (d.rounds[roundIndex] ?? []).map((n) => ({
@@ -70,34 +59,42 @@ export const ScoreboardView: React.FC = () => {
         awayScore: g.awayScore,
         tag: g.forfeitedByTeamId ? 'Forfeit' : g.isDistrictGame ? 'District' : undefined
       }));
-  }, [isPlayoffWeek, playoffBracket, roundIndex, seasonSchedule, week, names]);
+  };
 
   const inScope = (id: string) =>
     scope === 'ALL' ||
     (scope === 'DISTRICT' && !!district?.teamIds.includes(id)) ||
     (scope === 'REGION' && !!region?.districts.some((d) => d.teamIds.includes(id)));
   const query = search.trim().toLowerCase();
-  const shown = rows
-    .filter((r) => inScope(r.homeId) || inScope(r.awayId))
-    .filter((r) => !query || r.homeName.toLowerCase().includes(query) || r.awayName.toLowerCase().includes(query))
-    // The user's game first, then finals before upcoming games
-    .sort((a, b) => Number(b.homeId === userTeamId || b.awayId === userTeamId) - Number(a.homeId === userTeamId || a.awayId === userTeamId) || Number(b.homeScore !== undefined) - Number(a.homeScore !== undefined));
+  const filterRows = (rows: ScoreRow[]) =>
+    rows
+      .filter((r) => inScope(r.homeId) || inScope(r.awayId))
+      .filter((r) => !query || r.homeName.toLowerCase().includes(query) || r.awayName.toLowerCase().includes(query))
+      // The user's game first
+      .sort((a, b) => Number(b.homeId === userTeamId || b.awayId === userTeamId) - Number(a.homeId === userTeamId || a.awayId === userTeamId));
 
   if (!league) return null;
-  const weekLabel = (w: number) => (w > LAST_REGULAR_SEASON_WEEK ? (playoffBracket?.roundNames[w - LAST_REGULAR_SEASON_WEEK - 1] ? ROUND_LABELS[playoffBracket.roundNames[w - LAST_REGULAR_SEASON_WEEK - 1]] : `Playoffs ${w - LAST_REGULAR_SEASON_WEEK}`) : `Wk ${w}`);
+  const isGameWeek = (w: number) => w >= FIRST_NON_DISTRICT_WEEK && w <= lastGameWeek;
+  const weekLabel = (w: number) =>
+    w > LAST_REGULAR_SEASON_WEEK && playoffBracket?.roundNames[w - LAST_REGULAR_SEASON_WEEK - 1]
+      ? `${ROUND_LABELS[playoffBracket.roundNames[w - LAST_REGULAR_SEASON_WEEK - 1]]} (week ${w})`
+      : `Week ${w}`;
+  const sections = [
+    { key: 'last', title: 'Last week', week: currentWeek - 1 },
+    { key: 'this', title: 'This week', week: currentWeek }
+  ].filter((s) => isGameWeek(s.week));
+
+  // Team names open the team's page
+  const teamBtn = (id: string, name: string, home: boolean) => (
+    <button onClick={() => openTeamProfile(id)} style={teamLink}>
+      {home && <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>@ </span>}
+      {name} <span style={{ color: '#94A3B8', fontWeight: 'normal', fontSize: '12px' }}>({records.get(id)})</span>
+    </button>
+  );
 
   return (
     <div className="ui-screen" style={{ maxWidth: '800px' }}>
       <h2 style={{ margin: '0 0 8px 0' }}>Scoreboard</h2>
-
-      <div ref={weekRow} className="ui-chips" aria-label="Week" style={{ marginBottom: '8px' }}>
-        {weeks.map((w) => (
-          <button key={w} className="ui-chip" aria-pressed={week === w} onClick={() => setWeek(w)}>
-            {weekLabel(w)}
-          </button>
-        ))}
-      </div>
-
       <div className="ui-chips" aria-label="Which games" style={{ marginBottom: '8px' }}>
         {(
           [
@@ -113,38 +110,61 @@ export const ScoreboardView: React.FC = () => {
       </div>
       <input className="ui-input" type="search" placeholder="Find a team" value={search} onChange={(e) => setSearch(e.target.value)} style={{ marginBottom: '12px' }} />
 
-      {shown.length === 0 ? (
-        <div className="ui-muted">{isPlayoffWeek && !playoffBracket ? 'The playoff bracket is set after the regular season.' : 'No games to show.'}</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {shown.map((r) => {
-            const final = r.homeScore !== undefined && r.awayScore !== undefined;
-            const isUser = r.homeId === userTeamId || r.awayId === userTeamId;
-            const line = (name: string, teamId: string, score: number | undefined, won: boolean, home: boolean) => (
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontWeight: won ? 'bold' : 'normal', color: final && !won ? '#64748B' : '#0F172A' }}>
-                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {home && <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>@ </span>}
-                  {name} <span style={{ color: '#94A3B8', fontWeight: 'normal', fontSize: '12px' }}>({records.get(teamId)})</span>
-                </span>
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{final ? score : ''}</span>
-              </div>
-            );
-            return (
-              <div
-                key={r.id}
-                style={{ background: isUser ? '#EFF6FF' : '#fff', border: `1px solid ${isUser ? '#93C5FD' : '#E2E8F0'}`, borderRadius: '8px', padding: '10px 12px', fontSize: '14px' }}
-              >
-                {line(r.awayName, r.awayId, r.awayScore, final && r.awayScore! > r.homeScore!, false)}
-                {line(r.homeName, r.homeId, r.homeScore, final && r.homeScore! > r.awayScore!, true)}
-                <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
-                  {final ? 'Final' : 'Upcoming'}
-                  {r.tag ? ` · ${r.tag}` : ''}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {sections.length === 0 && (
+        <div className="ui-muted">{currentWeek < FIRST_NON_DISTRICT_WEEK ? `No games yet: the season opens in week ${FIRST_NON_DISTRICT_WEEK}.` : 'The season is over.'}</div>
       )}
+      {sections.map((section) => {
+        const rows = filterRows(rowsForWeek(section.week));
+        return (
+          <section key={section.key} style={{ marginBottom: '16px' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '15px' }}>
+              {section.title} <span style={{ color: '#64748B', fontWeight: 'normal' }}>· {weekLabel(section.week)}</span>
+            </h3>
+            {rows.length === 0 ? (
+              <div className="ui-muted">
+                {section.week > LAST_REGULAR_SEASON_WEEK && !playoffBracket ? 'The playoff bracket is set after the regular season.' : 'No games to show.'}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {rows.map((r) => {
+                  const final = r.homeScore !== undefined && r.awayScore !== undefined;
+                  const isUser = r.homeId === userTeamId || r.awayId === userTeamId;
+                  const line = (id: string, name: string, score: number | undefined, won: boolean, home: boolean) => (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontWeight: won ? 'bold' : 'normal', color: final && !won ? '#64748B' : '#0F172A' }}>
+                      <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamBtn(id, name, home)}</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>{final ? score : ''}</span>
+                    </div>
+                  );
+                  return (
+                    <div
+                      key={r.id}
+                      style={{ background: isUser ? '#EFF6FF' : '#fff', border: `1px solid ${isUser ? '#93C5FD' : '#E2E8F0'}`, borderRadius: '8px', padding: '10px 12px', fontSize: '14px' }}
+                    >
+                      {line(r.awayId, r.awayName, r.awayScore, final && r.awayScore! > r.homeScore!, false)}
+                      {line(r.homeId, r.homeName, r.homeScore, final && r.homeScore! > r.awayScore!, true)}
+                      <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+                        {final ? 'Final' : 'Scheduled'}
+                        {r.tag ? ` · ${r.tag}` : ''}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
+};
+
+const teamLink: React.CSSProperties = {
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  color: 'inherit',
+  fontWeight: 'inherit',
+  fontSize: 'inherit',
+  cursor: 'pointer',
+  textAlign: 'left'
 };

@@ -302,6 +302,8 @@ interface GameStoreState {
   campSchedule: CampSchedule; // training camp: two-a-days or three-a-days
   feederClassYear: number; // the season the current pipeline's class arrives (signing day is week 2 of that season)
   seasonRecap: SeasonRecap | null; // last season in brief, for the Hub's new-season headline
+  viewedTeamId: string | null; // the team page that is open (not saved)
+  openTeamProfile: (teamId: string | null) => void;
   lastDrillReport: string[]; // who the assistants worked with last week
 
   // Postseason & Offseason state
@@ -376,6 +378,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   campSchedule: 'TWO_A_DAY',
   feederClassYear: 2027,
   seasonRecap: null,
+  viewedTeamId: null,
+  openTeamProfile: (teamId) => set({ viewedTeamId: teamId }),
   lastDrillReport: [],
   playoffBracket: null,
   graduatingSeniors: [],

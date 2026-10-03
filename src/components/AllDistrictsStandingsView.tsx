@@ -109,7 +109,11 @@ const CompactStandings: React.FC<{ rows: ReturnType<typeof calculateDistrictStan
           <span className="ui-standings-seed" style={{ background: row.isPlayoffBound ? '#16A34A' : '#CBD5E1' }}>
             {row.rank}
           </span>
-          <span className="ui-standings-name">{row.name}</span>
+          <span className="ui-standings-name">
+            <button onClick={() => useGameStore.getState().openTeamProfile(row.teamId)} style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
+              {row.name}
+            </button>
+          </span>
           <span className="ui-standings-record">
             <strong>{row.districtRecord}</strong>
             <small>

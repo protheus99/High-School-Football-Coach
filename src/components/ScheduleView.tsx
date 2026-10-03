@@ -35,7 +35,7 @@ import { ROUND_DESCRIPTIONS, ROUND_LABELS, roundNamesFor } from '../sim/playoffE
 import { Team } from '../types/game';
 
 export const ScheduleView: React.FC = () => {
-  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, currentYear, feederClassYear } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, currentYear, feederClassYear, openTeamProfile } = useGameStore();
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
   if (!userTeam) return null;
@@ -133,9 +133,11 @@ export const ScheduleView: React.FC = () => {
               {game.opponent ? (
                 <div style={{ fontSize: '14px', marginTop: '2px' }}>
                   {game.isHome ? 'vs.' : 'at'}{' '}
-                  <strong style={{ color: game.opponent.primaryColor }}>
-                    {game.opponent.name} {game.opponent.mascot}
-                  </strong>
+                  <button onClick={() => openTeamProfile(game.opponent!.id)} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}>
+                    <strong style={{ color: game.opponent.primaryColor, textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                      {game.opponent.name} {game.opponent.mascot}
+                    </strong>
+                  </button>
                   <div style={{ fontSize: '12px', color: '#64748B' }}>
                     {game.opponent.record.wins}-{game.opponent.record.losses} · {game.opponent.schemeOffense.replace(/_/g, ' ')} offense
                   </div>
