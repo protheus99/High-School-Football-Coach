@@ -11,7 +11,7 @@ import {
   getSeasonPhase,
   getTeamGameForWeek
 } from '../sim/scheduleEngine';
-import { FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, PROSPECT_ACTION_COSTS, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
+import { CONTACT_ACTIONS, FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
 import { COACH_TALENTS, collegeActionCost, feederEventCost, talentBlocker, weeklyCpIncome } from '../sim/coachPoints';
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
@@ -111,7 +111,7 @@ export const WeeklyAgenda: React.FC<{
     league,
     scoutingPool,
     feederClassYear,
-    visitFeederProspect,
+    contactFeederProspect,
     lastFeederResults,
     campSchedule,
     setCampSchedule,
@@ -294,7 +294,7 @@ export const WeeklyAgenda: React.FC<{
       .filter((p) => inUserPipeline(p) && p.interestScore >= 30 && p.interestScore <= 75)
       .sort((a, b) => b.interestScore - a.interestScore)
       .slice(0, 3);
-    const cost = onTheFence.length * PROSPECT_ACTION_COSTS.VISIT;
+    const cost = onTheFence.filter((p) => !p.actionsThisWeek?.includes('VISIT')).length * CONTACT_ACTIONS.VISIT.cost;
     return {
       id,
       icon: '✍️',
@@ -310,7 +310,7 @@ export const WeeklyAgenda: React.FC<{
               primary: true,
               disabled: coachPoints < cost,
               onClick: () => {
-                onTheFence.forEach((p) => visitFeederProspect(p.id));
+                onTheFence.forEach((p) => contactFeederProspect(p.id, 'VISIT'));
                 setFlash(`Visited ${plural(onTheFence.length, 'prospect')} before signing day.`);
               }
             }

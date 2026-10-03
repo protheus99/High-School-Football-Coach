@@ -2,14 +2,17 @@ import React, { useMemo, useState } from 'react';
 import { feederEventsOpen, useGameStore } from '../store/gameStore';
 import { FEEDER_SIGNING_WEEK } from '../sim/scheduleEngine';
 import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
-import { FeederOutcomeType, FeederProspect, Player, ProspectSource } from '../types/game';
+import { FeederOutcomeType, FeederProspect, Player, Position, ProspectSource } from '../types/game';
 import { PositionNeed, priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 import { PageHeader } from './ui/PageHeader';
 import {
   FEEDER_EVENTS,
   FeederEventType,
   MAX_POOL_SIZE,
-  PROSPECT_ACTION_COSTS,
+  CONTACT_ACTIONS,
+  CONTACT_ORDER,
+  ContactAction,
+  contactGain,
   SOURCE_LABELS,
   COMMIT_THRESHOLD,
   currentCommitment,
@@ -48,6 +51,20 @@ function outlook(chance: number): { label: string; color: string } {
 export type FeederSection = 'STUDENTS' | 'PROGRAMS' | 'NEEDS';
 type PoolView = 'DISTRICT' | 'REGION' | 'TOP_DISTRICT' | 'TOP_REGION' | 'COMMITTED';
 
+/** Position tabs above the prospect list (lines and the secondary grouped). */
+const POSITION_GROUPS: { id: string; label: string; positions?: Position[] }[] = [
+  { id: 'ALL', label: 'All' },
+  { id: 'QB', label: 'QB', positions: ['QB'] },
+  { id: 'RB', label: 'RB', positions: ['RB'] },
+  { id: 'WR', label: 'WR', positions: ['WR'] },
+  { id: 'TE', label: 'TE', positions: ['TE'] },
+  { id: 'OL', label: 'OL', positions: ['OT', 'OG', 'C'] },
+  { id: 'DL', label: 'DL', positions: ['DE', 'DT'] },
+  { id: 'LB', label: 'LB', positions: ['LB'] },
+  { id: 'DB', label: 'DB', positions: ['CB', 'S'] },
+  { id: 'K', label: 'K/P', positions: ['K', 'P'] }
+];
+
 const FEEDER_SUBTITLES: Record<FeederSection, string> = {
   STUDENTS: 'Every student who could join a program next year',
   PROGRAMS: 'Off-season events that find and win over prospects',
@@ -76,11 +93,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     feederEventsThisWeek,
     lastFeederResults,
     runFeederEvent,
-    scoutFeederProspect,
-    visitFeederProspect,
+    contactFeederProspect,
     removeFeederProspect,
-    pitchFeederStar,
-    offerFeederInducement,
     statewideRecruits,
     league,
     leagueTeams,
@@ -89,6 +103,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   } = useGameStore();
   const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
   const [view, setView] = useState<PoolView>('DISTRICT');
+  const [positionGroup, setPositionGroup] = useState<string>('ALL');
   const [feedback, setFeedback] = useState<string | null>(null);
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   if (!userTeam) return null;
@@ -118,6 +133,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     { id: 'COMMITTED', label: 'Committed', list: committedToMe, count: true }
   ];
   const shown = views.find((v) => v.id === view)!.list;
+  const groupPositions = POSITION_GROUPS.find((g) => g.id === positionGroup)?.positions;
+  const byPosition = groupPositions ? shown.filter((p) => groupPositions.includes(p.projectedPosition)) : shown;
   const rankLabel = (p: FeederProspect) => {
     // The district list shows district ranks; elsewhere a region ranking comes first
     if (view === 'TOP_DISTRICT') return `#${topDistrict.indexOf(p) + 1} in District`;
@@ -271,18 +288,27 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             interest signs him, and a tie at the top is a coin flip.
           </p>
 
+          {/* Positions */}
+          <div className="ui-chips" aria-label="Position" style={{ marginBottom: '10px' }}>
+            {POSITION_GROUPS.map((g) => {
+              const count = g.positions ? shown.filter((p) => g.positions!.includes(p.projectedPosition)).length : shown.length;
+              return (
+                <button key={g.id} className="ui-chip" aria-pressed={positionGroup === g.id} onClick={() => setPositionGroup(g.id)}>
+                  {g.label} ({count})
+                </button>
+              );
+            })}
+          </div>
+
           {/* Prospects */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '10px' }}>
-            {shown.map((p) => (
+            {byPosition.map((p) => (
               <ProspectCard
                 key={p.id}
                 prospect={p}
                 chance={userJoinProbability(p, userTeam.prestige, ctx)}
                 coachPoints={coachPoints}
-                onScout={() => scoutFeederProspect(p.id)}
-                onVisit={() => visitFeederProspect(p.id)}
-                onPitch={() => pitchFeederStar(p.id)}
-                onInduce={() => offerFeederInducement(p.id)}
+                onContact={(action) => contactFeederProspect(p.id, action)}
                 rank={rankLabel(p)}
                 schools={schoolInterest(p, userTeamId).slice(0, 3).map((e) => ({ name: schoolName(e.teamId), interest: e.interest, isYou: e.teamId === userTeamId }))}
                 commitment={(() => {
@@ -296,7 +322,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                 }}
               />
             ))}
-            {shown.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No prospects in this group.</div>}
+            {byPosition.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No prospects in this group.</div>}
           </div>
 
           {ctx && statewideRecruits.length > 0 && <StatewideElitePanel recruits={statewideRecruits} ctx={ctx} />}
@@ -311,16 +337,13 @@ const ProspectCard: React.FC<{
   prospect: FeederProspect;
   chance: number;
   coachPoints: number;
-  onScout: () => void;
-  onVisit: () => void;
-  onPitch: () => void;
-  onInduce: () => void;
+  onContact: (action: ContactAction) => void;
   positionFilled: boolean;
   onRemove: () => void;
   rank?: string;
   schools: { name: string; interest: number; isYou: boolean }[];
   commitment: { name: string; interest: number; isYou: boolean; tied: boolean } | null;
-}> = ({ prospect: p, chance, coachPoints, onScout, onVisit, onPitch, onInduce, positionFilled, onRemove, rank, schools, commitment }) => {
+}> = ({ prospect: p, chance, coachPoints, onContact, positionFilled, onRemove, rank, schools, commitment }) => {
   const [confirmRemove, setConfirmRemove] = useState(false);
   const scouted = p.revealedPotential !== 'UNKNOWN';
   const look = outlook(chance);
@@ -404,31 +427,19 @@ const ProspectCard: React.FC<{
         {p.suitors.some((s) => s.inducement) && <span style={{ color: '#9F1239' }}> · 🚩 rumored booster money</span>}
       </div>
       {notes.length > 0 && <div style={{ fontSize: '12px', color: '#92400E', marginTop: '4px' }}>{notes.join(' · ')}</div>}
-      <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
-        <button onClick={onScout} disabled={scouted || coachPoints < PROSPECT_ACTION_COSTS.SCOUT} style={actionBtn('#475569', scouted || coachPoints < PROSPECT_ACTION_COSTS.SCOUT)}>
-          {scouted ? 'Evaluated' : `Evaluate (₡${PROSPECT_ACTION_COSTS.SCOUT})`}
-        </button>
-        <button onClick={onVisit} disabled={coachPoints < PROSPECT_ACTION_COSTS.VISIT} style={actionBtn('#2563EB', coachPoints < PROSPECT_ACTION_COSTS.VISIT)}>
-          {p.source === 'STAR_RECRUIT' ? 'Call' : 'Home Visit'} (₡{PROSPECT_ACTION_COSTS.VISIT})
-        </button>
-        {p.source === 'STAR_RECRUIT' && (
-          <button onClick={onPitch} disabled={coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR} style={actionBtn('#D97706', coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR)}>
-            Full Recruiting Pitch (₡{PROSPECT_ACTION_COSTS.PITCH_STAR})
-          </button>
-        )}
-        {p.source !== 'TRYOUT' &&
-          (p.userInducement ? (
-            <span style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 'bold', alignSelf: 'center' }}>⚠️ Booster offer made</span>
-          ) : (
-            <button
-              onClick={onInduce}
-              disabled={coachPoints < 20}
-              title="Illegal: boosters make an improper offer. Big pull on this player, but it builds evidence that may surface for years."
-              style={actionBtn('#7F1D1D', coachPoints < 20)}
-            >
-              Booster Offer (₡20)
+      {/* Recruiting contacts: each once a week */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', marginTop: '8px' }}>
+        {CONTACT_ORDER.map((action) => {
+          const { label, cost } = CONTACT_ACTIONS[action];
+          const done = p.actionsThisWeek?.includes(action);
+          const disabled = done || coachPoints < cost;
+          return (
+            <button key={action} onClick={() => onContact(action)} disabled={disabled} style={{ ...actionBtn('#2563EB', disabled), padding: '6px 4px', lineHeight: 1.2 }}>
+              {done ? `✓ ${label}` : label}
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: 'normal' }}>{done ? 'this week' : `₡${cost} · +${contactGain(p, action)}`}</span>
             </button>
-          ))}
+          );
+        })}
       </div>
     </div>
   );

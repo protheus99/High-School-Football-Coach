@@ -52,6 +52,9 @@ import {
   PROSPECT_ACTION_COSTS,
   generateFeederPool,
   inUserPipeline,
+  CONTACT_ACTIONS,
+  ContactAction,
+  contactProspect,
   maybeMoveInArrival,
   pitchStarRecruit,
   enforceVarsityRosterLimit,
@@ -329,6 +332,7 @@ interface GameStoreState {
   scoutFeederProspect: (prospectId: string) => void;
   visitFeederProspect: (prospectId: string) => void;
   removeFeederProspect: (prospectId: string) => void; // drop a prospect the program doesn't want (frees a pipeline spot)
+  contactFeederProspect: (prospectId: string, action: ContactAction) => void; // text, email, call, visit, invite, wine & dine
   pitchFeederStar: (prospectId: string) => void;
   offerFeederInducement: (prospectId: string) => void; // illegal booster offer: big pull, adds heat
   collegeRecruitAction: (playerId: string, action: CollegeAction) => CollegeActionResult; // promote a player to colleges
@@ -557,6 +561,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         ]
       });
     }
+
+    // Recruiting contacts can be made once a week each
+    set({ scoutingPool: get().scoutingPool.map((p) => (p.actionsThisWeek?.length ? { ...p, actionsThisWeek: [] } : p)) });
 
     // Rival programs keep working their recruiting targets (and some bend the rules)
     if (ctx) {
@@ -981,6 +988,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   removeFeederProspect: (prospectId) => set({ scoutingPool: get().scoutingPool.filter((p) => p.id !== prospectId) }),
+
+  contactFeederProspect: (prospectId, action) => {
+    const { coachPoints, scoutingPool } = get();
+    const prospect = scoutingPool.find((p) => p.id === prospectId);
+    const { cost } = CONTACT_ACTIONS[action];
+    if (!prospect || coachPoints < cost || prospect.actionsThisWeek?.includes(action)) return;
+    set({ coachPoints: coachPoints - cost, scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? contactProspect(p, action) : p)) });
+  },
 
   visitFeederProspect: (prospectId) => {
     const { coachPoints, scoutingPool } = get();

@@ -29,6 +29,36 @@ export const SOURCE_LABELS: Record<ProspectSource, string> = {
 
 export const PROSPECT_ACTION_COSTS = { SCOUT: 10, VISIT: 15, PITCH_STAR: 40 };
 
+/** The ways a coach contacts a prospect: each costs Coach Points, adds interest, and can be used once a week. */
+export type ContactAction = 'TEXT' | 'EMAIL' | 'CALL' | 'VISIT' | 'INVITE' | 'WINE_AND_DINE';
+export const CONTACT_ACTIONS: Record<ContactAction, { label: string; cost: number; interest: number; evaluates?: boolean }> = {
+  TEXT: { label: 'Text', cost: 5, interest: 2 },
+  EMAIL: { label: 'Email', cost: 15, interest: 4 },
+  CALL: { label: 'Call', cost: 20, interest: 6 },
+  VISIT: { label: 'Visit', cost: 30, interest: 9, evaluates: true }, // seeing him in person evaluates him
+  INVITE: { label: 'Invite', cost: 40, interest: 12, evaluates: true }, // a campus / game-night visit
+  WINE_AND_DINE: { label: 'Wine & Dine', cost: 50, interest: 15, evaluates: true }
+};
+export const CONTACT_ORDER: ContactAction[] = ['TEXT', 'EMAIL', 'CALL', 'VISIT', 'INVITE', 'WINE_AND_DINE'];
+
+/** Interest a contact adds: the full amount early, less once he is warm (60+) and less again once he is near committing (80+). */
+export function contactGain(p: FeederProspect, action: ContactAction): number {
+  const base = CONTACT_ACTIONS[action].interest * (p.source === 'STAR_RECRUIT' ? 0.5 : 1);
+  const scale = p.interestScore >= 80 ? 0.6 : p.interestScore >= 60 ? 0.8 : 1;
+  return Math.max(1, Math.round(base * scale));
+}
+
+/** One contact with a prospect (the caller checks Coach Points and the once-a-week limit). */
+export function contactProspect(p: FeederProspect, action: ContactAction): FeederProspect {
+  const contacted = {
+    ...p,
+    interestScore: clamp(p.interestScore + contactGain(p, action), 0, 100),
+    coachContacts: p.coachContacts + 1,
+    actionsThisWeek: [...(p.actionsThisWeek ?? []), action]
+  };
+  return CONTACT_ACTIONS[action].evaluates ? scoutProspect(contacted) : contacted;
+}
+
 export type FeederEventType = 'YOUTH_CLINIC' | 'SEVEN_ON_SEVEN_LEAGUE' | 'TRYOUT_DAY' | 'FAMILY_NIGHT' | 'COMBINE' | 'BIG_MAN_CAMP' | 'SKILLS_ACADEMY';
 
 export const FEEDER_EVENTS: Record<FeederEventType, { label: string; cost: number; description: string }> = {

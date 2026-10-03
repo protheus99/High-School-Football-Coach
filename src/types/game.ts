@@ -400,6 +400,7 @@ export interface FeederProspect {
   suitors: ProspectSuitor[]; // rival programs also recruiting this player
   homeTeamId?: string; // the school the player is zoned to, when it isn't the user's
   userInducement?: boolean; // the user's boosters made an illegal offer
+  actionsThisWeek?: string[]; // recruiting contacts the user already made this week (each once a week)
 }
 
 export type FeederOutcomeType = 'JOINED' | 'JV_TEAM' | 'NOT_PLAYING' | 'LEFT_AREA' | 'OTHER_SCHOOL';

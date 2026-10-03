@@ -13,7 +13,8 @@ import {
   runFeederEvent,
   scoutProspect,
   visitProspect,
-  inUserPipeline
+  inUserPipeline,
+  contactGain
 } from '../feederEngine';
 import { STARTING_COACH_POINTS, weeklyCoachPoints } from '../coachPoints';
 import { FeederOutcome, Team } from '../../types/game';
@@ -217,5 +218,31 @@ describe('Removing prospects', () => {
     const pool = store.getState().scoutingPool;
     expect(pool.some((p) => p.id === first.id)).toBe(false);
     expect(pool.some((p) => p.id === second.id)).toBe(true);
+  });
+});
+
+describe('Recruiting contacts', () => {
+  it('costs Coach Points, adds interest, can be used once a week each, and resets the next week', () => {
+    const store = useGameStore;
+    store.getState().startNewSeason();
+    const p = store.getState().scoutingPool.find((x) => !x.homeTeamId && x.interestScore < 60)!;
+    const cp = store.getState().coachPoints;
+    store.getState().contactFeederProspect(p.id, 'TEXT');
+    store.getState().contactFeederProspect(p.id, 'TEXT'); // already texted this week
+    store.getState().contactFeederProspect(p.id, 'VISIT');
+    const after = store.getState().scoutingPool.find((x) => x.id === p.id)!;
+    expect(store.getState().coachPoints).toBe(cp - 5 - 30);
+    expect(after.interestScore).toBe(Math.min(100, p.interestScore + 2 + (p.interestScore + 2 >= 60 ? 7 : 9)));
+    expect(after.revealedPotential).not.toBe('UNKNOWN'); // visiting evaluates him
+    store.getState().advanceWeek();
+    expect(store.getState().scoutingPool.find((x) => x.id === p.id)!.actionsThisWeek ?? []).toEqual([]);
+  });
+
+  it('adds less once a prospect is warm and near committing', () => {
+    const [team] = generateDistrictTeams();
+    const p = createProspect('FEEDER_MIDDLE_SCHOOL', team);
+    expect(contactGain({ ...p, interestScore: 30 }, 'WINE_AND_DINE')).toBe(15);
+    expect(contactGain({ ...p, interestScore: 65 }, 'WINE_AND_DINE')).toBe(12);
+    expect(contactGain({ ...p, interestScore: 85 }, 'WINE_AND_DINE')).toBe(9);
   });
 });
