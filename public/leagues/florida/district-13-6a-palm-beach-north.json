@@ -1,0 +1,78 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-13-6a-palm-beach-north",
+  "districtName": "District 13-6A (Palm Beach North)",
+  "schools": [
+    {
+      "name": "Palm Beach Lakes",
+      "city": "West Palm Beach",
+      "mascot": "Rams",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFD700",
+      "prestige": 64,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Dr. Joaquin Garcia",
+      "city": "Lake Worth",
+      "mascot": "Bulldogs",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 54,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Jupiter",
+      "city": "Jupiter",
+      "mascot": "Warriors",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFD700",
+      "prestige": 66,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lake Worth",
+      "city": "Lake Worth",
+      "mascot": "Trojans",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 58,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Palm Beach Central",
+      "city": "Wellington",
+      "mascot": "Broncos",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Santaluces",
+      "city": "Lantana",
+      "mascot": "Chiefs",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFD700",
+      "prestige": 60,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Wellington",
+      "city": "Wellington",
+      "mascot": "Wolverines",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

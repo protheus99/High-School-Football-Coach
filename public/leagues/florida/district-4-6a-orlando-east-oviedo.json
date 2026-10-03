@@ -1,0 +1,48 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-4-6a-orlando-east-oviedo",
+  "districtName": "District 4-6A (Orlando East & Oviedo)",
+  "schools": [
+    {
+      "name": "Boone",
+      "city": "Orlando",
+      "mascot": "Braves",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 72,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hagerty",
+      "city": "Oviedo",
+      "mascot": "Huskies",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 66,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Timber Creek",
+      "city": "Orlando",
+      "mascot": "Wolves",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFD700",
+      "prestige": 70,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Winter Park",
+      "city": "Winter Park",
+      "mascot": "Wildcats",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

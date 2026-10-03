@@ -1,0 +1,68 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-9-6a-polk-county",
+  "districtName": "District 9-6A (Polk County)",
+  "schools": [
+    {
+      "name": "Davenport",
+      "city": "Davenport",
+      "mascot": "Broncos",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#B3A369",
+      "prestige": 54,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "George Jenkins",
+      "city": "Lakeland",
+      "mascot": "Eagles",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Haines City",
+      "city": "Haines City",
+      "mascot": "Hornets",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 64,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Poinciana",
+      "city": "Kissimmee",
+      "mascot": "Eagles",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 56,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Ridge Community",
+      "city": "Davenport",
+      "mascot": "Bolts",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#B3A369",
+      "prestige": 58,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Winter Haven",
+      "city": "Winter Haven",
+      "mascot": "Blue Devils",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

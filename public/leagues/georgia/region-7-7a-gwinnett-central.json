@@ -1,0 +1,78 @@
+{
+  "state": "Georgia",
+  "classification": "7A",
+  "districtId": "georgia_region-7-7a-gwinnett-central",
+  "districtName": "Region 7-7A (Gwinnett Central)",
+  "schools": [
+    {
+      "name": "Berkmar",
+      "city": "Lilburn",
+      "mascot": "Patriots",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFD700",
+      "prestige": 46,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Brookwood",
+      "city": "Snellville",
+      "mascot": "Broncos",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "prestige": 75,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Duluth",
+      "city": "Duluth",
+      "mascot": "Wildcats",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "prestige": 62,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Norcross",
+      "city": "Norcross",
+      "mascot": "Blue Devils",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#000000",
+      "prestige": 82,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "North Gwinnett",
+      "city": "Suwanee",
+      "mascot": "Bulldogs",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Parkview",
+      "city": "Lilburn",
+      "mascot": "Panthers",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Peachtree Ridge",
+      "city": "Suwanee",
+      "mascot": "Lions",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#B3A369",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

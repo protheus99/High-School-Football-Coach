@@ -1,0 +1,68 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-1-6a-jacksonville-st-johns-flagler",
+  "districtName": "District 1-6A (Jacksonville, St. Johns & Flagler)",
+  "schools": [
+    {
+      "name": "Atlantic Coast",
+      "city": "Jacksonville",
+      "mascot": "Stingrays",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 64,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Creekside",
+      "city": "St. Johns",
+      "mascot": "Knights",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 70,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "First Coast",
+      "city": "Jacksonville",
+      "mascot": "Buccaneers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 62,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Flagler Palm Coast",
+      "city": "Palm Coast",
+      "mascot": "Bulldogs",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Sandalwood",
+      "city": "Jacksonville",
+      "mascot": "Saints",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Tocoi Creek",
+      "city": "St. Augustine",
+      "mascot": "Toros",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#B3A369",
+      "prestige": 60,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

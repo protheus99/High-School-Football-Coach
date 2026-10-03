@@ -1,0 +1,68 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-14-6a-palm-beach-south-broward-north",
+  "districtName": "District 14-6A (Palm Beach South & Broward North)",
+  "schools": [
+    {
+      "name": "Boca Raton",
+      "city": "Boca Raton",
+      "mascot": "Bobcats",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 82,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Coral Glades",
+      "city": "Coral Springs",
+      "mascot": "Jaguars",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 58,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Nova",
+      "city": "Davie",
+      "mascot": "Titans",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 66,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Park Vista",
+      "city": "Lake Worth",
+      "mascot": "Cobras",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "South Plantation",
+      "city": "Plantation",
+      "mascot": "Paladins",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 60,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Spanish River",
+      "city": "Boca Raton",
+      "mascot": "Sharks",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 58,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

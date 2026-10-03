@@ -1,0 +1,78 @@
+{
+  "state": "Maryland",
+  "classification": "4A",
+  "districtId": "maryland_class-4a-east-anne-arundel-baltimore-county-bowie",
+  "districtName": "Class 4A East (Anne Arundel, Baltimore County & Bowie)",
+  "schools": [
+    {
+      "name": "Annapolis",
+      "city": "Annapolis",
+      "mascot": "Panthers",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 64,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Broadneck",
+      "city": "Annapolis",
+      "mascot": "Bruins",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFC72C",
+      "prestige": 81,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Glen Burnie",
+      "city": "Glen Burnie",
+      "mascot": "Gophers",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 60,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Meade",
+      "city": "Fort Meade",
+      "mascot": "Mustangs",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "North County",
+      "city": "Glen Burnie",
+      "mascot": "Knights",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#000000",
+      "prestige": 58,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Dundalk",
+      "city": "Dundalk",
+      "mascot": "Owls",
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 56,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Bowie",
+      "city": "Bowie",
+      "mascot": "Bulldogs",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

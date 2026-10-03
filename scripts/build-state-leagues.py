@@ -29,6 +29,50 @@ SECTIONS = [
 
 MAX_DISTRICT_SIZE = 10
 
+# Full top classifications from official alignments, for states the spec only summarizes
+CURATED_SOURCE = Path(__file__).resolve().parent / 'state-sources' / 'top-classes.json'
+OFFENSE_MIX = ['SPREAD', 'SPREAD', 'SPREAD', 'POWER_I', 'POWER_I', 'AIR_RAID', 'TRIPLE_OPTION']
+DEFENSE_MIX = ['FOUR_THREE', 'FOUR_THREE', 'THREE_THREE_FIVE', 'FOUR_FOUR', 'DROP_EIGHT']
+
+
+def norm(name: str) -> str:
+    return re.sub(r'[^a-z0-9]', '', name.lower())
+
+
+def spec_alias(rated, name):
+    """The spec sometimes names a school differently (Miami Christopher Columbus / Columbus, Chambers (Vance) / Chambers)."""
+    key = norm(name)
+    matches = [sc for k, sc in rated.items() if min(len(k), len(key)) >= 6 and (key in k or k in key)]
+    return matches[0] if len(matches) == 1 else None
+
+
+def curated_states(parsed):
+    """States with a full curated list replace the spec's summary; the spec's ratings and schemes win when it has the school."""
+    if not CURATED_SOURCE.exists():
+        return {}
+    data = json.loads(CURATED_SOURCE.read_text(encoding='utf-8'))
+    result = {}
+    for state, info in data.items():
+        if state.startswith('_'):
+            continue
+        rated = {norm(sc['name']): sc for d in parsed.get(state, {'districts': {}})['districts'].values() for sc in d}
+        districts = {}
+        for district in info['districts']:
+            schools = []
+            for name, city, mascot, prestige in district['schools']:
+                spec = rated.get(norm(name)) or spec_alias(rated, name)
+                h = int(hashlib.md5(name.encode()).hexdigest(), 16)
+                primary, secondary = colors(name)
+                schools.append({
+                    'name': name, 'city': city, 'mascot': mascot, 'primaryColor': primary, 'secondaryColor': secondary,
+                    'prestige': spec['prestige'] if spec else prestige,
+                    'offenseScheme': spec['offenseScheme'] if spec else OFFENSE_MIX[h % len(OFFENSE_MIX)],
+                    'defenseScheme': spec['defenseScheme'] if spec else DEFENSE_MIX[(h // 11) % len(DEFENSE_MIX)]
+                })
+            districts[district['name']] = schools
+        result[state] = {'classification': info['classification'], 'districts': districts}
+    return result
+
 PALETTE = ['#002D62', '#8B0000', '#00573F', '#4B0082', '#C8102E', '#FF6600', '#003087', '#6F263D',
            '#000000', '#1C3F94', '#006747', '#7C2529', '#00205B', '#BA0C2F', '#4F2683', '#00843D']
 SECONDARY = ['#FFFFFF', '#FFD700', '#C0C0C0', '#B3A369', '#FFC72C', '#000000']
@@ -120,7 +164,13 @@ def main():
     out = Path(__file__).resolve().parent.parent / 'public' / 'leagues'
     lines = source.read_text(encoding='utf-8').split('\n')
     index = []
-    for state, entry in sorted(parse(lines).items()):
+    parsed = parse(lines)
+    curated = curated_states(parsed)
+    for state, info in curated.items():
+        parsed[state] = {'full': True, 'districts': info['districts'], 'classification': info['classification']}
+        for old in (out / slug(state)).glob('*.json'):
+            old.unlink()  # the summary files are replaced by the full list
+    for state, entry in sorted(parsed.items()):
         districts = []
         groups = []
         for name, schools in entry['districts'].items():
@@ -135,7 +185,7 @@ def main():
             if len(schools) < 4:
                 continue  # the importer needs at least 4 schools
             file = f'{slug(state)}/{slug(name)}.json'
-            payload = {'state': state, 'classification': '6A', 'districtId': f'{slug(state)}_{slug(name)}',
+            payload = {'state': state, 'classification': entry.get('classification', '6A'), 'districtId': f'{slug(state)}_{slug(name)}',
                        'districtName': name, 'schools': schools}
             (out / slug(state)).mkdir(parents=True, exist_ok=True)
             (out / file).write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')

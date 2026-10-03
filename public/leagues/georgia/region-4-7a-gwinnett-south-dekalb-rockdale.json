@@ -1,0 +1,68 @@
+{
+  "state": "Georgia",
+  "classification": "7A",
+  "districtId": "georgia_region-4-7a-gwinnett-south-dekalb-rockdale",
+  "districtName": "Region 4-7A (Gwinnett South, DeKalb & Rockdale)",
+  "schools": [
+    {
+      "name": "Archer",
+      "city": "Lawrenceville",
+      "mascot": "Tigers",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 72,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Grayson",
+      "city": "Loganville",
+      "mascot": "Rams",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 95,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lakeside (DeKalb)",
+      "city": "Atlanta",
+      "mascot": "Vikings",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 60,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Newton",
+      "city": "Covington",
+      "mascot": "Rams",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Rockdale County",
+      "city": "Conyers",
+      "mascot": "Bulldogs",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFC72C",
+      "prestige": 64,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "South Gwinnett",
+      "city": "Snellville",
+      "mascot": "Comets",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 66,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

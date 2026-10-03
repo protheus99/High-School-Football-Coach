@@ -1,0 +1,78 @@
+{
+  "state": "Georgia",
+  "classification": "7A",
+  "districtId": "georgia_region-3-7a-cobb-atlanta",
+  "districtName": "Region 3-7A (Cobb & Atlanta)",
+  "schools": [
+    {
+      "name": "Campbell",
+      "city": "Smyrna",
+      "mascot": "Spartans",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 66,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Harrison",
+      "city": "Kennesaw",
+      "mascot": "Hoyas",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 74,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Hillgrove",
+      "city": "Powder Springs",
+      "mascot": "Hawks",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#B3A369",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Kennesaw Mountain",
+      "city": "Kennesaw",
+      "mascot": "Mustangs",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 72,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "McEachern",
+      "city": "Powder Springs",
+      "mascot": "Indians",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#000000",
+      "prestige": 78,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "North Atlanta",
+      "city": "Atlanta",
+      "mascot": "Warriors",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 62,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Pebblebrook",
+      "city": "Mableton",
+      "mascot": "Falcons",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "prestige": 64,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

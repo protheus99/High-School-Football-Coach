@@ -1,0 +1,78 @@
+{
+  "state": "Maryland",
+  "classification": "4A",
+  "districtId": "maryland_class-4a-south-prince-george-s-county",
+  "districtName": "Class 4A South (Prince George's County)",
+  "schools": [
+    {
+      "name": "Bladensburg",
+      "city": "Bladensburg",
+      "mascot": "Mustangs",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 45,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Charles H. Flowers",
+      "city": "Springdale",
+      "mascot": "Jaguars",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#B3A369",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Dr. Henry A. Wise",
+      "city": "Upper Marlboro",
+      "mascot": "Pumas",
+      "primaryColor": "#006747",
+      "secondaryColor": "#000000",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "DuVal",
+      "city": "Lanham",
+      "mascot": "Tigers",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 66,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Eleanor Roosevelt",
+      "city": "Greenbelt",
+      "mascot": "Raiders",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 62,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Parkdale",
+      "city": "Riverdale",
+      "mascot": "Panthers",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 52,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Suitland",
+      "city": "Forestville",
+      "mascot": "Rams",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "state": "North Carolina",
+  "classification": "8A",
+  "districtId": "north-carolina_8a-conference-1-wake-johnston",
+  "districtName": "8A Conference 1 (Wake & Johnston)",
+  "schools": [
+    {
+      "name": "Athens Drive",
+      "city": "Raleigh",
+      "mascot": "Jaguars",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 58,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Broughton",
+      "city": "Raleigh",
+      "mascot": "Capitals",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Corinth Holders",
+      "city": "Wendell",
+      "mascot": "Pirates",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 70,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Enloe",
+      "city": "Raleigh",
+      "mascot": "Eagles",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 50,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Leesville Road",
+      "city": "Raleigh",
+      "mascot": "Pride",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFC72C",
+      "prestige": 86,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Millbrook",
+      "city": "Raleigh",
+      "mascot": "Wildcats",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#B3A369",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Rolesville",
+      "city": "Rolesville",
+      "mascot": "Rams",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#B3A369",
+      "prestige": 93,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Wakefield",
+      "city": "Raleigh",
+      "mascot": "Wolverines",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 78,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

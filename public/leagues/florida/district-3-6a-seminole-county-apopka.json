@@ -1,0 +1,48 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-3-6a-seminole-county-apopka",
+  "districtName": "District 3-6A (Seminole County & Apopka)",
+  "schools": [
+    {
+      "name": "Apopka",
+      "city": "Apopka",
+      "mascot": "Blue Darters",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 88,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lake Brantley",
+      "city": "Altamonte Springs",
+      "mascot": "Patriots",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lake Mary",
+      "city": "Lake Mary",
+      "mascot": "Rams",
+      "primaryColor": "#003087",
+      "secondaryColor": "#000000",
+      "prestige": 90,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Seminole",
+      "city": "Sanford",
+      "mascot": "Seminoles",
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "state": "Georgia",
+  "classification": "7A",
+  "districtId": "georgia_region-1-7a-south-georgia-coast",
+  "districtName": "Region 1-7A (South Georgia & Coast)",
+  "schools": [
+    {
+      "name": "Camden County",
+      "city": "Kingsland",
+      "mascot": "Wildcats",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 73,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Colquitt County",
+      "city": "Moultrie",
+      "mascot": "Packers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFC72C",
+      "prestige": 90,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lowndes",
+      "city": "Valdosta",
+      "mascot": "Vikings",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 86,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Richmond Hill",
+      "city": "Richmond Hill",
+      "mascot": "Wildcats",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Valdosta",
+      "city": "Valdosta",
+      "mascot": "Wildcats",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

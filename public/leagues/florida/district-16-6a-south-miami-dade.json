@@ -1,0 +1,68 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-16-6a-south-miami-dade",
+  "districtName": "District 16-6A (South Miami-Dade)",
+  "schools": [
+    {
+      "name": "Columbus",
+      "city": "Miami",
+      "mascot": "Explorers",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 96,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Coral Gables",
+      "city": "Coral Gables",
+      "mascot": "Cavaliers",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 64,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Homestead",
+      "city": "Homestead",
+      "mascot": "Broncos",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#B3A369",
+      "prestige": 74,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Miami Palmetto",
+      "city": "Pinecrest",
+      "mascot": "Panthers",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "South Dade",
+      "city": "Homestead",
+      "mascot": "Buccaneers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Southwest Miami",
+      "city": "Miami",
+      "mascot": "Eagles",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "prestige": 60,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

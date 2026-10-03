@@ -1,0 +1,58 @@
+{
+  "state": "Georgia",
+  "classification": "7A",
+  "districtId": "georgia_region-2-7a-west-metro-coweta",
+  "districtName": "Region 2-7A (West Metro & Coweta)",
+  "schools": [
+    {
+      "name": "Carrollton",
+      "city": "Carrollton",
+      "mascot": "Trojans",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 94,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Douglas County",
+      "city": "Douglasville",
+      "mascot": "Tigers",
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "East Coweta",
+      "city": "Sharpsburg",
+      "mascot": "Indians",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFD700",
+      "prestige": 76,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Northgate",
+      "city": "Newnan",
+      "mascot": "Vikings",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#000000",
+      "prestige": 70,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Westlake",
+      "city": "Atlanta",
+      "mascot": "Lions",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "prestige": 80,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

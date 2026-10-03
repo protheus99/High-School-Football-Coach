@@ -1,0 +1,68 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-12-6a-manatee-sarasota-lee",
+  "districtName": "District 12-6A (Manatee, Sarasota & Lee)",
+  "schools": [
+    {
+      "name": "Lakewood Ranch",
+      "city": "Bradenton",
+      "mascot": "Mustangs",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 66,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Lehigh",
+      "city": "Lehigh Acres",
+      "mascot": "Lightning",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 58,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "North Port",
+      "city": "North Port",
+      "mascot": "Bobcats",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFD700",
+      "prestige": 60,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Sarasota Riverview",
+      "city": "Sarasota",
+      "mascot": "Rams",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 58,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Sarasota",
+      "city": "Sarasota",
+      "mascot": "Sailors",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Venice",
+      "city": "Venice",
+      "mascot": "Indians",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

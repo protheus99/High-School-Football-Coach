@@ -1,0 +1,78 @@
+{
+  "state": "North Carolina",
+  "classification": "8A",
+  "districtId": "north-carolina_charlotte-north-central-7a-8a-conferences-c-d",
+  "districtName": "Charlotte North & Central (7A/8A Conferences C & D)",
+  "schools": [
+    {
+      "name": "Chambers",
+      "city": "Charlotte",
+      "mascot": "Cougars",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "prestige": 89,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mallard Creek",
+      "city": "Charlotte",
+      "mascot": "Mavericks",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "West Charlotte",
+      "city": "Charlotte",
+      "mascot": "Lions",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Garinger",
+      "city": "Charlotte",
+      "mascot": "Wildcats",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFD700",
+      "prestige": 50,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Hough",
+      "city": "Cornelius",
+      "mascot": "Huskies",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 95,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Myers Park",
+      "city": "Charlotte",
+      "mascot": "Mustangs",
+      "primaryColor": "#003087",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 89,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "South Mecklenburg",
+      "city": "Charlotte",
+      "mascot": "Sabres",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#000000",
+      "prestige": 83,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

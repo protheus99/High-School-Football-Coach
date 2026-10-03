@@ -1,0 +1,58 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-5-6a-osceola-lake-nona",
+  "districtName": "District 5-6A (Osceola & Lake Nona)",
+  "schools": [
+    {
+      "name": "Gateway",
+      "city": "Kissimmee",
+      "mascot": "Panthers",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 58,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Harmony",
+      "city": "Harmony",
+      "mascot": "Longhorns",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 64,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Lake Nona",
+      "city": "Orlando",
+      "mascot": "Lions",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 72,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "St. Cloud",
+      "city": "St. Cloud",
+      "mascot": "Bulldogs",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Tohopekaliga",
+      "city": "Kissimmee",
+      "mascot": "Tigers",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 60,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

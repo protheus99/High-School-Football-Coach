@@ -1,0 +1,48 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-8-6a-treasure-coast",
+  "districtName": "District 8-6A (Treasure Coast)",
+  "schools": [
+    {
+      "name": "Centennial",
+      "city": "Port St. Lucie",
+      "mascot": "Eagles",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#000000",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Fort Pierce Central",
+      "city": "Fort Pierce",
+      "mascot": "Cobras",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 64,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Treasure Coast",
+      "city": "Port St. Lucie",
+      "mascot": "Titans",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#B3A369",
+      "prestige": 74,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Vero Beach",
+      "city": "Vero Beach",
+      "mascot": "Fighting Indians",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#B3A369",
+      "prestige": 85,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

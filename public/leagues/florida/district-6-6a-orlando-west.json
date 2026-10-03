@@ -1,0 +1,48 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-6-6a-orlando-west",
+  "districtName": "District 6-6A (Orlando West)",
+  "schools": [
+    {
+      "name": "Dr. Phillips",
+      "city": "Orlando",
+      "mascot": "Panthers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "prestige": 75,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Edgewater",
+      "city": "Orlando",
+      "mascot": "Eagles",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 74,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Olympia",
+      "city": "Orlando",
+      "mascot": "Titans",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "West Orange",
+      "city": "Winter Garden",
+      "mascot": "Warriors",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 72,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

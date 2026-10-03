@@ -1,0 +1,48 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-2-6a-volusia-county",
+  "districtName": "District 2-6A (Volusia County)",
+  "schools": [
+    {
+      "name": "DeLand",
+      "city": "DeLand",
+      "mascot": "Bulldogs",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 78,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mainland",
+      "city": "Daytona Beach",
+      "mascot": "Buccaneers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#B3A369",
+      "prestige": 76,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Spruce Creek",
+      "city": "Port Orange",
+      "mascot": "Hawks",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "prestige": 66,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "University",
+      "city": "Orange City",
+      "mascot": "Titans",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 62,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    }
+  ]
+}

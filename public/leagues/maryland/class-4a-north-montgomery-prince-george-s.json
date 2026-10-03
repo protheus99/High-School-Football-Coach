@@ -1,0 +1,88 @@
+{
+  "state": "Maryland",
+  "classification": "4A",
+  "districtId": "maryland_class-4a-north-montgomery-prince-george-s",
+  "districtName": "Class 4A North (Montgomery & Prince George's)",
+  "schools": [
+    {
+      "name": "Bethesda-Chevy Chase",
+      "city": "Bethesda",
+      "mascot": "Barons",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 62,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "James Hubert Blake",
+      "city": "Silver Spring",
+      "mascot": "Bengals",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "prestige": 60,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Montgomery Blair",
+      "city": "Silver Spring",
+      "mascot": "Blazers",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#B3A369",
+      "prestige": 58,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Paint Branch",
+      "city": "Burtonsville",
+      "mascot": "Panthers",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Wheaton",
+      "city": "Silver Spring",
+      "mascot": "Knights",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 50,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "High Point",
+      "city": "Beltsville",
+      "mascot": "Eagles",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 52,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Laurel",
+      "city": "Laurel",
+      "mascot": "Spartans",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#B3A369",
+      "prestige": 56,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Northwestern",
+      "city": "Hyattsville",
+      "mascot": "Wildcats",
+      "primaryColor": "#000000",
+      "secondaryColor": "#000000",
+      "prestige": 85,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

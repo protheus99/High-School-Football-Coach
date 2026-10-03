@@ -1,0 +1,78 @@
+{
+  "state": "North Carolina",
+  "classification": "8A",
+  "districtId": "north-carolina_8a-conference-2-wake-durham",
+  "districtName": "8A Conference 2 (Wake & Durham)",
+  "schools": [
+    {
+      "name": "Apex",
+      "city": "Apex",
+      "mascot": "Cougars",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFC72C",
+      "prestige": 64,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Apex Friendship",
+      "city": "Apex",
+      "mascot": "Patriots",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 88,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Green Hope",
+      "city": "Cary",
+      "mascot": "Falcons",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "prestige": 58,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Green Level",
+      "city": "Cary",
+      "mascot": "Gators",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "prestige": 77,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Jordan",
+      "city": "Durham",
+      "mascot": "Falcons",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFD700",
+      "prestige": 87,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Panther Creek",
+      "city": "Cary",
+      "mascot": "Catamounts",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#B3A369",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Willow Spring",
+      "city": "Fuquay-Varina",
+      "mascot": "Storm",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 52,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "DROP_EIGHT"
+    }
+  ]
+}

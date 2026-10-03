@@ -1,0 +1,88 @@
+{
+  "state": "Georgia",
+  "classification": "7A",
+  "districtId": "georgia_region-5-7a-cobb-cherokee-paulding",
+  "districtName": "Region 5-7A (Cobb, Cherokee & Paulding)",
+  "schools": [
+    {
+      "name": "Cherokee",
+      "city": "Canton",
+      "mascot": "Warriors",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#B3A369",
+      "prestige": 68,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Etowah",
+      "city": "Woodstock",
+      "mascot": "Eagles",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#B3A369",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Marietta",
+      "city": "Marietta",
+      "mascot": "Blue Devils",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "prestige": 78,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "North Cobb",
+      "city": "Kennesaw",
+      "mascot": "Warriors",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "prestige": 84,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "North Paulding",
+      "city": "Dallas",
+      "mascot": "Wolfpack",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 70,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Paulding County",
+      "city": "Dallas",
+      "mascot": "Patriots",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "prestige": 62,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Walton",
+      "city": "Marietta",
+      "mascot": "Raiders",
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 87,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Wheeler",
+      "city": "Marietta",
+      "mascot": "Wildcats",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFD700",
+      "prestige": 66,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

@@ -88,18 +88,83 @@
     "state": "Florida",
     "districts": [
       {
-        "name": "Florida (FHSAA Class 7A / Premier Metro) (Group 1)",
-        "file": "florida/florida-fhsaa-class-7a-premier-metro-group-1.json",
+        "name": "District 1-6A (Jacksonville, St. Johns & Flagler)",
+        "file": "florida/district-1-6a-jacksonville-st-johns-flagler.json",
+        "schools": 6
+      },
+      {
+        "name": "District 2-6A (Volusia County)",
+        "file": "florida/district-2-6a-volusia-county.json",
+        "schools": 4
+      },
+      {
+        "name": "District 3-6A (Seminole County & Apopka)",
+        "file": "florida/district-3-6a-seminole-county-apopka.json",
+        "schools": 4
+      },
+      {
+        "name": "District 4-6A (Orlando East & Oviedo)",
+        "file": "florida/district-4-6a-orlando-east-oviedo.json",
+        "schools": 4
+      },
+      {
+        "name": "District 5-6A (Osceola & Lake Nona)",
+        "file": "florida/district-5-6a-osceola-lake-nona.json",
+        "schools": 5
+      },
+      {
+        "name": "District 6-6A (Orlando West)",
+        "file": "florida/district-6-6a-orlando-west.json",
+        "schools": 4
+      },
+      {
+        "name": "District 7-6A (West Orange, Lake & Celebration)",
+        "file": "florida/district-7-6a-west-orange-lake-celebration.json",
+        "schools": 4
+      },
+      {
+        "name": "District 8-6A (Treasure Coast)",
+        "file": "florida/district-8-6a-treasure-coast.json",
+        "schools": 4
+      },
+      {
+        "name": "District 9-6A (Polk County)",
+        "file": "florida/district-9-6a-polk-county.json",
+        "schools": 6
+      },
+      {
+        "name": "District 10-6A (Hillsborough South & East)",
+        "file": "florida/district-10-6a-hillsborough-south-east.json",
+        "schools": 5
+      },
+      {
+        "name": "District 11-6A (Tampa North & Pinellas)",
+        "file": "florida/district-11-6a-tampa-north-pinellas.json",
+        "schools": 4
+      },
+      {
+        "name": "District 12-6A (Manatee, Sarasota & Lee)",
+        "file": "florida/district-12-6a-manatee-sarasota-lee.json",
+        "schools": 6
+      },
+      {
+        "name": "District 13-6A (Palm Beach North)",
+        "file": "florida/district-13-6a-palm-beach-north.json",
         "schools": 7
       },
       {
-        "name": "Florida (FHSAA Class 7A / Premier Metro) (Group 2)",
-        "file": "florida/florida-fhsaa-class-7a-premier-metro-group-2.json",
-        "schools": 7
+        "name": "District 14-6A (Palm Beach South & Broward North)",
+        "file": "florida/district-14-6a-palm-beach-south-broward-north.json",
+        "schools": 6
       },
       {
-        "name": "Florida (FHSAA Class 7A / Premier Metro) (Group 3)",
-        "file": "florida/florida-fhsaa-class-7a-premier-metro-group-3.json",
+        "name": "District 15-6A (Broward & North Miami-Dade)",
+        "file": "florida/district-15-6a-broward-north-miami-dade.json",
+        "schools": 6
+      },
+      {
+        "name": "District 16-6A (South Miami-Dade)",
+        "file": "florida/district-16-6a-south-miami-dade.json",
         "schools": 6
       }
     ]
@@ -108,19 +173,44 @@
     "state": "Georgia",
     "districts": [
       {
-        "name": "Georgia (GHSA Class 6A / 7A) (Group 1)",
-        "file": "georgia/georgia-ghsa-class-6a-7a-group-1.json",
-        "schools": 7
-      },
-      {
-        "name": "Georgia (GHSA Class 6A / 7A) (Group 2)",
-        "file": "georgia/georgia-ghsa-class-6a-7a-group-2.json",
-        "schools": 7
-      },
-      {
-        "name": "Georgia (GHSA Class 6A / 7A) (Group 3)",
-        "file": "georgia/georgia-ghsa-class-6a-7a-group-3.json",
+        "name": "Region 1-7A (South Georgia & Coast)",
+        "file": "georgia/region-1-7a-south-georgia-coast.json",
         "schools": 5
+      },
+      {
+        "name": "Region 2-7A (West Metro & Coweta)",
+        "file": "georgia/region-2-7a-west-metro-coweta.json",
+        "schools": 5
+      },
+      {
+        "name": "Region 3-7A (Cobb & Atlanta)",
+        "file": "georgia/region-3-7a-cobb-atlanta.json",
+        "schools": 7
+      },
+      {
+        "name": "Region 4-7A (Gwinnett South, DeKalb & Rockdale)",
+        "file": "georgia/region-4-7a-gwinnett-south-dekalb-rockdale.json",
+        "schools": 6
+      },
+      {
+        "name": "Region 5-7A (Cobb, Cherokee & Paulding)",
+        "file": "georgia/region-5-7a-cobb-cherokee-paulding.json",
+        "schools": 8
+      },
+      {
+        "name": "Region 6-7A (Forsyth County)",
+        "file": "georgia/region-6-7a-forsyth-county.json",
+        "schools": 6
+      },
+      {
+        "name": "Region 7-7A (Gwinnett Central)",
+        "file": "georgia/region-7-7a-gwinnett-central.json",
+        "schools": 7
+      },
+      {
+        "name": "Region 8-7A (Gwinnett North & Buford)",
+        "file": "georgia/region-8-7a-gwinnett-north-buford.json",
+        "schools": 7
       }
     ]
   },
@@ -183,13 +273,23 @@
     "state": "Maryland",
     "districts": [
       {
-        "name": "Maryland (MPSSAA 4A / Private WCAC / MIAA) (Group 1)",
-        "file": "maryland/maryland-mpssaa-4a-private-wcac-miaa-group-1.json",
+        "name": "Class 4A West (Montgomery County)",
+        "file": "maryland/class-4a-west-montgomery-county.json",
         "schools": 8
       },
       {
-        "name": "Maryland (MPSSAA 4A / Private WCAC / MIAA) (Group 2)",
-        "file": "maryland/maryland-mpssaa-4a-private-wcac-miaa-group-2.json",
+        "name": "Class 4A North (Montgomery & Prince George's)",
+        "file": "maryland/class-4a-north-montgomery-prince-george-s.json",
+        "schools": 8
+      },
+      {
+        "name": "Class 4A South (Prince George's County)",
+        "file": "maryland/class-4a-south-prince-george-s-county.json",
+        "schools": 7
+      },
+      {
+        "name": "Class 4A East (Anne Arundel, Baltimore County & Bowie)",
+        "file": "maryland/class-4a-east-anne-arundel-baltimore-county-bowie.json",
         "schools": 7
       }
     ]
@@ -243,19 +343,29 @@
     "state": "North Carolina",
     "districts": [
       {
-        "name": "Charlotte / Mecklenburg County (Regions 6 & 7)",
-        "file": "north-carolina/charlotte-mecklenburg-county-regions-6-7.json",
-        "schools": 9
+        "name": "8A Conference 1 (Wake & Johnston)",
+        "file": "north-carolina/8a-conference-1-wake-johnston.json",
+        "schools": 8
       },
       {
-        "name": "Raleigh / Durham Triangle (Regions 3 & 4)",
-        "file": "north-carolina/raleigh-durham-triangle-regions-3-4.json",
-        "schools": 10
-      },
-      {
-        "name": "Triad, Sandhills & Coastal (Regions 2, 5 & 8)",
-        "file": "north-carolina/triad-sandhills-coastal-regions-2-5-8.json",
+        "name": "8A Conference 2 (Wake & Durham)",
+        "file": "north-carolina/8a-conference-2-wake-durham.json",
         "schools": 7
+      },
+      {
+        "name": "Charlotte North & Central (7A/8A Conferences C & D)",
+        "file": "north-carolina/charlotte-north-central-7a-8a-conferences-c-d.json",
+        "schools": 7
+      },
+      {
+        "name": "Charlotte South & East (7A/8A Conference E)",
+        "file": "north-carolina/charlotte-south-east-7a-8a-conference-e.json",
+        "schools": 4
+      },
+      {
+        "name": "Coast, Sandhills & Triad (8A in mixed conferences)",
+        "file": "north-carolina/coast-sandhills-triad-8a-in-mixed-conferences.json",
+        "schools": 6
       }
     ]
   },

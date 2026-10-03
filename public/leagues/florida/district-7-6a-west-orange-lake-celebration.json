@@ -1,0 +1,48 @@
+{
+  "state": "Florida",
+  "classification": "6A",
+  "districtId": "florida_district-7-6a-west-orange-lake-celebration",
+  "districtName": "District 7-6A (West Orange, Lake & Celebration)",
+  "schools": [
+    {
+      "name": "Celebration",
+      "city": "Celebration",
+      "mascot": "Storm",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 58,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "East Ridge",
+      "city": "Clermont",
+      "mascot": "Knights",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#B3A369",
+      "prestige": 62,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Horizon",
+      "city": "Winter Garden",
+      "mascot": "Hawks",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 64,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Ocoee",
+      "city": "Ocoee",
+      "mascot": "Knights",
+      "primaryColor": "#000000",
+      "secondaryColor": "#B3A369",
+      "prestige": 70,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

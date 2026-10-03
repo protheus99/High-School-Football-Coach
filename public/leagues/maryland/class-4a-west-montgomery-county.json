@@ -1,0 +1,88 @@
+{
+  "state": "Maryland",
+  "classification": "4A",
+  "districtId": "maryland_class-4a-west-montgomery-county",
+  "districtName": "Class 4A West (Montgomery County)",
+  "schools": [
+    {
+      "name": "Clarksburg",
+      "city": "Clarksburg",
+      "mascot": "Coyotes",
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "prestige": 70,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Gaithersburg",
+      "city": "Gaithersburg",
+      "mascot": "Trojans",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Northwest",
+      "city": "Germantown",
+      "mascot": "Jaguars",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "prestige": 85,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Quince Orchard",
+      "city": "Gaithersburg",
+      "mascot": "Cougars",
+      "primaryColor": "#006747",
+      "secondaryColor": "#000000",
+      "prestige": 90,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Richard Montgomery",
+      "city": "Rockville",
+      "mascot": "Rockets",
+      "primaryColor": "#002D62",
+      "secondaryColor": "#000000",
+      "prestige": 58,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Seneca Valley",
+      "city": "Germantown",
+      "mascot": "Screaming Eagles",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#B3A369",
+      "prestige": 72,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Walter Johnson",
+      "city": "Bethesda",
+      "mascot": "Wildcats",
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 72,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Winston Churchill",
+      "city": "Potomac",
+      "mascot": "Bulldogs",
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 76,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

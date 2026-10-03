@@ -1,0 +1,68 @@
+{
+  "state": "Georgia",
+  "classification": "7A",
+  "districtId": "georgia_region-6-7a-forsyth-county",
+  "districtName": "Region 6-7A (Forsyth County)",
+  "schools": [
+    {
+      "name": "Denmark",
+      "city": "Alpharetta",
+      "mascot": "Danes",
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "prestige": 74,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Forsyth Central",
+      "city": "Cumming",
+      "mascot": "Bulldogs",
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "prestige": 66,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Lambert",
+      "city": "Suwanee",
+      "mascot": "Longhorns",
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "prestige": 76,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "North Forsyth",
+      "city": "Cumming",
+      "mascot": "Raiders",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#B3A369",
+      "prestige": 72,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "South Forsyth",
+      "city": "Cumming",
+      "mascot": "War Eagles",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#000000",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "West Forsyth",
+      "city": "Cumming",
+      "mascot": "Wolverines",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFFFFF",
+      "prestige": 72,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}
