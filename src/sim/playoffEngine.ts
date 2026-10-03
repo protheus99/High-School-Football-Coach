@@ -363,6 +363,18 @@ export function userDivisionIndex(bracketState: PlayoffBracketState, userTeamId:
  * Points the bracket at the league's team objects (a loaded save stores separate copies), so injuries
  * and eligibility from the league carry into simulated playoff games and back.
  */
+/**
+ * A bracket for saving: each game names its teams by id only (relinkBracketTeams restores them on load). A full
+ * team copy in every game would repeat each team once per round it plays.
+ */
+export function compactBracket(bracketState: PlayoffBracketState): PlayoffBracketState {
+  const stub = (team: Team) => ({ id: team.id }) as Team;
+  return {
+    ...bracketState,
+    divisions: bracketState.divisions.map((d) => ({ ...d, rounds: d.rounds.map((round) => round.map((n) => ({ ...n, team1: stub(n.team1), team2: stub(n.team2) }))) }))
+  };
+}
+
 export function relinkBracketTeams(bracketState: PlayoffBracketState, teams: Team[]): PlayoffBracketState {
   const byId = new Map(teams.map((t) => [t.id, t]));
   bracketState.divisions.forEach((d) =>

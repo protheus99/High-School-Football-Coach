@@ -89,7 +89,7 @@ export function buildTexasLeague(userSchool = DEFAULT_USER_SCHOOL): GameWorld {
 }
 
 /** A playable state's whole top class (Texas 6A, Georgia 7A), with the user at the given school. */
-export function buildStateWorld(state: string, userSchool?: string): GameWorld {
+export function buildStateWorld(state: string, userSchool?: string, light = false): GameWorld {
   const world = STATE_WORLDS[state] ?? STATE_WORLDS.Texas;
   const stateName = STATE_WORLDS[state] ? state : 'Texas';
   const teams: Team[] = [];
@@ -108,7 +108,7 @@ export function buildStateWorld(state: string, userSchool?: string): GameWorld {
           offenseScheme: s.offenseScheme as OffensiveScheme,
           defenseScheme: s.defenseScheme as DefensiveScheme
         })),
-        { talentFromPrestige: true, state: stateName, nameProfile: nameProfileForArea(district.area) }
+        { talentFromPrestige: true, state: stateName, nameProfile: nameProfileForArea(district.area), light }
       );
       teams.push(...districtTeams);
       return { id: `${world.idPrefix}${district.number}`, name: district.name, area: district.area, teamIds: districtTeams.map((t) => t.id) };

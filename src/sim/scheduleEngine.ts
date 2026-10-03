@@ -133,30 +133,42 @@ export function generateSeasonSchedule(regions: Team[][][], year: number): Sched
     const districtOf = new Map(districts.flatMap((ids, d) => ids.map((id) => [id, d] as const)));
     const regionIds = new Set(districts.flat());
     const regionGames = games.filter((g) => regionIds.has(g.homeTeamId));
+    const weeks = Array.from({ length: LAST_REGULAR_SEASON_WEEK - FIRST_NON_DISTRICT_WEEK + 1 }, (_, w) => FIRST_NON_DISTRICT_WEEK + w);
+    const bookedIn = new Map(weeks.map((week) => [week, new Set(regionGames.filter((g) => g.week === week).flatMap((g) => [g.homeTeamId, g.awayTeamId]))]));
+    // Tightest weeks first (fewest idle teams), so wide-open weeks don't use up the pairings they need
+    const weekOrder = [...weeks].sort((a, b) => bookedIn.get(b)!.size - bookedIn.get(a)!.size);
+    // The most fill-in games possible: every week's idle teams, less one where an odd number sit idle
+    const ceiling = weeks.reduce((n, week) => n + Math.floor((regionIds.size - bookedIn.get(week)!.size) / 2), 0);
     let best: [number, string, string][] = [];
-    for (let attempt = 0; attempt < 12; attempt++) {
+    for (let attempt = 0; attempt < 12 && best.length < ceiling; attempt++) {
       const added: [number, string, string][] = [];
-      const met = new Set(regionGames.map((g) => [g.homeTeamId, g.awayTeamId].sort().join('|')));
-      // Tightest weeks first (fewest idle teams), so wide-open weeks don't use up the pairings they need
-      const bookedIn = (week: number) => new Set(regionGames.filter((g) => g.week === week).flatMap((g) => [g.homeTeamId, g.awayTeamId]));
-      const weeks = Array.from({ length: LAST_REGULAR_SEASON_WEEK - FIRST_NON_DISTRICT_WEEK + 1 }, (_, w) => FIRST_NON_DISTRICT_WEEK + w);
-      for (const week of weeks.sort((a, b) => bookedIn(b).size - bookedIn(a).size)) {
-        const booked = bookedIn(week);
+      const met = new Map<string, Set<string>>();
+      const meet = (a: string, b: string) => {
+        if (!met.has(a)) met.set(a, new Set());
+        if (!met.has(b)) met.set(b, new Set());
+        met.get(a)!.add(b);
+        met.get(b)!.add(a);
+      };
+      regionGames.forEach((g) => meet(g.homeTeamId, g.awayTeamId));
+      for (const week of weekOrder) {
+        const booked = bookedIn.get(week)!;
         const idle = shuffle(districts.flat().filter((id) => !booked.has(id)));
-        const options = (team: string) => idle.filter((other) => other !== team && !met.has([team, other].sort().join('|')));
+        const fresh = (a: string, b: string) => a !== b && !met.get(a)?.has(b);
         // Hardest to place first: the idle team with the fewest possible opponents, against its least-wanted option
         while (idle.length > 1) {
-          const team = idle.reduce((a, b) => (options(b).length < options(a).length ? b : a));
+          const optionCount = new Map(idle.map((t) => [t, idle.reduce((n, o) => n + (fresh(t, o) ? 1 : 0), 0)]));
+          const fewest = (list: string[]) => list.reduce((a, b) => (optionCount.get(b)! < optionCount.get(a)! ? b : a));
+          const team = fewest(idle);
           idle.splice(idle.indexOf(team), 1);
-          const candidates = options(team);
+          const candidates = idle.filter((other) => fresh(team, other));
           if (candidates.length === 0) continue;
           const otherDistrict = candidates.filter((other) => districtOf.get(other) !== districtOf.get(team));
           // A district-mate not yet met (a big district's partial round robin) only in a district week, as a district game
           const pool = otherDistrict.length > 0 || week < FIRST_DISTRICT_WEEK ? otherDistrict : candidates;
           if (pool.length === 0) continue;
-          const opponent = pool.reduce((a, b) => (options(b).length < options(a).length ? b : a));
+          const opponent = fewest(pool);
           idle.splice(idle.indexOf(opponent), 1);
-          met.add([team, opponent].sort().join('|'));
+          meet(team, opponent);
           added.push([week, team, opponent]);
         }
       }

@@ -85,10 +85,11 @@ import {
   processPostGameSeasonWear,
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
-import { buildPlayoffBracket, advancePlayoffRound, bracketRoundForWeek, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
+import { buildPlayoffBracket, advancePlayoffRound, bracketRoundForWeek, compactBracket, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
 import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
+import { buildNationalWorld, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
 import type { GameSaveRecord } from '../services/db';
@@ -248,8 +249,9 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     league: state.league ?? undefined,
     leagueTeams: state.leagueTeams,
     seasonSchedule: state.seasonSchedule,
+    nationalLeagues: state.nationalLeagues.map((l) => ({ ...l, bracket: l.bracket && compactBracket(l.bracket) })),
     dilemmaLog: state.dilemmaLog,
-    playoffBracket: state.playoffBracket,
+    playoffBracket: state.playoffBracket && compactBracket(state.playoffBracket),
     sanctionLevel: state.sanctionLevel,
     statewideRecruits: state.statewideRecruits,
     userViolationHeat: state.userViolationHeat,
@@ -300,6 +302,7 @@ interface GameStoreState {
   newsArticles: NewsArticle[];
   polls: StateAndNationalPolls | null;
   playerRankings: PlayerRankingsAndStatsState | null;
+  nationalLeagues: LightLeague[]; // every other playable state, on the same calendar (national polls and leaders)
   coachPoints: number; // Coach Points: the one currency (see sim/coachPoints)
   coachTalents: TalentId[]; // skill-tree talents bought with CP
   practiceIntensity: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT';
@@ -377,6 +380,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   newsArticles: [],
   polls: null,
   playerRankings: null,
+  nationalLeagues: [],
   coachPoints: STARTING_COACH_POINTS,
   coachTalents: [],
   practiceIntensity: 'STANDARD',
@@ -402,6 +406,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
     const ctx = buildRecruitingContext(league, teams, userTeamId);
     updateStarRatings(teams, false);
+    const nationalLeagues = buildNationalWorld(league.state ?? 'Texas', get().currentYear);
+    const everyone = nationalTeams(teams, nationalLeagues);
 
     set({
       currentWeek: 1,
@@ -421,8 +427,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       feederEventsThisWeek: [],
       lastFeederResults: null,
       newsArticles: generateWeeklyNewsStream(1, userTeam),
-      polls: generateNationalAndStatePolls(teams, null, 1),
-      playerRankings: generatePlayerRankingsAndLeaderboards(teams, 1),
+      nationalLeagues,
+      polls: generateNationalAndStatePolls(everyone, null, 1),
+      playerRankings: generatePlayerRankingsAndLeaderboards(everyone, 1),
       coachPoints: STARTING_COACH_POINTS,
       coachTalents: [],
       activeGame: null,
@@ -447,6 +454,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const year = save.currentYear ?? 2026;
     const world = save.league && save.leagueTeams ? { league: save.league, teams: save.leagueTeams } : buildCustomLeague(save.districtTeams, 'Saved District');
     const userTeam = world.teams.find((t) => t.id === save.userTeamId) ?? world.teams[0];
+    // The other states: from the save, or (older saves) built and played up to this week
+    const loadedWeek = save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK);
+    let nationalLeagues = save.nationalLeagues ? relinkNationalWorld(save.nationalLeagues) : null;
+    if (!nationalLeagues) {
+      nationalLeagues = buildNationalWorld(world.league.state ?? 'Texas', year);
+      catchUpNationalWorld(nationalLeagues, loadedWeek - 1);
+    }
+    const everyone = nationalTeams(world.teams, nationalLeagues);
     set({
       difficulty: save.difficulty ?? null,
       currentYear: year,
@@ -479,8 +494,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       graduatingSeniors: [],
       feederEventsThisWeek: [],
       newsArticles: [],
-      polls: generateNationalAndStatePolls(world.teams, null, save.currentWeek),
-      playerRankings: generatePlayerRankingsAndLeaderboards(world.teams, save.currentWeek),
+      nationalLeagues,
+      polls: generateNationalAndStatePolls(everyone, null, save.currentWeek),
+      playerRankings: generatePlayerRankingsAndLeaderboards(everyone, save.currentWeek),
       // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
       scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p) ? save.scoutingPool : generateFeederPool(userTeam)
     });
@@ -521,6 +537,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         g.awayScore = box.awayScore;
         applyGameResult(home, away, box.homeScore, box.awayScore, g.isDistrictGame);
       });
+
+    // The rest of the country plays the same week (regular season, then each state's playoffs)
+    get().nationalLeagues.forEach((light) => simulateLightWeek(light, currentWeek));
 
     // Coach Points: the weekly allowance plus a bonus for a regular-season win; unspent CP carries over.
     // Program events can run once per week.
@@ -730,10 +749,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const lastDrillReport = [...campReport, ...runAssistantDrills(userTeam.roster, get().drillFocus, drillCount)];
 
     // 2. Recalculate National & State Team Polls
-    const updatedPolls = generateNationalAndStatePolls(leagueTeams, polls, nextWeek);
+    const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
+    const updatedPolls = generateNationalAndStatePolls(everyone, polls, nextWeek);
 
     // 3. Recalculate Player Stats Leaderboards & Positional Prospect Rankings
-    const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(leagueTeams, nextWeek);
+    const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, nextWeek);
 
     // 4. College recruiting statewide (offers, commitments, flips) & Weekly Dilemma
     if (nextWeek === MID_SEASON_STAR_UPDATE_WEEK) updateStarRatings(leagueTeams, true);
@@ -876,8 +896,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       t.record = emptyRecord();
     });
 
-    const newPolls = generateNationalAndStatePolls(leagueTeams, null, 1);
-    const newPlayerRankings = generatePlayerRankingsAndLeaderboards(leagueTeams, 1);
+    // The other states start their new season too (programs keep their prestige, nudged by last season)
+    const nationalLeagues = buildNationalWorld(league?.state ?? 'Texas', currentYear + 1, get().nationalLeagues);
+    const everyone = nationalTeams(leagueTeams, nationalLeagues);
+    const newPolls = generateNationalAndStatePolls(everyone, null, 1);
+    const newPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, 1);
 
     set({
       currentWeek: 1,
@@ -886,6 +909,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       playoffBracket: null,
       sanctionLevel: pendingUserBan ? 3 : 0,
       graduatingSeniors: [],
+      nationalLeagues,
       polls: newPolls,
       playerRankings: newPlayerRankings,
       userViolationHeat,

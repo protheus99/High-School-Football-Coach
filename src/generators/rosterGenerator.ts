@@ -253,6 +253,44 @@ export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: Na
   return roster;
 }
 
+/** The starters a light team keeps (another state's league): the players who collect the leader-board stats. */
+export const LIGHT_STARTERS: [Position, number][] = [
+  ['QB', 1],
+  ['RB', 1],
+  ['WR', 2],
+  ['TE', 1],
+  ['LB', 1],
+  ['DE', 1],
+  ['CB', 1],
+  ['S', 1]
+];
+
+/**
+ * A light team's roster: its game-day rating from rolled starter talent (the same rolls a full roster makes, the
+ * best of each position's core group starting) and full players only for its stat leaders. About a tenth of the
+ * work and size of a full roster.
+ */
+export function generateLightRoster(talentAdjustment = 0, nameProfile: NameProfile = 'DEFAULT'): { roster: Player[]; lightRating: number } {
+  const classes: PlayerClass[] = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
+  const takenNames = new Set<string>();
+  const starterRatings: number[] = [];
+  const roster: Player[] = [];
+  (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => {
+    const { starters, core } = DEPTH_TEMPLATE[pos];
+    const rolls = Array.from({ length: core }, (_, i) => {
+      let ovr = rollTalent().ovr;
+      if (i >= starters) ovr = Math.max(40, ovr - randomInt(6, 12)); // the backups roll second-string talent
+      return Math.min(99, Math.max(35, ovr + talentAdjustment));
+    }).sort((a, b) => b - a);
+    starterRatings.push(...rolls.slice(0, starters));
+    const keep = LIGHT_STARTERS.find(([p]) => p === pos)?.[1] ?? 0;
+    rolls.slice(0, keep).forEach((overall) =>
+      roster.push(generateProceduralPlayer(pos, classes[randomInt(0, classes.length - 1)], 1, 0, { nameProfile, takenNames, overall }))
+    );
+  });
+  return { roster, lightRating: starterRatings.reduce((s, r) => s + r, 0) / starterRatings.length };
+}
+
 /**
  * Generates a district's teams. When `talentFromPrestige` is set, schools with a real prestige rating get
  * rosters that lean toward it (a PPI-95 powerhouse rolls about +6 OVR, a PPI-50 program about -8).
@@ -260,7 +298,7 @@ export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: Na
 export function generateDistrictTeams(
   districtId = 'tx_6a_d26',
   schools: SchoolIdentity[] = HIGH_SCHOOL_NAMES,
-  options: { talentFromPrestige?: boolean; state?: string; nameProfile?: NameProfile } = {}
+  options: { talentFromPrestige?: boolean; state?: string; nameProfile?: NameProfile; light?: boolean } = {}
 ): Team[] {
   const schemesOffense: OffensiveScheme[] = ['TRIPLE_OPTION', 'AIR_RAID', 'POWER_I', 'SPREAD'];
   const schemesDefense: DefensiveScheme[] = ['FOUR_THREE', 'FOUR_FOUR', 'THREE_THREE_FIVE', 'DROP_EIGHT'];
@@ -268,7 +306,9 @@ export function generateDistrictTeams(
   return schools.map((hs, i) => {
     const prestige = hs.prestige ?? randomInt(68, 92);
     const nameProfile = options.nameProfile ?? 'DEFAULT';
-    const roster = generateCompleteTeamRoster(options.talentFromPrestige ? Math.round((prestige - 75) * 0.3) : 0, nameProfile);
+    const talent = options.talentFromPrestige ? Math.round((prestige - 75) * 0.3) : 0;
+    const light = options.light ? generateLightRoster(talent, nameProfile) : undefined;
+    const roster = light?.roster ?? generateCompleteTeamRoster(talent, nameProfile);
 
     return {
       id: `team_${hs.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
@@ -300,6 +340,7 @@ export function generateDistrictTeams(
         strengthCoach: { name: `Trainer ${randomSurname(nameProfile)}`, conditioningRating: randomInt(70, 90) }
       },
       roster,
+      ...(light && { lightRating: light.lightRating }),
       record: {
         wins: 0,
         losses: 0,

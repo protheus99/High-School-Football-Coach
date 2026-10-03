@@ -32,6 +32,7 @@ export interface GameSaveRecord {
   pendingUserBan?: boolean;
   onHotSeat?: boolean; // board warning from last season's review
   seasonSchedule?: ScheduledGame[];
+  nationalLeagues?: import('../sim/nationalWorld').LightLeague[]; // the other states' light leagues
   dilemmaLog?: DilemmaRecord[];
   difficulty?: Difficulty;
   drillFocus?: DrillFocus;

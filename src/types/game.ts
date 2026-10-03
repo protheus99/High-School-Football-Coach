@@ -205,6 +205,7 @@ export interface Team {
   staff: CoachingStaff;
   roster: Player[];
   record: TeamRecord;
+  lightRating?: number; // a light team (another state's league): its fixed game-day rating; the roster holds only its stat leaders
 }
 
 export interface PlayEvent {

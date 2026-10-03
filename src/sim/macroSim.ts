@@ -151,6 +151,7 @@ export function rollGameInjuries(team: Team, week: number): { player: Player; se
 
 /** Average overall rating of the game-day lineup (first string, with backups in for missing starters). */
 export function teamStarterRating(team: Team): number {
+  if (team.lightRating !== undefined) return team.lightRating; // another state's light team
   const lineup = gameDayLineup(team);
   return lineup.reduce((sum, p) => sum + (p?.overallRating ?? EMPTY_SLOT_RATING), 0) / (lineup.length || 1);
 }
