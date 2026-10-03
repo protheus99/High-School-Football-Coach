@@ -79,44 +79,85 @@ export function generateSeasonSchedule(regions: Team[][][], year: number): Sched
   for (const region of regions) {
     const districts = region.map((teams) => shuffle(teams.map((t) => t.id)));
 
-    // Non-district: week k pairs district i with district i XOR (k + 1) (1-2/3-4, then 1-3/2-4, then 1-4/2-3)
-    for (let k = 0; k < FIRST_DISTRICT_WEEK - FIRST_NON_DISTRICT_WEEK; k++) {
+    // Non-district: week k pairs district i with district i XOR (k + 1) (1-2/3-4, then 1-3/2-4, then 1-4/2-3).
+    // Other district counts (5 conferences, say) leave these weeks open for the fill-in games below.
+    const powerOfTwo = (districts.length & (districts.length - 1)) === 0;
+    for (let k = 0; powerOfTwo && k < FIRST_DISTRICT_WEEK - FIRST_NON_DISTRICT_WEEK; k++) {
       const week = FIRST_NON_DISTRICT_WEEK + k;
       districts.forEach((a, i) => {
         const partner = districts.length === 2 ? 1 - i : i ^ (k + 1);
         if (partner <= i || partner >= districts.length) return; // each pairing once; odd districts get a bye
         const b = districts[partner];
+        // Rotate each side by its district and the week, so the teams a size mismatch leaves idle (and the idle
+        // teams of odd-sized districts in district weeks) aren't the same index pairs that already met here
         for (let t = 0; t < Math.min(a.length, b.length); t++) {
-          const opponent = b[(t + k) % b.length];
-          if ((t + k) % 2 === 0) addGame(week, a[t], opponent, false);
-          else addGame(week, opponent, a[t], false);
+          const team = a[(t + i + k) % a.length];
+          const opponent = b[(t + 2 * partner + k) % b.length];
+          if ((t + k) % 2 === 0) addGame(week, team, opponent, false);
+          else addGame(week, opponent, team, false);
         }
       });
     }
 
-    // Uneven district sizes leave teams idle: pair them with other idle teams from different districts
-    // (after all district pairings are booked, so an idle pairing never repeats a later regular game)
-    const districtOf = new Map(districts.flatMap((ids, d) => ids.map((id) => [id, d] as const)));
-    for (let week = FIRST_NON_DISTRICT_WEEK; week < FIRST_DISTRICT_WEEK; week++) {
-      const booked = new Set(games.filter((g) => g.week === week).flatMap((g) => [g.homeTeamId, g.awayTeamId]));
-      const met = new Set(games.filter((g) => !g.isDistrictGame).map((g) => [g.homeTeamId, g.awayTeamId].sort().join('|')));
-      const idle = shuffle(districts.flat().filter((id) => !booked.has(id)));
-      while (idle.length > 1) {
-        const team = idle.shift()!;
-        const index = idle.findIndex((other) => districtOf.get(other) !== districtOf.get(team) && !met.has([team, other].sort().join('|')));
-        if (index < 0) continue;
-        const [opponent] = idle.splice(index, 1);
-        addGame(week, team, opponent, false);
-      }
-    }
-
-    // District round robins; large districts play a partial round robin that fits the district weeks
+    // District round robins; large districts play a partial round robin that fits the district weeks. A small
+    // district (fewer rounds than weeks) sits out some weeks: the first one sits out the last weeks, and later
+    // ones sit out the weeks where the most other teams are idle, so the fill-in games below can pair them up.
     const districtWeeks = LAST_REGULAR_SEASON_WEEK - FIRST_DISTRICT_WEEK + 1;
-    for (const ids of districts) {
-      roundRobinRounds(ids).slice(0, districtWeeks).forEach((pairs, r) =>
-        pairs.forEach(([homeTeamId, awayTeamId]) => addGame(FIRST_DISTRICT_WEEK + r, homeTeamId, awayTeamId, true))
-      );
+    const idleCount = Array.from({ length: districtWeeks }, () => 0);
+    const plans = districts.map((ids) => ({ ids, rounds: roundRobinRounds(ids).slice(0, districtWeeks) }));
+    plans.forEach((p) => p.ids.length % 2 === 1 && idleCount.forEach((_, w) => idleCount[w]++)); // odd districts: one idle a week
+    [...plans]
+      .sort((a, b) => a.rounds.length - b.rounds.length)
+      .forEach(({ ids, rounds }, order) => {
+        const skips = districtWeeks - rounds.length;
+        const weeks = Array.from({ length: districtWeeks }, (_, w) => w);
+        const skipWeeks = new Set(
+          order === 0 ? weeks.slice(districtWeeks - skips) : [...weeks].sort((a, b) => idleCount[b] - idleCount[a] || b - a).slice(0, skips)
+        );
+        skipWeeks.forEach((w) => (idleCount[w] += ids.length));
+        const playWeeks = weeks.filter((w) => !skipWeeks.has(w));
+        rounds.forEach((pairs, r) =>
+          pairs.forEach(([homeTeamId, awayTeamId]) => addGame(FIRST_DISTRICT_WEEK + playWeeks[r], homeTeamId, awayTeamId, true))
+        );
+      });
+
+    // Uneven or small districts leave teams idle (in non-district weeks, and in district weeks when a district
+    // has fewer than 8 teams): pair idle teams that haven't met so everyone gets as close to ten games as possible,
+    // preferring opponents from another district. This runs after every other game is booked, so a fill-in game
+    // never repeats a regular one; a few random tries are made and the one that books the most games is kept.
+    const districtOf = new Map(districts.flatMap((ids, d) => ids.map((id) => [id, d] as const)));
+    const regionIds = new Set(districts.flat());
+    const regionGames = games.filter((g) => regionIds.has(g.homeTeamId));
+    let best: [number, string, string][] = [];
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const added: [number, string, string][] = [];
+      const met = new Set(regionGames.map((g) => [g.homeTeamId, g.awayTeamId].sort().join('|')));
+      // Tightest weeks first (fewest idle teams), so wide-open weeks don't use up the pairings they need
+      const bookedIn = (week: number) => new Set(regionGames.filter((g) => g.week === week).flatMap((g) => [g.homeTeamId, g.awayTeamId]));
+      const weeks = Array.from({ length: LAST_REGULAR_SEASON_WEEK - FIRST_NON_DISTRICT_WEEK + 1 }, (_, w) => FIRST_NON_DISTRICT_WEEK + w);
+      for (const week of weeks.sort((a, b) => bookedIn(b).size - bookedIn(a).size)) {
+        const booked = bookedIn(week);
+        const idle = shuffle(districts.flat().filter((id) => !booked.has(id)));
+        const options = (team: string) => idle.filter((other) => other !== team && !met.has([team, other].sort().join('|')));
+        // Hardest to place first: the idle team with the fewest possible opponents, against its least-wanted option
+        while (idle.length > 1) {
+          const team = idle.reduce((a, b) => (options(b).length < options(a).length ? b : a));
+          idle.splice(idle.indexOf(team), 1);
+          const candidates = options(team);
+          if (candidates.length === 0) continue;
+          const otherDistrict = candidates.filter((other) => districtOf.get(other) !== districtOf.get(team));
+          // A district-mate not yet met (a big district's partial round robin) only in a district week, as a district game
+          const pool = otherDistrict.length > 0 || week < FIRST_DISTRICT_WEEK ? otherDistrict : candidates;
+          if (pool.length === 0) continue;
+          const opponent = pool.reduce((a, b) => (options(b).length < options(a).length ? b : a));
+          idle.splice(idle.indexOf(opponent), 1);
+          met.add([team, opponent].sort().join('|'));
+          added.push([week, team, opponent]);
+        }
+      }
+      if (added.length > best.length) best = added;
     }
+    best.forEach(([week, team, opponent]) => addGame(week, team, opponent, districtOf.get(team) === districtOf.get(opponent)));
   }
 
   return games;

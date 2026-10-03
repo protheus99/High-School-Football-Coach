@@ -97,7 +97,7 @@ export const ScheduleView: React.FC = () => {
     <div style={{ maxWidth: '850px', margin: '0 auto' }}>
       <h3 style={{ margin: '0 0 4px 0', fontSize: '17px' }}>{totalWeeks}-week schedule</h3>
       <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
-        Pre season and feeder signing day, training camp, non-district tune-ups, the {districtName ?? 'district'} race, the state playoffs and
+        Pre season and feeder signing day, training camp, non-{rulesForState(league?.state).districtLabel.toLowerCase()} tune-ups, the {districtName ?? rulesForState(league?.state).districtLabel.toLowerCase()} race, the state playoffs and
         the off season.
       </p>
 

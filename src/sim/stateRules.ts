@@ -15,12 +15,15 @@ export interface StateRules {
   playoffs: {
     // DISTRICT_FINISH: the top N of every district qualify and districts are paired (Texas UIL).
     // STATEWIDE_RANKING: a power ranking seeds one bracket 1..N; district champions are guaranteed a top-half seed (Georgia GHSA).
-    format: 'DISTRICT_FINISH' | 'STATEWIDE_RANKING';
+    // REGIONAL_SEEDED: playoff regions (groups of districts) each seed their own bracket, then the region survivors
+    // meet statewide (Florida, Maryland, North Carolina, Alabama); see `regional`.
+    format: 'DISTRICT_FINISH' | 'STATEWIDE_RANKING' | 'REGIONAL_SEEDED';
     qualifiersPerDistrict: number; // DISTRICT_FINISH
-    bracketSize: number; // STATEWIDE_RANKING: teams in the bracket (a power of two)
+    bracketSize: number; // STATEWIDE_RANKING: teams in the bracket (a power of two); otherwise the field size
     // TOP_ENROLLMENT_HALF: once a district's qualifiers are set, the larger half by enrollment plays in the first division
     divisionSplit: 'NONE' | 'TOP_ENROLLMENT_HALF';
     divisionNames: string[]; // bracket names: one per division, or a single statewide bracket
+    regional?: RegionalPlayoffs; // REGIONAL_SEEDED
     roundLabels: Record<PlayoffRound, string>;
     roundDescriptions: Record<PlayoffRound, string>; // one line per round for the schedule
     championshipTitle: string;
@@ -36,6 +39,18 @@ export interface StateRules {
   overtime: {
     startYardsFromGoal: number; // each overtime possession starts this far from the goal line
   };
+}
+
+/** A REGIONAL_SEEDED playoff: how teams are picked and seeded inside each playoff region. */
+export interface RegionalPlayoffs {
+  regions: { name: string; districts: number[] }[]; // playoff regions, by district number (1-based, as in the world data)
+  // RANKING: by the power rating (standing in for MaxPreps, RPI or a point system); DISTRICT_FINISH: by district standings
+  selection: 'RANKING' | 'DISTRICT_FINISH';
+  qualifiersPerRegion: number;
+  statewideQualifiers?: number; // pick the top N statewide first, then split them evenly across the regions in district order (NCHSAA)
+  championsSeededFirst: boolean; // district champions qualify and take the top seeds in their region
+  regionBracketSize: number; // slots per region bracket (a power of two); empty slots give the top seeds a bye
+  regionalRounds: number; // rounds played inside a region before teams from different regions meet
 }
 
 export const TEXAS_RULES: StateRules = {
@@ -115,10 +130,211 @@ export const GEORGIA_RULES: StateRules = {
   overtime: { startYardsFromGoal: 10 }
 };
 
+// Round names and descriptions for a 5-round (32-slot) bracket: the first four region-round slots and the final
+function fiveRounds(labels: string[], descriptions: string[]) {
+  const [first, second, third, fourth, final] = labels;
+  const [d1, d2, d3, d4, d5] = descriptions;
+  return {
+    roundLabels: { BI_DISTRICT: first, AREA: second, REGIONAL_SEMIFINAL: third, REGIONAL_FINAL: fourth, STATE_SEMIFINAL: fourth, STATE_FINAL: final },
+    roundDescriptions: { BI_DISTRICT: d1, AREA: d2, REGIONAL_SEMIFINAL: d3, REGIONAL_FINAL: d4, STATE_SEMIFINAL: d4, STATE_FINAL: d5 }
+  };
+}
+
+/**
+ * Florida FHSAA Class 6A (2026-28: six classes plus Rural): 81 programs in 16 districts. Four regions of eight:
+ * district champions take seeds 1-4 in their region by MaxPreps ranking, at-large teams by ranking fill 5-8.
+ */
+export const FLORIDA_RULES: StateRules = {
+  state: 'Florida',
+  governingBody: 'FHSAA',
+  classification: '6A',
+  districtLabel: 'District',
+  playoffs: {
+    format: 'REGIONAL_SEEDED',
+    qualifiersPerDistrict: 1,
+    bracketSize: 32,
+    divisionSplit: 'NONE',
+    divisionNames: ['Class 6A'],
+    regional: {
+      regions: [
+        { name: 'Region 1', districts: [1, 2, 3, 4] },
+        { name: 'Region 2', districts: [5, 6, 7, 8] },
+        { name: 'Region 3', districts: [9, 10, 11, 12] },
+        { name: 'Region 4', districts: [13, 14, 15, 16] }
+      ],
+      selection: 'RANKING',
+      qualifiersPerRegion: 8,
+      championsSeededFirst: true,
+      regionBracketSize: 8,
+      regionalRounds: 3
+    },
+    ...fiveRounds(
+      ['Regional Quarterfinal', 'Regional Semifinal', 'Regional Final', 'State Semifinal', 'State Championship'],
+      [
+        'Opening round: eight teams per region; district champions are seeded 1-4',
+        'Final four in each region',
+        'The winner is region champion',
+        'Region champions meet for a spot in the title game',
+        'The title game at Pitbull Stadium in Miami'
+      ]
+    ),
+    championshipTitle: 'FHSAA 6A State Championship',
+    championshipVenue: 'Pitbull Stadium (Miami, FL)'
+  },
+  academics: { ruleName: '2.0 GPA every marking period', minimumGpa: 2.0, atRiskGpa: 2.3 },
+  mercyRuleMargin: 35, // FHSAA: running clock with a 35-point lead in the second half
+  overtime: { startYardsFromGoal: 10 }
+};
+
+/**
+ * Maryland MPSSAA Class 4A (2025-27): 30 programs in four regions. The top eight in each region by the MPSSAA
+ * point system play two region rounds; two per region reach the state quarterfinals.
+ */
+export const MARYLAND_RULES: StateRules = {
+  state: 'Maryland',
+  governingBody: 'MPSSAA',
+  classification: '4A',
+  districtLabel: 'Region',
+  playoffs: {
+    format: 'REGIONAL_SEEDED',
+    qualifiersPerDistrict: 8,
+    bracketSize: 32,
+    divisionSplit: 'NONE',
+    divisionNames: ['Class 4A'],
+    regional: {
+      regions: [
+        { name: 'West', districts: [1] },
+        { name: 'North', districts: [2] },
+        { name: 'South', districts: [3] },
+        { name: 'East', districts: [4] }
+      ],
+      selection: 'RANKING',
+      qualifiersPerRegion: 8,
+      championsSeededFirst: false,
+      regionBracketSize: 8,
+      regionalRounds: 2
+    },
+    ...fiveRounds(
+      ['Region Quarterfinal', 'Region Semifinal', 'State Quarterfinal', 'State Semifinal', 'State Championship'],
+      [
+        'Opening round: the top eight in each region by the MPSSAA point system',
+        'Two from each region reach the state quarterfinals',
+        'The final eight, across regions',
+        'The final four',
+        'The title game at Navy-Marine Corps Memorial Stadium in Annapolis'
+      ]
+    ),
+    championshipTitle: 'MPSSAA 4A State Championship',
+    championshipVenue: 'Navy-Marine Corps Memorial Stadium (Annapolis, MD)'
+  },
+  // County rules (e.g. Montgomery County): a 2.0 average with no more than one failing grade
+  academics: { ruleName: '2.0 average, at most one F', minimumGpa: 2.0, atRiskGpa: 2.3 },
+  mercyRuleMargin: 35,
+  overtime: { startYardsFromGoal: 10 }
+};
+
+/**
+ * North Carolina NCHSAA Class 8A (2025-29: eight classes): 32 programs. RPI alone picks a 24-team field, split
+ * East and West by location; the top four on each side get a first-round bye.
+ */
+export const NORTH_CAROLINA_RULES: StateRules = {
+  state: 'North Carolina',
+  governingBody: 'NCHSAA',
+  classification: '8A',
+  districtLabel: 'Conference',
+  playoffs: {
+    format: 'REGIONAL_SEEDED',
+    qualifiersPerDistrict: 0,
+    bracketSize: 24,
+    divisionSplit: 'NONE',
+    divisionNames: ['Class 8A'],
+    regional: {
+      // East to west: Wake & Johnston, Wake & Durham, the coast and Triad schools, then Charlotte
+      regions: [
+        { name: 'East', districts: [1, 2, 5] },
+        { name: 'West', districts: [3, 4] }
+      ],
+      selection: 'RANKING',
+      qualifiersPerRegion: 12,
+      statewideQualifiers: 24,
+      championsSeededFirst: false,
+      regionBracketSize: 16,
+      regionalRounds: 4
+    },
+    ...fiveRounds(
+      ['First Round', 'Second Round', 'Third Round', 'Regional Final', 'State Championship'],
+      [
+        'Opening round: 24 teams by RPI, split East and West; the top four on each side have a bye',
+        'Sixteen teams left',
+        'Eight teams left',
+        'The East and West finals',
+        'The title game at Kenan Stadium in Chapel Hill'
+      ]
+    ),
+    championshipTitle: 'NCHSAA 8A State Championship',
+    championshipVenue: 'Kenan Stadium (Chapel Hill, NC)'
+  },
+  // NCHSAA: pass a minimum load (three of four block classes) the previous semester
+  academics: { ruleName: 'Pass 3 of 4 classes', minimumGpa: 1.5, atRiskGpa: 1.8 },
+  mercyRuleMargin: 42, // NCHSAA: running clock with a 42-point lead in the second half
+  overtime: { startYardsFromGoal: 10 }
+};
+
+/**
+ * Alabama AHSAA Class 6A (2026-28, after 7A was folded in): 32 programs in four regions of eight. The top six in
+ * each region qualify; the region champion and runner-up have a bye. The Super 7 moves to Mobile in 2026.
+ */
+export const ALABAMA_RULES: StateRules = {
+  state: 'Alabama',
+  governingBody: 'AHSAA',
+  classification: '6A',
+  districtLabel: 'Region',
+  playoffs: {
+    format: 'REGIONAL_SEEDED',
+    qualifiersPerDistrict: 6,
+    bracketSize: 24,
+    divisionSplit: 'NONE',
+    divisionNames: ['Class 6A'],
+    regional: {
+      regions: [
+        { name: 'Region 1', districts: [1] },
+        { name: 'Region 2', districts: [2] },
+        { name: 'Region 3', districts: [3] },
+        { name: 'Region 4', districts: [4] }
+      ],
+      selection: 'DISTRICT_FINISH',
+      qualifiersPerRegion: 6,
+      championsSeededFirst: true,
+      regionBracketSize: 8,
+      regionalRounds: 2
+    },
+    ...fiveRounds(
+      ['First Round', 'Second Round', 'Quarterfinals', 'Semifinals', 'Super 7 Championship'],
+      [
+        'Opening round: the top six in each region; the top two have a bye',
+        'Region champions and runners-up enter',
+        'The final eight',
+        'The final four',
+        'The title game at Hancock Whitney Stadium in Mobile'
+      ]
+    ),
+    championshipTitle: 'AHSAA 6A Super 7 Championship',
+    championshipVenue: 'Hancock Whitney Stadium (Mobile, AL)'
+  },
+  // AHSAA: pass six subjects with a 70 average the previous year
+  academics: { ruleName: 'Pass 6 subjects, 70 average', minimumGpa: 1.7, atRiskGpa: 2.0 },
+  mercyRuleMargin: null, // AHSAA: a running clock only when both coaches agree
+  overtime: { startYardsFromGoal: 10 }
+};
+
 /** Playable states and their rules. Add a state here once its rules and complete district data exist. */
 export const STATE_RULES: Record<string, StateRules> = {
   Texas: TEXAS_RULES,
-  Georgia: GEORGIA_RULES
+  Georgia: GEORGIA_RULES,
+  Florida: FLORIDA_RULES,
+  Maryland: MARYLAND_RULES,
+  'North Carolina': NORTH_CAROLINA_RULES,
+  Alabama: ALABAMA_RULES
 };
 
 export const PLAYABLE_STATES = Object.keys(STATE_RULES);
@@ -126,4 +342,38 @@ export const PLAYABLE_STATES = Object.keys(STATE_RULES);
 /** The rules for a state (Texas for anything not yet playable). */
 export function rulesForState(state?: string): StateRules {
   return (state && STATE_RULES[state]) || TEXAS_RULES;
+}
+
+/**
+ * How many places in a district's standings are a guaranteed playoff spot: the top N (Texas, Alabama), the
+ * champion (Georgia, Florida), or none where a ranking alone picks the field (Maryland, North Carolina).
+ */
+export function districtPlayoffSpots(rules: StateRules): number {
+  const { playoffs } = rules;
+  if (playoffs.format === 'DISTRICT_FINISH') return playoffs.qualifiersPerDistrict;
+  if (playoffs.format === 'STATEWIDE_RANKING') return 1;
+  const r = playoffs.regional;
+  if (!r) return 0;
+  if (r.selection === 'DISTRICT_FINISH') return r.qualifiersPerRegion;
+  return r.championsSeededFirst ? 1 : 0;
+}
+
+/** One sentence on how a team makes the playoffs (standings, Hub). */
+export function playoffQualifyText(rules: StateRules): string {
+  const { playoffs, districtLabel } = rules;
+  const label = districtLabel.toLowerCase();
+  if (playoffs.format === 'STATEWIDE_RANKING')
+    return `${districtLabel} champions are guaranteed a playoff spot and a top-${playoffs.bracketSize / 2} seed; the rest of the ${playoffs.bracketSize}-team bracket is filled by the statewide power ranking.`;
+  const r = playoffs.regional;
+  if (playoffs.format === 'REGIONAL_SEEDED' && r) {
+    const byes = r.regionBracketSize - r.qualifiersPerRegion;
+    const byeText = byes > 0 ? ` The top ${byes} ${r.statewideQualifiers ? 'on each side' : `in each ${label}`} get a first-round bye.` : '';
+    if (r.statewideQualifiers)
+      return `The top ${r.statewideQualifiers} in the power ranking make the playoffs, split ${r.regions.map((g) => g.name).join(' and ')}.${byeText}`;
+    if (r.selection === 'DISTRICT_FINISH') return `The top ${r.qualifiersPerRegion} in each ${label} make the playoffs.${byeText}`;
+    if (r.championsSeededFirst)
+      return `${districtLabel} champions qualify and take the top seeds in their playoff region; the power ranking fills the rest of each ${r.regionBracketSize}-team region bracket.`;
+    return `The top ${r.qualifiersPerRegion} in each ${label} by the power ranking make the playoffs.${byeText}`;
+  }
+  return `The top ${playoffs.qualifiersPerDistrict} in each ${label} make the playoffs.`;
 }

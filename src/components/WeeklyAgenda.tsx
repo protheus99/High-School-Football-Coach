@@ -20,7 +20,7 @@ import { dilemmaChoiceCosts } from '../sim/dilemmaEngine';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
-import { rulesForState } from '../sim/stateRules';
+import { playoffQualifyText, rulesForState } from '../sim/stateRules';
 import { powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
@@ -131,6 +131,17 @@ export const WeeklyAgenda: React.FC<{
 
   const rounds = league ? playoffRoundCount(league) : 6;
   const stateRules = rulesForState(league?.state);
+  // The district opener's one-line reminder of what's at stake
+  const openerRule =
+    stateRules.playoffs.format === 'STATEWIDE_RANKING'
+      ? `${stateRules.districtLabel.toLowerCase()} champions are guaranteed a playoff spot`
+      : stateRules.playoffs.format === 'DISTRICT_FINISH'
+        ? `the top ${stateRules.playoffs.qualifiersPerDistrict} make the playoffs`
+        : stateRules.playoffs.regional?.selection === 'DISTRICT_FINISH'
+          ? `the top ${stateRules.playoffs.regional.qualifiersPerRegion} make the playoffs`
+          : stateRules.playoffs.regional?.championsSeededFirst
+            ? `${stateRules.districtLabel.toLowerCase()} champions get a top playoff seed`
+            : 'every win counts in the power ranking'
   const ROUND_LABELS = stateRules.playoffs.roundLabels;
   const phase = getSeasonPhase(currentWeek, rounds);
   const totalWeeks = league ? seasonLength(league) : 28;
@@ -385,9 +396,7 @@ export const WeeklyAgenda: React.FC<{
       : currentWeek === FIRST_NON_DISTRICT_WEEK
         ? 'Season opener'
         : currentWeek === FIRST_DISTRICT_WEEK
-          ? stateRules.playoffs.format === 'STATEWIDE_RANKING'
-            ? `${stateRules.districtLabel} opener: ${stateRules.districtLabel.toLowerCase()} champions are guaranteed a playoff spot`
-            : `${stateRules.districtLabel} opener: the top ${stateRules.playoffs.qualifiersPerDistrict} make the playoffs`
+          ? `${stateRules.districtLabel} opener: ${openerRule}`
           : undefined;
     const opp = game.opponent;
     headline = {
@@ -531,42 +540,50 @@ export const WeeklyAgenda: React.FC<{
   // Report cards come out every third week
   if (isGamePhase && currentWeek % 3 === 0) {
     const ineligible = team.roster.filter((p) => !p.academics.isEligible).length;
-    const atRisk = team.roster.filter((p) => p.academics.isEligible && isAcademicallyAtRisk(p)).length;
+    const atRisk = team.roster.filter((p) => p.academics.isEligible && isAcademicallyAtRisk(p, stateRules)).length;
     if (ineligible + atRisk > 0) {
       extras.push({
         id: 'report-cards',
         icon: '📚',
         title: `Report cards: ${plural(ineligible, 'player')} ineligible`,
-        detail: `${plural(atRisk, 'more player')} close to the 2.0 line. Anyone under 2.0 sits until his grades recover.`,
+        detail: `${plural(atRisk, 'more player')} close to the line (${stateRules.academics.ruleName}). Anyone below it sits until his grades recover.`,
         tone: ineligible > 0 ? 'urgent' : 'info',
         link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
       });
     }
   }
-  // The playoff race (weeks 14-17): a statewide power ranking (Georgia) ...
-  if (phase === 'DISTRICT_PLAY' && currentWeek >= LAST_REGULAR_SEASON_WEEK - 3 && myRow && stateRules.playoffs.format === 'STATEWIDE_RANKING') {
+  // The playoff race (weeks 14-17): a power ranking picks the field (Georgia, Florida, Maryland, North Carolina) ...
+  const regional = stateRules.playoffs.regional;
+  const rankingRace = stateRules.playoffs.format === 'STATEWIDE_RANKING' || (stateRules.playoffs.format === 'REGIONAL_SEEDED' && regional?.selection === 'RANKING');
+  if (phase === 'DISTRICT_PLAY' && currentWeek >= LAST_REGULAR_SEASON_WEEK - 3 && myRow && rankingRace) {
     const ratings = powerRatings(leagueTeams, seasonSchedule);
-    const powerRank = [...leagueTeams].sort((a, b) => (ratings.get(b.id) ?? 0) - (ratings.get(a.id) ?? 0)).findIndex((t) => t.id === userTeamId) + 1;
-    const size = stateRules.playoffs.bracketSize;
+    // Ranked against the teams competing for the same spots: the state, or the user's playoff region
+    const districts = league?.regions.flatMap((r) => r.districts) ?? [];
+    const myDistrict = districts.findIndex((d) => d.teamIds.includes(userTeamId)) + 1;
+    const myRegion = regional && !regional.statewideQualifiers ? regional.regions.find((g) => g.districts.includes(myDistrict)) : undefined;
+    const field = myRegion ? leagueTeams.filter((t) => myRegion.districts.some((d) => districts[d - 1]?.teamIds.includes(t.id))) : leagueTeams;
+    const powerRank = [...field].sort((a, b) => (ratings.get(b.id) ?? 0) - (ratings.get(a.id) ?? 0)).findIndex((t) => t.id === userTeamId) + 1;
+    const spots = myRegion ? regional!.qualifiersPerRegion : regional?.statewideQualifiers ?? stateRules.playoffs.bracketSize;
     extras.push({
       id: 'race',
-      icon: powerRank <= size || myRow.rank === 1 ? '📊' : '⚠️',
-      title: `Playoff race: #${powerRank} in the power ranking`,
-      detail: `The top ${size} make the playoffs and ${stateRules.districtLabel.toLowerCase()} champions are guaranteed a top-${size / 2} seed. You're ${ordinal(myRow.rank)} in ${districtName} (${myRow.districtRecord}).`,
+      icon: powerRank <= spots || myRow.rank === 1 ? '📊' : '⚠️',
+      title: `Playoff race: #${powerRank} in the ${myRegion ? `${myRegion.name} ` : ''}power ranking`,
+      detail: `${playoffQualifyText(stateRules)} You're ${ordinal(myRow.rank)} in ${districtName} (${myRow.districtRecord}).`,
       tone: 'todo',
       link: { label: 'Standings', onClick: () => onNavigate('DISTRICT') }
     });
   }
-  // ... or the top N of each district (Texas)
-  if (phase === 'DISTRICT_PLAY' && currentWeek >= LAST_REGULAR_SEASON_WEEK - 3 && myRow && stateRules.playoffs.format === 'DISTRICT_FINISH') {
+  // ... or the top N of each district (Texas, Alabama)
+  const finishSpots = stateRules.playoffs.format === 'DISTRICT_FINISH' ? stateRules.playoffs.qualifiersPerDistrict : regional?.selection === 'DISTRICT_FINISH' ? regional.qualifiersPerRegion : 0;
+  if (phase === 'DISTRICT_PLAY' && currentWeek >= LAST_REGULAR_SEASON_WEEK - 3 && myRow && finishSpots > 0) {
     const remaining = (id: string) => seasonSchedule.filter((g) => g.isDistrictGame && g.homeScore === undefined && (g.homeTeamId === id || g.awayTeamId === id)).length;
     const wins = (id: string) => districtTeams.find((t) => t.id === id)?.record.districtWins ?? 0;
     const others = standings.filter((r) => r.teamId !== userTeamId).map((r) => r.teamId);
     const mine = wins(userTeamId);
-    const clinched = others.filter((id) => wins(id) + remaining(id) >= mine).length < 4;
-    const eliminated = sanctionLevel === 3 || others.filter((id) => wins(id) > mine + remaining(userTeamId)).length >= 4;
-    const fourth = standings[3];
-    const gamesBack = fourth && myRow.rank > 4 ? wins(fourth.teamId) - mine : 0;
+    const clinched = others.filter((id) => wins(id) + remaining(id) >= mine).length < finishSpots;
+    const eliminated = sanctionLevel === 3 || others.filter((id) => wins(id) > mine + remaining(userTeamId)).length >= finishSpots;
+    const lastIn = standings[finishSpots - 1];
+    const gamesBack = lastIn && myRow.rank > finishSpots ? wins(lastIn.teamId) - mine : 0;
     extras.push({
       id: 'race',
       icon: clinched ? '🎟️' : eliminated ? '🚫' : '📊',
@@ -575,9 +592,9 @@ export const WeeklyAgenda: React.FC<{
         : eliminated
           ? 'Out of the playoff race'
           : currentWeek === LAST_REGULAR_SEASON_WEEK
-            ? 'Final week: the top 4 make the playoffs'
+            ? `Final week: the top ${finishSpots} make the playoffs`
             : 'Playoff race',
-      detail: `${ordinal(myRow.rank)} in ${districtName} (${myRow.districtRecord}).${gamesBack > 0 ? ` ${plural(gamesBack, 'game')} behind 4th.` : ''}`,
+      detail: `${ordinal(myRow.rank)} in ${districtName} (${myRow.districtRecord}).${gamesBack > 0 ? ` ${plural(gamesBack, 'game')} behind ${ordinal(finishSpots)}.` : ''}`,
       tone: eliminated ? 'info' : 'todo',
       link: { label: 'Standings', onClick: () => onNavigate('DISTRICT') }
     });

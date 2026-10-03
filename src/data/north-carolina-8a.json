@@ -1,0 +1,367 @@
+{
+ "state": "North Carolina",
+ "classification": "8A",
+ "regions": [
+  {
+   "name": "Class 8A",
+   "area": "North Carolina",
+   "districts": [
+    {
+     "number": 1,
+     "name": "8A Conference 1",
+     "area": "Wake & Johnston",
+     "schools": [
+      {
+       "name": "Athens Drive",
+       "city": "Raleigh",
+       "mascot": "Jaguars",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "prestige": 58,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Broughton",
+       "city": "Raleigh",
+       "mascot": "Capitals",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#B3A369",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Corinth Holders",
+       "city": "Wendell",
+       "mascot": "Pirates",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 70,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Enloe",
+       "city": "Raleigh",
+       "mascot": "Eagles",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 50,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Leesville Road",
+       "city": "Raleigh",
+       "mascot": "Pride",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFC72C",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Millbrook",
+       "city": "Raleigh",
+       "mascot": "Wildcats",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#B3A369",
+       "prestige": 90,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Rolesville",
+       "city": "Rolesville",
+       "mascot": "Rams",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#B3A369",
+       "prestige": 93,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Wakefield",
+       "city": "Raleigh",
+       "mascot": "Wolverines",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 78,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "8A Conference 2",
+     "area": "Wake & Durham",
+     "schools": [
+      {
+       "name": "Apex",
+       "city": "Apex",
+       "mascot": "Cougars",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFC72C",
+       "prestige": 64,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Apex Friendship",
+       "city": "Apex",
+       "mascot": "Patriots",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Green Hope",
+       "city": "Cary",
+       "mascot": "Falcons",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 58,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Green Level",
+       "city": "Cary",
+       "mascot": "Gators",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 77,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Jordan",
+       "city": "Durham",
+       "mascot": "Falcons",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFD700",
+       "prestige": 87,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Panther Creek",
+       "city": "Cary",
+       "mascot": "Catamounts",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#B3A369",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Willow Spring",
+       "city": "Fuquay-Varina",
+       "mascot": "Storm",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "prestige": 52,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "Charlotte North & Central",
+     "area": "7A/8A Conferences C & D",
+     "schools": [
+      {
+       "name": "Chambers",
+       "city": "Charlotte",
+       "mascot": "Cougars",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFC72C",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Mallard Creek",
+       "city": "Charlotte",
+       "mascot": "Mavericks",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "prestige": 94,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "West Charlotte",
+       "city": "Charlotte",
+       "mascot": "Lions",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#B3A369",
+       "prestige": 70,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Garinger",
+       "city": "Charlotte",
+       "mascot": "Wildcats",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFD700",
+       "prestige": 50,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hough",
+       "city": "Cornelius",
+       "mascot": "Huskies",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 95,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Myers Park",
+       "city": "Charlotte",
+       "mascot": "Mustangs",
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 89,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "South Mecklenburg",
+       "city": "Charlotte",
+       "mascot": "Sabres",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#000000",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "Charlotte South & East",
+     "area": "7A/8A Conference E",
+     "schools": [
+      {
+       "name": "Ardrey Kell",
+       "city": "Charlotte",
+       "mascot": "Knights",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "East Mecklenburg",
+       "city": "Charlotte",
+       "mascot": "Eagles",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 58,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Palisades",
+       "city": "Charlotte",
+       "mascot": "Pumas",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 56,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Providence",
+       "city": "Charlotte",
+       "mascot": "Panthers",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "prestige": 79,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "Coast, Sandhills & Triad",
+     "area": "8A in mixed conferences",
+     "schools": [
+      {
+       "name": "Hoggard",
+       "city": "Wilmington",
+       "mascot": "Vikings",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFC72C",
+       "prestige": 93,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Laney",
+       "city": "Wilmington",
+       "mascot": "Buccaneers",
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 74,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Hoke County",
+       "city": "Raeford",
+       "mascot": "Bucks",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Pinecrest",
+       "city": "Southern Pines",
+       "mascot": "Patriots",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "prestige": 88,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Northwest Guilford",
+       "city": "Greensboro",
+       "mascot": "Vikings",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFC72C",
+       "prestige": 82,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "West Forsyth",
+       "city": "Clemmons",
+       "mascot": "Titans",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 89,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

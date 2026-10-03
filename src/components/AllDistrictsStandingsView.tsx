@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { leagueRegionTeams } from '../sim/league';
+import { districtPlayoffSpots, playoffQualifyText, rulesForState } from '../sim/stateRules';
 
 /** Standings for every district in the league, grouped by region. */
 export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackButton?: boolean }> = ({ onBack, hideBackButton }) => {
@@ -19,7 +20,7 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackB
         id: district.id,
         name: district.name,
         isUser: district.teamIds.includes(userTeamId),
-        standings: calculateDistrictStandings(teamsByRegion[r][d])
+        standings: calculateDistrictStandings(teamsByRegion[r][d], districtPlayoffSpots(rulesForState(league.state)))
       }))
     }));
   }, [league, leagueTeams, userTeamId]);
@@ -40,12 +41,12 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackB
     <div className="ui-screen">
       {!hideBackButton && (
         <button onClick={onBack} className="ui-btn" style={{ marginBottom: '10px' }}>
-          ← My district
+          ← My {rulesForState(league.state).districtLabel.toLowerCase()}
         </button>
       )}
-      {!hideBackButton && <h2 style={{ margin: '0 0 4px 0' }}>All District Standings</h2>}
+      {!hideBackButton && <h2 style={{ margin: '0 0 4px 0' }}>All {rulesForState(league.state).districtLabel} Standings</h2>}
       <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
-        {league.name}. Top 4 in each district make the playoffs.
+        {league.name}. {playoffQualifyText(rulesForState(league.state))}
       </p>
 
       <input

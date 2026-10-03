@@ -1,0 +1,340 @@
+{
+ "state": "Maryland",
+ "classification": "4A",
+ "regions": [
+  {
+   "name": "Class 4A",
+   "area": "Maryland",
+   "districts": [
+    {
+     "number": 1,
+     "name": "Class 4A West",
+     "area": "Montgomery County",
+     "schools": [
+      {
+       "name": "Clarksburg",
+       "city": "Clarksburg",
+       "mascot": "Coyotes",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#000000",
+       "prestige": 70,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Gaithersburg",
+       "city": "Gaithersburg",
+       "mascot": "Trojans",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Northwest",
+       "city": "Germantown",
+       "mascot": "Jaguars",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "prestige": 85,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Quince Orchard",
+       "city": "Gaithersburg",
+       "mascot": "Cougars",
+       "primaryColor": "#006747",
+       "secondaryColor": "#000000",
+       "prestige": 90,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Richard Montgomery",
+       "city": "Rockville",
+       "mascot": "Rockets",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#000000",
+       "prestige": 58,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Seneca Valley",
+       "city": "Germantown",
+       "mascot": "Screaming Eagles",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#B3A369",
+       "prestige": 72,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Walter Johnson",
+       "city": "Bethesda",
+       "mascot": "Wildcats",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 72,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Winston Churchill",
+       "city": "Potomac",
+       "mascot": "Bulldogs",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 76,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "Class 4A North",
+     "area": "Montgomery & Prince George's",
+     "schools": [
+      {
+       "name": "Bethesda-Chevy Chase",
+       "city": "Bethesda",
+       "mascot": "Barons",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 62,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "James Hubert Blake",
+       "city": "Silver Spring",
+       "mascot": "Bengals",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 60,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Montgomery Blair",
+       "city": "Silver Spring",
+       "mascot": "Blazers",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#B3A369",
+       "prestige": 58,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Paint Branch",
+       "city": "Burtonsville",
+       "mascot": "Panthers",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 79,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Wheaton",
+       "city": "Silver Spring",
+       "mascot": "Knights",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 50,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "High Point",
+       "city": "Beltsville",
+       "mascot": "Eagles",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 52,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Laurel",
+       "city": "Laurel",
+       "mascot": "Spartans",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 56,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Northwestern",
+       "city": "Hyattsville",
+       "mascot": "Wildcats",
+       "primaryColor": "#000000",
+       "secondaryColor": "#000000",
+       "prestige": 85,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "Class 4A South",
+     "area": "Prince George's County",
+     "schools": [
+      {
+       "name": "Bladensburg",
+       "city": "Bladensburg",
+       "mascot": "Mustangs",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 45,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Charles H. Flowers",
+       "city": "Springdale",
+       "mascot": "Jaguars",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Dr. Henry A. Wise",
+       "city": "Upper Marlboro",
+       "mascot": "Pumas",
+       "primaryColor": "#006747",
+       "secondaryColor": "#000000",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "DuVal",
+       "city": "Lanham",
+       "mascot": "Tigers",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 66,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Eleanor Roosevelt",
+       "city": "Greenbelt",
+       "mascot": "Raiders",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 62,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Parkdale",
+       "city": "Riverdale",
+       "mascot": "Panthers",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 52,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Suitland",
+       "city": "Forestville",
+       "mascot": "Rams",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 70,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "Class 4A East",
+     "area": "Anne Arundel, Baltimore County & Bowie",
+     "schools": [
+      {
+       "name": "Annapolis",
+       "city": "Annapolis",
+       "mascot": "Panthers",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "prestige": 64,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Broadneck",
+       "city": "Annapolis",
+       "mascot": "Bruins",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFC72C",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Glen Burnie",
+       "city": "Glen Burnie",
+       "mascot": "Gophers",
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "prestige": 60,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Meade",
+       "city": "Fort Meade",
+       "mascot": "Mustangs",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "North County",
+       "city": "Glen Burnie",
+       "mascot": "Knights",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#000000",
+       "prestige": 58,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Dundalk",
+       "city": "Dundalk",
+       "mascot": "Owls",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 56,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Bowie",
+       "city": "Bowie",
+       "mascot": "Bulldogs",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -3,7 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { Sheet } from './ui/Sheet';
 import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueImporter';
 import { AUTOSAVE_ID, loadSaveGame } from '../services/db';
-import { buildCustomLeague, buildStateLeague, buildTexasLeague, GameWorld, nearestDistrictIndexes, StateDistrictFile } from '../sim/league';
+import { buildCustomLeague, buildStateLeague, buildStateWorld, GameWorld, nearestDistrictIndexes, StateDistrictFile } from '../sim/league';
 import { PLAYABLE_STATES } from '../sim/stateRules';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -63,7 +63,7 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
 
   const handleImportJSON = () => applyImport(importText, 'Custom district');
 
-  // A real state district: the world is built from that state's nearest districts (all of 6A for Texas)
+  // A real state district: a playable state's whole top class, otherwise that state's nearest districts
   const handleLoadStateDistrict = async () => {
     const userIndex = stateDistricts.findIndex((d) => d.file === selectedDistrictFile);
     if (userIndex < 0) return;
@@ -77,8 +77,9 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
       const userDistrict = await fetchDistrict(stateDistricts[userIndex].file);
       if (!userDistrict.schools?.length) throw new Error('empty district');
       let world: GameWorld;
-      if (userDistrict.state === 'Texas') {
-        world = buildTexasLeague(userDistrict.schools[0].name);
+      if (PLAYABLE_STATES.includes(userDistrict.state)) {
+        // Playable states have their whole top class bundled: coach this district's first school in it
+        world = buildStateWorld(userDistrict.state, userDistrict.schools[0].name);
       } else {
         const neighbors = await Promise.all(nearestDistrictIndexes(stateDistricts.length, userIndex).map((i) => fetchDistrict(stateDistricts[i].file)));
         world = buildStateLeague(userDistrict, neighbors);

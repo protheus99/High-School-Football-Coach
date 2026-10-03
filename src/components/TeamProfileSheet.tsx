@@ -30,6 +30,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
   if (!team) return null;
   const isUser = team.id === userTeamId;
   const ROUND_LABELS = rulesForState(league?.state).playoffs.roundLabels;
+  const districtLabel = rulesForState(league?.state).districtLabel;
 
   const district = league ? findDistrict(league, team.id) : undefined;
   const districtTeams = league && district ? leagueRegionTeams(league, leagueTeams).flat().find((d) => d.some((t) => t.id === team.id)) ?? [] : [];
@@ -45,11 +46,11 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
     .map((g) => {
       const isHome = g.homeTeamId === team.id;
       const opponent = byId.get(isHome ? g.awayTeamId : g.homeTeamId);
-      if (g.homeScore === undefined || g.awayScore === undefined) return { week: g.week, opponent, isHome, label: g.isDistrictGame ? 'District' : undefined };
+      if (g.homeScore === undefined || g.awayScore === undefined) return { week: g.week, opponent, isHome, label: g.isDistrictGame ? districtLabel : undefined };
       const mine = isHome ? g.homeScore : g.awayScore;
       const theirs = isHome ? g.awayScore : g.homeScore;
       const won = g.forfeitedByTeamId ? g.forfeitedByTeamId !== team.id : mine > theirs;
-      return { week: g.week, opponent, isHome, won, label: g.isDistrictGame ? 'District' : undefined, result: g.forfeitedByTeamId ? 'forfeit' : `${mine}-${theirs}` };
+      return { week: g.week, opponent, isHome, won, label: g.isDistrictGame ? districtLabel : undefined, result: g.forfeitedByTeamId ? 'forfeit' : `${mine}-${theirs}` };
     });
   playoffBracket?.divisions.forEach((d) =>
     d.rounds.forEach((round, i) =>
@@ -92,7 +93,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
       subtitle={
         <>
           {team.record.wins}-{team.record.losses}
-          {standing && ` · ${ordinal(standing.rank)} in ${district?.name ?? 'the district'} (${standing.districtRecord})`}
+          {standing && ` · ${ordinal(standing.rank)} in ${district?.name ?? `the ${districtLabel.toLowerCase()}`} (${standing.districtRecord})`}
           {nationalRank ? ` · #${nationalRank} nationally` : stateRank ? ` · #${stateRank} in ${team.state}` : ''}
         </>
       }

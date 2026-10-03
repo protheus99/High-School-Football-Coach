@@ -91,16 +91,19 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
         {view === 'NEW' && (
           <div>
             <h2 style={sectionTitle}>Choose a State</h2>
-            <div className="ui-chips" aria-label="State" style={{ justifyContent: 'center', marginBottom: '16px' }}>
+            <div aria-label="State" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', marginBottom: '8px' }}>
               {PLAYABLE_STATES.map((st) => (
-                <button key={st} className="ui-chip" aria-pressed={state === st} onClick={() => setState(st)}>
-                  {st} · {rulesForState(st).governingBody} {rulesForState(st).classification}
+                <button key={st} className="ui-chip" aria-pressed={state === st} onClick={() => setState(st)} style={{ justifyContent: 'center' }}>
+                  {st}
                 </button>
               ))}
             </div>
+            <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
+              {rulesForState(state).governingBody} Class {rulesForState(state).classification} · title game at {rulesForState(state).playoffs.championshipVenue}
+            </p>
             <h2 style={sectionTitle}>Choose a Difficulty</h2>
             <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
-              You&apos;ll be hired at a random {state} {rulesForState(state).classification} school in the matching prestige range.
+              You&apos;ll be hired at a random {state} {rulesForState(state).classification} school in the matching prestige range (or the closest one).
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
               {DIFFICULTIES.map((d) => (

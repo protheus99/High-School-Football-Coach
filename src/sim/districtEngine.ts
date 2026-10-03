@@ -13,7 +13,8 @@ export interface DistrictStandingRow {
 /**
  * Calculates official 8-team district standings using NFHS capped point differentials (+/- 17) and head-to-head tiebreakers.
  */
-export function calculateDistrictStandings(teams: Team[]): DistrictStandingRow[] {
+/** District standings; the top `playoffSpots` are marked playoff-bound (Texas: 4; see districtPlayoffSpots for other states). */
+export function calculateDistrictStandings(teams: Team[], playoffSpots = 4): DistrictStandingRow[] {
   const sorted = [...teams].sort((a, b) => {
     // 1. District Wins
     if (b.record.districtWins !== a.record.districtWins) {
@@ -42,7 +43,7 @@ export function calculateDistrictStandings(teams: Team[]): DistrictStandingRow[]
     districtRecord: `${t.record.districtWins}-${t.record.districtLosses}`,
     overallRecord: `${t.record.wins}-${t.record.losses}`,
     pointDifferential: t.record.districtPointDifferential,
-    isPlayoffBound: index < 4 // Top 4 qualify
+    isPlayoffBound: index < playoffSpots
   }));
 }
 

@@ -236,7 +236,8 @@ def build_texas_world(lines, out_file: Path):
 
 
 # Curated states that get a bundled statewide world (like Texas) in src/data: state -> output file
-STATE_WORLD_FILES = {'Georgia': 'georgia-7a.json'}
+STATE_WORLD_FILES = {'Georgia': 'georgia-7a.json', 'Florida': 'florida-6a.json', 'Maryland': 'maryland-4a.json',
+                     'North Carolina': 'north-carolina-8a.json', 'Alabama': 'alabama-6a.json'}
 
 
 def build_curated_worlds(out_dir: Path):

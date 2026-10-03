@@ -5,6 +5,8 @@ import { buildPlayoffBracket, ROUND_LABELS } from '../playoffEngine';
 import { evaluateAcademicReport, isAcademicallyAtRisk } from '../playerEngine';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { GEORGIA_RULES, PLAYABLE_STATES, StateRules, TEXAS_RULES, rulesForState } from '../stateRules';
+import { generateSeasonSchedule } from '../scheduleEngine';
+import type { PlayoffBracketState } from '../playoffEngine';
 import { buildStateWorld } from '../league';
 import { calculateDistrictStandings } from '../districtEngine';
 import { advancePlayoffRound, powerRatings } from '../playoffEngine';
@@ -19,8 +21,8 @@ const TEST_RULES: StateRules = {
 };
 
 describe('State rules', () => {
-  it('Texas and Georgia are playable; Texas is the default for anything else', () => {
-    expect(PLAYABLE_STATES).toEqual(['Texas', 'Georgia']);
+  it('six states are playable; Texas is the default for anything else', () => {
+    expect(PLAYABLE_STATES).toEqual(['Texas', 'Georgia', 'Florida', 'Maryland', 'North Carolina', 'Alabama']);
     expect(rulesForState('Georgia')).toBe(GEORGIA_RULES);
     expect(rulesForState('Ohio')).toBe(TEXAS_RULES);
     expect(rulesForState(undefined)).toBe(TEXAS_RULES);
@@ -97,5 +99,84 @@ describe('Georgia (GHSA 7A)', () => {
     for (let round = 0; round < 5; round++) bracket = advancePlayoffRound(bracket);
     expect(bracket.divisions[0].championTeamId).toBeTruthy();
     expect(bracket.isPlayoffsActive).toBe(false);
+  });
+});
+
+describe('Regional playoff states', () => {
+  // A played regular season and the state's bracket
+  const season = (state: string) => {
+    const { league, teams } = buildStateWorld(state);
+    const regionTeams = leagueRegionTeams(league, teams);
+    const schedule = simulateRegularSeason(regionTeams, 2026);
+    const regions = league.regions.map((r, i) => ({ name: r.name, districts: regionTeams[i] }));
+    const bracket = buildPlayoffBracket(regions, { splitDivisions: false, rules: rulesForState(state), schedule });
+    return { league, teams, regionTeams, bracket };
+  };
+  const finish = (bracket: PlayoffBracketState) => {
+    let b = bracket;
+    while (b.isPlayoffsActive) b = advancePlayoffRound(b);
+    return b.divisions[0].championTeamId;
+  };
+
+  it.each(['Florida', 'Maryland', 'North Carolina', 'Alabama'])('%s builds its whole class and crowns a champion in five rounds', (state) => {
+    const { league, teams, bracket } = season(state);
+    expect(teams.every((t) => t.state === state)).toBe(true);
+    expect(playoffRoundCount(league)).toBe(5);
+    expect(bracket.roundNames).toHaveLength(5);
+    expect(bracket.divisions[0].rounds[0]).toHaveLength(16);
+    expect(bracket.championshipTitle).toBe(rulesForState(state).playoffs.championshipTitle);
+    expect(finish(bracket)).toBeTruthy();
+  });
+
+  it('Florida: district champions take seeds 1-4 in their region', () => {
+    const { regionTeams, bracket } = season('Florida');
+    const champions = new Set(regionTeams[0].map((d) => calculateDistrictStandings(d)[0].teamId));
+    const r1 = bracket.divisions[0].rounds[0];
+    // Each region's four games are 1v8, 4v5, 3v6, 2v7: the host of every game is a top-4 seed
+    r1.forEach((node) => expect(champions.has(node.team1.id)).toBe(true));
+    expect(r1.every((n) => !n.isBye)).toBe(true);
+  });
+
+  it('Alabama: the top six in each region qualify and the top two have byes', () => {
+    const { regionTeams, bracket } = season('Alabama');
+    const r1 = bracket.divisions[0].rounds[0];
+    expect(r1.filter((n) => n.isBye)).toHaveLength(8);
+    regionTeams[0].forEach((district) => {
+      const [first, second] = calculateDistrictStandings(district).map((row) => row.teamId);
+      expect(r1.find((n) => n.team1.id === first)?.isBye).toBe(true);
+      expect(r1.find((n) => n.team1.id === second)?.isBye).toBe(true);
+    });
+  });
+
+  it('Maryland and Alabama send two per region to a cross-region state quarterfinal', () => {
+    for (const state of ['Maryland', 'Alabama']) {
+      let { bracket } = season(state);
+      bracket = advancePlayoffRound(advancePlayoffRound(bracket));
+      const quarterfinals = bracket.divisions[0].rounds[2];
+      expect(quarterfinals).toHaveLength(4);
+      quarterfinals.forEach((n) => expect(n.region).toBeUndefined()); // the two teams come from different regions
+    }
+  });
+
+  it('North Carolina: 24 teams by ranking, 12 East and 12 West, the top four on each side with a bye', () => {
+    const { bracket } = season('North Carolina');
+    const r1 = bracket.divisions[0].rounds[0];
+    const teamsIn = (side: string) => new Set(r1.filter((n) => n.region === side).flatMap((n) => [n.team1.id, n.team2.id]));
+    expect(teamsIn('East').size).toBe(12);
+    expect(teamsIn('West').size).toBe(12);
+    expect(r1.filter((n) => n.isBye)).toHaveLength(8);
+  });
+
+  it('small and uneven districts still get a full schedule', () => {
+    for (const state of ['Maryland', 'Alabama']) {
+      const { league, teams } = buildStateWorld(state);
+      const schedule = generateSeasonSchedule(leagueRegionTeams(league, teams), 2026);
+      teams.forEach((t) => expect(schedule.filter((g) => g.homeTeamId === t.id || g.awayTeamId === t.id)).toHaveLength(10));
+      // nobody plays twice in a week or meets the same opponent twice
+      const pairs = schedule.map((g) => [g.homeTeamId, g.awayTeamId].sort().join('|'));
+      expect(new Set(pairs).size).toBe(pairs.length);
+      const slots = schedule.flatMap((g) => [`${g.week}:${g.homeTeamId}`, `${g.week}:${g.awayTeamId}`]);
+      expect(new Set(slots).size).toBe(slots.length);
+    }
   });
 });

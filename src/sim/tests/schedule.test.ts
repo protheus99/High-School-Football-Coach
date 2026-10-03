@@ -61,7 +61,8 @@ describe('League season schedule', () => {
         } else {
           expect(district.teamIds).not.toContain(opponent);
           expect(region.districts.some((d) => d.teamIds.includes(opponent))).toBe(true);
-          expect(game.week).toBeLessThan(FIRST_DISTRICT_WEEK);
+          // Non-district weeks, or a fill-in game in a week the team's district round robin leaves open
+          if (game.week >= FIRST_DISTRICT_WEEK) expect(gamesFor(team.id).filter((g) => g.week === game.week)).toHaveLength(1);
         }
       }
       // No repeat opponents, and a full district slate up to the seven district weeks

@@ -1,0 +1,934 @@
+{
+ "state": "Florida",
+ "classification": "6A",
+ "regions": [
+  {
+   "name": "Class 6A",
+   "area": "Florida",
+   "districts": [
+    {
+     "number": 1,
+     "name": "District 1-6A",
+     "area": "Jacksonville, St. Johns & Flagler",
+     "schools": [
+      {
+       "name": "Atlantic Coast",
+       "city": "Jacksonville",
+       "mascot": "Stingrays",
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "prestige": 64,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Creekside",
+       "city": "St. Johns",
+       "mascot": "Knights",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 70,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "First Coast",
+       "city": "Jacksonville",
+       "mascot": "Buccaneers",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 62,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Flagler Palm Coast",
+       "city": "Palm Coast",
+       "mascot": "Bulldogs",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Sandalwood",
+       "city": "Jacksonville",
+       "mascot": "Saints",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Tocoi Creek",
+       "city": "St. Augustine",
+       "mascot": "Toros",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "prestige": 60,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "District 2-6A",
+     "area": "Volusia County",
+     "schools": [
+      {
+       "name": "DeLand",
+       "city": "DeLand",
+       "mascot": "Bulldogs",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Mainland",
+       "city": "Daytona Beach",
+       "mascot": "Buccaneers",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#B3A369",
+       "prestige": 76,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Spruce Creek",
+       "city": "Port Orange",
+       "mascot": "Hawks",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 66,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "University",
+       "city": "Orange City",
+       "mascot": "Titans",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "prestige": 62,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "District 3-6A",
+     "area": "Seminole County & Apopka",
+     "schools": [
+      {
+       "name": "Apopka",
+       "city": "Apopka",
+       "mascot": "Blue Darters",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lake Brantley",
+       "city": "Altamonte Springs",
+       "mascot": "Patriots",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 70,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lake Mary",
+       "city": "Lake Mary",
+       "mascot": "Rams",
+       "primaryColor": "#003087",
+       "secondaryColor": "#000000",
+       "prestige": 90,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Seminole",
+       "city": "Sanford",
+       "mascot": "Seminoles",
+       "primaryColor": "#003087",
+       "secondaryColor": "#B3A369",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "District 4-6A",
+     "area": "Orlando East & Oviedo",
+     "schools": [
+      {
+       "name": "Boone",
+       "city": "Orlando",
+       "mascot": "Braves",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 72,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Hagerty",
+       "city": "Oviedo",
+       "mascot": "Huskies",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 66,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Timber Creek",
+       "city": "Orlando",
+       "mascot": "Wolves",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFD700",
+       "prestige": 70,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Winter Park",
+       "city": "Winter Park",
+       "mascot": "Wildcats",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "District 5-6A",
+     "area": "Osceola & Lake Nona",
+     "schools": [
+      {
+       "name": "Gateway",
+       "city": "Kissimmee",
+       "mascot": "Panthers",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 58,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Harmony",
+       "city": "Harmony",
+       "mascot": "Longhorns",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "prestige": 64,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Lake Nona",
+       "city": "Orlando",
+       "mascot": "Lions",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "prestige": 72,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "St. Cloud",
+       "city": "St. Cloud",
+       "mascot": "Bulldogs",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Tohopekaliga",
+       "city": "Kissimmee",
+       "mascot": "Tigers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 60,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "name": "District 6-6A",
+     "area": "Orlando West",
+     "schools": [
+      {
+       "name": "Dr. Phillips",
+       "city": "Orlando",
+       "mascot": "Panthers",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Edgewater",
+       "city": "Orlando",
+       "mascot": "Eagles",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Olympia",
+       "city": "Orlando",
+       "mascot": "Titans",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "West Orange",
+       "city": "Winter Garden",
+       "mascot": "Warriors",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 72,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "name": "District 7-6A",
+     "area": "West Orange, Lake & Celebration",
+     "schools": [
+      {
+       "name": "Celebration",
+       "city": "Celebration",
+       "mascot": "Storm",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 58,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "East Ridge",
+       "city": "Clermont",
+       "mascot": "Knights",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Horizon",
+       "city": "Winter Garden",
+       "mascot": "Hawks",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 64,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Ocoee",
+       "city": "Ocoee",
+       "mascot": "Knights",
+       "primaryColor": "#000000",
+       "secondaryColor": "#B3A369",
+       "prestige": 70,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 8,
+     "name": "District 8-6A",
+     "area": "Treasure Coast",
+     "schools": [
+      {
+       "name": "Centennial",
+       "city": "Port St. Lucie",
+       "mascot": "Eagles",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#000000",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Fort Pierce Central",
+       "city": "Fort Pierce",
+       "mascot": "Cobras",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 64,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Treasure Coast",
+       "city": "Port St. Lucie",
+       "mascot": "Titans",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#B3A369",
+       "prestige": 74,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Vero Beach",
+       "city": "Vero Beach",
+       "mascot": "Fighting Indians",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 9,
+     "name": "District 9-6A",
+     "area": "Polk County",
+     "schools": [
+      {
+       "name": "Davenport",
+       "city": "Davenport",
+       "mascot": "Broncos",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#B3A369",
+       "prestige": 54,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "George Jenkins",
+       "city": "Lakeland",
+       "mascot": "Eagles",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Haines City",
+       "city": "Haines City",
+       "mascot": "Hornets",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#000000",
+       "prestige": 64,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Poinciana",
+       "city": "Kissimmee",
+       "mascot": "Eagles",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 56,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Ridge Community",
+       "city": "Davenport",
+       "mascot": "Bolts",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#B3A369",
+       "prestige": 58,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Winter Haven",
+       "city": "Winter Haven",
+       "mascot": "Blue Devils",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 10,
+     "name": "District 10-6A",
+     "area": "Hillsborough South & East",
+     "schools": [
+      {
+       "name": "Durant",
+       "city": "Plant City",
+       "mascot": "Cougars",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lennard",
+       "city": "Ruskin",
+       "mascot": "Longhorns",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Newsome",
+       "city": "Lithia",
+       "mascot": "Wolves",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 74,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Plant City",
+       "city": "Plant City",
+       "mascot": "Raiders",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "prestige": 66,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Riverview",
+       "city": "Riverview",
+       "mascot": "Sharks",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 56,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 11,
+     "name": "District 11-6A",
+     "area": "Tampa North & Pinellas",
+     "schools": [
+      {
+       "name": "Alonso",
+       "city": "Tampa",
+       "mascot": "Ravens",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFD700",
+       "prestige": 60,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "George Steinbrenner",
+       "city": "Lutz",
+       "mascot": "Warriors",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFC72C",
+       "prestige": 68,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Palm Harbor University",
+       "city": "Palm Harbor",
+       "mascot": "Hurricanes",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 62,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Strawberry Crest",
+       "city": "Dover",
+       "mascot": "Chargers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "prestige": 58,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 12,
+     "name": "District 12-6A",
+     "area": "Manatee, Sarasota & Lee",
+     "schools": [
+      {
+       "name": "Lakewood Ranch",
+       "city": "Bradenton",
+       "mascot": "Mustangs",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "prestige": 66,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Lehigh",
+       "city": "Lehigh Acres",
+       "mascot": "Lightning",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 58,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "North Port",
+       "city": "North Port",
+       "mascot": "Bobcats",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFD700",
+       "prestige": 60,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Sarasota Riverview",
+       "city": "Sarasota",
+       "mascot": "Rams",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 58,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Sarasota",
+       "city": "Sarasota",
+       "mascot": "Sailors",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFC72C",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Venice",
+       "city": "Venice",
+       "mascot": "Indians",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 94,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 13,
+     "name": "District 13-6A",
+     "area": "Palm Beach North",
+     "schools": [
+      {
+       "name": "Palm Beach Lakes",
+       "city": "West Palm Beach",
+       "mascot": "Rams",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "prestige": 64,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Dr. Joaquin Garcia",
+       "city": "Lake Worth",
+       "mascot": "Bulldogs",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 54,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Jupiter",
+       "city": "Jupiter",
+       "mascot": "Warriors",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFD700",
+       "prestige": 66,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lake Worth",
+       "city": "Lake Worth",
+       "mascot": "Trojans",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "prestige": 58,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Palm Beach Central",
+       "city": "Wellington",
+       "mascot": "Broncos",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Santaluces",
+       "city": "Lantana",
+       "mascot": "Chiefs",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFD700",
+       "prestige": 60,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Wellington",
+       "city": "Wellington",
+       "mascot": "Wolverines",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 14,
+     "name": "District 14-6A",
+     "area": "Palm Beach South & Broward North",
+     "schools": [
+      {
+       "name": "Boca Raton",
+       "city": "Boca Raton",
+       "mascot": "Bobcats",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 82,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Coral Glades",
+       "city": "Coral Springs",
+       "mascot": "Jaguars",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 58,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Nova",
+       "city": "Davie",
+       "mascot": "Titans",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 66,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Park Vista",
+       "city": "Lake Worth",
+       "mascot": "Cobras",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "South Plantation",
+       "city": "Plantation",
+       "mascot": "Paladins",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 60,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Spanish River",
+       "city": "Boca Raton",
+       "mascot": "Sharks",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 58,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 15,
+     "name": "District 15-6A",
+     "area": "Broward & North Miami-Dade",
+     "schools": [
+      {
+       "name": "Cypress Bay",
+       "city": "Weston",
+       "mascot": "Lightning",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#B3A369",
+       "prestige": 66,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Doral Academy",
+       "city": "Doral",
+       "mascot": "Firebirds",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 64,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Goleman",
+       "city": "Miami",
+       "mascot": "Gladiators",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Miami High",
+       "city": "Miami",
+       "mascot": "Stingarees",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#B3A369",
+       "prestige": 66,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "West Broward",
+       "city": "Pembroke Pines",
+       "mascot": "Bobcats",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "prestige": 60,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Western",
+       "city": "Davie",
+       "mascot": "Wildcats",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 84,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 16,
+     "name": "District 16-6A",
+     "area": "South Miami-Dade",
+     "schools": [
+      {
+       "name": "Columbus",
+       "city": "Miami",
+       "mascot": "Explorers",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 96,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Coral Gables",
+       "city": "Coral Gables",
+       "mascot": "Cavaliers",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "prestige": 64,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Homestead",
+       "city": "Homestead",
+       "mascot": "Broncos",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 74,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Miami Palmetto",
+       "city": "Pinecrest",
+       "mascot": "Panthers",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "South Dade",
+       "city": "Homestead",
+       "mascot": "Buccaneers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Southwest Miami",
+       "city": "Miami",
+       "mascot": "Eagles",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "prestige": 60,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

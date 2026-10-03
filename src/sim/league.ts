@@ -1,6 +1,10 @@
 import { OffensiveScheme, DefensiveScheme, Team } from '../types/game';
 import texas6A from '../data/texas-6a.json';
 import georgia7A from '../data/georgia-7a.json';
+import florida6A from '../data/florida-6a.json';
+import maryland4A from '../data/maryland-4a.json';
+import northCarolina8A from '../data/north-carolina-8a.json';
+import alabama6A from '../data/alabama-6a.json';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { nameProfileForArea } from '../generators/names';
 import { LAST_REGULAR_SEASON_WEEK, OFF_SEASON_WEEKS } from './scheduleEngine';
@@ -55,7 +59,11 @@ interface StateWorldData {
 /** Every playable state's world: its data, league name, whether its brackets split by enrollment, and the default school. */
 const STATE_WORLDS: Record<string, { data: StateWorldData; leagueName: string; splitDivisions: boolean; idPrefix: string; defaultSchool: string }> = {
   Texas: { data: texas6A, leagueName: 'UIL Class 6A', splitDivisions: true, idPrefix: 'tx_6a_d', defaultSchool: DEFAULT_USER_SCHOOL },
-  Georgia: { data: georgia7A, leagueName: 'GHSA Class 7A', splitDivisions: false, idPrefix: 'ga_7a_r', defaultSchool: 'Buford' }
+  Georgia: { data: georgia7A, leagueName: 'GHSA Class 7A', splitDivisions: false, idPrefix: 'ga_7a_r', defaultSchool: 'Buford' },
+  Florida: { data: florida6A, leagueName: 'FHSAA Class 6A', splitDivisions: false, idPrefix: 'fl_6a_d', defaultSchool: 'Apopka' },
+  Maryland: { data: maryland4A, leagueName: 'MPSSAA Class 4A', splitDivisions: false, idPrefix: 'md_4a_r', defaultSchool: 'Quince Orchard' },
+  'North Carolina': { data: northCarolina8A, leagueName: 'NCHSAA Class 8A', splitDivisions: false, idPrefix: 'nc_8a_c', defaultSchool: 'Hough' },
+  Alabama: { data: alabama6A, leagueName: 'AHSAA Class 6A', splitDivisions: false, idPrefix: 'al_6a_r', defaultSchool: 'Thompson' }
 };
 
 /** A random school in the state's top class whose prestige fits the difficulty. */
@@ -259,6 +267,7 @@ export function findRegion(league: LeagueStructure, teamId: string): LeagueRegio
 export function playoffRoundCount(league: LeagueStructure): number {
   const { playoffs } = rulesForState(league.state);
   if (playoffs.format === 'STATEWIDE_RANKING') return Math.log2(playoffs.bracketSize);
+  if (playoffs.format === 'REGIONAL_SEEDED' && playoffs.regional) return Math.log2(playoffs.regional.regions.length * playoffs.regional.regionBracketSize);
   const split = league.splitDivisions && playoffs.divisionSplit === 'TOP_ENROLLMENT_HALF';
   const qualifiersPerDistrict = split ? playoffs.qualifiersPerDistrict / playoffs.divisionNames.length : playoffs.qualifiersPerDistrict;
   const regionQualifiers = (league.regions[0]?.districts.length ?? 0) * qualifiersPerDistrict;

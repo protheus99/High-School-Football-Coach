@@ -5,6 +5,7 @@ import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
 import { FeederOutcomeType, FeederProspect, Player, Position, ProspectSource } from '../types/game';
 import { PositionNeed, priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 import { PageHeader } from './ui/PageHeader';
+import { rulesForState } from '../sim/stateRules';
 import {
   FEEDER_EVENTS,
   FeederEventType,
@@ -102,6 +103,9 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     feederClassYear
   } = useGameStore();
   const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
+  // The pool scopes in the state's words; a one-region league's "region" pool is the whole state class
+  const districtWord = rulesForState(league?.state).districtLabel;
+  const regionWord = league && league.regions.length === 1 ? 'State' : districtWord === 'Region' ? 'Area' : 'Region';
   const [view, setView] = useState<PoolView>('DISTRICT');
   const [positionGroup, setPositionGroup] = useState<string>('ALL');
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -126,22 +130,22 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const committedToMe = scoutingPool.filter((p) => currentCommitment(p, userTeamId)?.teamId === userTeamId);
   // The top 10 lists always hold ten, so only the other views show a count
   const views: { id: PoolView; label: string; short?: string; list: FeederProspect[]; count: boolean }[] = [
-    { id: 'DISTRICT', label: 'District', list: ranked(districtPool), count: true },
-    { id: 'REGION', label: 'Region', list: ranked(scoutingPool), count: true },
+    { id: 'DISTRICT', label: districtWord, list: ranked(districtPool), count: true },
+    { id: 'REGION', label: regionWord, list: ranked(scoutingPool), count: true },
     { id: 'COMMITTED', label: 'Committed', list: committedToMe, count: true },
-    { id: 'TOP_DISTRICT', label: 'Top 10 in District', short: 'Top 10 District', list: topDistrict, count: false },
-    { id: 'TOP_REGION', label: 'Top 10 in Region', short: 'Top 10 Region', list: topRegion, count: false }
+    { id: 'TOP_DISTRICT', label: `Top 10 in ${districtWord}`, short: `Top 10 ${districtWord}`, list: topDistrict, count: false },
+    { id: 'TOP_REGION', label: `Top 10 in ${regionWord}`, short: `Top 10 ${regionWord}`, list: topRegion, count: false }
   ];
   const shown = views.find((v) => v.id === view)!.list;
   const groupPositions = POSITION_GROUPS.find((g) => g.id === positionGroup)?.positions;
   const byPosition = groupPositions ? shown.filter((p) => groupPositions.includes(p.projectedPosition)) : shown;
   const rankLabel = (p: FeederProspect) => {
     // The district list shows district ranks; elsewhere a region ranking comes first
-    if (view === 'TOP_DISTRICT') return `#${topDistrict.indexOf(p) + 1} in District`;
+    if (view === 'TOP_DISTRICT') return `#${topDistrict.indexOf(p) + 1} in ${districtWord}`;
     const r = topRegion.indexOf(p);
-    if (r >= 0) return `#${r + 1} in Region`;
+    if (r >= 0) return `#${r + 1} in ${regionWord}`;
     const d = topDistrict.indexOf(p);
-    return d >= 0 ? `#${d + 1} in District` : undefined;
+    return d >= 0 ? `#${d + 1} in ${districtWord}` : undefined;
   };
   const schoolName = (id: string) => (id === userTeamId ? 'You' : (ctx?.teamsById.get(id)?.name ?? 'Rival'));
 
@@ -291,7 +295,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             ))}
           </div>
           <p className="ui-muted" style={{ margin: '0 0 10px 0', fontSize: '12px' }}>
-            Every program in the region recruits this pool. At {COMMIT_THRESHOLD}+ interest a prospect commits; on signing day the school with the highest
+            Every program in the {regionWord.toLowerCase()} recruits this pool. At {COMMIT_THRESHOLD}+ interest a prospect commits; on signing day the school with the highest
             interest signs him, and a tie at the top is a coin flip.
           </p>
 

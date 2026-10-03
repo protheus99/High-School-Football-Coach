@@ -1,3 +1,4 @@
+import { rulesForState } from './stateRules';
 import { NarrativeDilemma, Team, DilemmaChoice, Player, Position } from '../types/game';
 import { isAcademicallyAtRisk } from './playerEngine';
 import { FIRST_DISTRICT_WEEK, FIRST_NON_DISTRICT_WEEK, FIRST_TRAINING_CAMP_WEEK, LAST_REGULAR_SEASON_WEEK, LAST_TRAINING_CAMP_WEEK } from './scheduleEngine';
@@ -76,9 +77,9 @@ export const TEMPLATES: DilemmaTemplate[] = [
   {
     id: 'TEAM_GRADES',
     // Between report cards, when several players are close to the "No Pass, No Play" line
-    appliesTo: (team, week) => when(isGameWeek(week) && week % 3 === 1 && team.roster.filter((p) => isAcademicallyAtRisk(p)).length >= 3),
+    appliesTo: (team, week) => when(isGameWeek(week) && week % 3 === 1 && team.roster.filter((p) => isAcademicallyAtRisk(p, rulesForState(team.state))).length >= 3),
     build: (team) => {
-      const atRisk = team.roster.filter((p) => isAcademicallyAtRisk(p)).sort((a, b) => b.overallRating - a.overallRating);
+      const atRisk = team.roster.filter((p) => isAcademicallyAtRisk(p, rulesForState(team.state))).sort((a, b) => b.overallRating - a.overallRating);
       const shown = atRisk.slice(0, 3).map(name).join(', ');
       const boost = (amount: number) => atRisk.map((p) => ({ playerId: p.id, amount }));
       return {
