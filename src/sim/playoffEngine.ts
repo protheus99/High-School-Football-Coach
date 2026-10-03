@@ -57,10 +57,13 @@ export interface PlayoffBracketState {
 /** The rounds a league's playoffs will have (before the bracket exists): by its state's format and size. */
 export function leagueRoundNames(league: LeagueStructure): PlayoffRound[] {
   const rules = rulesForState(league.state);
-  if (rules.playoffs.format !== 'DISTRICT_FINISH') return roundNamesFor(playoffRoundCount(league) - 1, 1);
+  if (rules.playoffs.format !== 'DISTRICT_FINISH') return bracketRoundNames(playoffRoundCount(league));
   const stateRounds = Math.log2(league.regions.length);
   return roundNamesFor(playoffRoundCount(league) - stateRounds, stateRounds);
 }
+
+/** A single statewide bracket's rounds: up to five use the region slots and the final; six add a state semifinal (Ohio). */
+export const bracketRoundNames = (rounds: number): PlayoffRound[] => (rounds <= 5 ? roundNamesFor(rounds - 1, 1) : roundNamesFor(rounds - 2, 2));
 
 /** Round names: region rounds count up from Bi-District, state rounds count down to the final. */
 export function roundNamesFor(regionRounds: number, stateRounds: number): PlayoffRound[] {
@@ -292,7 +295,13 @@ function buildRegionalBracket(regions: { name: string; districts: Team[][] }[], 
     const per = Math.ceil(placed.length / config.regions.length);
     seeded = config.regions.map((_, i) => placed.slice(i * per, (i + 1) * per).sort(byRating));
   } else if (config.selection === 'DISTRICT_FINISH') {
-    seeded = config.regions.map((group) => group.districts.flatMap((d) => standings[d - 1] ?? []).slice(0, config.qualifiersPerRegion));
+    // By district finish: every district's champion, then every runner-up, and so on (in district order), so a
+    // two-district group seeds 1A, 1B, 2A, 2B... and the bracket crosses them (1A v 4B, 2B v 3A: Tennessee)
+    seeded = config.regions.map((group) => {
+      const places = group.districts.map((d) => standings[d - 1] ?? []);
+      const depth = Math.max(0, ...places.map((p) => p.length));
+      return Array.from({ length: depth }, (_, place) => places.map((p) => p[place]).filter((t): t is Team => !!t)).flat().slice(0, config.qualifiersPerRegion);
+    });
   } else {
     seeded = config.regions.map((group) => {
       const teams = groupTeams(group).sort(byRating);
@@ -332,7 +341,7 @@ function buildRegionalBracket(regions: { name: string; districts: Team[][] }[], 
 
   return {
     isPlayoffsActive: true,
-    roundNames: roundNamesFor(Math.log2(config.regions.length * config.regionBracketSize) - 1, 1),
+    roundNames: bracketRoundNames(Math.log2(config.regions.length * config.regionBracketSize)),
     currentRoundIndex: 0,
     divisions: [{ name: playoffs.divisionNames[0] ?? 'State', rounds: [firstRound] }],
     championshipTitle: playoffs.championshipTitle,

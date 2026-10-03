@@ -5,6 +5,8 @@ import florida6A from '../data/florida-6a.json';
 import maryland4A from '../data/maryland-4a.json';
 import northCarolina8A from '../data/north-carolina-8a.json';
 import alabama6A from '../data/alabama-6a.json';
+import tennessee6A from '../data/tennessee-6a.json';
+import ohioD1 from '../data/ohio-d1.json';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { nameProfileForArea } from '../generators/names';
 import { OFF_SEASON_WEEKS, STATE_FINAL_WEEK } from './scheduleEngine';
@@ -63,7 +65,9 @@ const STATE_WORLDS: Record<string, { data: StateWorldData; leagueName: string; s
   Florida: { data: florida6A, leagueName: 'FHSAA Class 6A', splitDivisions: false, idPrefix: 'fl_6a_d', defaultSchool: 'Apopka' },
   Maryland: { data: maryland4A, leagueName: 'MPSSAA Class 4A', splitDivisions: false, idPrefix: 'md_4a_r', defaultSchool: 'Quince Orchard' },
   'North Carolina': { data: northCarolina8A, leagueName: 'NCHSAA Class 8A', splitDivisions: false, idPrefix: 'nc_8a_c', defaultSchool: 'Hough' },
-  Alabama: { data: alabama6A, leagueName: 'AHSAA Class 6A', splitDivisions: false, idPrefix: 'al_6a_r', defaultSchool: 'Thompson' }
+  Alabama: { data: alabama6A, leagueName: 'AHSAA Class 6A', splitDivisions: false, idPrefix: 'al_6a_r', defaultSchool: 'Thompson' },
+  Tennessee: { data: tennessee6A, leagueName: 'TSSAA Class 6A', splitDivisions: false, idPrefix: 'tn_6a_r', defaultSchool: 'Oakland' },
+  Ohio: { data: ohioD1, leagueName: 'OHSAA Division I', splitDivisions: false, idPrefix: 'oh_d1_l', defaultSchool: 'Lakewood St. Edward' }
 };
 
 /** A random school in the state's top class whose prestige fits the difficulty. */

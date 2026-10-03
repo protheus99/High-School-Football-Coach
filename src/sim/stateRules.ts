@@ -130,6 +130,108 @@ export const GEORGIA_RULES: StateRules = {
   overtime: { startYardsFromGoal: 10 }
 };
 
+/**
+ * Tennessee TSSAA Class 6A (2025-27): 56 programs in eight regions. The top four in each region qualify; the
+ * first round crosses paired regions (a region's #1 hosts the paired region's #4, #2 hosts #3). The BlueCross
+ * Bowl is played at Finley Stadium in Chattanooga.
+ */
+export const TENNESSEE_RULES: StateRules = {
+  state: 'Tennessee',
+  governingBody: 'TSSAA',
+  classification: '6A',
+  districtLabel: 'Region',
+  playoffs: {
+    format: 'REGIONAL_SEEDED',
+    qualifiersPerDistrict: 4,
+    bracketSize: 32,
+    divisionSplit: 'NONE',
+    divisionNames: ['Class 6A'],
+    regional: {
+      regions: [
+        { name: 'Regions 1-2', districts: [1, 2] },
+        { name: 'Regions 3-4', districts: [3, 4] },
+        { name: 'Regions 5-6', districts: [5, 6] },
+        { name: 'Regions 7-8', districts: [7, 8] }
+      ],
+      selection: 'DISTRICT_FINISH',
+      qualifiersPerRegion: 8,
+      championsSeededFirst: true,
+      regionBracketSize: 8,
+      regionalRounds: 3
+    },
+    ...fiveRounds(
+      ['First Round', 'Second Round', 'Quarterfinals', 'Semifinals', 'BlueCross Bowl'],
+      [
+        'Opening round: the top four in each region; region champions host the paired region\'s fourth seed',
+        'Sixteen teams left',
+        'The final eight',
+        'The final four',
+        'The title game at Finley Stadium in Chattanooga'
+      ]
+    ),
+    championshipTitle: 'TSSAA 6A BlueCross Bowl',
+    championshipVenue: 'Finley Stadium (Chattanooga, TN)'
+  },
+  // TSSAA: pass five classes the previous year (no GPA line), modeled on the game's GPA scale
+  academics: { ruleName: 'Pass 5 classes', minimumGpa: 1.7, atRiskGpa: 2.0 },
+  mercyRuleMargin: 35,
+  overtime: { startYardsFromGoal: 10 }
+};
+
+/**
+ * Ohio OHSAA Division I (from 2025): 69 programs in four regions. The top twelve in each region by computer
+ * ratings (Harbin points) qualify and the top four have a first-round bye; region champions meet in the state
+ * semifinals, and every final is played at Tom Benson Hall of Fame Stadium in Canton.
+ */
+export const OHIO_RULES: StateRules = {
+  state: 'Ohio',
+  governingBody: 'OHSAA',
+  classification: 'Division I',
+  districtLabel: 'League',
+  playoffs: {
+    format: 'REGIONAL_SEEDED',
+    qualifiersPerDistrict: 0,
+    bracketSize: 48,
+    divisionSplit: 'NONE',
+    divisionNames: ['Division I'],
+    regional: {
+      regions: [
+        { name: 'Region 1', districts: [1, 2, 3] },
+        { name: 'Region 2', districts: [4, 5, 6] },
+        { name: 'Region 3', districts: [7, 8, 9] },
+        { name: 'Region 4', districts: [10, 11, 12] }
+      ],
+      selection: 'RANKING',
+      qualifiersPerRegion: 12,
+      championsSeededFirst: false,
+      regionBracketSize: 16,
+      regionalRounds: 4
+    },
+    roundLabels: {
+      BI_DISTRICT: 'First Round',
+      AREA: 'Regional Quarterfinal',
+      REGIONAL_SEMIFINAL: 'Regional Semifinal',
+      REGIONAL_FINAL: 'Regional Final',
+      STATE_SEMIFINAL: 'State Semifinal',
+      STATE_FINAL: 'State Championship'
+    },
+    roundDescriptions: {
+      BI_DISTRICT: 'Opening round: the top twelve in each region by Harbin points; the top four have a bye',
+      AREA: 'The top four seeds enter',
+      REGIONAL_SEMIFINAL: 'Final four in each region',
+      REGIONAL_FINAL: 'The winner is region champion',
+      STATE_SEMIFINAL: 'Region champions meet for a spot in the title game',
+      STATE_FINAL: 'The title game at Tom Benson Hall of Fame Stadium in Canton'
+    },
+    championshipTitle: 'OHSAA Division I State Championship',
+    championshipVenue: 'Tom Benson Hall of Fame Stadium (Canton, OH)'
+  },
+  // OHSAA: pass five one-credit courses the previous grading period
+  academics: { ruleName: 'Pass 5 courses', minimumGpa: 1.7, atRiskGpa: 2.0 },
+  mercyRuleMargin: 30, // OHSAA: running clock with a 30-point lead in the second half
+  overtime: { startYardsFromGoal: 10 }
+};
+
 // Round names and descriptions for a 5-round (32-slot) bracket: the first four region-round slots and the final
 function fiveRounds(labels: string[], descriptions: string[]) {
   const [first, second, third, fourth, final] = labels;
@@ -334,7 +436,9 @@ export const STATE_RULES: Record<string, StateRules> = {
   Florida: FLORIDA_RULES,
   Maryland: MARYLAND_RULES,
   'North Carolina': NORTH_CAROLINA_RULES,
-  Alabama: ALABAMA_RULES
+  Alabama: ALABAMA_RULES,
+  Tennessee: TENNESSEE_RULES,
+  Ohio: OHIO_RULES
 };
 
 export const PLAYABLE_STATES = Object.keys(STATE_RULES);
@@ -343,6 +447,9 @@ export const PLAYABLE_STATES = Object.keys(STATE_RULES);
 export function rulesForState(state?: string): StateRules {
   return (state && STATE_RULES[state]) || TEXAS_RULES;
 }
+
+/** Playoff spots per district when a playoff region seeds by district finish (Tennessee: 8 per two-region group = top 4 each). */
+export const finishSpotsPerDistrict = (r: RegionalPlayoffs) => Math.round(r.qualifiersPerRegion / Math.max(1, r.regions[0]?.districts.length ?? 1));
 
 /**
  * How many places in a district's standings are a guaranteed playoff spot: the top N (Texas, Alabama), the
@@ -354,7 +461,7 @@ export function districtPlayoffSpots(rules: StateRules): number {
   if (playoffs.format === 'STATEWIDE_RANKING') return 1;
   const r = playoffs.regional;
   if (!r) return 0;
-  if (r.selection === 'DISTRICT_FINISH') return r.qualifiersPerRegion;
+  if (r.selection === 'DISTRICT_FINISH') return finishSpotsPerDistrict(r);
   return r.championsSeededFirst ? 1 : 0;
 }
 
@@ -367,13 +474,16 @@ export function playoffQualifyText(rules: StateRules): string {
   const r = playoffs.regional;
   if (playoffs.format === 'REGIONAL_SEEDED' && r) {
     const byes = r.regionBracketSize - r.qualifiersPerRegion;
-    const byeText = byes > 0 ? ` The top ${byes} ${r.statewideQualifiers ? 'on each side' : `in each ${label}`} get a first-round bye.` : '';
+    const byeWhere = r.statewideQualifiers ? 'on each side' : r.regions.every((g) => g.districts.length === 1) ? `in each ${label}` : 'in each playoff region';
+    const byeText = byes > 0 ? ` The top ${byes} ${byeWhere} get a first-round bye.` : '';
     if (r.statewideQualifiers)
       return `The top ${r.statewideQualifiers} in the power ranking make the playoffs, split ${r.regions.map((g) => g.name).join(' and ')}.${byeText}`;
-    if (r.selection === 'DISTRICT_FINISH') return `The top ${r.qualifiersPerRegion} in each ${label} make the playoffs.${byeText}`;
+    if (r.selection === 'DISTRICT_FINISH') return `The top ${finishSpotsPerDistrict(r)} in each ${label} make the playoffs.${byeText}`;
     if (r.championsSeededFirst)
       return `${districtLabel} champions qualify and take the top seeds in their playoff region; the power ranking fills the rest of each ${r.regionBracketSize}-team region bracket.`;
-    return `The top ${r.qualifiersPerRegion} in each ${label} by the power ranking make the playoffs.${byeText}`;
+    // Ohio: each playoff region holds several leagues
+    const group = r.regions.every((g) => g.districts.length === 1) ? label : 'playoff region';
+    return `The top ${r.qualifiersPerRegion} in each ${group} by the power ranking make the playoffs.${byeText}`;
   }
   return `The top ${playoffs.qualifiersPerDistrict} in each ${label} make the playoffs.`;
 }

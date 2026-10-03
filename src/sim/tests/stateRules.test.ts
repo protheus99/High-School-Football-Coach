@@ -21,10 +21,10 @@ const TEST_RULES: StateRules = {
 };
 
 describe('State rules', () => {
-  it('six states are playable; Texas is the default for anything else', () => {
-    expect(PLAYABLE_STATES).toEqual(['Texas', 'Georgia', 'Florida', 'Maryland', 'North Carolina', 'Alabama']);
+  it('eight states are playable; Texas is the default for anything else', () => {
+    expect(PLAYABLE_STATES).toEqual(['Texas', 'Georgia', 'Florida', 'Maryland', 'North Carolina', 'Alabama', 'Tennessee', 'Ohio']);
     expect(rulesForState('Georgia')).toBe(GEORGIA_RULES);
-    expect(rulesForState('Ohio')).toBe(TEXAS_RULES);
+    expect(rulesForState('California')).toBe(TEXAS_RULES);
     expect(rulesForState(undefined)).toBe(TEXAS_RULES);
     expect(ROUND_LABELS).toBe(TEXAS_RULES.playoffs.roundLabels);
   });
@@ -178,5 +178,37 @@ describe('Regional playoff states', () => {
       const slots = schedule.flatMap((g) => [`${g.week}:${g.homeTeamId}`, `${g.week}:${g.awayTeamId}`]);
       expect(new Set(slots).size).toBe(slots.length);
     }
+  });
+
+  it('Tennessee: the top four in each region, the first round crossing paired regions (1 v 4, 2 v 3)', () => {
+    const { league, regionTeams, bracket } = season('Tennessee');
+    expect(playoffRoundCount(league)).toBe(5);
+    const r1 = bracket.divisions[0].rounds[0];
+    expect(r1).toHaveLength(16);
+    const standings = regionTeams[0].map((d) => calculateDistrictStandings(d).map((row) => row.teamId));
+    const placeOf = new Map(standings.flatMap((ids, d) => ids.map((id, place) => [id, { d, place }] as const)));
+    r1.forEach((n) => {
+      const home = placeOf.get(n.team1.id)!;
+      const away = placeOf.get(n.team2.id)!;
+      expect(home.place + away.place).toBe(3); // 1st v 4th, 2nd v 3rd
+      expect(Math.floor(home.d / 2)).toBe(Math.floor(away.d / 2)); // paired regions (1-2, 3-4, ...)
+      expect(home.d).not.toBe(away.d);
+    });
+    standings.forEach((ids) => ids.slice(0, 4).forEach((id) => expect(r1.some((n) => n.team1.id === id || n.team2.id === id)).toBe(true)));
+    expect(finish(bracket)).toBeTruthy();
+  });
+
+  it('Ohio: twelve per region (four with byes), six rounds, region champions meet in the state semifinals', () => {
+    const { league, bracket } = season('Ohio');
+    expect(playoffRoundCount(league)).toBe(6);
+    expect(bracket.roundNames).toEqual(['BI_DISTRICT', 'AREA', 'REGIONAL_SEMIFINAL', 'REGIONAL_FINAL', 'STATE_SEMIFINAL', 'STATE_FINAL']);
+    const r1 = bracket.divisions[0].rounds[0];
+    expect(r1).toHaveLength(32);
+    expect(r1.filter((n) => n.isBye)).toHaveLength(16);
+    let b = bracket;
+    for (let i = 0; i < 4; i++) b = advancePlayoffRound(b);
+    expect(b.divisions[0].rounds[4]).toHaveLength(2);
+    b.divisions[0].rounds[4].forEach((n) => expect(n.region).toBeUndefined());
+    expect(finish(b)).toBeTruthy();
   });
 });

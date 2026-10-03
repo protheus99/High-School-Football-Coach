@@ -20,7 +20,7 @@ import { dilemmaChoiceCosts } from '../sim/dilemmaEngine';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, seasonLength } from '../sim/league';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
-import { playoffQualifyText, rulesForState } from '../sim/stateRules';
+import { finishSpotsPerDistrict, playoffQualifyText, rulesForState } from '../sim/stateRules';
 import { bracketRoundForWeek, findUserNode, powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
@@ -137,7 +137,7 @@ export const WeeklyAgenda: React.FC<{
       : stateRules.playoffs.format === 'DISTRICT_FINISH'
         ? `the top ${stateRules.playoffs.qualifiersPerDistrict} make the playoffs`
         : stateRules.playoffs.regional?.selection === 'DISTRICT_FINISH'
-          ? `the top ${stateRules.playoffs.regional.qualifiersPerRegion} make the playoffs`
+          ? `the top ${finishSpotsPerDistrict(stateRules.playoffs.regional)} make the playoffs`
           : stateRules.playoffs.regional?.championsSeededFirst
             ? `${stateRules.districtLabel.toLowerCase()} champions get a top playoff seed`
             : 'every win counts in the power ranking'
@@ -386,7 +386,7 @@ export const WeeklyAgenda: React.FC<{
   const extras: AgendaItem[] = [];
 
   if (game && !game.isPlayed) {
-    const roundIndex = currentWeek - LAST_REGULAR_SEASON_WEEK - 1;
+    const roundIndex = playoffBracket ? bracketRoundForWeek(playoffBracket, currentWeek) : -1;
     const nextRound = playoffBracket?.roundNames[roundIndex + 1];
     const note = game.isPlayoff
       ? nextRound
@@ -589,7 +589,7 @@ export const WeeklyAgenda: React.FC<{
     });
   }
   // ... or the top N of each district (Texas, Alabama)
-  const finishSpots = stateRules.playoffs.format === 'DISTRICT_FINISH' ? stateRules.playoffs.qualifiersPerDistrict : regional?.selection === 'DISTRICT_FINISH' ? regional.qualifiersPerRegion : 0;
+  const finishSpots = stateRules.playoffs.format === 'DISTRICT_FINISH' ? stateRules.playoffs.qualifiersPerDistrict : regional?.selection === 'DISTRICT_FINISH' ? finishSpotsPerDistrict(regional) : 0;
   if (phase === 'DISTRICT_PLAY' && currentWeek >= LAST_REGULAR_SEASON_WEEK - 3 && myRow && finishSpots > 0) {
     const remaining = (id: string) => seasonSchedule.filter((g) => g.isDistrictGame && g.homeScore === undefined && (g.homeTeamId === id || g.awayTeamId === id)).length;
     const wins = (id: string) => districtTeams.find((t) => t.id === id)?.record.districtWins ?? 0;

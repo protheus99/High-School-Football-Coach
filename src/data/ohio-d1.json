@@ -1,0 +1,717 @@
+{
+ "state": "Ohio",
+ "classification": "Division I",
+ "regions": [
+  {
+   "name": "Division I",
+   "area": "Ohio",
+   "districts": [
+    {
+     "number": 1,
+     "name": "Region 1 League A",
+     "area": "Northeast Ohio, Greater Cleveland & Northwest Coast",
+     "schools": [
+      {
+       "name": "Lakewood St. Edward",
+       "mascot": "Eagles",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "prestige": 98,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Perrysburg",
+       "mascot": "Yellow Jackets",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFC72C",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cleveland Heights",
+       "mascot": "Tigers",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#B3A369",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Medina",
+       "mascot": "Battling Bees",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "prestige": 77,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Solon",
+       "mascot": "Comets",
+       "primaryColor": "#000000",
+       "secondaryColor": "#B3A369",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "Region 1 League B",
+     "area": "Northeast Ohio, Greater Cleveland & Northwest Coast",
+     "schools": [
+      {
+       "name": "Mentor",
+       "mascot": "Cardinals",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 94,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Toledo Whitmer",
+       "mascot": "Panthers",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 87,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Massillon Jackson",
+       "mascot": "Polar Bears",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Brunswick",
+       "mascot": "Blue Devils",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "prestige": 78,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Canton GlenOak",
+       "mascot": "Golden Eagles",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#000000",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Parma Normandy",
+       "mascot": "Invaders",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 48,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "Region 1 League C",
+     "area": "Northeast Ohio, Greater Cleveland & Northwest Coast",
+     "schools": [
+      {
+       "name": "Canton McKinley",
+       "mascot": "Bulldogs",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 91,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cleveland St. Ignatius",
+       "mascot": "Wildcats",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 89,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Strongsville",
+       "mascot": "Mustangs",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Berea-Midpark",
+       "mascot": "Titans",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFD700",
+       "prestige": 80,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Lorain High",
+       "mascot": "Titans",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 71,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Cleveland John Marshall",
+       "mascot": "Lawyers",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 54,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "Region 2 League A",
+     "area": "Northwest Ohio, Dayton Metro & Columbus West",
+     "schools": [
+      {
+       "name": "Springfield",
+       "mascot": "Wildcats",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 94,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Middletown",
+       "mascot": "Middies",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFC72C",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hilliard Bradley",
+       "mascot": "Jaguars",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "prestige": 84,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Kettering Fairmont",
+       "mascot": "Firebirds",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 79,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Dublin Coffman",
+       "mascot": "Shamrocks",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "Region 2 League B",
+     "area": "Northwest Ohio, Dayton Metro & Columbus West",
+     "schools": [
+      {
+       "name": "Huber Heights Wayne",
+       "mascot": "Warriors",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFD700",
+       "prestige": 91,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Troy",
+       "mascot": "Trojans",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 86,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Springboro",
+       "mascot": "Panthers",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFD700",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hilliard Davidson",
+       "mascot": "Wildcats",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 80,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Marysville",
+       "mascot": "Monarchs",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 77,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Hilliard Darby",
+       "mascot": "Panthers",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#B3A369",
+       "prestige": 73,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "name": "Region 2 League C",
+     "area": "Northwest Ohio, Dayton Metro & Columbus West",
+     "schools": [
+      {
+       "name": "Findlay",
+       "mascot": "Trojans",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 89,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Centerville",
+       "mascot": "Elks",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFD700",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lebanon",
+       "mascot": "Warriors",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFD700",
+       "prestige": 82,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Dublin Jerome",
+       "mascot": "Celtics",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Beavercreek",
+       "mascot": "Beavers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFC72C",
+       "prestige": 75,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Galloway Westland",
+       "mascot": "Cougars",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 74,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "name": "Region 3 League A",
+     "area": "Central Ohio, Columbus Metro & Delaware County",
+     "schools": [
+      {
+       "name": "Lewis Center Olentangy Orange",
+       "mascot": "Pioneers",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 95,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Lewis Center Olentangy",
+       "mascot": "Braves",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Pickerington North",
+       "mascot": "Panthers",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 88,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Westerville North",
+       "mascot": "Warriors",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFD700",
+       "prestige": 79,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Newark",
+       "mascot": "Wildcats",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Westerville South",
+       "mascot": "Wildcats",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#B3A369",
+       "prestige": 69,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 8,
+     "name": "Region 3 League B",
+     "area": "Central Ohio, Columbus Metro & Delaware County",
+     "schools": [
+      {
+       "name": "Pickerington Central",
+       "mascot": "Tigers",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#B3A369",
+       "prestige": 94,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Upper Arlington",
+       "mascot": "Golden Bears",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "prestige": 90,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Delaware Olentangy Berlin",
+       "mascot": "Bears",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Westerville Central",
+       "mascot": "Warhawks",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 81,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Delaware Hayes",
+       "mascot": "Pacers",
+       "primaryColor": "#000000",
+       "secondaryColor": "#B3A369",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Reynoldsburg",
+       "mascot": "Raiders",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 70,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 9,
+     "name": "Region 3 League C",
+     "area": "Central Ohio, Columbus Metro & Delaware County",
+     "schools": [
+      {
+       "name": "Gahanna Lincoln",
+       "mascot": "Lions",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFC72C",
+       "prestige": 92,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Powell Olentangy Liberty",
+       "mascot": "Patriots",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 91,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Grove City",
+       "mascot": "Greyhounds",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFC72C",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Groveport-Madison",
+       "mascot": "Cruisers",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 82,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Thomas Worthington",
+       "mascot": "Cardinals",
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 73,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Lancaster",
+       "mascot": "Golden Gales",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 72,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 10,
+     "name": "Region 4 League A",
+     "area": "Southwest Ohio & Cincinnati Metro",
+     "schools": [
+      {
+       "name": "Cincinnati Archbishop Moeller",
+       "mascot": "Crusaders",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#000000",
+       "prestige": 98,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cincinnati Winton Woods",
+       "mascot": "Warriors",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 90,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Liberty Township Lakota East",
+       "mascot": "Thunderhawks",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 87,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Milford",
+       "mascot": "Eagles",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 78,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cincinnati Colerain",
+       "mascot": "Cardinals",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 77,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 11,
+     "name": "Region 4 League B",
+     "area": "Southwest Ohio & Cincinnati Metro",
+     "schools": [
+      {
+       "name": "Cincinnati St. Xavier",
+       "mascot": "Bombers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 96,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "West Chester Lakota West",
+       "mascot": "Firebirds",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFD700",
+       "prestige": 91,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mason",
+       "mascot": "Comets",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hamilton",
+       "mascot": "Big Blue",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 79,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cincinnati West Clermont",
+       "mascot": "Wolves",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFD700",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Morrow Little Miami",
+       "mascot": "Panthers",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFC72C",
+       "prestige": 62,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 12,
+     "name": "Region 4 League C",
+     "area": "Southwest Ohio & Cincinnati Metro",
+     "schools": [
+      {
+       "name": "Cincinnati Elder",
+       "mascot": "Panthers",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 94,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cincinnati Princeton",
+       "mascot": "Vikings",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 93,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Fairfield",
+       "mascot": "Indians",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFD700",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cincinnati Oak Hills",
+       "mascot": "Highlanders",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFD700",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cincinnati Western Hills",
+       "mascot": "Mustangs",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFD700",
+       "prestige": 68,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Cincinnati Walnut Hills",
+       "mascot": "Eagles",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 64,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -28,10 +28,10 @@ describe('State worlds', () => {
     expect(nearestDistrictIndexes(2, 1)).toEqual([0]);
   });
 
-  it('builds an Ohio world entirely from Ohio districts', () => {
-    const { districts, world } = stateWorld('Ohio', 5);
+  it('builds a Pennsylvania world entirely from Pennsylvania districts (not playable yet)', () => {
+    const { districts, world } = stateWorld('Pennsylvania', 5);
     expect(world.league.regions.flatMap((r) => r.districts)).toHaveLength(4);
-    expect(world.teams.every((t) => t.state === 'Ohio')).toBe(true);
+    expect(world.teams.every((t) => t.state === 'Pennsylvania')).toBe(true);
     const fileSchools = [5, ...nearestDistrictIndexes(districts.length, 5)].flatMap((i) => readDistrict(districts[i].file).schools.map((s) => s.name));
     expect(world.teams.map((t) => t.name).sort()).toEqual(fileSchools.sort());
     const userDistrict = readDistrict(districts[5].file);
@@ -48,21 +48,21 @@ describe('State worlds', () => {
     expect(world.teams.every((t) => t.state === 'Maryland')).toBe(true);
   });
 
-  it('plays a full season with an all-Ohio schedule and bracket', () => {
-    const { world } = stateWorld('Ohio', 2);
+  it('plays a full season with an all-Pennsylvania schedule and bracket', () => {
+    const { world } = stateWorld('Pennsylvania', 2);
     const store = useGameStore;
     store.getState().startNewSeason(world);
-    const ohioIds = new Set(world.teams.map((t) => t.id));
-    expect(store.getState().seasonSchedule.every((g) => ohioIds.has(g.homeTeamId) && ohioIds.has(g.awayTeamId))).toBe(true);
+    const paIds = new Set(world.teams.map((t) => t.id));
+    expect(store.getState().seasonSchedule.every((g) => paIds.has(g.homeTeamId) && paIds.has(g.awayTeamId))).toBe(true);
     expect(store.getState().leagueTeams.filter((t) => t.id !== world.userTeamId).every((t) => t.feederProfile)).toBe(true);
     while (!store.getState().playoffBracket) store.getState().advanceWeek();
     const bracket = store.getState().playoffBracket!;
     bracket.divisions.flatMap((d) => d.rounds[0]).forEach((n) => {
-      expect(ohioIds.has(n.team1.id)).toBe(true);
-      expect(ohioIds.has(n.team2.id)).toBe(true);
+      expect(paIds.has(n.team1.id)).toBe(true);
+      expect(paIds.has(n.team2.id)).toBe(true);
     });
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
     store.getState().transitionToNextYear();
-    expect(store.getState().leagueTeams.every((t) => t.state === 'Ohio')).toBe(true);
+    expect(store.getState().leagueTeams.every((t) => t.state === 'Pennsylvania')).toBe(true);
   }, 120000);
 });

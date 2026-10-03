@@ -78,10 +78,11 @@ export const ScoreboardView: React.FC = () => {
 
   if (!league) return null;
   const isGameWeek = (w: number) => w >= FIRST_NON_DISTRICT_WEEK && w <= lastGameWeek;
-  const weekLabel = (w: number) =>
-    w > LAST_REGULAR_SEASON_WEEK && playoffBracket?.roundNames[w - LAST_REGULAR_SEASON_WEEK - 1]
-      ? `${ROUND_LABELS[playoffBracket.roundNames[w - LAST_REGULAR_SEASON_WEEK - 1]]} (week ${w})`
-      : `Week ${w}`;
+  const weekLabel = (w: number) => {
+    const round = w > LAST_REGULAR_SEASON_WEEK && playoffBracket ? bracketRoundForWeek(playoffBracket, w) : -1;
+    if (w > LAST_REGULAR_SEASON_WEEK && playoffBracket && round < 0) return `Open week (week ${w})`;
+    return round >= 0 && playoffBracket?.roundNames[round] ? `${ROUND_LABELS[playoffBracket.roundNames[round]]} (week ${w})` : `Week ${w}`;
+  };
   const sections = [
     { key: 'last', title: 'Last week', week: currentWeek - 1 },
     { key: 'this', title: 'This week', week: currentWeek }

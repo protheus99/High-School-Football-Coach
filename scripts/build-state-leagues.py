@@ -257,8 +257,49 @@ def build_curated_worlds(out_dir: Path):
         print(f"{state} world: {len(districts)} districts, {sum(len(d['schools']) for d in districts)} schools")
 
 
+def build_spec_worlds(leagues_dir: Path, out_dir: Path):
+    """Statewide worlds for states whose spec database is their whole top class (Tennessee 6A, Ohio Division I),
+    built from the district files written above."""
+    index = json.loads((leagues_dir / 'index.json').read_text(encoding='utf-8'))
+    files = {e['state']: [json.loads((leagues_dir / d['file']).read_text(encoding='utf-8')) for d in e['districts']] for e in index}
+
+    # Tennessee 6A: the eight regions (the Division II-AAA private groups play their own playoffs)
+    districts = []
+    for d in files['Tennessee']:
+        match = re.match(r'^Region (\d+)-6A \((.*)\)$', d['districtName'])
+        if match:
+            districts.append({'number': int(match.group(1)), 'name': f"Region {match.group(1)}-6A", 'area': match.group(2), 'schools': d['schools']})
+    districts.sort(key=lambda d: d['number'])
+    write_world(out_dir / 'tennessee-6a.json', 'Tennessee', '6A', districts)
+
+    # Ohio Division I: four playoff regions. The spec splits each region into prestige tiers, so each region's
+    # schools are dealt (snake order by prestige) into three balanced leagues instead.
+    regions = {}
+    for d in files['Ohio']:
+        match = re.match(r'^Region (\d+) \((.*?)\)', d['districtName'])
+        regions.setdefault(int(match.group(1)), {'area': match.group(2), 'schools': []})['schools'].extend(d['schools'])
+    districts = []
+    for number in sorted(regions):
+        schools = sorted(regions[number]['schools'], key=lambda s: -s['prestige'])
+        leagues = [[], [], []]
+        for i, school in enumerate(schools):
+            row, col = divmod(i, 3)
+            leagues[col if row % 2 == 0 else 2 - col].append(school)
+        for j, league_schools in enumerate(leagues):
+            districts.append({'number': len(districts) + 1, 'name': f"Region {number} League {'ABC'[j]}", 'area': regions[number]['area'], 'schools': league_schools})
+    write_world(out_dir / 'ohio-d1.json', 'Ohio', 'Division I', districts)
+
+
+def write_world(path: Path, state: str, classification: str, districts: list):
+    label = classification if classification.startswith('Division') else f"Class {classification}"
+    world = {'state': state, 'classification': classification, 'regions': [{'name': label, 'area': state, 'districts': districts}]}
+    path.write_text(json.dumps(world, indent=1) + '\n', encoding='utf-8')
+    print(f"{state} world: {len(districts)} districts, {sum(len(d['schools']) for d in districts)} schools")
+
+
 if __name__ == '__main__':
     main()
     build_curated_worlds(Path(__file__).resolve().parent.parent / 'src' / 'data')
+    build_spec_worlds(Path(__file__).resolve().parent.parent / 'public' / 'leagues', Path(__file__).resolve().parent.parent / 'src' / 'data')
     build_texas_world(Path(sys.argv[1]).read_text(encoding='utf-8').split('\n'),
                       Path(__file__).resolve().parent.parent / 'src' / 'data' / 'texas-6a.json')

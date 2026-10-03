@@ -143,7 +143,10 @@ export const ScheduleView: React.FC = () => {
                     game.type,
                     game.week === totalWeeks,
                     currentYear >= feederClassYear,
-                    leagueRounds[game.week - LAST_REGULAR_SEASON_WEEK - 1] && ROUND_DESCRIPTIONS[leagueRounds[game.week - LAST_REGULAR_SEASON_WEEK - 1]]
+                    // A five-round state's open week, then each round's line (rounds start in its first playoff week)
+                    game.week > LAST_REGULAR_SEASON_WEEK && game.week < firstPlayoffWeek(playoffRounds)
+                      ? 'No game: the playoff field is set and the first round is next week'
+                      : leagueRounds[game.week - firstPlayoffWeek(playoffRounds)] && ROUND_DESCRIPTIONS[leagueRounds[game.week - firstPlayoffWeek(playoffRounds)]]
                   )}</div>
               )}
             </div>

@@ -1,0 +1,572 @@
+{
+ "state": "Tennessee",
+ "classification": "6A",
+ "regions": [
+  {
+   "name": "Class 6A",
+   "area": "Tennessee",
+   "districts": [
+    {
+     "number": 1,
+     "name": "Region 1-6A",
+     "area": "Upper East TN / Tri-Cities & Lakeway",
+     "schools": [
+      {
+       "name": "Science Hill",
+       "mascot": "Hilltoppers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#000000",
+       "prestige": 87,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Dobyns-Bennett",
+       "mascot": "Indians",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 86,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Jefferson County",
+       "mascot": "Patriots",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 83,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "West Ridge",
+       "mascot": "Wolves",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Morristown-Hamblen East",
+       "mascot": "Hurricanes",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "Region 2-6A",
+     "area": "Knoxville Metro & Bradley County",
+     "schools": [
+      {
+       "name": "Maryville",
+       "mascot": "Red Rebels",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFD700",
+       "prestige": 96,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Bearden",
+       "mascot": "Bulldogs",
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 91,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Bradley Central",
+       "mascot": "Bears",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Cleveland High",
+       "mascot": "Blue Raiders",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "prestige": 88,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Farragut",
+       "mascot": "Admirals",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 87,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Oak Ridge",
+       "mascot": "Wildcats",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Hardin Valley Academy",
+       "mascot": "Hawks",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "Region 3-6A",
+     "area": "Upper Middle / Sumner, Wilson & Upper Cumberland",
+     "schools": [
+      {
+       "name": "Green Hill",
+       "mascot": "Hawks",
+       "primaryColor": "#003087",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mt. Juliet",
+       "mascot": "Golden Bears",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 87,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Gallatin",
+       "mascot": "Green Wave",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 85,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Hendersonville",
+       "mascot": "Commandos",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#B3A369",
+       "prestige": 84,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Wilson Central",
+       "mascot": "Wildcats",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 81,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Lebanon",
+       "mascot": "Blue Devils",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#FFD700",
+       "prestige": 80,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cookeville",
+       "mascot": "Cavaliers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 78,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "Region 4-6A",
+     "area": "Rutherford County / The \"Boro\" Power Corridor",
+     "schools": [
+      {
+       "name": "Oakland",
+       "mascot": "Patriots",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#B3A369",
+       "prestige": 98,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Riverdale",
+       "mascot": "Warriors",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 92,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Blackman",
+       "mascot": "Blaze",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 88,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Rockvale",
+       "mascot": "Rockets",
+       "primaryColor": "#006747",
+       "secondaryColor": "#000000",
+       "prestige": 83,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Stewarts Creek",
+       "mascot": "Red Hawks",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Smyrna High",
+       "mascot": "Bulldogs",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFC72C",
+       "prestige": 80,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Siegel",
+       "mascot": "Stars",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFC72C",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "LaVergne",
+       "mascot": "Wolverines",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 68,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "Region 5-6A",
+     "area": "Davidson County / Metro Nashville Publics",
+     "schools": [
+      {
+       "name": "Cane Ridge",
+       "mascot": "Ravens",
+       "primaryColor": "#000000",
+       "secondaryColor": "#B3A369",
+       "prestige": 86,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Antioch",
+       "mascot": "Bears",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "McGavock",
+       "mascot": "Raiders",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFC72C",
+       "prestige": 78,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "John Overton",
+       "mascot": "Bobcats",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Hillsboro",
+       "mascot": "Burros",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#000000",
+       "prestige": 75,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Hunters Lane",
+       "mascot": "Warriors",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 65,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Glencliff",
+       "mascot": "Colts",
+       "primaryColor": "#1C3F94",
+       "secondaryColor": "#FFD700",
+       "prestige": 46,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "name": "Region 6-6A",
+     "area": "Williamson County / South Midstate",
+     "schools": [
+      {
+       "name": "Ravenwood",
+       "mascot": "Raptors",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 95,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Brentwood High",
+       "mascot": "Bruins",
+       "primaryColor": "#006747",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 91,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Independence",
+       "mascot": "Eagles",
+       "primaryColor": "#002D62",
+       "secondaryColor": "#FFD700",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Centennial",
+       "mascot": "Cougars",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#000000",
+       "prestige": 84,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Franklin High",
+       "mascot": "Admirals",
+       "primaryColor": "#8B0000",
+       "secondaryColor": "#FFD700",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Summit",
+       "mascot": "Spartans",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 81,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Dickson County",
+       "mascot": "Cougars",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 75,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "name": "Region 7-6A",
+     "area": "Clarksville / Montgomery & North Midstate",
+     "schools": [
+      {
+       "name": "Clarksville High",
+       "mascot": "Wildcats",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#B3A369",
+       "prestige": 88,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Rossview",
+       "mascot": "Hawks",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFC72C",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Kirkwood",
+       "mascot": "Cobras",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "West Creek",
+       "mascot": "Coyotes",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 77,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Northeast",
+       "mascot": "Eagles",
+       "primaryColor": "#00843D",
+       "secondaryColor": "#FFC72C",
+       "prestige": 74,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Kenwood",
+       "mascot": "Knights",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 70,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    },
+    {
+     "number": 8,
+     "name": "Region 8-6A",
+     "area": "Memphis Metro & Shelby County",
+     "schools": [
+      {
+       "name": "Houston",
+       "mascot": "Mustangs",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#B3A369",
+       "prestige": 94,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Collierville",
+       "mascot": "Dragons",
+       "primaryColor": "#000000",
+       "secondaryColor": "#B3A369",
+       "prestige": 92,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Germantown High",
+       "mascot": "Red Devils",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Bartlett",
+       "mascot": "Panthers",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 88,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Whitehaven",
+       "mascot": "Tigers",
+       "primaryColor": "#7C2529",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 87,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Southwind",
+       "mascot": "Jaguars",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 85,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Cordova",
+       "mascot": "Wolves",
+       "primaryColor": "#006747",
+       "secondaryColor": "#000000",
+       "prestige": 76,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Arlington",
+       "mascot": "Tigers",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 78,
+       "offenseScheme": "AIR_RAID",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "White Station",
+       "mascot": "Spartans",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#FFD700",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
