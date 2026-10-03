@@ -1,10 +1,9 @@
 import { Player, Position, Team } from '../types/game';
 import { DEPTH_TEMPLATE, rebuildDepthChart } from './depthChart';
-import { generateProceduralPlayer } from '../generators/rosterGenerator';
+import { generateProceduralPlayer, programTalent } from '../generators/rosterGenerator';
 import { processOffSeasonProgression } from './playerEngine';
 import { createEmptyPlayerStats } from './playerStats';
 import { randomInt } from './math/variance';
-import { stateTalent } from './stateRules';
 
 // Incoming freshmen roll starter-level talent minus a youth penalty; three years of progression
 // brings them back to the level of the generated rosters, keeping program strength stable. Only the core share
@@ -16,8 +15,8 @@ const STARTER_FRESHMAN_SHARE = 0.55;
 const newFreshman = (pos: Position, team: Team, takenNames: Set<string>, adjustment: number) => {
   const { roster, core } = DEPTH_TEMPLATE[pos];
   const tier = Math.random() < (core / roster) * STARTER_FRESHMAN_SHARE ? 1 : 3;
-  // Freshmen carry their state's national strength, so it lasts beyond the first season
-  return generateProceduralPlayer(pos, 'Freshman', tier, Math.round(adjustment + stateTalent(team.state)) - randomInt(4, 8), { nameProfile: team.nameProfile, takenNames });
+  // Freshmen carry the program's talent (prestige and state), as a rebuilt program would: dynasties reload
+  return generateProceduralPlayer(pos, 'Freshman', tier, Math.round(adjustment + programTalent(team.prestige, team.state)) - randomInt(4, 8), { nameProfile: team.nameProfile, takenNames });
 };
 
 const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior' } as const;
@@ -41,12 +40,23 @@ export function advanceTeamToNextSeason(
  * New year: seniors graduate, everyone else moves up a class and progresses, season stats and
  * eligibility reset, and the depth chart is rebuilt from who is left.
  */
-export function graduateAndProgress(team: Team, conditioningBonus = 0): Player[] {
+export function graduateAndProgress(
+  team: Team,
+  conditioningBonus = 0,
+  staffDevelopment?: { byPosition: Partial<Record<Position, number>>; allPlayers: number; young: number } // the coach's paid staff
+): Player[] {
   const graduated = team.roster.filter((p) => p.classYear === 'Senior');
   team.roster = team.roster.filter((p) => p.classYear !== 'Senior');
 
   team.roster.forEach((p) => {
     processOffSeasonProgression(p, team.staff.strengthCoach.conditioningRating + conditioningBonus);
+    if (staffDevelopment) {
+      // Position coaches, the strength program and the JV staff add growth (fractions round up by chance)
+      const young = p.classYear === 'Freshman' || p.classYear === 'Sophomore' ? staffDevelopment.young : 0;
+      const growth = (staffDevelopment.byPosition[p.position] ?? 0) + staffDevelopment.allPlayers + young;
+      const whole = Math.floor(growth) + (Math.random() < growth - Math.floor(growth) ? 1 : 0);
+      p.overallRating = Math.min(99, p.overallRating + whole);
+    }
     p.classYear = NEXT_CLASS[p.classYear as keyof typeof NEXT_CLASS];
     p.age += 1;
     p.stats = createEmptyPlayerStats();

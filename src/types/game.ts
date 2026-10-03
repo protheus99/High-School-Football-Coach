@@ -206,6 +206,8 @@ export interface Team {
   roster: Player[];
   record: TeamRecord;
   lightRating?: number; // a light team (another state's league): its fixed game-day rating; the roster holds only its stat leaders
+  gameDayEdge?: number; // the coach's paid staff: team-rating points added on game day (capped at +2)
+  injuryResistance?: number; // the coach's paid staff: share of game injuries avoided (0-1)
 }
 
 export interface PlayEvent {

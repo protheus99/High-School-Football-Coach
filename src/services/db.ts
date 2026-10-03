@@ -31,6 +31,7 @@ export interface GameSaveRecord {
   widePool?: FeederProspect[]; // the State and National prospect lists
   weekResults?: import('../sim/runAhead').WeekResults | null; // this week's games already simulated ahead
   interstateGames?: ScheduledGame[]; // the season's out-of-state games
+  coachingStaff?: import('../sim/coachingStaff').HiredCoach[]; // the coach's paid assistants
   userViolationHeat?: number;
   pendingUserBan?: boolean;
   onHotSeat?: boolean; // board warning from last season's review

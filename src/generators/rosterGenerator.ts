@@ -271,7 +271,7 @@ export const LIGHT_STARTERS: [Position, number][] = [
  * best of each position's core group starting) and full players only for its stat leaders. About a tenth of the
  * work and size of a full roster.
  */
-export function generateLightRoster(talentAdjustment = 0, nameProfile: NameProfile = 'DEFAULT'): { roster: Player[]; lightRating: number } {
+export function generateLightRoster(talentAdjustment = 0, nameProfile: NameProfile = 'DEFAULT', consistent = false): { roster: Player[]; lightRating: number } {
   const classes: PlayerClass[] = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
   const takenNames = new Set<string>();
   const starterRatings: number[] = [];
@@ -289,7 +289,48 @@ export function generateLightRoster(talentAdjustment = 0, nameProfile: NameProfi
       roster.push(generateProceduralPlayer(pos, classes[randomInt(0, classes.length - 1)], 1, 0, { nameProfile, takenNames, overall }))
     );
   });
-  return { roster, lightRating: starterRatings.reduce((s, r) => s + r, 0) / starterRatings.length };
+  const rating = starterRatings.reduce((s, r) => s + r, 0) / starterRatings.length;
+  // An elite program reloads: its rating is the average of four classes' rolls (half the usual spread)
+  const lightRating = consistent ? (rating + rollStarterRating(talentAdjustment) + rollStarterRating(talentAdjustment) + rollStarterRating(talentAdjustment)) / 4 : rating;
+  return { roster, lightRating };
+}
+
+/** One roll of a team's game-day rating (the same rolls generateLightRoster makes), without building players. */
+function rollStarterRating(talentAdjustment: number): number {
+  const ratings: number[] = [];
+  (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => {
+    const { starters, core } = DEPTH_TEMPLATE[pos];
+    const rolls = Array.from({ length: core }, (_, i) => {
+      let ovr = rollTalent().ovr;
+      if (i >= starters) ovr = Math.max(40, ovr - randomInt(6, 12));
+      return Math.min(99, Math.max(35, ovr + talentAdjustment));
+    }).sort((a, b) => b - a);
+    ratings.push(...rolls.slice(0, starters));
+  });
+  return ratings.reduce((s, r) => s + r, 0) / ratings.length;
+}
+
+/**
+ * The talent a program's players roll with (rating points added to each player): 0.3 per prestige point around
+ * 75, plus a blue-blood boost of 0.4 per point above 90 (the national powers stand clear of merely good
+ * programs), plus the state's national strength.
+ */
+export function programTalent(prestige: number, state?: string): number {
+  return Math.round((prestige - 75) * 0.3 + Math.max(0, prestige - BLUE_BLOOD_PRESTIGE) * 0.4 + stateTalent(state));
+}
+const BLUE_BLOOD_PRESTIGE = 90;
+
+/** Prestige at which a program reloads every year: its talent varies about half as much as everyone else's. */
+export const ELITE_PRESTIGE = 90;
+
+/** An elite program's full roster: the middle of five rolled rosters by game-day rating (about half the spread). */
+function consistentRoster(talentAdjustment: number, nameProfile: NameProfile): Player[] {
+  const starterAverage = (roster: Player[]) => {
+    const starters = roster.filter((p) => p.depthChartTier === 1);
+    return starters.reduce((s, p) => s + p.overallRating, 0) / Math.max(1, starters.length);
+  };
+  const rosters = Array.from({ length: 5 }, () => generateCompleteTeamRoster(talentAdjustment, nameProfile)).sort((a, b) => starterAverage(a) - starterAverage(b));
+  return rosters[2];
 }
 
 /**
@@ -308,9 +349,10 @@ export function generateDistrictTeams(
     const prestige = hs.prestige ?? randomInt(68, 92);
     const nameProfile = options.nameProfile ?? 'DEFAULT';
     // Talent leans toward the school's prestige (within its state) plus its state's national strength
-    const talent = options.talentFromPrestige ? Math.round((prestige - 75) * 0.3 + stateTalent(options.state)) : 0;
-    const light = options.light ? generateLightRoster(talent, nameProfile) : undefined;
-    const roster = light?.roster ?? generateCompleteTeamRoster(talent, nameProfile);
+    const talent = options.talentFromPrestige ? programTalent(prestige, options.state) : 0;
+    const elite = !!options.talentFromPrestige && prestige >= ELITE_PRESTIGE;
+    const light = options.light ? generateLightRoster(talent, nameProfile, elite) : undefined;
+    const roster = light?.roster ?? (elite ? consistentRoster(talent, nameProfile) : generateCompleteTeamRoster(talent, nameProfile));
 
     return {
       id: `team_${hs.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,

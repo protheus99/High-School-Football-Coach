@@ -18,6 +18,7 @@ export const MAX_PLAYOFF_ROUNDS = 6;
 export const STATE_FINAL_WEEK = LAST_REGULAR_SEASON_WEEK + MAX_PLAYOFF_ROUNDS;
 export const firstPlayoffWeek = (rounds: number) => STATE_FINAL_WEEK - rounds + 1;
 const DISTRICT_POINT_DIFFERENTIAL_CAP = 17;
+const SHOWCASE_PRESTIGE = 88; // programs this strong meet each other in the first in-state non-district week
 
 export type SeasonPhase = 'SPRING_EVALUATION' | 'SUMMER_CAMP' | 'NON_DISTRICT' | 'DISTRICT_PLAY' | 'STATE_PLAYOFFS' | 'POST_SEASON' | 'OFF_SEASON';
 
@@ -87,12 +88,35 @@ export function generateSeasonSchedule(regions: Team[][][], year: number, option
   const allDistricts: string[][] = [];
   for (const region of regions) {
     const districts = region.map((teams) => shuffle(teams.map((t) => t.id)));
+    const districtIndex = new Map(districts.flatMap((ids, d) => ids.map((id) => [id, d] as const)));
+
+    // Showcase week: the first in-state non-district week pairs the region's top programs with each other (other
+    // districts, closest prestige first), the way national powers schedule each other; everyone else is paired
+    // below, and anyone left over gets a fill-in game
+    const showcaseWeek = nonDistrictWeeks[0];
+    const booked = new Set<string>();
+    const showcasePairs = new Set<string>();
+    const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+    if (showcaseWeek !== undefined) {
+      const elite = region.flat().filter((t) => t.prestige >= SHOWCASE_PRESTIGE).sort((a, b) => b.prestige - a.prestige);
+      while (elite.length > 1) {
+        const team = elite.shift()!;
+        const index = elite.findIndex((other) => districtIndex.get(other.id) !== districtIndex.get(team.id));
+        if (index < 0) continue;
+        const [opponent] = elite.splice(index, 1);
+        if (Math.random() < 0.5) addGame(showcaseWeek, team.id, opponent.id, false);
+        else addGame(showcaseWeek, opponent.id, team.id, false);
+        booked.add(team.id).add(opponent.id);
+        showcasePairs.add(pairKey(team.id, opponent.id));
+      }
+    }
 
     // Non-district: week k pairs district i with district i XOR (k + 1) (1-2/3-4, then 1-3/2-4, then 1-4/2-3).
     // Other district counts (5 conferences, say) leave these weeks open for the fill-in games below.
     const powerOfTwo = (districts.length & (districts.length - 1)) === 0;
     for (let k = 0; powerOfTwo && k < nonDistrictWeeks.length; k++) {
       const week = nonDistrictWeeks[k];
+      if (week === showcaseWeek && booked.size > 0) continue; // the showcase week's other games are fill-ins (below)
       districts.forEach((a, i) => {
         const partner = districts.length === 2 ? 1 - i : i ^ (k + 1);
         if (partner <= i || partner >= districts.length) return; // each pairing once; odd districts get a bye
@@ -102,6 +126,7 @@ export function generateSeasonSchedule(regions: Team[][][], year: number, option
         for (let t = 0; t < Math.min(a.length, b.length); t++) {
           const team = a[(t + i + k) % a.length];
           const opponent = b[(t + 2 * partner + k) % b.length];
+          if (showcasePairs.has(pairKey(team, opponent))) continue; // they met in the showcase week (a fill-in replaces it)
           if ((t + k) % 2 === 0) addGame(week, team, opponent, false);
           else addGame(week, opponent, team, false);
         }

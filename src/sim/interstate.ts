@@ -1,8 +1,7 @@
 import { ScheduledGame, Team } from '../types/game';
 import { teamStarterRating } from './macroSim';
 import { FIRST_NON_DISTRICT_WEEK } from './scheduleEngine';
-import { generateCompleteTeamRoster } from '../generators/rosterGenerator';
-import { stateTalent } from './stateRules';
+import { generateCompleteTeamRoster, programTalent } from '../generators/rosterGenerator';
 
 // ---------------------------------------------------------------------------
 // Out-of-state games open the season. Every league leaves its first game week (week 8) open, and that week
@@ -32,7 +31,9 @@ export const STATE_NEIGHBORS: Record<string, string[]> = {
   California: ['Texas']
 };
 
-const NON_NEIGHBOR_PENALTY = 2.5; // rating points: a closer match from a neighbor state beats a slightly closer one far away
+// Rating points: a neighbor state's team wins a near tie. Kept small so games stay even (a big state like Texas would
+// otherwise soak up its neighbors' teams as underdogs, and lopsided results would inflate its ratings)
+const NON_NEIGHBOR_PENALTY = 0.5;
 
 export interface StateLeagueSchedule {
   state: string;
@@ -63,7 +64,7 @@ function pairAcrossStates(
     open.forEach((other, i) => {
       if (other.state === me.state || met.has(pairKey(me.team.id, other.team.id))) return;
       const neighbor = (STATE_NEIGHBORS[me.state] ?? []).includes(other.state) || (STATE_NEIGHBORS[other.state] ?? []).includes(me.state);
-      const score = Math.abs(other.rating - me.rating) + (neighbor ? 0 : NON_NEIGHBOR_PENALTY) + Math.random();
+      const score = Math.abs(other.rating - me.rating) + (neighbor ? 0 : NON_NEIGHBOR_PENALTY) + Math.random() * 0.2;
       if (score < bestScore) {
         bestScore = score;
         best = i;
@@ -100,6 +101,6 @@ export function scheduleInterstateGames(leagues: StateLeagueSchedule[], year: nu
  */
 export function expandToFullRoster(team: Team): void {
   if (team.lightRating === undefined) return;
-  team.roster = generateCompleteTeamRoster(Math.round((team.prestige - 75) * 0.3 + stateTalent(team.state)), team.nameProfile);
+  team.roster = generateCompleteTeamRoster(programTalent(team.prestige, team.state), team.nameProfile);
   delete team.lightRating;
 }

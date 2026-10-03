@@ -133,7 +133,7 @@ export function rollGameInjuries(team: Team, week: number): { player: Player; se
   const hurt: { player: Player; severity: InjurySeverity }[] = [];
   gameDayLineup(team).forEach((p) => {
     if (!p || p.condition.injuryStatus !== 'HEALTHY') return;
-    const risk = (p.condition.inGameStamina < 75 ? 1.5 : 1) * (p.position === 'K' || p.position === 'P' ? 0.3 : 1);
+    const risk = (p.condition.inGameStamina < 75 ? 1.5 : 1) * (p.position === 'K' || p.position === 'P' ? 0.3 : 1) * (1 - (team.injuryResistance ?? 0));
     const roll = Math.random();
     let severity: InjurySeverity = 'HEALTHY';
     let weeks = 0;
@@ -151,9 +151,10 @@ export function rollGameInjuries(team: Team, week: number): { player: Player; se
 
 /** Average overall rating of the game-day lineup (first string, with backups in for missing starters). */
 export function teamStarterRating(team: Team): number {
-  if (team.lightRating !== undefined) return team.lightRating; // another state's light team
+  const edge = team.gameDayEdge ?? 0; // the coach's paid staff
+  if (team.lightRating !== undefined) return team.lightRating + edge; // another state's light team
   const lineup = gameDayLineup(team);
-  return lineup.reduce((sum, p) => sum + (p?.overallRating ?? EMPTY_SLOT_RATING), 0) / (lineup.length || 1);
+  return lineup.reduce((sum, p) => sum + (p?.overallRating ?? EMPTY_SLOT_RATING), 0) / (lineup.length || 1) + edge;
 }
 
 /**

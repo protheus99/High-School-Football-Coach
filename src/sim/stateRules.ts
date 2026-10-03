@@ -624,7 +624,7 @@ export const ALABAMA_RULES: StateRules = {
 export const STATE_TALENT: Record<string, number> = {
   Texas: 3,
   Florida: 3,
-  California: 3,
+  California: 1.5, // a national power, but its class is only the elite Open Division tier (already strong)
   Georgia: 3,
   Alabama: 1.5,
   Ohio: 1.5,

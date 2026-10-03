@@ -91,6 +91,7 @@ import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { collectResults } from '../sim/computerRankings';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
+import { HiredCoach, staffBonuses, staffGameDayEdge } from '../sim/coachingStaff';
 import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
 import { expandToFullRoster, INTERSTATE_WEEK, scheduleInterstateGames } from '../sim/interstate';
 import { buildNationalWorld, calibrateLightLeagues, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
@@ -261,6 +262,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     widePool: state.widePool,
     weekResults: state.weekResults,
     interstateGames: state.interstateGames,
+    coachingStaff: state.coachingStaff,
     userViolationHeat: state.userViolationHeat,
     pendingUserBan: state.pendingUserBan,
     onHotSeat: state.onHotSeat,
@@ -342,6 +344,8 @@ interface GameStoreState {
   widePool: FeederProspect[]; // prospects beyond the region: the rest of the state (Texas) and the other states
   weekResults: WeekResults | null; // this week's other games, simulated ahead (shown live during the coach's game)
   interstateGames: ScheduledGame[]; // the season's out-of-state games, every state (the league's are also in its schedule)
+  coachingStaff: HiredCoach[]; // the coach's paid assistants (game-day edge, development, injuries, Coach Points)
+  setCoachingStaff: (staff: HiredCoach[]) => void;
   runAhead: () => WeekResults; // simulates this week's other games now if they haven't been (idempotent)
   userViolationHeat: number; // hidden evidence of the user's recruiting violations
   pendingUserBan: boolean; // caught at year end: banned from next season's playoffs
@@ -422,6 +426,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   widePool: [],
   weekResults: null,
   interstateGames: [],
+  coachingStaff: [],
   userViolationHeat: 0,
   pendingUserBan: false,
   onHotSeat: false,
@@ -525,6 +530,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       // The league's out-of-state games are the same objects as the national list's
       seasonSchedule: save.league && save.seasonSchedule ? relinkInterstate(save.seasonSchedule, save.interstateGames ?? []) : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
       interstateGames: save.interstateGames ?? [],
+      coachingStaff: save.coachingStaff ?? [],
       playoffBracket: save.league && save.playoffBracket ? relinkBracketTeams(save.playoffBracket, world.teams) : null,
       sanctionLevel: save.sanctionLevel ?? 0,
       statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
@@ -630,7 +636,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       meters.schoolBoardTrust = Math.max(0, Math.min(100, meters.schoolBoardTrust + (userWon ? BOARD_RESULT_DELTA.win : BOARD_RESULT_DELTA.loss)));
     }
     set({
-      coachPoints: get().coachPoints + weeklyCpIncome(nextWeek, coachTalents, meters.schoolBoardTrust) + (userWon ? winBonus(false, coachTalents) : 0),
+      coachPoints:
+        get().coachPoints +
+        Math.round(weeklyCpIncome(nextWeek, coachTalents, meters.schoolBoardTrust) * staffBonuses(get().coachingStaff).coachPointMultiplier) +
+        staffBonuses(get().coachingStaff).weeklyCoachPoints +
+        (userWon ? winBonus(false, coachTalents) : 0),
       feederEventsThisWeek: []
     });
     // Records and scores changed in place: new array references so every screen (standings, scoreboard) refreshes
@@ -888,6 +898,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     whenIdle(() => get().runAhead());
   },
 
+  // The paid staff: its game-day edge and injury resistance live on the coach's team (the engines read them there)
+  setCoachingStaff: (staff) => {
+    const team = get().leagueTeams.find((t) => t.id === get().userTeamId);
+    if (team) {
+      team.gameDayEdge = staffGameDayEdge(staff);
+      team.injuryResistance = staffBonuses(staff).injuryReduction;
+    }
+    set({ coachingStaff: staff, weekResults: null });
+  },
+
   runAhead: () => {
     const { weekResults, currentWeek } = get();
     if (weekResults?.week === currentWeek) return weekResults;
@@ -961,7 +981,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       graduated: userTeam.roster.filter((p) => p.classYear === 'Senior').length,
       returningStarters: userTeam.roster.filter((p) => p.depthChartTier === 1 && p.classYear !== 'Senior').length
     };
-    leagueTeams.forEach((team) => graduateAndProgress(team, team.id === userTeamId ? offseasonConditioningBonus(get().coachTalents) : 0));
+    const staff = staffBonuses(get().coachingStaff);
+    leagueTeams.forEach((team) =>
+      team.id === userTeamId
+        ? graduateAndProgress(team, offseasonConditioningBonus(get().coachTalents), { byPosition: staff.developmentByPosition, allPlayers: staff.allPlayersDevelopment, young: staff.freshmanDevelopment })
+        : graduateAndProgress(team, 0)
+    );
     // New recruiting cycle: offers carry over, exposure and calls reset, stars re-evaluated after progression
     resetSeasonRecruiting(leagueTeams);
     updateStarRatings(leagueTeams, false);
