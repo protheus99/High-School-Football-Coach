@@ -22,6 +22,7 @@ import {
 import {
   applyGameResult,
   FEEDER_SIGNING_WEEK,
+  FIRST_NON_DISTRICT_WEEK,
   forfeitMostRecentDistrictWin,
   generateSeasonSchedule,
   getSeasonPhase,
@@ -672,7 +673,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       team.roster.forEach((p) => {
         processWeeklyInjuryHealing(p, currentWeek);
         if (isGameWeek) processPostGameSeasonWear(p, p.depthChartTier === 1 ? 52 : 12, isUser ? practiceIntensity : 'STANDARD');
-        if (nextWeek % 3 === 0) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p) ? 0.1 : 0);
+        // Report cards every third week once the school year and season are under way
+        if (nextWeek % 3 === 0 && nextWeek >= FIRST_NON_DISTRICT_WEEK) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p) ? 0.1 : 0);
       });
     });
     // Morale: training camp brings the team together; in season, full-contact practices build it and

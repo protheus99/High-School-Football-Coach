@@ -2,7 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { getSeasonPhase, SEASON_PHASE_LABELS } from '../scheduleEngine';
 import { playoffRoundCount, seasonLength } from '../league';
 import { useGameStore } from '../../store/gameStore';
-import { dilemmaCalendarWeek } from '../dilemmaEngine';
+import { TEMPLATES } from '../dilemmaTemplates';
+import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { ASSISTANT_DRILLS_PER_WEEK } from '../drillEngine';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -92,7 +93,15 @@ describe('Season calendar', () => {
     expect(store.getState().feederClassYear).toBe(firstYear + 2);
   }, 60000);
 
-  it('maps real weeks onto the dilemma library calendar', () => {
-    expect([1, 2, 3, 4, 5, 6, 7, 8, 17, 18].map(dilemmaCalendarWeek)).toEqual([1, 1, 2, 2, 3, 4, 4, 5, 14, 15]);
+  it('keeps dilemmas in their season phase: midterms only on in-season report-card weeks, playoffs only in the playoffs', () => {
+    const [team] = generateDistrictTeams();
+    team.roster.forEach((p) => (p.academics.gpa = 2.0)); // every starter is struggling
+    const grades = TEMPLATES.find((t) => t.id === 'GRADE_CRISIS')!;
+    const gradeWeeks = Array.from({ length: 28 }, (_, i) => i + 1).filter((w) => grades.appliesTo(team, w) !== null);
+    expect(gradeWeeks).toEqual([9, 12, 15, 18, 21]);
+    const tickets = TEMPLATES.find((t) => t.id === 'PLAYOFF_TICKET_SCALPING')!;
+    expect(Array.from({ length: 28 }, (_, i) => i + 1).filter((w) => tickets.appliesTo(team, w) !== null)).toEqual([18, 19, 20, 21, 22, 23]);
+    const heat = TEMPLATES.find((t) => t.id === 'HEAT_ADVISORY')!;
+    expect(Array.from({ length: 28 }, (_, i) => i + 1).filter((w) => heat.appliesTo(team, w) !== null)).toEqual([5, 6, 7, 8]);
   });
 });

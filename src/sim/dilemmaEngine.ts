@@ -12,19 +12,7 @@ export const EXPOSURE_CHANCE: Record<DilemmaChoice['tier'], number> = { GOOD: 0,
  * Picks this week's dilemma (if any): about 60% of weeks, never repeating a scenario used earlier
  * in the season. The academic check (every third week) takes priority when a starter is failing.
  */
-/**
- * The scenario library was written for a shorter calendar (weeks 1-2 spring, 3-4 summer, games from week 5).
- * Real weeks map onto it: pre season (1-4) -> 1-2, training camp (5-7) -> 3-4, and every later week moves
- * back three, which keeps game weeks and report-card weeks lined up.
- */
-export function dilemmaCalendarWeek(week: number): number {
-  if (week <= 4) return Math.ceil(week / 2);
-  if (week <= 7) return week === 5 ? 3 : 4;
-  return week - 3;
-}
-
-export function generateWeeklyDilemma(realWeek: number, userTeam: Team, recentTemplateIds: string[] = []): NarrativeDilemma | null {
-  const week = dilemmaCalendarWeek(realWeek);
+export function generateWeeklyDilemma(week: number, userTeam: Team, recentTemplateIds: string[] = []): NarrativeDilemma | null {
   const eligible = TEMPLATES
     .filter((t) => !recentTemplateIds.includes(t.id))
     .map((t) => ({ template: t, subject: t.appliesTo(userTeam, week) }))
@@ -38,9 +26,9 @@ export function generateWeeklyDilemma(realWeek: number, userTeam: Team, recentTe
 
   const player = chosen.subject === true ? undefined : (chosen.subject as Player);
   return {
-    id: `dil_${chosen.template.id.toLowerCase()}_${realWeek}`,
+    id: `dil_${chosen.template.id.toLowerCase()}_${week}`,
     templateId: chosen.template.id,
-    weekTriggered: realWeek,
+    weekTriggered: week,
     ...chosen.template.build(userTeam, week, player)
   };
 }

@@ -171,11 +171,12 @@ describe('Study hall through dilemmas', () => {
     const [team] = generateDistrictTeams();
     const template = TEMPLATES.find((t) => t.id === 'TEAM_GRADES')!;
     team.roster.forEach((p) => (p.academics.gpa = 3.0));
-    expect(template.appliesTo(team, 4)).toBeNull();
+    expect(template.appliesTo(team, 10)).toBeNull();
     team.roster.slice(0, 3).forEach((p) => (p.academics.gpa = 2.1));
-    expect(template.appliesTo(team, 3)).toBeNull(); // report card week itself
-    expect(template.appliesTo(team, 4)).toBe(true);
-    const studyHall = template.build(team, 4).choices.find((c) => c.id === 'opt_study_hall')!;
+    expect(template.appliesTo(team, 9)).toBeNull(); // report card week itself
+    expect(template.appliesTo(team, 10)).toBe(true);
+    expect(template.appliesTo(team, 4)).toBeNull(); // no midterms in pre season
+    const studyHall = template.build(team, 10).choices.find((c) => c.id === 'opt_study_hall')!;
     expect(studyHall.impact.gpaChanges).toHaveLength(3);
   });
 });
