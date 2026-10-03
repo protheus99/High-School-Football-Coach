@@ -89,6 +89,7 @@ import { persistSaveGame } from '../services/db';
 import type { GameSaveRecord } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
 import { addIncomingClass, graduateAndProgress } from '../sim/offseasonEngine';
+import { calculateDistrictStandings } from '../sim/districtEngine';
 import { moveInDepthChart, setDepthTier } from '../sim/depthChart';
 import { ASSISTANT_DRILLS_PER_WEEK, DrillFocus, runAssistantDrills } from '../sim/drillEngine';
 import {
@@ -113,6 +114,16 @@ const MID_SEASON_STAR_UPDATE_WEEK = 11;
 
 /** Training camp schedule: more practices develop more players but wear the team down. */
 export type CampSchedule = 'TWO_A_DAY' | 'THREE_A_DAY';
+
+/** Last season in brief (shown on the Hub in week 1). */
+export interface SeasonRecap {
+  year: number;
+  wins: number;
+  losses: number;
+  districtFinish: number;
+  graduated: number;
+  returningStarters: number;
+}
 const CAMP_DRILL_MULTIPLIER: Record<CampSchedule, number> = { TWO_A_DAY: 2, THREE_A_DAY: 3 };
 const CAMP_MORALE: Record<CampSchedule, number> = { TWO_A_DAY: 2, THREE_A_DAY: 1 }; // the team comes together
 const STATEWIDE_RECRUITING_HEADLINES = 2; // five-star commitments elsewhere in the state, per week
@@ -222,6 +233,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     drillFocus: state.drillFocus,
     campSchedule: state.campSchedule,
     feederClassYear: state.feederClassYear,
+    seasonRecap: state.seasonRecap,
     districtTeams: state.districtTeams,
     activeDilemma: state.activeDilemma,
     scoutingPool: state.scoutingPool,
@@ -288,6 +300,7 @@ interface GameStoreState {
   drillFocus: DrillFocus; // assistants run position drills each week with this focus
   campSchedule: CampSchedule; // training camp: two-a-days or three-a-days
   feederClassYear: number; // the season the current pipeline's class arrives (signing day is week 2 of that season)
+  seasonRecap: SeasonRecap | null; // last season in brief, for the Hub's new-season headline
   lastDrillReport: string[]; // who the assistants worked with last week
 
   // Postseason & Offseason state
@@ -360,6 +373,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   drillFocus: 'BALANCED',
   campSchedule: 'TWO_A_DAY',
   feederClassYear: 2027,
+  seasonRecap: null,
   lastDrillReport: [],
   playoffBracket: null,
   graduatingSeniors: [],
@@ -387,6 +401,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       scoutingPool: generateFeederPool(userTeam, ctx),
       statewideRecruits: generateStatewideElite(ctx),
       feederClassYear: get().currentYear + 1,
+      seasonRecap: null,
       userViolationHeat: 0,
       pendingUserBan: false,
       onHotSeat: false,
@@ -444,6 +459,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       campSchedule: save.campSchedule ?? 'TWO_A_DAY',
       // Older saves: the pipeline was always next season's class
       feederClassYear: save.feederClassYear ?? year + 1,
+      seasonRecap: save.seasonRecap ?? null,
       lastDrillReport: [],
       activeDilemma: save.activeDilemma,
       activeGame: null,
@@ -790,6 +806,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
             }
           ]
         : [];
+    const seasonRecap: SeasonRecap = {
+      year: currentYear,
+      wins: userTeam.record.wins,
+      losses: userTeam.record.losses,
+      districtFinish: calculateDistrictStandings(districtTeams).findIndex((r) => r.teamId === userTeamId) + 1,
+      graduated: userTeam.roster.filter((p) => p.classYear === 'Senior').length,
+      returningStarters: userTeam.roster.filter((p) => p.depthChartTier === 1 && p.classYear !== 'Senior').length
+    };
     leagueTeams.forEach((team) => graduateAndProgress(team, team.id === userTeamId ? offseasonConditioningBonus(get().coachTalents) : 0));
     // New recruiting cycle: offers carry over, exposure and calls reset, stars re-evaluated after progression
     resetSeasonRecruiting(leagueTeams);
@@ -851,6 +875,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       feederEventsThisWeek: [],
       coachPoints: get().coachPoints + weeklyCpIncome(1, get().coachTalents, userTeam.programMeters.schoolBoardTrust),
       onHotSeat: review === 'HOT_SEAT',
+      seasonRecap,
       newsArticles: [...boardNews, ...investigationNews, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams],

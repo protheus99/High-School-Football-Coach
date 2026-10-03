@@ -37,6 +37,7 @@ export interface GameSaveRecord {
   drillFocus?: DrillFocus;
   campSchedule?: 'TWO_A_DAY' | 'THREE_A_DAY';
   feederClassYear?: number;
+  seasonRecap?: import('../store/gameStore').SeasonRecap | null;
 }
 
 /** Lightweight listing for the load screen (full saves are ~10 MB each). */

@@ -1,16 +1,40 @@
 import React, { useState } from 'react';
 import { feederEventsOpen, useGameStore } from '../store/gameStore';
-import { FEEDER_SIGNING_WEEK, FIRST_TRAINING_CAMP_WEEK, LAST_TRAINING_CAMP_WEEK, PRESEASON_WEEKS } from '../sim/scheduleEngine';
-import { PROSPECT_ACTION_COSTS } from '../sim/feederEngine';
-import { collegeActionCost, feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
-import { FEEDER_EVENTS, FeederEventType } from '../sim/feederEngine';
+import {
+  FEEDER_SIGNING_WEEK,
+  FIRST_DISTRICT_WEEK,
+  FIRST_NON_DISTRICT_WEEK,
+  FIRST_TRAINING_CAMP_WEEK,
+  LAST_REGULAR_SEASON_WEEK,
+  LAST_TRAINING_CAMP_WEEK,
+  PRESEASON_WEEKS,
+  getSeasonPhase,
+  getTeamGameForWeek
+} from '../sim/scheduleEngine';
+import { FEEDER_EVENTS, FeederEventType, PROSPECT_ACTION_COSTS } from '../sim/feederEngine';
+import { COACH_TALENTS, collegeActionCost, feederEventCost, talentBlocker, weeklyCpIncome } from '../sim/coachPoints';
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
-import { Player } from '../types/game';
+import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { dilemmaChoiceCosts } from '../sim/dilemmaEngine';
+import { calculateDistrictStandings } from '../sim/districtEngine';
+import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
+import { ROUND_LABELS } from '../sim/playoffEngine';
+import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
+import { Player, Team } from '../types/game';
 
-/** Screens the agenda can send the coach to. */
-export type AgendaTab = 'ROSTER' | 'PRACTICE' | 'COLLEGE' | 'OFFICE' | 'FEEDERS' | 'DISTRICT';
+/** Screens the Hub can send the coach to. */
+export type AgendaTab = 'ROSTER' | 'PRACTICE' | 'COLLEGE' | 'OFFICE' | 'FEEDERS' | 'DISTRICT' | 'SCOREBOARD';
+
+/** This week's game, as the Hub needs it. */
+export interface HubGame {
+  opponent: Team;
+  isHome: boolean;
+  isPlayed: boolean;
+  result?: string;
+  label?: string; // playoff round
+  isPlayoff: boolean;
+}
 
 interface AgendaAction {
   label: string;
@@ -27,7 +51,7 @@ interface AgendaItem {
   tone: 'urgent' | 'todo' | 'info' | 'done';
   actions?: AgendaAction[];
   link?: { label: string; onClick: () => void };
-  content?: React.ReactNode; // custom body (the week's dilemma)
+  content?: React.ReactNode; // custom body (the dilemma, the practice plan)
 }
 
 const TONES: Record<AgendaItem['tone'], { border: string; background: string }> = {
@@ -37,24 +61,37 @@ const TONES: Record<AgendaItem['tone'], { border: string; background: string }> 
   done: { border: '#86EFAC', background: '#F0FDF4' }
 };
 
+const MAX_OPEN_CARDS = 4;
 const TOP_PROSPECTS = 3;
+const INTENSITY: { id: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT'; label: string }[] = [
+  { id: 'WALKTHROUGH', label: 'Walkthrough' },
+  { id: 'STANDARD', label: 'Standard' },
+  { id: 'CONTACT', label: 'Full Contact' }
+];
 
 const shortName = (p: Player) => `${p.firstName.charAt(0)}. ${p.lastName}`;
+const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+const scheme = (s: string) => s.replace(/_/g, ' ').toLowerCase();
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 /**
- * "This Week": everything that needs the coach's attention, with quick decisions inline and links to the
- * right screen, ending with Advance Week. Built from the week's state, so it changes as the season moves.
+ * The Hub's week plan. Every week shows, in order: one headline card (what this week is about), "needs you"
+ * cards only when something is blocking or urgent, one task for the current phase, then everything else
+ * folded under "More this week". At most four cards are open, then Advance Week.
  */
 export const WeeklyAgenda: React.FC<{
-  game: { opponentName: string; isHome: boolean; isPlayed: boolean; result?: string } | null;
+  game: HubGame | null;
   onPlayGame: () => void;
+  onStudyFilm: () => void;
   onAutoSim: () => void;
   onAdvanceWeek: () => void;
   onNavigate: (tab: AgendaTab) => void;
   phaseLabel: string; // e.g. Pre Season, Regular Season District
-}> = ({ game, onPlayGame, onAutoSim, onAdvanceWeek, onNavigate, phaseLabel }) => {
+}> = ({ game, onPlayGame, onStudyFilm, onAutoSim, onAdvanceWeek, onNavigate, phaseLabel }) => {
+  const store = useGameStore();
   const {
     leagueTeams,
+    districtTeams,
     userTeamId,
     currentWeek,
     currentYear,
@@ -67,6 +104,8 @@ export const WeeklyAgenda: React.FC<{
     collegeRecruitAction,
     drillFocus,
     setDrillFocus,
+    practiceIntensity,
+    setPracticeIntensity,
     lastDrillReport,
     league,
     scoutingPool,
@@ -74,8 +113,13 @@ export const WeeklyAgenda: React.FC<{
     visitFeederProspect,
     lastFeederResults,
     campSchedule,
-    setCampSchedule
-  } = useGameStore();
+    setCampSchedule,
+    seasonSchedule,
+    playoffBracket,
+    onHotSeat,
+    sanctionLevel,
+    seasonRecap
+  } = store;
   // Confirmation for the last quick action; it belongs to the week it happened in
   const [flashState, setFlashState] = useState<{ text: string; week: number } | null>(null);
   const flash = flashState?.week === currentWeek ? flashState.text : null;
@@ -83,11 +127,19 @@ export const WeeklyAgenda: React.FC<{
   const team = leagueTeams.find((t) => t.id === userTeamId);
   if (!team) return null;
 
-  const items: AgendaItem[] = [];
+  const rounds = league ? playoffRoundCount(league) : 6;
+  const phase = getSeasonPhase(currentWeek, rounds);
+  const totalWeeks = league ? seasonLength(league) : 28;
+  const firstOffSeasonWeek = totalWeeks - 3;
+  const isGamePhase = phase === 'NON_DISTRICT' || phase === 'DISTRICT_PLAY' || phase === 'STATE_PLAYOFFS';
+  const signingThisSeason = currentYear >= feederClassYear;
+  const districtName = (league && findDistrict(league, userTeamId)?.name) ?? 'the district';
+  const standings = calculateDistrictStandings(districtTeams);
+  const myRow = standings.find((r) => r.teamId === userTeamId);
 
-  // 1. The week's decision
-  if (activeDilemma) {
-    items.push({
+  // ---------------------------------------------------------------- reusable cards
+  const dilemmaCard = (): AgendaItem | null =>
+    activeDilemma && {
       id: 'dilemma',
       icon: '⚠️',
       title: activeDilemma.title,
@@ -103,202 +155,456 @@ export const WeeklyAgenda: React.FC<{
                 <button key={c.id} onClick={() => resolveDilemma(c)} style={choiceBtn}>
                   <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.label}</div>
                   <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>{c.description}</div>
-                  {costs.length > 0 && (
-                    <div style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 'bold', marginTop: '4px' }}>{costs.join(' · ')}</div>
-                  )}
+                  {costs.length > 0 && <div style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 'bold', marginTop: '4px' }}>{costs.join(' · ')}</div>}
                 </button>
               );
             })}
           </div>
         </div>
       )
-    });
-  }
+    };
 
-  // 2. This week's game
-  if (game && !game.isPlayed) {
-    items.push({
-      id: 'game',
-      icon: '🏈',
-      title: `Game ${game.isHome ? 'vs' : 'at'} ${game.opponentName}`,
-      detail: 'Coach it live, or let it simulate when you advance the week.',
-      tone: 'todo',
-      actions: [
-        { label: 'Play the game', primary: true, onClick: onPlayGame },
-        { label: 'Auto-sim & advance', onClick: onAutoSim }
-      ]
-    });
-  } else if (game?.isPlayed && game.result) {
-    items.push({ id: 'game', icon: '✅', title: game.result, tone: 'done' });
-  }
-
-  // 3. Starters who can't play
-  const unavailable = team.roster.filter((p) => p.depthChartTier === 1 && (p.condition.injuryStatus !== 'HEALTHY' || !p.academics.isEligible));
-  if (unavailable.length > 0) {
-    items.push({
+  const unavailableCard = (): AgendaItem | null => {
+    const out = team.roster.filter((p) => p.depthChartTier === 1 && (p.condition.injuryStatus !== 'HEALTHY' || !p.academics.isEligible));
+    if (out.length === 0) return null;
+    return {
       id: 'starters',
       icon: '🩹',
-      title: `${unavailable.length} starter${unavailable.length === 1 ? '' : 's'} unavailable`,
-      detail: `${unavailable
+      title: `${plural(out.length, 'starter')} unavailable`,
+      detail: `${out
         .slice(0, 4)
         .map((p) => `${p.position} ${shortName(p)} (${p.condition.isSuspended ? 'suspended' : p.condition.injuryStatus !== 'HEALTHY' ? 'injured' : 'ineligible'})`)
-        .join(', ')}${unavailable.length > 4 ? '…' : ''}. The next man up plays unless you change the depth chart.`,
+        .join(', ')}${out.length > 4 ? '…' : ''}. The next man up plays unless you change the depth chart.`,
       tone: 'urgent',
-      link: { label: 'Review depth chart', onClick: () => onNavigate('ROSTER') }
-    });
-  }
+      link: { label: 'Depth chart', onClick: () => onNavigate('ROSTER') }
+    };
+  };
 
-  // 5a. Pre season: feeder signing day (week 2 is the last chance to win prospects over)
-  const signingThisSeason = currentYear >= feederClassYear && currentWeek <= FEEDER_SIGNING_WEEK;
-  if (signingThisSeason) {
+  // Serious trouble (state penalties, the hot seat) needs the coach; slower-burning concerns wait under "More"
+  const sanctionText =
+    sanctionLevel > 0
+      ? ['', 'State association: public reprimand issued.', 'State association: a district win was forfeited.', 'State association: banned from the playoffs.'][sanctionLevel]
+      : null;
+  const alerts = ratingAlerts(team, onHotSeat);
+  const hotSeatAlert = onHotSeat ? alerts[0] : null;
+  const warningsCard = (): AgendaItem | null => {
+    const warnings = [sanctionText, hotSeatAlert].filter((w): w is string => !!w);
+    if (warnings.length === 0) return null;
+    return { id: 'warnings', icon: '📉', title: 'Program warning', detail: warnings.join(' '), tone: 'urgent' };
+  };
+  const concernsCard = (): AgendaItem | null => {
+    const concerns = alerts.filter((a) => a !== hotSeatAlert);
+    if (concerns.length === 0) return null;
+    return { id: 'concerns', icon: '📉', title: 'Program concerns', detail: concerns.join(' '), tone: 'info' };
+  };
+
+  const collegeCard = (seniorsOnly = false): AgendaItem | null => {
+    const prospects = team.roster
+      .filter((p) => (p.classYear === 'Senior' || (!seniorsOnly && p.classYear === 'Junior')) && !p.recruiting.isNationalLetterOfIntentSigned)
+      .sort((a, b) => recruitScore(b) - recruitScore(a))
+      .slice(0, TOP_PROSPECTS);
+    const batch = (action: CollegeAction) => {
+      const ready = prospects.filter((p) => !collegeActionBlocker(p, action, currentWeek, currentYear));
+      return { ready, cost: ready.length * collegeActionCost(COLLEGE_ACTION_COSTS[action], coachTalents) };
+    };
+    const runBatch = (action: CollegeAction, verb: string) => {
+      let offers = 0;
+      let done = 0;
+      batch(action).ready.forEach((p) => {
+        const result = collegeRecruitAction(p.id, action);
+        if (result.ok) done++;
+        if (result.offer) offers++;
+      });
+      setFlash(`${verb} ${plural(done, 'prospect')}${offers ? `: ${plural(offers, 'new offer')}!` : '.'}`);
+    };
+    const camp = batch('CAMP');
+    const film = batch('FILM');
+    const actions: AgendaAction[] = [];
+    if (currentWeek <= CAMP_WEEKS && camp.ready.length > 0)
+      actions.push({ label: `Camp for top ${camp.ready.length} (₡${camp.cost})`, disabled: coachPoints < camp.cost, onClick: () => runBatch('CAMP', 'Took') });
+    if (film.ready.length > 0)
+      actions.push({ label: `Send film for top ${film.ready.length} (₡${film.cost})`, disabled: coachPoints < film.cost, onClick: () => runBatch('FILM', 'Sent film for') });
+    if (actions.length === 0) return null;
+    return {
+      id: 'college',
+      icon: '🎓',
+      title: seniorsOnly ? "Push your seniors' college recruiting" : 'Help your players with College recruiting',
+      detail: prospects.map((p) => `${p.position} ${shortName(p)} (${p.recruiting.starRating}★)`).join(', '),
+      tone: 'todo',
+      actions,
+      link: { label: 'College', onClick: () => onNavigate('COLLEGE') }
+    };
+  };
+
+  const chipRow = (label: string, chips: { id: string; label: string; active: boolean; onClick: () => void }[]) => (
+    <div style={{ marginTop: '8px' }}>
+      <div style={{ fontSize: '12px', color: '#475569', fontWeight: 'bold', marginBottom: '4px' }}>{label}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        {chips.map((c) => (
+          <button key={c.id} onClick={c.onClick} aria-pressed={c.active} style={actionBtn(c.active, false)}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const drillChips = () =>
+    chipRow(
+      'Drill focus',
+      DRILL_FOCUS_OPTIONS.map((o) => ({ id: o.id, label: o.label, active: o.id === drillFocus, onClick: () => setDrillFocus(o.id) }))
+    );
+
+  const practiceCard = (): AgendaItem => ({
+    id: 'practice',
+    icon: '🏋️',
+    title: 'Practice plan',
+    detail: 'Full Contact builds morale but wears players down; Walkthrough keeps legs fresh but morale slips.',
+    tone: 'todo',
+    content: (
+      <>
+        {chipRow(
+          'Intensity',
+          INTENSITY.map((o) => ({ id: o.id, label: o.label, active: o.id === practiceIntensity, onClick: () => setPracticeIntensity(o.id) }))
+        )}
+        {drillChips()}
+      </>
+    ),
+    link: { label: 'Practice', onClick: () => onNavigate('PRACTICE') }
+  });
+
+  const campCard = (title: string, id = 'camp'): AgendaItem => ({
+    id,
+    icon: '⛺',
+    title,
+    detail:
+      campSchedule === 'THREE_A_DAY'
+        ? 'Three-a-days: triple the drill reps, but more wear and practice injuries.'
+        : 'Two-a-days: double the drill reps, and the team comes together.',
+    tone: 'todo',
+    content: chipRow('Camp schedule', [
+      { id: 'two', label: 'Two-a-days', active: campSchedule === 'TWO_A_DAY', onClick: () => setCampSchedule('TWO_A_DAY') },
+      { id: 'three', label: 'Three-a-days', active: campSchedule === 'THREE_A_DAY', onClick: () => setCampSchedule('THREE_A_DAY') }
+    ])
+  });
+
+  const visitsCard = (title: string, tone: AgendaItem['tone'], id = 'visits'): AgendaItem => {
     const onTheFence = scoutingPool
       .filter((p) => p.interestScore >= 30 && p.interestScore <= 75)
       .sort((a, b) => b.interestScore - a.interestScore)
       .slice(0, 3);
-    const visitCost = onTheFence.length * PROSPECT_ACTION_COSTS.VISIT;
-    const lastChance = currentWeek === FEEDER_SIGNING_WEEK;
-    items.push({
-      id: 'signing',
+    const cost = onTheFence.length * PROSPECT_ACTION_COSTS.VISIT;
+    return {
+      id,
       icon: '✍️',
-      title: lastChance ? 'Feeder signing day: last chance to win prospects over' : 'Feeder signing day is next week',
-      detail: `${scoutingPool.length} prospects pick their school when week ${FEEDER_SIGNING_WEEK} ends.${
+      title,
+      detail: `${plural(scoutingPool.length, 'prospect')} pick their school when week ${FEEDER_SIGNING_WEEK} ends.${
         onTheFence.length ? ` Still deciding: ${onTheFence.map((p) => `${p.projectedPosition} ${p.name}`).join(', ')}.` : ''
       }`,
-      tone: lastChance ? 'urgent' : 'todo',
+      tone,
       actions: onTheFence.length
         ? [
             {
-              label: `Home visits for ${onTheFence.length} (₡${visitCost})`,
+              label: `Home visits for ${onTheFence.length} (₡${cost})`,
               primary: true,
-              disabled: coachPoints < visitCost,
+              disabled: coachPoints < cost,
               onClick: () => {
                 onTheFence.forEach((p) => visitFeederProspect(p.id));
-                setFlash(`Visited ${onTheFence.length} prospect${onTheFence.length === 1 ? '' : 's'} before signing day.`);
+                setFlash(`Visited ${plural(onTheFence.length, 'prospect')} before signing day.`);
               }
             }
           ]
         : undefined,
       link: { label: 'Feeders', onClick: () => onNavigate('FEEDERS') }
-    });
-  } else if (currentWeek > FEEDER_SIGNING_WEEK && currentWeek <= PRESEASON_WEEKS && lastFeederResults?.length) {
-    const joined = lastFeederResults.filter((o) => o.outcome === 'JOINED').length;
-    items.push({
-      id: 'newcomers',
-      icon: '🆕',
-      title: `${joined} newcomer${joined === 1 ? '' : 's'} joined from signing day`,
-      detail: 'Meet them on the roster before training camp starts.',
-      tone: 'info',
-      link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
-    });
-  }
+    };
+  };
 
-  // 5b. Training camp: practice schedule, and depth chart selection closes camp
-  if (currentWeek >= FIRST_TRAINING_CAMP_WEEK && currentWeek <= LAST_TRAINING_CAMP_WEEK) {
-    items.push({
-      id: 'camp',
-      icon: '⛺',
-      title: `Training camp: ${campSchedule === 'THREE_A_DAY' ? 'three-a-days' : 'two-a-days'} (week ${currentWeek - FIRST_TRAINING_CAMP_WEEK + 1} of ${LAST_TRAINING_CAMP_WEEK - FIRST_TRAINING_CAMP_WEEK + 1})`,
-      detail:
-        campSchedule === 'THREE_A_DAY'
-          ? 'Three practices a day: triple the drill reps, but more wear and practice injuries; the team bonds a little.'
-          : 'Two practices a day: double the drill reps and the team comes together.',
+  const feederEventsCard = (title: string): AgendaItem | null => {
+    if (!feederEventsOpen({ currentWeek, league })) return null;
+    const events = (Object.keys(FEEDER_EVENTS) as FeederEventType[]).filter((e) => !feederEventsThisWeek.includes(e));
+    if (events.length === 0) return null;
+    return {
+      id: 'feeder-events',
+      icon: '🔍',
+      title,
+      detail: `Clinics and events find and win over next year's players. They pick their school on signing day (pre season week ${FEEDER_SIGNING_WEEK}).`,
+      tone: 'todo',
+      actions: events.map((e) => {
+        const cost = feederEventCost(FEEDER_EVENTS[e].cost, coachTalents);
+        return {
+          label: `${FEEDER_EVENTS[e].label} (₡${cost})`,
+          disabled: coachPoints < cost,
+          onClick: () => {
+            const found = runFeederEvent(e);
+            setFlash(`${FEEDER_EVENTS[e].label}: ${plural(found.length, 'new prospect')} discovered.`);
+          }
+        };
+      }),
+      link: { label: 'Feeders', onClick: () => onNavigate('FEEDERS') }
+    };
+  };
+
+  // ---------------------------------------------------------------- headline: what this week is about
+  let headline: AgendaItem;
+  let task: AgendaItem | null = null;
+  const extras: AgendaItem[] = [];
+
+  if (game && !game.isPlayed) {
+    const roundIndex = currentWeek - LAST_REGULAR_SEASON_WEEK - 1;
+    const nextRound = playoffBracket?.roundNames[roundIndex + 1];
+    const note = game.isPlayoff
+      ? nextRound
+        ? `Win and advance to the ${ROUND_LABELS[nextRound]}`
+        : 'Win the state championship'
+      : currentWeek === FIRST_NON_DISTRICT_WEEK
+        ? 'Season opener'
+        : currentWeek === FIRST_DISTRICT_WEEK
+          ? 'District opener: the top 4 make the playoffs'
+          : undefined;
+    const opp = game.opponent;
+    headline = {
+      id: 'game',
+      icon: game.isPlayoff ? '🏆' : '🏈',
+      title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${opp.name} (${opp.record.wins}-${opp.record.losses})`,
+      detail: [note, `${scheme(opp.schemeOffense)} offense, ${scheme(opp.schemeDefense)} defense`].filter(Boolean).join(' · '),
       tone: 'todo',
       actions: [
-        { label: 'Two-a-days', primary: campSchedule === 'TWO_A_DAY', onClick: () => setCampSchedule('TWO_A_DAY') },
-        { label: 'Three-a-days', primary: campSchedule === 'THREE_A_DAY', onClick: () => setCampSchedule('THREE_A_DAY') }
+        { label: '🏈 Play the game', primary: true, onClick: onPlayGame },
+        { label: '🎥 Study film', onClick: onStudyFilm },
+        { label: 'Auto-sim & advance', onClick: onAutoSim }
       ]
-    });
-    if (currentWeek === LAST_TRAINING_CAMP_WEEK) {
-      items.push({
+    };
+  } else if (game?.isPlayed && game.result) {
+    headline = { id: 'game', icon: '✅', title: game.result, detail: "The final is in. Advance when you're ready.", tone: 'done' };
+  } else if (phase === 'SPRING_EVALUATION') {
+    if (currentWeek === 1) {
+      headline =
+        seasonRecap && seasonRecap.year === currentYear - 1
+          ? {
+              id: 'season',
+              icon: '📅',
+              title: `New season: ${plural(seasonRecap.graduated, 'senior')} graduated, ${plural(seasonRecap.returningStarters, 'starter')} return`,
+              detail: `Last season: ${seasonRecap.wins}-${seasonRecap.losses}, ${ordinal(seasonRecap.districtFinish)} in the district. Prestige ${team.prestige}, Rating ${programRating(team)}.`,
+              tone: 'info',
+              link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
+            }
+          : {
+              id: 'season',
+              icon: '📅',
+              title: `Welcome to ${team.name}, Coach`,
+              detail: `Prestige ${team.prestige}, Rating ${programRating(team)}. Your first feeder signing day is next season.`,
+              tone: 'info',
+              link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
+            };
+      task = signingThisSeason ? visitsCard('Signing day is next week: final visits', 'todo') : collegeCard();
+    } else if (currentWeek === FEEDER_SIGNING_WEEK && signingThisSeason) {
+      headline = visitsCard('Feeder signing day: last chance to win prospects over', 'urgent', 'signing');
+      task = collegeCard();
+    } else if (currentWeek <= PRESEASON_WEEKS && currentWeek < PRESEASON_WEEKS) {
+      const joined = lastFeederResults && feederClassYear === currentYear + 1 && currentYear > (seasonRecap?.year ?? 0) ? lastFeederResults : null;
+      headline = joined?.length
+        ? {
+            id: 'signing-results',
+            icon: '🆕',
+            title: `Signing day: ${plural(joined.filter((o) => o.outcome === 'JOINED').length, 'newcomer')} joined`,
+            detail: `${joined.filter((o) => o.outcome === 'OTHER_SCHOOL').length} chose another school and ${joined.filter((o) => o.outcome === 'LEFT_AREA').length} moved away. New student enrollment is done: meet them on the roster.`,
+            tone: 'info',
+            link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
+          }
+        : { id: 'enrollment', icon: '🏫', title: 'New student enrollment and college camps', detail: 'Summer camps get your juniors and seniors in front of college coaches.', tone: 'info' };
+      task = collegeCard();
+    } else {
+      headline = { id: 'camp-next', icon: '⛺', title: 'Training camp starts next week', detail: 'Pick your camp schedule and drill focus now.', tone: 'info' };
+      task = campCard('Choose your camp schedule');
+    }
+  } else if (phase === 'SUMMER_CAMP') {
+    const campWeek = currentWeek - FIRST_TRAINING_CAMP_WEEK + 1;
+    if (currentWeek === FIRST_TRAINING_CAMP_WEEK) {
+      headline = campCard(`Camp opens (week ${campWeek} of 3): your practice schedule`, 'camp-open');
+      task = { id: 'drills', icon: '🏋️', title: 'Drill focus for camp', tone: 'todo', content: drillChips(), link: { label: 'Practice', onClick: () => onNavigate('PRACTICE') } };
+    } else if (currentWeek < LAST_TRAINING_CAMP_WEEK) {
+      const banged = lastDrillReport.find((l) => l.startsWith('Three-a-days'));
+      const drilled = lastDrillReport.filter((l) => !l.startsWith('Three-a-days'));
+      headline = {
+        id: 'camp-report',
+        icon: '📈',
+        title: `Camp report: ${plural(drilled.length, 'player')} improved${banged ? ', some banged up' : ''}`,
+        detail: [drilled.slice(0, 3).join(' · '), banged].filter(Boolean).join(' · '),
+        tone: 'info',
+        link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
+      };
+      task = campCard('Adjust your camp schedule');
+    } else {
+      headline = {
         id: 'depth-chart',
         icon: '📋',
-        title: 'Final camp event: set your depth chart',
-        detail: 'The season opens next week. Lock in your starters and backups.',
+        title: 'Set your depth chart',
+        detail: 'Camp ends this week and the season opens next week. Lock in your starters and backups.',
         tone: 'urgent',
         link: { label: 'Depth chart', onClick: () => onNavigate('ROSTER') }
+      };
+      const preview = [FIRST_NON_DISTRICT_WEEK, FIRST_NON_DISTRICT_WEEK + 1, FIRST_NON_DISTRICT_WEEK + 2]
+        .map((w) => getTeamGameForWeek(seasonSchedule, w, userTeamId))
+        .filter((g) => g !== undefined)
+        .map((g) => {
+          const home = g!.homeTeamId === userTeamId;
+          const opp = leagueTeams.find((t) => t.id === (home ? g!.awayTeamId : g!.homeTeamId));
+          return `Wk ${g!.week} ${home ? 'vs' : 'at'} ${opp?.name ?? '?'}`;
+        });
+      task = { id: 'preview', icon: '🗓️', title: 'Season preview', detail: preview.join(' · '), tone: 'info', link: { label: 'Schedule', onClick: () => onNavigate('OFFICE') } };
+    }
+  } else if (phase === 'STATE_PLAYOFFS') {
+    headline = {
+      id: 'season-over',
+      icon: '🏁',
+      title: `Season over: ${team.record.wins}-${team.record.losses}${myRow ? `, ${ordinal(myRow.rank)} in ${districtName}` : ''}`,
+      detail: 'The playoffs go on without you. The season ends at the banquet: use the time for college recruiting and coach talents.',
+      tone: 'info',
+      link: { label: 'Scoreboard', onClick: () => onNavigate('SCOREBOARD') }
+    };
+    task = collegeCard(true);
+  } else if (phase === 'OFF_SEASON') {
+    if (currentWeek === totalWeeks) {
+      const atRisk = onHotSeat || team.programMeters.schoolBoardTrust < HOT_SEAT_TRUST;
+      headline = {
+        id: 'board-review',
+        icon: atRisk ? '⚠️' : '🏫',
+        title: 'School board review this week',
+        detail: atRisk
+          ? onHotSeat
+            ? 'You are on the hot seat. If the board still lacks confidence, it will make a change.'
+            : 'The board is losing patience. Another poor review puts you on the hot seat.'
+          : 'The board is satisfied with the program. The new school year begins next week.',
+        tone: atRisk ? 'urgent' : 'info'
+      };
+    } else {
+      headline = {
+        id: 'pipeline',
+        icon: '🔍',
+        title: currentWeek === firstOffSeasonWeek ? `Feeder program opens: ${plural(scoutingPool.length, 'prospect')} in the pipeline` : `Grow the pipeline: ${plural(scoutingPool.length, 'prospect')}`,
+        detail: `Off season week ${currentWeek - firstOffSeasonWeek + 1} of 4. Signing day is pre season week ${FEEDER_SIGNING_WEEK}.`,
+        tone: 'info',
+        link: { label: 'Feeders', onClick: () => onNavigate('FEEDERS') }
+      };
+    }
+    task = feederEventsCard(currentWeek === totalWeeks ? 'Last chance for feeder events' : 'Run feeder events');
+  } else {
+    headline = { id: 'bye', icon: '😴', title: 'Bye week: rest and prepare', detail: 'No game this week. Injured players get a week to heal.', tone: 'info' };
+  }
+
+  // Regular season and playoff runs: practice is the weekly task
+  if (isGamePhase && game) task = practiceCard();
+
+  // ---------------------------------------------------------------- week-specific extras
+  // Report cards come out every third week
+  if (isGamePhase && currentWeek % 3 === 0) {
+    const ineligible = team.roster.filter((p) => !p.academics.isEligible).length;
+    const atRisk = team.roster.filter((p) => p.academics.isEligible && isAcademicallyAtRisk(p)).length;
+    if (ineligible + atRisk > 0) {
+      extras.push({
+        id: 'report-cards',
+        icon: '📚',
+        title: `Report cards: ${plural(ineligible, 'player')} ineligible`,
+        detail: `${plural(atRisk, 'more player')} close to the 2.0 line. Anyone under 2.0 sits until his grades recover.`,
+        tone: ineligible > 0 ? 'urgent' : 'info',
+        link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
       });
     }
   }
-
-  // 5c. Off season: feeder program events (once each per week, paid with CP)
-  const events = (Object.keys(FEEDER_EVENTS) as FeederEventType[]).filter((e) => !feederEventsThisWeek.includes(e));
-  if (feederEventsOpen({ currentWeek, league }) && events.length > 0 && events.some((e) => coachPoints >= feederEventCost(FEEDER_EVENTS[e].cost, coachTalents))) {
-    items.push({
-      id: 'feeders',
-      icon: '🔍',
-      title: 'Off season: grow your feeder pipeline',
-      detail: `Clinics and events bring in and win over next year’s players. They pick their school on signing day (pre season week ${FEEDER_SIGNING_WEEK}).`,
-      tone: 'todo',
-      actions: events.map((e) => ({
-        label: `${FEEDER_EVENTS[e].label} (₡${feederEventCost(FEEDER_EVENTS[e].cost, coachTalents)})`,
-        disabled: coachPoints < feederEventCost(FEEDER_EVENTS[e].cost, coachTalents),
-        onClick: () => {
-          const found = runFeederEvent(e);
-          setFlash(`${FEEDER_EVENTS[e].label}: ${found.length} new prospect${found.length === 1 ? '' : 's'} discovered.`);
-        }
-      })),
-      link: { label: 'Feeders', onClick: () => onNavigate('FEEDERS') }
+  // The playoff race (weeks 14-17)
+  if (phase === 'DISTRICT_PLAY' && currentWeek >= LAST_REGULAR_SEASON_WEEK - 3 && myRow) {
+    const remaining = (id: string) => seasonSchedule.filter((g) => g.isDistrictGame && g.homeScore === undefined && (g.homeTeamId === id || g.awayTeamId === id)).length;
+    const wins = (id: string) => districtTeams.find((t) => t.id === id)?.record.districtWins ?? 0;
+    const others = standings.filter((r) => r.teamId !== userTeamId).map((r) => r.teamId);
+    const mine = wins(userTeamId);
+    const clinched = others.filter((id) => wins(id) + remaining(id) >= mine).length < 4;
+    const eliminated = sanctionLevel === 3 || others.filter((id) => wins(id) > mine + remaining(userTeamId)).length >= 4;
+    const fourth = standings[3];
+    const gamesBack = fourth && myRow.rank > 4 ? wins(fourth.teamId) - mine : 0;
+    extras.push({
+      id: 'race',
+      icon: clinched ? '🎟️' : eliminated ? '🚫' : '📊',
+      title: clinched
+        ? 'Playoff spot clinched'
+        : eliminated
+          ? 'Out of the playoff race'
+          : currentWeek === LAST_REGULAR_SEASON_WEEK
+            ? 'Final week: the top 4 make the playoffs'
+            : 'Playoff race',
+      detail: `${ordinal(myRow.rank)} in ${districtName} (${myRow.districtRecord}).${gamesBack > 0 ? ` ${plural(gamesBack, 'game')} behind 4th.` : ''}`,
+      tone: eliminated ? 'info' : 'todo',
+      link: { label: 'Standings', onClick: () => onNavigate('DISTRICT') }
     });
   }
 
-  // 6. College exposure for the top juniors and seniors
-  const prospects = team.roster
-    .filter((p) => (p.classYear === 'Senior' || p.classYear === 'Junior') && !p.recruiting.isNationalLetterOfIntentSigned)
-    .sort((a, b) => recruitScore(b) - recruitScore(a))
-    .slice(0, TOP_PROSPECTS);
-  const collegeBatch = (action: CollegeAction) => {
-    const ready = prospects.filter((p) => !collegeActionBlocker(p, action, currentWeek, currentYear));
-    return { ready, cost: ready.length * collegeActionCost(COLLEGE_ACTION_COSTS[action], coachTalents) };
-  };
-  const runBatch = (action: CollegeAction, verb: string) => {
-    let offers = 0;
-    let done = 0;
-    collegeBatch(action).ready.forEach((p) => {
-      const result = collegeRecruitAction(p.id, action);
-      if (result.ok) done++;
-      if (result.offer) offers++;
-    });
-    setFlash(`${verb} ${done} prospect${done === 1 ? '' : 's'}${offers ? `: ${offers} new offer${offers === 1 ? '' : 's'}!` : '.'}`);
-  };
-  const camp = collegeBatch('CAMP');
-  const film = collegeBatch('FILM');
-  const collegeActions: AgendaAction[] = [];
-  if (currentWeek <= CAMP_WEEKS && camp.ready.length > 0)
-    collegeActions.push({ label: `Camp for top ${camp.ready.length} (₡${camp.cost})`, disabled: coachPoints < camp.cost, onClick: () => runBatch('CAMP', 'Took') });
-  if (film.ready.length > 0)
-    collegeActions.push({ label: `Send film for top ${film.ready.length} (₡${film.cost})`, disabled: coachPoints < film.cost, onClick: () => runBatch('FILM', 'Sent film for') });
-  if (collegeActions.length > 0) {
-    items.push({
-      id: 'college',
-      icon: '🎓',
-      title: 'Help your players with College recruiting',
-      detail: prospects.map((p) => `${p.position} ${shortName(p)} (${p.recruiting.starRating}★)`).join(', '),
-      tone: 'todo',
-      actions: collegeActions,
-      link: { label: 'College', onClick: () => onNavigate('COLLEGE') }
-    });
+  // ---------------------------------------------------------------- needs you
+  const needs = [dilemmaCard(), isGamePhase || currentWeek === LAST_TRAINING_CAMP_WEEK ? (game || !isGamePhase ? unavailableCard() : null) : null, warningsCard()].filter(
+    (c): c is AgendaItem => c !== null
+  );
+
+  // ---------------------------------------------------------------- more this week (folded)
+  const more: AgendaItem[] = [];
+  const concerns = concernsCard();
+  if (concerns) more.push(concerns);
+  if (task?.id !== 'college') {
+    const college = collegeCard();
+    if (college) more.push(college);
+  }
+  if (task?.id !== 'practice' && (isGamePhase || phase === 'OFF_SEASON')) {
+    more.push({ id: 'drills', icon: '🏋️', title: 'Drill focus', tone: 'info', content: drillChips(), link: { label: 'Practice', onClick: () => onNavigate('PRACTICE') } });
+  }
+  if (COACH_TALENTS.some((t) => !talentBlocker(t.id, coachTalents, coachPoints))) {
+    more.push({ id: 'talents', icon: '🎖️', title: 'You can afford a coach talent', detail: 'Spend Coach Points on a permanent upgrade.', tone: 'info', link: { label: 'Office', onClick: () => onNavigate('OFFICE') } });
+  }
+  if (isGamePhase) {
+    more.push({ id: 'scores', icon: '📋', title: 'Scores around the league', tone: 'info', link: { label: 'Scoreboard', onClick: () => onNavigate('SCOREBOARD') } });
   }
 
-  // 7. Practice plan (assistants run the drills)
-  items.push({
-    id: 'practice',
-    icon: '🏋️',
-    title: `Practice focus: ${DRILL_FOCUS_OPTIONS.find((o) => o.id === drillFocus)?.label}`,
-    detail:
-      lastDrillReport.length > 0
-        ? `Last week your assistants drilled ${lastDrillReport.length} players.`
-        : 'Your assistants run position drills each week with this focus.',
-    tone: 'info',
-    actions: DRILL_FOCUS_OPTIONS.map((o) => ({ label: o.label, primary: o.id === drillFocus, onClick: () => setDrillFocus(o.id) })),
-    link: { label: 'Practice plan', onClick: () => onNavigate('PRACTICE') }
-  });
+  // At most four cards open; the rest fold into "More this week" (urgent cards always stay open)
+  const open = [headline, ...needs, ...extras, ...(task ? [task] : [])];
+  const visible = open.slice(0, Math.max(MAX_OPEN_CARDS, 1 + needs.length));
+  const folded = [...open.slice(visible.length), ...more];
+
+  const renderCard = (item: AgendaItem, big = false) => (
+    <div
+      key={item.id}
+      style={{
+        border: `1px solid ${TONES[item.tone].border}`,
+        borderLeft: `4px solid ${TONES[item.tone].border}`,
+        background: TONES[item.tone].background,
+        borderRadius: '6px',
+        padding: big ? '12px 14px' : '10px 12px'
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+        <div style={{ fontWeight: 'bold', fontSize: big ? '16px' : '14px' }}>
+          {item.icon} {item.title}
+        </div>
+        {item.link && (
+          <button onClick={item.link.onClick} style={linkBtn}>
+            {item.link.label} →
+          </button>
+        )}
+      </div>
+      {item.detail && <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>{item.detail}</div>}
+      {item.content}
+      {item.actions && item.actions.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+          {item.actions.map((a) => (
+            <button key={a.label} onClick={a.onClick} disabled={a.disabled} style={actionBtn(!!a.primary, !!a.disabled)}>
+              {a.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <section aria-labelledby="this-week-title" style={{ marginBottom: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px 12px' }}>
         <h2 id="this-week-title" style={{ margin: '0 0 4px 0' }}>
-          This Week{' '}
-          <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
+          This Week <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
         </h2>
         <span style={{ fontSize: '13px', color: '#64748B' }}>
           ₡{coachPoints} <span style={{ color: '#94A3B8' }}>· +₡{weeklyCpIncome(currentWeek + 1, coachTalents, team.programMeters.schoolBoardTrust)} next week</span>
@@ -309,36 +615,15 @@ export const WeeklyAgenda: React.FC<{
           {flash}
         </div>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-        {items.map((item) => (
-          <div
-            key={item.id}
-            style={{ border: `1px solid ${TONES[item.tone].border}`, borderLeft: `4px solid ${TONES[item.tone].border}`, background: TONES[item.tone].background, borderRadius: '6px', padding: '10px 12px' }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
-                {item.icon} {item.title}
-              </div>
-              {item.link && (
-                <button onClick={item.link.onClick} style={linkBtn}>
-                  {item.link.label} →
-                </button>
-              )}
-            </div>
-            {item.detail && <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>{item.detail}</div>}
-            {item.content}
-            {item.actions && item.actions.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                {item.actions.map((a) => (
-                  <button key={a.label} onClick={a.onClick} disabled={a.disabled} style={actionBtn(!!a.primary, !!a.disabled)}>
-                    {a.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>{visible.map((item, i) => renderCard(item, i === 0))}</div>
+      {folded.length > 0 && (
+        <details style={{ marginTop: '8px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', color: '#334155', padding: '8px 0', minHeight: '32px' }}>
+            More this week ({folded.length})
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{folded.map((item) => renderCard(item))}</div>
+        </details>
+      )}
       <button onClick={onAdvanceWeek} style={advanceBtn}>
         {activeDilemma ? 'Advance Week (decision still open)' : 'All set: Advance Week ⏭️'}
       </button>
@@ -373,7 +658,7 @@ const actionBtn = (primary: boolean, disabled: boolean): React.CSSProperties => 
   minHeight: '40px', // comfortable tap target
   padding: '8px 12px',
   borderRadius: '5px',
-  border: primary ? 'none' : '1px solid #CBD5E1',
+  border: primary ? '1px solid #2563EB' : '1px solid #CBD5E1',
   background: disabled ? '#E2E8F0' : primary ? '#2563EB' : '#fff',
   color: disabled ? '#94A3B8' : primary ? '#fff' : '#1E293B',
   fontWeight: 'bold',

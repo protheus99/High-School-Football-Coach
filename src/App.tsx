@@ -265,7 +265,10 @@ export const App: React.FC = () => {
             onLaunchGame={handleLaunchMatch}
             onNavigate={(target) => {
               if (target === 'FEEDERS') setTab('FEEDERS');
-              else if (target === 'DISTRICT') {
+              else if (target === 'SCOREBOARD') {
+                setRankingsSection('SCORES');
+                setTab('RANKINGS');
+              } else if (target === 'DISTRICT') {
                 setRankingsSection('DISTRICT');
                 setTab('RANKINGS');
               } else {
