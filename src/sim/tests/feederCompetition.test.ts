@@ -12,7 +12,7 @@ import {
   weeklyDetectionChance,
   yearEndDetectionChance
 } from '../feederCompetition';
-import { createProspect, currentCommitment, generateFeederPool, generateStatewideElite, resolveFeederClass, resolveStatewideElite } from '../feederEngine';
+import { createProspect, currentCommitment, generateFeederPool, generateStatewideElite, resolveFeederClass, resolveStatewideElite, topTenLists, inUserDistrict } from '../feederEngine';
 import { FeederProspect, Team } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -202,5 +202,18 @@ describe('Shared pool and commitments', () => {
     expect(mine).toBeGreaterThan(60);
     expect(mine).toBeLessThan(140);
     expect(currentCommitment(contested(100, 100), user.id)?.tied).toBe(true);
+  });
+
+  it('fills the Top 10s: A-level players only in the region, five A and five B in the district', () => {
+    for (let i = 0; i < 10; i++) {
+      const pool = generateFeederPool(user, ctx);
+      const { region, district } = topTenLists(pool, ctx);
+      expect(region).toHaveLength(10);
+      region.forEach((p) => expect(['A', 'A+']).toContain(p.truePotential));
+      expect(district).toHaveLength(10);
+      district.forEach((p) => expect(inUserDistrict(p, ctx)).toBe(true));
+      expect(district.filter((p) => p.truePotential === 'A' || p.truePotential === 'A+')).toHaveLength(5);
+      expect(district.filter((p) => p.truePotential === 'B')).toHaveLength(5);
+    }
   });
 });

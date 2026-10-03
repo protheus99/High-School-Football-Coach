@@ -222,7 +222,51 @@ export function generateFeederPool(team: Team, ctx?: RecruitingContext): FeederP
   const names = new Set<string>();
   const pool = counts.flatMap(([source, n]) => Array.from({ length: n }, () => createCompetedProspect(source, team, names, ctx)));
   while (pool.length < MIN_POOL_SIZE) pool.push(createCompetedProspect('FEEDER_MIDDLE_SCHOOL', team, names, ctx));
-  return [...pool.slice(0, MAX_POOL_SIZE), ...(ctx ? regionProspects(team, ctx, names) : [])];
+  const full = [...pool.slice(0, MAX_POOL_SIZE), ...(ctx ? regionProspects(team, ctx, names) : [])];
+  return ctx ? ensureTopTalent(full, ctx) : full;
+}
+
+const isALevel = (p: FeederProspect) => p.truePotential === 'A' || p.truePotential === 'A+';
+const isBLevel = (p: FeederProspect) => p.truePotential === 'B';
+
+/** Whether a prospect belongs to the user's district (his zoned school's district, or the user's own pipeline). */
+export function inUserDistrict(p: FeederProspect, ctx: RecruitingContext): boolean {
+  return !p.homeTeamId || ctx.districtOf.get(p.homeTeamId) === ctx.districtOf.get(ctx.userTeamId);
+}
+
+/**
+ * The Top 10 lists: the region's ten best A-level prospects, and the district's five best A-level and five
+ * best B-level prospects.
+ */
+export function topTenLists(pool: FeederProspect[], ctx: RecruitingContext): { region: FeederProspect[]; district: FeederProspect[] } {
+  const ranked = [...pool].sort((a, b) => prospectRankScore(b) - prospectRankScore(a));
+  const district = ranked.filter((p) => inUserDistrict(p, ctx));
+  return {
+    region: ranked.filter(isALevel).slice(0, 10),
+    district: [...district.filter(isALevel).slice(0, 5), ...district.filter(isBLevel).slice(0, 5)].sort((a, b) => prospectRankScore(b) - prospectRankScore(a))
+  };
+}
+
+/**
+ * Every pool has the talent the Top 10 lists need: at least ten A-level prospects in the region, and five
+ * A-level and five B-level in the user's district. The best of the rest are upgraded to fill any gap.
+ */
+function ensureTopTalent(pool: FeederProspect[], ctx: RecruitingContext): FeederProspect[] {
+  const next = [...pool];
+  const upgrade = (eligible: (p: FeederProspect) => boolean, count: number, to: PotentialGrade, boost: number) => {
+    next
+      .map((p, i) => ({ p, i }))
+      .filter(({ p }) => eligible(p) && p.source !== 'TRYOUT')
+      .sort((a, b) => b.p.trueOverall - a.p.trueOverall)
+      .slice(0, Math.max(0, count))
+      .forEach(({ p, i }) => (next[i] = { ...p, truePotential: to, trueOverall: Math.min(99, p.trueOverall + boost) }));
+  };
+  const district = (p: FeederProspect) => inUserDistrict(p, ctx);
+  // A-level first (from the best non-A prospects), then fill the district's B-level spots from C and D
+  upgrade((p) => district(p) && !isALevel(p), 5 - next.filter((p) => district(p) && isALevel(p)).length, 'A', 3);
+  upgrade((p) => !isALevel(p) && !district(p), 10 - next.filter(isALevel).length, 'A', 3);
+  upgrade((p) => district(p) && !isALevel(p) && !isBLevel(p), 5 - next.filter((p) => district(p) && isBLevel(p)).length, 'B', 2);
+  return next;
 }
 
 /** Prospects zoned to the other schools in the user's region (the shared part of the pool). */

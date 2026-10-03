@@ -13,6 +13,7 @@ import {
   SOURCE_LABELS,
   COMMIT_THRESHOLD,
   currentCommitment,
+  topTenLists,
   interestLabel,
   prospectRankScore,
   schoolInterest,
@@ -103,8 +104,10 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const inDistrict = (p: FeederProspect) => !p.homeTeamId || ctx?.districtOf.get(p.homeTeamId) === userDistrict;
   const ranked = (list: FeederProspect[]) => [...list].sort((a, b) => prospectRankScore(b) - prospectRankScore(a));
   const districtPool = scoutingPool.filter(inDistrict);
-  const topDistrict = ranked(districtPool).slice(0, 10);
-  const topRegion = ranked(scoutingPool).slice(0, 10);
+  // Top 10 in Region: A-level prospects only; Top 10 in District: five A-level and five B-level
+  const tops = ctx ? topTenLists(scoutingPool, ctx) : { region: [], district: [] };
+  const topDistrict = tops.district;
+  const topRegion = tops.region;
   const committedToMe = scoutingPool.filter((p) => currentCommitment(p, userTeamId)?.teamId === userTeamId);
   // The top 10 lists always hold ten, so only the other views show a count
   const views: { id: PoolView; label: string; list: FeederProspect[]; count: boolean }[] = [
@@ -116,6 +119,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   ];
   const shown = views.find((v) => v.id === view)!.list;
   const rankLabel = (p: FeederProspect) => {
+    // The district list shows district ranks; elsewhere a region ranking comes first
+    if (view === 'TOP_DISTRICT') return `#${topDistrict.indexOf(p) + 1} in District`;
     const r = topRegion.indexOf(p);
     if (r >= 0) return `#${r + 1} in Region`;
     const d = topDistrict.indexOf(p);
