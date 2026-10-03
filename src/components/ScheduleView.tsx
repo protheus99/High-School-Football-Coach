@@ -11,7 +11,7 @@ import {
 } from '../sim/scheduleEngine';
 
 /** What happens in a week without a game. */
-function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signingThisSeason: boolean, bracketSet: boolean): string {
+function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signingThisSeason: boolean, roundDescription?: string): string {
   switch (phase) {
     case 'SPRING_EVALUATION':
       // A new game's first season has no signing day: its rosters already hold this year's freshmen
@@ -21,7 +21,7 @@ function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signing
     case 'SUMMER_CAMP':
       return week === LAST_TRAINING_CAMP_WEEK ? '📋 Depth chart set for the season' : 'High intensity training';
     case 'STATE_PLAYOFFS':
-      return bracketSet ? 'No game this round' : 'Playoff game if you qualify (top 4 in the district)';
+      return roundDescription ?? 'Playoff round';
     case 'POST_SEASON':
       return '🎓 Seniors graduation and signing';
     case 'OFF_SEASON':
@@ -31,7 +31,7 @@ function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signing
   }
 }
 import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
-import { ROUND_LABELS, roundNamesFor } from '../sim/playoffEngine';
+import { ROUND_DESCRIPTIONS, ROUND_LABELS, roundNamesFor } from '../sim/playoffEngine';
 import { Team } from '../types/game';
 
 export const ScheduleView: React.FC = () => {
@@ -141,7 +141,13 @@ export const ScheduleView: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div style={{ color: '#64748B', fontSize: '13px', marginTop: '2px' }}>{weekNote(game.week, game.type, game.week === totalWeeks, currentYear >= feederClassYear, !!playoffBracket)}</div>
+                <div style={{ color: '#64748B', fontSize: '13px', marginTop: '2px' }}>{weekNote(
+                    game.week,
+                    game.type,
+                    game.week === totalWeeks,
+                    currentYear >= feederClassYear,
+                    leagueRoundNames[game.week - LAST_REGULAR_SEASON_WEEK - 1] && ROUND_DESCRIPTIONS[leagueRoundNames[game.week - LAST_REGULAR_SEASON_WEEK - 1]]
+                  )}</div>
               )}
             </div>
           </React.Fragment>

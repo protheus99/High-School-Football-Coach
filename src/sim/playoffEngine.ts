@@ -21,6 +21,16 @@ export const ROUND_LABELS: Record<PlayoffRound, string> = {
   STATE_FINAL: 'State Championship'
 };
 
+/** One line on what each round is (the schedule shows it for weeks without the user's game). */
+export const ROUND_DESCRIPTIONS: Record<PlayoffRound, string> = {
+  BI_DISTRICT: 'Opening round: the top four in each district face the paired district',
+  AREA: 'Bi-District winners meet',
+  REGIONAL_SEMIFINAL: 'Final four in each region',
+  REGIONAL_FINAL: 'The winner is region champion',
+  STATE_SEMIFINAL: 'Region champions meet for a spot in the title game',
+  STATE_FINAL: 'The title game at AT&T Stadium in Arlington'
+};
+
 const QUALIFIERS_PER_DISTRICT = 4;
 
 export interface BracketNode {
