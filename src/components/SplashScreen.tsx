@@ -3,7 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { DIFFICULTY_PRESTIGE, Difficulty, stateSchool } from '../sim/league';
 import { SCENARIOS, ScenarioId } from '../data/scenarios';
-import { CAREER_POINTS } from '../sim/careerScore';
+import { CAREER_LENGTHS, CareerLength } from '../sim/careerScore';
+
+// The classic game (a random school at a difficulty, unranked) is hidden for now; flip this to bring it back
+const SHOW_CLASSIC_GAME = false;
 import { deleteSaveGame, listSaveSummaries, loadSaveGame, SaveSummary } from '../services/db';
 
 const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; color: string }[] = [
@@ -36,6 +39,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   const [state, setState] = useState('Texas');
   const [pick, setPick] = useState<{ scenario: ScenarioId; school: string } | null>(null);
   const [coachName, setCoachName] = useState('');
+  const [length, setLength] = useState<CareerLength>(5);
   const [showClassic, setShowClassic] = useState(false);
   const chooseState = (st: string) => {
     setState(st);
@@ -46,7 +50,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
     if (!pick) return;
     setBusy(true);
     setTimeout(() => {
-      newScenarioGame(pick.scenario, state, pick.school, coachName);
+      newScenarioGame(pick.scenario, state, pick.school, coachName, length);
       setBusy(false);
       onEnterGame();
     }, 20);
@@ -121,10 +125,6 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               {rulesForState(state).governingBody} {/^\d+A$/.test(rulesForState(state).classification) ? 'Class ' : ''}{rulesForState(state).classification} · title game at {rulesForState(state).playoffs.championshipVenue}
             </p>
             <h2 style={sectionTitle}>Choose Your Program</h2>
-            <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
-              Every season is scored ({CAREER_POINTS.win} per win, {CAREER_POINTS.loss} per loss, {CAREER_POINTS.playoffWin} per playoff win, {CAREER_POINTS.stateTitle} for a state title,{' '}
-              {CAREER_POINTS.collegeSignee} per player signing with a college) and ranked against every coach who started at the same program.
-            </p>
             {SCENARIOS.map((scenario) => (
               <section key={scenario.id} aria-label={scenario.title} style={{ marginBottom: '18px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
@@ -163,8 +163,18 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               </section>
             ))}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '420px', margin: '0 auto' }}>
+              <div style={{ color: '#CBD5E1', fontSize: '13px' }}>
+                Game length
+                <div className="ui-chips" role="group" aria-label="Game length" style={{ marginTop: '4px' }}>
+                  {CAREER_LENGTHS.map((years) => (
+                    <button key={years} className="ui-chip" aria-pressed={length === years} onClick={() => setLength(years)} style={{ flex: 1, justifyContent: 'center' }}>
+                      {years} years
+                    </button>
+                  ))}
+                </div>
+              </div>
               <label style={{ color: '#CBD5E1', fontSize: '13px' }}>
-                Coach name (shown on the leaderboard)
+                Coach name
                 <input
                   value={coachName}
                   onChange={(e) => setCoachName(e.target.value.slice(0, 24))}
@@ -181,16 +191,18 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               </button>
             </div>
             {busy && <p style={{ textAlign: 'center', color: '#CBD5E1', marginTop: '16px' }}>Building the league…</p>}
-            <div style={{ textAlign: 'center', marginTop: '18px' }}>
-              <button
-                onClick={() => setShowClassic((v) => !v)}
-                aria-expanded={showClassic}
-                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}
-              >
-                {showClassic ? 'Hide classic game' : 'Classic game: a random school (not ranked)'}
-              </button>
-            </div>
-            {showClassic && (
+            {SHOW_CLASSIC_GAME && (
+              <div style={{ textAlign: 'center', marginTop: '18px' }}>
+                <button
+                  onClick={() => setShowClassic((v) => !v)}
+                  aria-expanded={showClassic}
+                  style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}
+                >
+                  {showClassic ? 'Hide classic game' : 'Classic game: a random school (not ranked)'}
+                </button>
+              </div>
+            )}
+            {SHOW_CLASSIC_GAME && showClassic && (
               <div style={{ marginTop: '10px' }}>
                 <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 12px 0' }}>
                   You&apos;ll be hired at a random {state} {rulesForState(state).classification} school in the matching prestige range (or the closest one).

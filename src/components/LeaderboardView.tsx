@@ -14,7 +14,7 @@ const SCORING: [string, number][] = [
 
 /**
  * Career leaderboards: coaches are ranked by points earned each full season, against everyone who started at
- * the same program. Shows the coach's own career season by season, then the board.
+ * the same program with a career of the same length. Shows the coach's own career season by season, then the board.
  */
 export const LeaderboardView: React.FC = () => {
   const career = useGameStore((s) => s.career);
@@ -24,14 +24,14 @@ export const LeaderboardView: React.FC = () => {
   useEffect(() => {
     if (!career || scope !== 'PROGRAM' || !hasRemoteLeaderboard()) return;
     let live = true;
-    fetchRemoteLeaderboard(career.startingSchool, career.state).then((entries) => live && setRemote(entries));
+    fetchRemoteLeaderboard(career.startingSchool, career.state, career.length).then((entries) => live && setRemote(entries));
     return () => {
       live = false;
     };
   }, [career, scope]);
 
   // This device's careers (the current one as it stands now), plus the server's for the program
-  const local = scope === 'PROGRAM' && career ? localLeaderboard(career.startingSchool, career.state) : localLeaderboard();
+  const local = scope === 'PROGRAM' && career ? localLeaderboard(career.startingSchool, career.state, career.length) : localLeaderboard();
   const merged = new Map<string, LeaderboardEntry>();
   [...(scope === 'PROGRAM' ? remote ?? [] : []), ...local].forEach((e) => merged.set(e.careerId, { ...merged.get(e.careerId), ...e }));
   if (career && career.seasons.length) merged.set(career.id, toEntry(career));
@@ -48,7 +48,7 @@ export const LeaderboardView: React.FC = () => {
             <span className="ui-card-badge">{careerPoints(career)} pts</span>
           </div>
           <div className="ui-muted">
-            {scenarioById(career.scenario).title} · {career.state} · since {career.startedYear}
+            {scenarioById(career.scenario).title} · {career.state} · season {Math.min(career.seasons.length + 1, career.length)} of {career.length}
           </div>
           {career.seasons.length === 0 ? (
             <p className="ui-muted" style={{ margin: '8px 0 0' }}>
@@ -87,7 +87,7 @@ export const LeaderboardView: React.FC = () => {
       <div className="ui-chips" role="group" aria-label="Leaderboard" style={{ marginBottom: '12px' }}>
         {career && (
           <button className="ui-chip" aria-pressed={scope === 'PROGRAM'} onClick={() => setScope('PROGRAM')}>
-            {career.startingProgram}
+            {career.startingProgram} · {career.length} years
           </button>
         )}
         <button className="ui-chip" aria-pressed={scope === 'ALL'} onClick={() => setScope('ALL')}>
@@ -111,8 +111,8 @@ export const LeaderboardView: React.FC = () => {
                   {mine && ' (you)'}
                   <br />
                   <small className="ui-muted" style={{ fontSize: '12px' }}>
-                    {scope === 'ALL' && `${e.startingProgram} · `}
-                    {e.seasons} {e.seasons === 1 ? 'season' : 'seasons'} · {e.wins}-{e.losses}
+                    {scope === 'ALL' && `${e.startingProgram} · ${e.length}-year career · `}
+                    {e.seasons < e.length ? `${e.seasons} of ${e.length} seasons` : 'complete'} · {e.wins}-{e.losses}
                     {e.titles > 0 && ` · ${e.titles} ${e.titles === 1 ? 'title' : 'titles'}`}
                   </small>
                 </span>

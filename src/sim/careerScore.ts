@@ -9,6 +9,10 @@ import type { PlayoffBracketState } from './playoffEngine';
 
 export const CAREER_POINTS = { win: 5, loss: 1, playoffWin: 8, stateTitle: 10, collegeSignee: 1 };
 
+/** How many seasons a career runs (chosen at New Game; careers of the same length compete with each other). */
+export type CareerLength = 3 | 5 | 10;
+export const CAREER_LENGTHS: CareerLength[] = [3, 5, 10];
+
 export interface CareerSeason {
   year: number;
   school: string; // where the coach was that season
@@ -29,6 +33,7 @@ export interface Career {
   startingSchool: string; // the world name
   startingProgram: string; // the name the program is known by
   startedYear: number;
+  length: CareerLength; // seasons in the career
   seasons: CareerSeason[];
 }
 
@@ -45,6 +50,7 @@ export function seasonPoints(s: Omit<CareerSeason, 'year' | 'school' | 'points'>
 
 export const careerPoints = (career: Career) => career.seasons.reduce((sum, s) => sum + s.points, 0);
 export const careerTitles = (career: Career) => career.seasons.filter((s) => s.stateTitle).length;
+export const isCareerComplete = (career: Career) => career.seasons.length >= career.length;
 
 /**
  * The coach's season once the state championship games are decided: the regular-season record, the playoff

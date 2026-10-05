@@ -92,7 +92,7 @@ import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { collectResults } from '../sim/computerRankings';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
 import { HiredCoach, staffBonuses, staffGameDayEdge } from '../sim/coachingStaff';
-import { Career, scoreSeason } from '../sim/careerScore';
+import { Career, CareerLength, isCareerComplete, scoreSeason } from '../sim/careerScore';
 import { ScenarioId, scenarioById } from '../data/scenarios';
 import { recordCareer } from '../services/leaderboard';
 import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
@@ -375,11 +375,12 @@ interface GameStoreState {
   isBanquetActive: boolean;
   onHotSeat: boolean; // the board's warning: another season under 35 Board Trust ends the job
   firedFrom: string | null; // set when the board fires the coach (game over for this save)
+  careerComplete: boolean; // the career's last season is done (game over for this save)
 
   // Actions
   startNewSeason: (world?: GameWorld) => void; // default: the Texas 6A world
   newGame: (difficulty: Difficulty, state?: string) => string; // random school in the state (Texas by default) for the difficulty; returns its name
-  newScenarioGame: (scenario: ScenarioId, state: string, school: string, coachName: string) => void; // a scored career at a scenario program
+  newScenarioGame: (scenario: ScenarioId, state: string, school: string, coachName: string, length: CareerLength) => void; // a scored career at a scenario program
   loadGame: (save: GameSaveRecord) => void;
   saveGame: (saveName?: string) => Promise<string>; // new save slot; returns its id
   advanceWeek: () => void;
@@ -438,6 +439,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   pendingUserBan: false,
   onHotSeat: false,
   firedFrom: null,
+  careerComplete: false,
   newsArticles: [],
   polls: null,
   playerRankings: null,
@@ -490,6 +492,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       pendingUserBan: false,
       onHotSeat: false,
       firedFrom: null,
+      careerComplete: false,
       feederEventsThisWeek: [],
       lastFeederResults: null,
       newsArticles: generateWeeklyNewsStream(1, userTeam),
@@ -515,7 +518,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     return school;
   },
 
-  newScenarioGame: (scenarioId, state, school, coachName) => {
+  newScenarioGame: (scenarioId, state, school, coachName, length) => {
     const scenario = scenarioById(scenarioId);
     const program = scenario.programs.find((p) => p.state === state && p.school === school);
     const career: Career = {
@@ -526,6 +529,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       startingSchool: school,
       startingProgram: program?.displayName ?? school,
       startedYear: 2026,
+      length,
       seasons: []
     };
     set({ currentYear: 2026, difficulty: scenario.difficulty, career });
@@ -565,6 +569,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       pendingUserBan: save.pendingUserBan ?? false,
       onHotSeat: save.onHotSeat ?? false,
       firedFrom: null,
+      careerComplete: false,
       dilemmaLog: save.dilemmaLog ?? [],
       currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
       userTeamId: userTeam.id,
@@ -824,7 +829,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
       // The full year is in: score it for the career's leaderboard
       const career = get().career;
-      const scored = career && !career.seasons.some((s) => s.year === get().currentYear) ? { ...career, seasons: [...career.seasons, scoreSeason(userTeam, get().playoffBracket, get().currentYear)] } : career;
+      const scored = career && !isCareerComplete(career) && !career.seasons.some((s) => s.year === get().currentYear) ? { ...career, seasons: [...career.seasons, scoreSeason(userTeam, get().playoffBracket, get().currentYear)] } : career;
       if (scored && scored !== career) recordCareer(scored);
       set({
         career: scored,
@@ -990,6 +995,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // Every program graduates seniors, moves classes up and progresses; newcomers arrive after feeder signing
     // day (pre season week 2), when the pipeline's prospects pick their schools
     const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
+    // The career's last season is in the books
+    const career = get().career;
+    if (career && isCareerComplete(career)) {
+      set({ careerComplete: true });
+      return;
+    }
     // The school board's season-end review
     const review = boardReview(userTeam.programMeters.schoolBoardTrust, get().onHotSeat);
     if (review === 'FIRED') {

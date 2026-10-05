@@ -75,7 +75,7 @@ describe('Season points', () => {
 describe('Leaderboard', () => {
   beforeEach(() => localStorage.clear());
 
-  const career = (id: string, school: string, points: number[]): Career => ({
+  const career = (id: string, school: string, points: number[], length: Career['length'] = 5): Career => ({
     id,
     coachName: id,
     scenario: 'RECLAIM',
@@ -83,6 +83,7 @@ describe('Leaderboard', () => {
     startingSchool: school,
     startingProgram: school,
     startedYear: 2026,
+    length,
     seasons: points.map((p, i) => ({ year: 2026 + i, school, wins: 0, losses: 0, playoffWins: 0, stateTitle: false, collegeSignees: 0, points: p }))
   });
 
@@ -98,20 +99,27 @@ describe('Leaderboard', () => {
     ]);
     expect(localLeaderboard().map((e) => e.coachName)).toEqual(['cy', 'ann', 'bo']);
   });
+
+  it('careers only compete with careers of the same length', () => {
+    recordCareer(career('ann', 'Odessa Permian', [40, 60], 5));
+    recordCareer(career('bo', 'Odessa Permian', [90, 90, 90], 3));
+    expect(localLeaderboard('Odessa Permian', 'Texas', 5).map((e) => e.coachName)).toEqual(['ann']);
+    expect(localLeaderboard('Odessa Permian', 'Texas', 3).map((e) => e.coachName)).toEqual(['bo']);
+  });
 });
 
 describe('Scenario careers', () => {
   it('Reclaiming the Crown starts a fallen giant at prestige 72 at most; Powerhouses at 96 or more', () => {
     const store = useGameStore;
-    store.getState().newScenarioGame('RECLAIM', 'Texas', 'Odessa Permian', ' Coach Gaines ');
+    store.getState().newScenarioGame('RECLAIM', 'Texas', 'Odessa Permian', ' Coach Gaines ', 10);
     let s = store.getState();
     let me = s.leagueTeams.find((t) => t.id === s.userTeamId)!;
     expect(me.name).toBe('Odessa Permian');
     expect(me.prestige).toBeLessThanOrEqual(72);
     expect(s.difficulty).toBe('HARD');
-    expect(s.career).toMatchObject({ coachName: 'Coach Gaines', scenario: 'RECLAIM', state: 'Texas', startingSchool: 'Odessa Permian', seasons: [] });
+    expect(s.career).toMatchObject({ coachName: 'Coach Gaines', scenario: 'RECLAIM', state: 'Texas', startingSchool: 'Odessa Permian', length: 10, seasons: [] });
 
-    store.getState().newScenarioGame('POWERHOUSE', 'Maryland', 'Dr. Henry A. Wise', '');
+    store.getState().newScenarioGame('POWERHOUSE', 'Maryland', 'Dr. Henry A. Wise', '', 3);
     s = store.getState();
     me = s.leagueTeams.find((t) => t.id === s.userTeamId)!;
     expect(me.name).toBe('Dr. Henry A. Wise');
@@ -127,7 +135,7 @@ describe('Scenario careers', () => {
   it('scores the full year at the banquet', () => {
     localStorage.clear();
     const store = useGameStore;
-    store.getState().newScenarioGame('POWERHOUSE', 'Maryland', 'Quince Orchard', 'Tester');
+    store.getState().newScenarioGame('POWERHOUSE', 'Maryland', 'Quince Orchard', 'Tester', 5);
     for (let i = 0; i < 40 && !store.getState().isBanquetActive; i++) store.getState().advanceWeek();
     const { career, userTeamId, leagueTeams, playoffBracket } = store.getState();
     expect(store.getState().isBanquetActive).toBe(true);
@@ -139,4 +147,17 @@ describe('Scenario careers', () => {
     expect(careerPoints(career!)).toBe(season.points);
     expect(localLeaderboard('Quince Orchard', 'Maryland')[0]).toMatchObject({ coachName: 'Tester', points: season.points });
   }, 120_000);
+
+  it('a 3-year career ends after its third season', () => {
+    const store = useGameStore;
+    store.getState().newScenarioGame('POWERHOUSE', 'Maryland', 'Quince Orchard', 'Tester', 3);
+    for (let i = 0; i < 200 && !store.getState().careerComplete && !store.getState().firedFrom; i++) {
+      if (store.getState().isBanquetActive) store.getState().finishBanquet();
+      else store.getState().advanceWeek();
+    }
+    const { career, careerComplete, currentYear } = store.getState();
+    expect(careerComplete).toBe(true);
+    expect(career!.seasons.map((s) => s.year)).toEqual([2026, 2027, 2028]);
+    expect(currentYear).toBe(2028); // no fourth season starts
+  }, 180_000);
 });

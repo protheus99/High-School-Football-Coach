@@ -6,6 +6,7 @@ import { FeederSection, FeedersScoutingView } from './components/FeedersScouting
 import { NewsMediaView } from './components/NewsMediaView';
 import { TeamView, TeamSection } from './components/TeamView';
 import { RankingsHub, RankingsSection } from './components/RankingsHub';
+import { LeaderboardView } from './components/LeaderboardView';
 import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { TeamProfileSheet } from './components/TeamProfileSheet';
@@ -61,6 +62,8 @@ export const App: React.FC = () => {
     playoffBracket,
     isBanquetActive,
     firedFrom,
+    careerComplete,
+    career,
     viewedTeamId,
     openTeamProfile,
     graduatingSeniors,
@@ -119,7 +122,7 @@ export const App: React.FC = () => {
   if (showMenu) {
     return (
       <SplashScreen
-        canContinue={league !== null && !firedFrom}
+        canContinue={league !== null && !firedFrom && !careerComplete}
         onEnterGame={() => {
           setShowMenu(false);
           setTab('DASHBOARD');
@@ -143,6 +146,27 @@ export const App: React.FC = () => {
         <button className="ui-btn ui-btn-primary ui-btn-block" style={{ marginTop: '16px', minHeight: '50px' }} onClick={() => setShowMenu(true)}>
           Back to the main menu
         </button>
+      </div>
+    );
+  }
+
+  // The career's last season is done: the final tally and where it ranks
+  if (careerComplete && career) {
+    return (
+      <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+        <div className="ui-screen" style={{ textAlign: 'center', paddingBottom: '8px' }}>
+          <div style={{ fontSize: '48px' }}>🏁</div>
+          <h1 style={{ margin: '8px 0', fontSize: '26px' }}>Career complete</h1>
+          <p style={{ color: '#475569', fontSize: '15px', margin: 0 }}>
+            {career.length} seasons at {career.startingProgram}. Here&apos;s how your career stacks up.
+          </p>
+        </div>
+        <LeaderboardView />
+        <div className="ui-screen" style={{ paddingTop: 0 }}>
+          <button className="ui-btn ui-btn-primary ui-btn-block" style={{ minHeight: '50px' }} onClick={() => setShowMenu(true)}>
+            Back to the main menu
+          </button>
+        </div>
       </div>
     );
   }

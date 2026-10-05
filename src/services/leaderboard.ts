@@ -15,6 +15,7 @@ export interface LeaderboardEntry {
   state: string;
   startingSchool: string;
   startingProgram: string;
+  length: Career['length']; // seasons in the career (careers compete with others of the same length)
   seasons: number;
   wins: number;
   losses: number;
@@ -35,6 +36,7 @@ export function toEntry(career: Career): LeaderboardEntry {
     state: career.state,
     startingSchool: career.startingSchool,
     startingProgram: career.startingProgram,
+    length: career.length,
     seasons: career.seasons.length,
     wins: sum('wins') + sum('playoffWins'),
     losses: sum('losses'),
@@ -72,11 +74,11 @@ export function recordCareer(career: Career): void {
 export const rankEntries = (entries: LeaderboardEntry[]) =>
   [...entries].sort((a, b) => b.points - a.points || b.titles - a.titles || a.seasons - b.seasons);
 
-/** This device's leaderboard for a starting program (or every program). */
-export function localLeaderboard(startingSchool?: string, state?: string): LeaderboardEntry[] {
+/** This device's leaderboard for a starting program and career length (or every program and length). */
+export function localLeaderboard(startingSchool?: string, state?: string, length?: Career['length']): LeaderboardEntry[] {
   return rankEntries(
     loadLocalCareers()
-      .filter((c) => c.seasons.length > 0 && (!startingSchool || (c.startingSchool === startingSchool && c.state === state)))
+      .filter((c) => c.seasons.length > 0 && (!startingSchool || (c.startingSchool === startingSchool && c.state === state)) && (!length || c.length === length))
       .map(toEntry)
   );
 }
@@ -93,11 +95,11 @@ async function submitRemote(entry: LeaderboardEntry): Promise<void> {
   }
 }
 
-/** The shared leaderboard for a starting program from the server (null without a server or when offline). */
-export async function fetchRemoteLeaderboard(startingSchool: string, state: string): Promise<LeaderboardEntry[] | null> {
+/** The shared leaderboard for a starting program and career length from the server (null without a server or when offline). */
+export async function fetchRemoteLeaderboard(startingSchool: string, state: string, length: Career['length']): Promise<LeaderboardEntry[] | null> {
   if (!REMOTE_URL) return null;
   try {
-    const res = await fetch(`${REMOTE_URL}/leaderboard?state=${encodeURIComponent(state)}&school=${encodeURIComponent(startingSchool)}`);
+    const res = await fetch(`${REMOTE_URL}/leaderboard?state=${encodeURIComponent(state)}&school=${encodeURIComponent(startingSchool)}&length=${length}`);
     if (!res.ok) return null;
     return rankEntries((await res.json()) as LeaderboardEntry[]);
   } catch {
