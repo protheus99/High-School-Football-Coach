@@ -1,26 +1,16 @@
 import { Player, Position, Team } from '../types/game';
 import { DEPTH_TEMPLATE, rebuildDepthChart } from './depthChart';
-import { generateProceduralPlayer, INTAKE_SHIFT, programTalent } from '../generators/rosterGenerator';
+import { generateIncomingFreshman, programTalent, rollClassWave, starterChance } from '../generators/rosterGenerator';
 import { STAFF_DEVELOPMENT_CAP } from './coachingStaff';
 import { processOffSeasonProgression } from './playerEngine';
 import { createEmptyPlayerStats } from './playerStats';
-import { randomInt } from './math/variance';
 
-// Incoming freshmen roll starter-level talent minus a youth penalty; three years of progression
-// brings them back to the level of the generated rosters, keeping program strength stable. Only the core share
-// of each position's freshmen is starter material; the rest are developmental depth players.
-// Depth players develop and win jobs too, so fewer freshmen need to arrive as starter material (tuned so
-// average starter strength holds steady across a decade)
-const STARTER_FRESHMAN_SHARE = 0.55;
-
-const newFreshman = (pos: Position, team: Team, takenNames: Set<string>, adjustment: number) => {
-  const { roster, core } = DEPTH_TEMPLATE[pos];
-  const tier = Math.random() < (core / roster) * STARTER_FRESHMAN_SHARE ? 1 : 3;
-  // Freshmen carry the program's talent (prestige and state), as a rebuilt program would: dynasties reload
-  return generateProceduralPlayer(pos, 'Freshman', tier, Math.round(adjustment + programTalent(team.prestige, team.state)) - randomInt(4, 8) - INTAKE_SHIFT, { nameProfile: team.nameProfile, takenNames });
-};
+// Freshmen carry the program's talent (prestige and state), as a rebuilt program would: dynasties reload
+const newFreshman = (pos: Position, team: Team, takenNames: Set<string>, adjustment: number, starterOdds = 1) =>
+  generateIncomingFreshman(pos, adjustment + programTalent(team.prestige, team.state), { nameProfile: team.nameProfile, takenNames }, starterOdds);
 
 const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior' } as const;
+
 
 /**
  * Rolls a team into the next season in one step (graduation and progression, then the incoming class).
@@ -33,7 +23,7 @@ export function advanceTeamToNextSeason(
   conditioningBonus = 0 // the user's Weight Room Fanatic talent
 ): { graduated: Player[]; freshmen: Player[] } {
   const graduated = graduateAndProgress(team, conditioningBonus);
-  const freshmen = addIncomingClass(team, incomingPlayers, freshmanAdjustment);
+  const freshmen = addIncomingClass(team, incomingPlayers, freshmanAdjustment + rollClassWave(), true);
   return { graduated, freshmen };
 }
 
@@ -73,7 +63,12 @@ export function graduateAndProgress(
  * Feeder signing day: newcomers from the pipeline join (already in their grade), remaining open spots are
  * filled with freshmen, and the depth chart is rebuilt.
  */
-export function addIncomingClass(team: Team, incomingPlayers: Player[] = [], freshmanAdjustment = 0): Player[] {
+export function addIncomingClass(
+  team: Team,
+  incomingPlayers: Player[] = [],
+  freshmanAdjustment = 0,
+  newcomersReplaceStarters = false // an AI program: its feeder signings take the place of starter-material freshmen
+): Player[] {
   const freshmen: Player[] = [];
   const takenNames = new Set(team.roster.map((p) => `${p.firstName} ${p.lastName}`));
   const countAt = (pos: Position) => team.roster.filter((p) => p.position === pos).length;
@@ -83,9 +78,15 @@ export function addIncomingClass(team: Team, incomingPlayers: Player[] = [], fre
     team.roster.push(player);
     freshmen.push(player);
   });
+  // An AI program draws the same starter material every year: the prospects it signed from the shared pools
+  // (its zoned kids around the coach's program, statewide elites) count against it, so the programs near the coach
+  // don't grow stronger than the rest of the state. The coach's own signings are extra: that's what recruiting buys.
+  const openSpots = (Object.keys(DEPTH_TEMPLATE) as Position[]).flatMap((pos) => Array.from({ length: Math.max(0, DEPTH_TEMPLATE[pos].roster - countAt(pos)) }, () => pos));
+  const expectedStarters = openSpots.reduce((sum, pos) => sum + starterChance(pos), 0);
+  const starterOdds = newcomersReplaceStarters && expectedStarters > 0 ? Math.max(0, expectedStarters - incomingPlayers.length) / expectedStarters : 1;
   (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => {
     while (countAt(pos) < DEPTH_TEMPLATE[pos].roster) {
-      const player = newFreshman(pos, team, takenNames, freshmanAdjustment);
+      const player = newFreshman(pos, team, takenNames, freshmanAdjustment, starterOdds);
       team.roster.push(player);
       freshmen.push(player);
     }

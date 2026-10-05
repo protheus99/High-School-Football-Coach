@@ -44,7 +44,8 @@ describe('AI vs. AI macro-sim calibration', () => {
     expect(results.averagePointsPerGame).toBeLessThanOrEqual(35);
     expect(results.turnoverAverage).toBeGreaterThanOrEqual(3.0);
     expect(results.turnoverAverage).toBeLessThanOrEqual(4.5);
-    expect(results.underdogWinRate).toBeGreaterThanOrEqual(18);
+    // Talent waves (golden and thin classes) spread teams further apart: favorites win a bit more often
+    expect(results.underdogWinRate).toBeGreaterThanOrEqual(13); // ~17% on average, 14-19% run to run
     expect(results.underdogWinRate).toBeLessThanOrEqual(28);
   });
 });

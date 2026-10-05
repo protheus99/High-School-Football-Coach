@@ -11,6 +11,7 @@ import { calculateGaussianVariance, clamp, randomInt } from '../sim/math/varianc
 import { DEPTH_TEMPLATE, rebuildDepthChart } from '../sim/depthChart';
 import { NameProfile, randomPlayerName, randomSurname } from './names';
 import { stateTalent } from '../sim/stateRules';
+import { processOffSeasonProgression } from '../sim/playerEngine';
 
 // Player and coach names come from ./names (realistic, region-aware pools)
 
@@ -224,24 +225,22 @@ export function generateProceduralPlayer(
 }
 
 /**
- * Rating points by class on a generated roster: high school players improve every year, so a starting roster
- * already has the shape the game's progression gives every roster later (seniors well ahead of freshmen).
- * Without it, ratings drifted up for the first four seasons as rosters grew into that shape.
+ * Generated rosters start where the game's progression leaves every roster later: each player is rolled at the
+ * level a freshman arrives at (the youth penalty and the intake shift below), then given the growth his potential
+ * would have brought by his class year. High-potential upperclassmen (the starters) start well ahead; depth players
+ * barely move. Without it, ratings drifted up for years as rosters grew into that shape.
  */
-export const CLASS_AGE_CURVE: Record<PlayerClass, number> = { Freshman: -6, Sophomore: -2, Junior: 1, Senior: 3 };
-
-/** Class mix of a roster's starters (mostly upperclassmen, as seasons of progression leave them) and of its depth. */
-const STARTER_CLASS_WEIGHTS: [PlayerClass, number][] = [['Freshman', 0.18], ['Sophomore', 0.23], ['Junior', 0.27], ['Senior', 0.32]];
-const DEPTH_CLASS_WEIGHTS: [PlayerClass, number][] = [['Freshman', 0.29], ['Sophomore', 0.26], ['Junior', 0.24], ['Senior', 0.21]];
-
-function rollClass(weights: [PlayerClass, number][]): PlayerClass {
-  let roll = Math.random();
-  for (const [classYear, weight] of weights) {
-    roll -= weight;
-    if (roll < 0) return classYear;
-  }
-  return weights[weights.length - 1][0];
-}
+/**
+ * Talent comes in waves: each class at a program is stronger or weaker than the program usually draws (a golden
+ * class, a thin one). The class carries the program for the years it plays, so mid programs get their moments and
+ * powerhouses their down cycles; across the league the waves average out. Starting rosters get a wave per class,
+ * and each year's walk-on freshmen get a new one.
+ */
+export const CLASS_WAVE_SPREAD = 5; // standard deviation, in rating points on every player of the class
+const CLASS_WAVE_MAX = 12;
+export const rollClassWave = () => Math.round(clamp(calculateGaussianVariance(0, CLASS_WAVE_SPREAD), -CLASS_WAVE_MAX, CLASS_WAVE_MAX));
+/** A wave this big makes the news. */
+export const NOTABLE_CLASS_WAVE = 4;
 
 /**
  * How much rawer every newcomer arrives (generated freshmen and every feeder prospect) than the original tuning:
@@ -249,32 +248,52 @@ function rollClass(weights: [PlayerClass, number][]): PlayerClass {
  */
 export const INTAKE_SHIFT = 2;
 
+// Incoming freshmen roll starter-level talent minus a youth penalty; their years of progression bring them up to
+// the program's level. Only part of each position's freshmen are starter material; the rest are developmental
+// depth players (depth players develop and win jobs too, so fewer freshmen need to arrive as starter material).
+const STARTER_FRESHMAN_SHARE = 0.55;
+
+/** Chance a freshman at this position arrives as starter material. */
+export const starterChance = (pos: Position) => (DEPTH_TEMPLATE[pos].core / DEPTH_TEMPLATE[pos].roster) * STARTER_FRESHMAN_SHARE;
+
+/**
+ * One incoming freshman: starter material (by the position's share, scaled by `starterOdds`) or a developmental
+ * player, arriving raw. `talentAdjustment` is the program's talent (prestige and state) plus any class wave.
+ */
+export function generateIncomingFreshman(
+  pos: Position,
+  talentAdjustment: number,
+  options: { nameProfile?: NameProfile; takenNames?: Set<string> } = {},
+  starterOdds = 1
+): Player {
+  const tier = Math.random() < starterChance(pos) * starterOdds ? 1 : 3;
+  return generateProceduralPlayer(pos, 'Freshman', tier, Math.round(talentAdjustment) - randomInt(4, 8) - INTAKE_SHIFT, options);
+}
+
+const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior' } as const;
+
+/**
+ * A full roster built the way the game builds every roster after it: each class arrived as a freshman class (with
+ * its own talent wave) and has been through its years of offseason progression since, and the best players start.
+ * A starting roster is then just a typical year, so ratings don't drift as seasons go by.
+ */
 export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: NameProfile = 'DEFAULT'): Player[] {
   const roster: Player[] = [];
   const takenNames = new Set<string>();
-
-  // Starter slots roll first-string talent, the rest of the core rolls backups and extra depth rolls
-  // developmental (third-string) talent; then the best players at each position start
+  const waves = [rollClassWave(), rollClassWave(), rollClassWave(), rollClassWave()]; // by years in school
+  const strengthCoach = randomInt(70, 90);
   (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => {
-    const { roster: size, starters, core } = DEPTH_TEMPLATE[pos];
-    const corePlayers: Player[] = [];
-    for (let i = 0; i < size; i++) {
-      const tier = i < starters ? 1 : i < core ? 2 : 3;
-      const classYear = rollClass(tier === 1 ? STARTER_CLASS_WEIGHTS : DEPTH_CLASS_WEIGHTS);
-      let player = generateProceduralPlayer(pos, classYear, tier, talentAdjustment + CLASS_AGE_CURVE[classYear], { nameProfile, takenNames });
-      if (i < core) corePlayers.push(player);
-      else {
-        // Developmental depth starts behind the core group at its position
-        const ceiling = Math.min(...corePlayers.map((p) => p.overallRating)) - 1;
-        if (player.overallRating > ceiling) {
-          takenNames.delete(`${player.firstName} ${player.lastName}`);
-          player = generateProceduralPlayer(pos, classYear, tier, 0, { nameProfile, takenNames, overall: Math.max(35, ceiling) });
-        }
+    for (let i = 0; i < DEPTH_TEMPLATE[pos].roster; i++) {
+      const years = randomInt(0, 3);
+      const player = generateIncomingFreshman(pos, talentAdjustment + waves[years], { nameProfile, takenNames });
+      for (let y = 0; y < years; y++) {
+        processOffSeasonProgression(player, strengthCoach);
+        player.classYear = NEXT_CLASS[player.classYear as keyof typeof NEXT_CLASS];
+        player.age += 1;
       }
       roster.push(player);
     }
   });
-
   rebuildDepthChart(roster);
   return roster;
 }
@@ -345,18 +364,8 @@ export function programTalent(prestige: number, state?: string): number {
 }
 const BLUE_BLOOD_PRESTIGE = 90;
 
-/** Prestige at which a program reloads every year: its talent varies about half as much as everyone else's. */
+/** Prestige at which another state's (light) program reloads every year: its rating varies about half as much. */
 export const ELITE_PRESTIGE = 90;
-
-/** An elite program's full roster: the middle of five rolled rosters by game-day rating (about half the spread). */
-function consistentRoster(talentAdjustment: number, nameProfile: NameProfile): Player[] {
-  const starterAverage = (roster: Player[]) => {
-    const starters = roster.filter((p) => p.depthChartTier === 1);
-    return starters.reduce((s, p) => s + p.overallRating, 0) / Math.max(1, starters.length);
-  };
-  const rosters = Array.from({ length: 5 }, () => generateCompleteTeamRoster(talentAdjustment, nameProfile)).sort((a, b) => starterAverage(a) - starterAverage(b));
-  return rosters[2];
-}
 
 /**
  * Generates a district's teams. When `talentFromPrestige` is set, schools with a real prestige rating get
@@ -377,7 +386,8 @@ export function generateDistrictTeams(
     const talent = options.talentFromPrestige ? programTalent(prestige, options.state) : 0;
     const elite = !!options.talentFromPrestige && prestige >= ELITE_PRESTIGE;
     const light = options.light ? generateLightRoster(talent, nameProfile, elite) : undefined;
-    const roster = light?.roster ?? (elite ? consistentRoster(talent, nameProfile) : generateCompleteTeamRoster(talent, nameProfile));
+    // Elite light teams vary half as much year to year; full rosters vary through their classes' talent waves
+    const roster = light?.roster ?? generateCompleteTeamRoster(talent, nameProfile);
 
     return {
       id: `team_${hs.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,

@@ -2,7 +2,8 @@ import {
   Player,
   InjurySeverity,
   Position,
-  PotentialGrade
+  PotentialGrade,
+  PlayerClass
 } from '../types/game';
 import { clamp, randomInt } from './math/variance';
 import { StateRules, TEXAS_RULES } from './stateRules';
@@ -135,26 +136,23 @@ const POSITION_KEY_SKILLS: Record<Position, (keyof Player['attributes'])[]> = {
   P: ['kickingPower', 'kickingAccuracy']
 };
 
+/** Offseason growth by potential (rating points a year), before breakouts and the strength coach. */
+const POTENTIAL_GROWTH: Record<PotentialGrade, number> = { 'A+': 6, A: 4, B: 3, C: 1, D: 0 };
+/** Breakout years by the class a player is leaving: the chance of a big jump and its range. */
+const BREAKOUTS: Partial<Record<PlayerClass, { chance: number; min: number; max: number }>> = {
+  Freshman: { chance: 0.3, min: 4, max: 8 },
+  Sophomore: { chance: 0.2, min: 3, max: 6 },
+  Junior: { chance: 0.1, min: 2, max: 4 }
+};
+const STRENGTH_COACH_BONUS_RATING = 80; // a strength coach this good adds a point a year
+
 export function processOffSeasonProgression(player: Player, strengthCoachRating: number): void {
-  const potentialMap: Record<PotentialGrade, number> = {
-    'A+': 6,
-    'A': 4,
-    'B': 3,
-    'C': 1,
-    'D': 0
-  };
+  let growth = POTENTIAL_GROWTH[player.potential];
 
-  let growth = potentialMap[player.potential];
+  const breakout = BREAKOUTS[player.classYear];
+  if (breakout && Math.random() < breakout.chance) growth += randomInt(breakout.min, breakout.max);
 
-  if (player.classYear === 'Freshman' && Math.random() < 0.30) {
-    growth += randomInt(4, 8); // High freshman growth variance
-  } else if (player.classYear === 'Sophomore' && Math.random() < 0.20) {
-    growth += randomInt(3, 6);
-  } else if (player.classYear === 'Junior' && Math.random() < 0.10) {
-    growth += randomInt(2, 4);
-  }
-
-  if (strengthCoachRating >= 80) growth += 1;
+  if (strengthCoachRating >= STRENGTH_COACH_BONUS_RATING) growth += 1;
   if (player.classYear === 'Senior') growth = Math.min(2, growth);
 
   player.overallRating = clamp(player.overallRating + growth, 35, 99);

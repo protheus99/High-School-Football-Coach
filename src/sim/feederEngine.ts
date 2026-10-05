@@ -1,6 +1,6 @@
 import { FeederOutcome, FeederOutcomeType, FeederProspect, Player, PlayerClass, Position, PotentialGrade, ProspectSource, Team } from '../types/game';
 import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
-import { generateProceduralPlayer, INTAKE_SHIFT, rollTalent } from '../generators/rosterGenerator';
+import { generateProceduralPlayer, INTAKE_SHIFT, programTalent, rollTalent } from '../generators/rosterGenerator';
 import { NameProfile, randomPlayerName } from '../generators/names';
 import { RecruitingContext, assignSuitors, choiceShares, pickHomeRival, rollPriorities } from './feederCompetition';
 import { clamp, randomInt } from './math/variance';
@@ -142,7 +142,7 @@ export function createProspect(
   source: ProspectSource,
   team: ProspectOwner,
   takenNames: Set<string> = new Set(),
-  homeTeam?: { id: string; name: string }
+  homeTeam?: { id: string; name: string; prestige?: number; state?: string }
 ): FeederProspect {
   const prestigeLean = (team.prestige - 75) / 2;
   const talent = rollTalent();
@@ -186,10 +186,11 @@ export function createProspect(
       transferRisk = 0;
       break;
     case 'OUT_OF_DISTRICT': {
-      // A rival's zoned player worth chasing: usually better than the typical prospect
-      const best = Math.max(talent.ovr, rollTalent().ovr);
+      // A rival's zoned player: the kind of starter material his school draws (its prestige and state), so the
+      // programs around the coach's don't sign better classes than the rest of the state
+      const homeTalent = homeTeam?.prestige !== undefined ? programTalent(homeTeam.prestige, homeTeam.state) : 0;
       incomingClass = pick<PlayerClass>(['Freshman', 'Freshman', 'Sophomore']);
-      overall = best - (incomingClass === 'Freshman' ? randomInt(3, 7) : randomInt(0, 3));
+      overall = talent.ovr + homeTalent - (incomingClass === 'Freshman' ? randomInt(4, 8) : randomInt(0, 3));
       interest = randomInt(5, 25) + Math.max(0, prestigeLean / 2);
       origin = homeTeam ? `Zoned to ${homeTeam.name}` : 'Neighboring district';
       transferRisk = 0.05;
@@ -600,11 +601,15 @@ export function resolveFeederClass(
 // Statewide elite recruits: out-of-area stars contested among the top AI programs
 // ---------------------------------------------------------------------------
 
-export const STATEWIDE_ELITE_COUNT = 10;
+export const STATEWIDE_ELITE_COUNT = 10; // a Texas-sized class (254 programs)
+const ELITE_REFERENCE_PROGRAMS = 254;
+
+/** The elite list scales with the league: about one per 25 programs (10 in Texas, 1 in Maryland's 32-team class). */
+export const statewideEliteCount = (programs: number) => Math.max(1, Math.round((STATEWIDE_ELITE_COUNT * programs) / ELITE_REFERENCE_PROGRAMS));
 
 export function generateStatewideElite(ctx: RecruitingContext): FeederProspect[] {
   const names = new Set<string>();
-  return Array.from({ length: STATEWIDE_ELITE_COUNT }, () => assignSuitors(createProspect('STAR_RECRUIT', { prestige: 80 }, names), ctx)).filter(
+  return Array.from({ length: statewideEliteCount(ctx.teamsById.size) }, () => assignSuitors(createProspect('STAR_RECRUIT', { prestige: 80 }, names), ctx)).filter(
     (p) => p.suitors.length > 0
   );
 }

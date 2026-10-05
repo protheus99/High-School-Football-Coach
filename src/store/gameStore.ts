@@ -109,6 +109,7 @@ import { persistSaveGame } from '../services/db';
 import type { GameSaveRecord } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
 import { addIncomingClass, graduateAndProgress } from '../sim/offseasonEngine';
+import { NOTABLE_CLASS_WAVE, rollClassWave } from '../generators/rosterGenerator';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { moveInDepthChart, setDepthTier } from '../sim/depthChart';
 import { ASSISTANT_DRILLS_PER_WEEK, DrillFocus, runAssistantDrills } from '../sim/drillEngine';
@@ -1311,13 +1312,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       rivalIncoming.set(teamId, [...(rivalIncoming.get(teamId) ?? []), player]);
     });
     const probationPenalty = (until: number | null | undefined) => (onProbation(until, currentYear) ? PROBATION_FRESHMAN_PENALTY : 0);
+    // Every program's walk-on class rides its own talent wave this year
+    const userWave = rollClassWave();
     leagueTeams.forEach((team) => {
-      if (team.id === userTeamId) addIncomingClass(team, feederClass.joined, -probationPenalty(get().userProbationUntil));
+      if (team.id === userTeamId) addIncomingClass(team, feederClass.joined, userWave - probationPenalty(get().userProbationUntil));
       else
         addIncomingClass(
           team,
           rivalIncoming.get(team.id) ?? [],
-          STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL'] - probationPenalty(team.feederProfile?.probationUntil)
+          rollClassWave() + STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL'] - probationPenalty(team.feederProfile?.probationUntil),
+          true
         );
     });
     enforceVarsityRosterLimit(userTeam, feederClass.joined, feederClass.outcomes);
@@ -1343,7 +1347,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       headline: `Signing Day: ${userTeam.name} Welcomes ${joinedCount} Newcomers to the Program`,
       content: `${joinedCount} of ${outcomes.length} prospects in your pipeline chose ${userTeam.name}. ${
         outcomes.filter((o) => o.outcome === 'OTHER_SCHOOL').length
-      } enrolled elsewhere and ${outcomes.filter((o) => o.outcome === 'LEFT_AREA').length} moved away.`,
+      } enrolled elsewhere and ${outcomes.filter((o) => o.outcome === 'LEFT_AREA').length} moved away.${
+        userWave >= NOTABLE_CLASS_WAVE
+          ? ' Coaches say the walk-on freshmen are the deepest group in years.'
+          : userWave <= -NOTABLE_CLASS_WAVE
+            ? ' The walk-on freshman class is thin this year.'
+            : ''
+      }`,
       impactSentiment: joinedCount >= outcomes.length / 2 ? 'POSITIVE' : 'NEUTRAL',
       featuredTeamName: userTeam.name
     };

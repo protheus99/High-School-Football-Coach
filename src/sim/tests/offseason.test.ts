@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateDistrictTeams, generateProceduralPlayer } from '../../generators/rosterGenerator';
+import { CLASS_WAVE_SPREAD, generateDistrictTeams, generateProceduralPlayer, rollClassWave } from '../../generators/rosterGenerator';
 import { advanceTeamToNextSeason } from '../offseasonEngine';
 import { DEPTH_TEMPLATE } from '../depthChart';
 import { teamStarterRating } from '../macroSim';
@@ -72,6 +72,16 @@ describe('Off-season rollover', () => {
     // No drift: the generated rosters already have the age curve the yearly progression keeps (this rollover alone
     // runs a little low; in the game, feeder recruits top classes up)
     yearly.forEach((avg) => expect(Math.abs(avg - yearly[0])).toBeLessThan(2.5));
+  });
+
+  it('rolls talent waves that average out: most classes near the program norm, a few golden or thin', () => {
+    const waves = Array.from({ length: 4000 }, rollClassWave);
+    const mean = waves.reduce((s, w) => s + w, 0) / waves.length;
+    const sd = Math.sqrt(waves.reduce((s, w) => s + (w - mean) ** 2, 0) / waves.length);
+    expect(Math.abs(mean)).toBeLessThan(0.4);
+    expect(Math.abs(sd - CLASS_WAVE_SPREAD)).toBeLessThan(0.6);
+    expect(Math.max(...waves.map(Math.abs))).toBeLessThanOrEqual(12);
+    expect(waves.filter((w) => w >= 8).length).toBeGreaterThan(0); // golden classes happen
   });
 
   it('generates rosters with an age curve: seniors ahead of juniors, sophomores and freshmen', () => {

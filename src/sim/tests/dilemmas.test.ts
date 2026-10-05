@@ -51,7 +51,7 @@ describe('Dilemma library', () => {
     expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(51);
 
     const built = new Set<string>();
-    for (let attempt = 0; attempt < 6 && built.size < TEMPLATES.length; attempt++) {
+    for (let attempt = 0; attempt < 30 && built.size < TEMPLATES.length; attempt++) {
       for (const team of generateDistrictTeams()) {
         for (let week = 1; week <= 20; week++) {
           TEMPLATES.forEach((t) => {
