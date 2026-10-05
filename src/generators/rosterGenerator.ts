@@ -223,8 +223,33 @@ export function generateProceduralPlayer(
   };
 }
 
+/**
+ * Rating points by class on a generated roster: high school players improve every year, so a starting roster
+ * already has the shape the game's progression gives every roster later (seniors well ahead of freshmen).
+ * Without it, ratings drifted up for the first four seasons as rosters grew into that shape.
+ */
+export const CLASS_AGE_CURVE: Record<PlayerClass, number> = { Freshman: -6, Sophomore: -2, Junior: 1, Senior: 3 };
+
+/** Class mix of a roster's starters (mostly upperclassmen, as seasons of progression leave them) and of its depth. */
+const STARTER_CLASS_WEIGHTS: [PlayerClass, number][] = [['Freshman', 0.18], ['Sophomore', 0.23], ['Junior', 0.27], ['Senior', 0.32]];
+const DEPTH_CLASS_WEIGHTS: [PlayerClass, number][] = [['Freshman', 0.29], ['Sophomore', 0.26], ['Junior', 0.24], ['Senior', 0.21]];
+
+function rollClass(weights: [PlayerClass, number][]): PlayerClass {
+  let roll = Math.random();
+  for (const [classYear, weight] of weights) {
+    roll -= weight;
+    if (roll < 0) return classYear;
+  }
+  return weights[weights.length - 1][0];
+}
+
+/**
+ * How much rawer every newcomer arrives (generated freshmen and every feeder prospect) than the original tuning:
+ * sets the level ratings hold at season after season.
+ */
+export const INTAKE_SHIFT = 2;
+
 export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: NameProfile = 'DEFAULT'): Player[] {
-  const classes: PlayerClass[] = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
   const roster: Player[] = [];
   const takenNames = new Set<string>();
 
@@ -234,9 +259,9 @@ export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: Na
     const { roster: size, starters, core } = DEPTH_TEMPLATE[pos];
     const corePlayers: Player[] = [];
     for (let i = 0; i < size; i++) {
-      const classYear = classes[randomInt(0, classes.length - 1)];
       const tier = i < starters ? 1 : i < core ? 2 : 3;
-      let player = generateProceduralPlayer(pos, classYear, tier, talentAdjustment, { nameProfile, takenNames });
+      const classYear = rollClass(tier === 1 ? STARTER_CLASS_WEIGHTS : DEPTH_CLASS_WEIGHTS);
+      let player = generateProceduralPlayer(pos, classYear, tier, talentAdjustment + CLASS_AGE_CURVE[classYear], { nameProfile, takenNames });
       if (i < core) corePlayers.push(player);
       else {
         // Developmental depth starts behind the core group at its position

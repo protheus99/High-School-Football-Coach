@@ -1,5 +1,5 @@
-import { FeederProfile, FeederProspect, FeederStrategy, Position, ProspectSource, ProspectSuitor, RecruitingFactor, Team } from '../types/game';
-import { DEPTH_TEMPLATE } from './depthChart';
+import { FeederProfile, FeederProspect, FeederStrategy, Player, Position, ProspectSource, ProspectSuitor, RecruitingFactor, Team } from '../types/game';
+import { DEPTH_TEMPLATE, rebuildDepthChart } from './depthChart';
 import { clamp, randomInt } from './math/variance';
 import type { LeagueStructure } from './league';
 
@@ -326,7 +326,7 @@ export function advanceRivalRecruiting(pool: FeederProspect[], ctx: RecruitingCo
       let { effort, inducement } = s;
       effort = clamp(effort + weeklyEffortGain(profile?.strategy, p, s.teamId), 0, 100);
       const valuable = p.source === 'STAR_RECRUIT' || p.trueOverall >= 72;
-      if (profile && !inducement && valuable && profile.ethics < 40 && Math.random() < (40 - profile.ethics) / 400) {
+      if (profile && !inducement && valuable && profile.ethics < CLEAN_ETHICS && Math.random() < (CLEAN_ETHICS - profile.ethics) / 400) {
         inducement = true;
         profile.violationHeat += inducementHeat(p);
       }
@@ -341,3 +341,31 @@ export const weeklyDetectionChance = (heat: number) => heat / 1500;
 /** Year-end investigation: a bigger roll; heat that isn't caught fades. */
 export const yearEndDetectionChance = (heat: number) => heat / 300;
 export const HEAT_DECAY = 0.75;
+
+// ---------------------------------------------------------------------------
+// Getting caught costs the roster, not just prestige: the players brought in with illegal offers are ruled
+// ineligible, and the program spends two seasons on recruiting probation (weaker freshman classes, and no
+// chasing stars, rivals' players or out-of-area prospects).
+// ---------------------------------------------------------------------------
+
+/** Programs at or above this integrity never make illegal offers; a caught program is brought up to it (it cleans up). */
+export const CLEAN_ETHICS = 40;
+
+/** Seasons on recruiting probation: the season the program is punished in and the next. */
+export const PROBATION_SEASONS = 2;
+/** Rating points off every generated freshman while a program is on probation. */
+export const PROBATION_FRESHMAN_PENALTY = 3;
+
+export const onProbation = (probationUntil: number | null | undefined, season: number) => probationUntil != null && probationUntil >= season;
+
+/** Prospects a program on probation may not recruit: out-of-area stars, rivals' zoned players and the State and National lists. */
+export const restrictedOnProbation = (p: FeederProspect) => !!p.scope || p.source === 'STAR_RECRUIT' || p.source === 'OUT_OF_DISTRICT';
+
+/** The players who joined through illegal booster offers are ruled ineligible and leave the roster. */
+export function removeImproperRecruits(team: Team): Player[] {
+  const ineligible = team.roster.filter((p) => p.improperlyRecruited);
+  if (ineligible.length === 0) return [];
+  team.roster = team.roster.filter((p) => !p.improperlyRecruited);
+  rebuildDepthChart(team.roster);
+  return ineligible;
+}

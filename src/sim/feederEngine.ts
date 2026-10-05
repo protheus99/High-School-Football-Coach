@@ -1,6 +1,6 @@
 import { FeederOutcome, FeederOutcomeType, FeederProspect, Player, PlayerClass, Position, PotentialGrade, ProspectSource, Team } from '../types/game';
 import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
-import { generateProceduralPlayer, rollTalent } from '../generators/rosterGenerator';
+import { generateProceduralPlayer, INTAKE_SHIFT, rollTalent } from '../generators/rosterGenerator';
 import { NameProfile, randomPlayerName } from '../generators/names';
 import { RecruitingContext, assignSuitors, choiceShares, pickHomeRival, rollPriorities } from './feederCompetition';
 import { clamp, randomInt } from './math/variance';
@@ -206,7 +206,7 @@ export function createProspect(
       break;
   }
 
-  overall = clamp(Math.round(overall), 35, 95);
+  overall = clamp(Math.round(overall) - (source === 'TRYOUT' ? 0 : INTAKE_SHIFT), 35, 95);
   const { firstName, lastName } = randomPlayerName(team.nameProfile, takenNames);
   const name = `${firstName} ${lastName}`;
   return {
@@ -504,6 +504,14 @@ export function prospectToPlayer(p: FeederProspect): Player {
   });
 }
 
+/** A prospect signing with a school: flagged when that school's boosters made him an illegal offer. */
+export function signProspect(p: FeederProspect, teamId: string, userTeamId?: string): Player {
+  const player = prospectToPlayer(p);
+  const induced = teamId === userTeamId ? p.userInducement : p.suitors.find((s) => s.teamId === teamId)?.inducement;
+  if (induced) player.improperlyRecruited = true;
+  return player;
+}
+
 /**
  * Varsity roster limit: if the roster runs over, the lowest-rated newcomers play JV instead
  * (returning players keep their spots). Updates the outcomes in place; returns who was moved.
@@ -543,7 +551,7 @@ export function resolveFeederClass(
 
     if (!ctx) {
       if (Math.random() < joinChance(p, team.prestige)) {
-        const player = prospectToPlayer(p);
+        const player = signProspect(p, team.id, team.id);
         joined.push(player);
         return { ...base, outcome: 'JOINED' as FeederOutcomeType, playerId: player.id, overall: p.trueOverall };
       }
@@ -556,13 +564,13 @@ export function resolveFeederClass(
       const tied = bids.filter((b) => b.interest === bids[0].interest);
       const winner = tied[randomInt(0, tied.length - 1)];
       if (winner.teamId === ctx.userTeamId) {
-        const player = prospectToPlayer(p);
+        const player = signProspect(p, ctx.userTeamId, ctx.userTeamId);
         joined.push(player);
         return { ...base, outcome: 'JOINED' as FeederOutcomeType, playerId: player.id, overall: p.trueOverall };
       }
       const school = ctx.teamsById.get(winner.teamId);
       if (school) {
-        rivalSignings.push({ teamId: school.id, player: prospectToPlayer(p) });
+        rivalSignings.push({ teamId: school.id, player: signProspect(p, school.id) });
         return { ...base, outcome: 'OTHER_SCHOOL' as FeederOutcomeType, destinationTeamId: school.id, destinationName: school.name };
       }
     }
@@ -571,7 +579,7 @@ export function resolveFeederClass(
     const choice = pickShare(choiceShares(p, ctx));
     if (choice.teamId === ctx.userTeamId) {
       if (Math.random() < playsFootballChance(p, team.prestige)) {
-        const player = prospectToPlayer(p);
+        const player = signProspect(p, ctx.userTeamId, ctx.userTeamId);
         joined.push(player);
         return { ...base, outcome: 'JOINED' as FeederOutcomeType, playerId: player.id, overall: p.trueOverall };
       }
@@ -580,7 +588,7 @@ export function resolveFeederClass(
     }
     if (choice.teamId === null) return { ...base, outcome: 'OTHER_SCHOOL' as FeederOutcomeType, destinationName: 'Stayed home' };
     if (Math.random() < RIVAL_FOLLOW_THROUGH) {
-      rivalSignings.push({ teamId: choice.teamId, player: prospectToPlayer(p) });
+      rivalSignings.push({ teamId: choice.teamId, player: signProspect(p, choice.teamId) });
       return { ...base, outcome: 'OTHER_SCHOOL' as FeederOutcomeType, destinationTeamId: choice.teamId, destinationName: choice.name };
     }
     return { ...base, outcome: 'NOT_PLAYING' as FeederOutcomeType };
@@ -610,7 +618,7 @@ export function resolveStatewideElite(elite: FeederProspect[], ctx: RecruitingCo
     .forEach((p) => {
       const choice = pickShare(choiceShares(p, ctx, false));
       if (choice.teamId === null) return;
-      signings.push({ teamId: choice.teamId, player: prospectToPlayer(p) });
+      signings.push({ teamId: choice.teamId, player: signProspect(p, choice.teamId) });
       if (headlines.length < 3) headlines.push(`${choice.name} lands ${p.incomingClass.toLowerCase()} ${p.projectedPosition} ${p.name} (${p.middleSchool})`);
     });
   return { signings, headlines };

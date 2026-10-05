@@ -142,6 +142,7 @@ export interface Player {
   potential: PotentialGrade;
   depthChartTier: DepthChartTier;
   depthOrder?: number; // order within the position group (0 = first starter); see sim/depthChart
+  improperlyRecruited?: boolean; // joined through an illegal booster offer: ruled ineligible if the program is caught
   attributes: PlayerAttributes;
   condition: PlayerCondition;
   academics: PlayerAcademics;
@@ -431,6 +432,7 @@ export interface FeederProfile {
   ethics: number; // 0-100 hidden; low-ethics programs make illegal recruiting offers
   violationHeat: number; // accumulated evidence of recruiting violations; fades slowly
   bannedSeason?: number; // year the program is barred from the playoffs after getting caught
+  probationUntil?: number; // last season of recruiting probation after getting caught
 }
 
 // ============================================================================

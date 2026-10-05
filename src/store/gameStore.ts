@@ -74,6 +74,12 @@ import {
   buildRecruitingContext,
   chooseFeederStrategy,
   inducementHeat,
+  CLEAN_ETHICS,
+  onProbation,
+  PROBATION_FRESHMAN_PENALTY,
+  PROBATION_SEASONS,
+  removeImproperRecruits,
+  restrictedOnProbation,
   initialFeederProfile,
   weeklyDetectionChance,
   yearEndDetectionChance
@@ -216,19 +222,27 @@ function signingDayNews(signings: Signing[], prestigeChange: number, userTeam: T
 const recruitingContext = (state: { league: LeagueStructure | null; leagueTeams: Team[]; userTeamId: string }): RecruitingContext | undefined =>
   state.league ? buildRecruitingContext(state.league, state.leagueTeams, state.userTeamId) : undefined;
 
-/** A rival program caught breaking recruiting rules: prestige hit, booster fallout, postseason ban. */
+/** The roster side of a sanction, for the news: players ruled ineligible and the probation. */
+const sanctionDetails = (ineligible: number, probationUntil: number) =>
+  `${ineligible > 0 ? `, ${ineligible} improperly recruited ${ineligible === 1 ? 'player is' : 'players are'} ruled ineligible,` : ''} and the program is on recruiting probation through ${probationUntil}.`;
+
+/** A rival program caught breaking recruiting rules: prestige hit, booster fallout, postseason ban, ineligible recruits, probation. */
 function punishCaughtProgram(team: Team, bannedSeason: number, week: number): NewsArticle {
   const profile = team.feederProfile!;
   profile.bannedSeason = bannedSeason;
   profile.violationHeat = 0;
+  profile.probationUntil = bannedSeason + PROBATION_SEASONS - 1;
+  profile.strategy = 'BUILD_LOCAL'; // no chasing stars or transfers on probation
+  profile.ethics = Math.max(profile.ethics, CLEAN_ETHICS); // the program cleans up: no more illegal offers
   team.prestige = Math.max(40, team.prestige - 8);
   team.programMeters.boosterApproval = Math.max(0, team.programMeters.boosterApproval - 10);
+  const ineligible = removeImproperRecruits(team);
   return {
     id: `news_violation_${team.id}_${bannedSeason}_${week}`,
     week,
     outlet: 'STATE_SPORTS_CENTRAL',
     headline: `${team.name} Banned From ${bannedSeason} Playoffs Over Recruiting Violations`,
-    content: `A state association investigation found ${team.name} boosters made improper offers to recruits. The program loses its postseason eligibility for ${bannedSeason}.`,
+    content: `A state association investigation found ${team.name} boosters made improper offers to recruits. The program loses its postseason eligibility for ${bannedSeason}${sanctionDetails(ineligible.length, profile.probationUntil)}`,
     impactSentiment: 'NEGATIVE',
     featuredTeamName: team.name
   };
@@ -267,6 +281,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     interstateGames: state.interstateGames,
     coachingStaff: state.coachingStaff,
     career: state.career,
+    userProbationUntil: state.userProbationUntil,
     userViolationHeat: state.userViolationHeat,
     pendingUserBan: state.pendingUserBan,
     onHotSeat: state.onHotSeat,
@@ -376,6 +391,7 @@ interface GameStoreState {
   onHotSeat: boolean; // the board's warning: another season under 35 Board Trust ends the job
   firedFrom: string | null; // set when the board fires the coach (game over for this save)
   careerComplete: boolean; // the career's last season is done (game over for this save)
+  userProbationUntil: number | null; // last season of the coach's recruiting probation after getting caught
 
   // Actions
   startNewSeason: (world?: GameWorld) => void; // default: the Texas 6A world
@@ -440,6 +456,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   onHotSeat: false,
   firedFrom: null,
   careerComplete: false,
+  userProbationUntil: null,
   newsArticles: [],
   polls: null,
   playerRankings: null,
@@ -494,6 +511,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       onHotSeat: false,
       firedFrom: null,
       careerComplete: false,
+      userProbationUntil: null,
       feederEventsThisWeek: [],
       lastFeederResults: null,
       newsArticles: generateWeeklyNewsStream(1, userTeam),
@@ -574,6 +592,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       onHotSeat: save.onHotSeat ?? false,
       firedFrom: null,
       careerComplete: false,
+      userProbationUntil: save.userProbationUntil ?? null,
       dilemmaLog: save.dilemmaLog ?? [],
       currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
       userTeamId: userTeam.id,
@@ -727,12 +746,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         meters.complianceScore = Math.max(0, meters.complianceScore - 35);
         meters.boosterApproval = Math.max(0, meters.boosterApproval - 15);
         userTeam.prestige = Math.max(40, userTeam.prestige - 6);
+        const ineligible = removeImproperRecruits(userTeam);
+        const probationUntil = year + PROBATION_SEASONS - 1;
+        set({ userProbationUntil: probationUntil });
         caughtNews.push({
           id: `news_user_violation_${year}_${nextWeek}`,
           week: nextWeek,
           outlet: 'STATE_SPORTS_CENTRAL',
           headline: `Investigation Finds ${userTeam.name} Boosters Made Improper Recruiting Offers`,
-          content: `State association investigators uncovered improper offers to recruits.${userViolationHeat >= BAN_HEAT_THRESHOLD ? ' The program is barred from the playoffs this season.' : ' Further violations will bring heavier penalties.'}`,
+          content: `State association investigators uncovered improper offers to recruits.${userViolationHeat >= BAN_HEAT_THRESHOLD ? ' The program is barred from the playoffs this season' : ' The program avoids a postseason ban this time'}${sanctionDetails(ineligible.length, probationUntil)}`,
           impactSentiment: 'NEGATIVE',
           featuredTeamName: userTeam.name
         });
@@ -1053,20 +1075,23 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       } else {
         profile.violationHeat = Math.round(profile.violationHeat * HEAT_DECAY);
       }
-      profile.strategy = chooseFeederStrategy(team);
+      profile.strategy = onProbation(profile.probationUntil, currentYear + 1) ? 'BUILD_LOCAL' : chooseFeederStrategy(team);
     });
     let { userViolationHeat } = get();
     let pendingUserBan = false;
+    let { userProbationUntil } = get();
     if (userViolationHeat > 0 && Math.random() < yearEndDetectionChance(userViolationHeat)) {
       pendingUserBan = userViolationHeat >= BAN_HEAT_THRESHOLD;
       userTeam.programMeters.complianceScore = Math.max(0, userTeam.programMeters.complianceScore - 35);
       userTeam.prestige = Math.max(40, userTeam.prestige - 6);
+      const ineligible = removeImproperRecruits(userTeam);
+      userProbationUntil = currentYear + PROBATION_SEASONS;
       investigationNews.push({
         id: `news_user_violation_${currentYear}_offseason`,
         week: 1,
         outlet: 'STATE_SPORTS_CENTRAL',
         headline: `Off-Season Investigation Lands on ${userTeam.name}`,
-        content: `Investigators found improper recruiting offers by ${userTeam.name} boosters.${pendingUserBan ? ' The program is barred from the playoffs next season.' : ''}`,
+        content: `Investigators found improper recruiting offers by ${userTeam.name} boosters.${pendingUserBan ? ' The program is barred from the playoffs next season' : ' The program avoids a postseason ban'}${sanctionDetails(ineligible.length, userProbationUntil)}`,
         impactSentiment: 'NEGATIVE',
         featuredTeamName: userTeam.name
       });
@@ -1103,6 +1128,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       playerRankings: newPlayerRankings,
       userViolationHeat,
       pendingUserBan,
+      userProbationUntil,
       feederEventsThisWeek: [],
       coachPoints: get().coachPoints + weeklyCpIncome(1, get().coachTalents, userTeam.programMeters.schoolBoardTrust),
       onHotSeat: review === 'HOT_SEAT',
@@ -1213,6 +1239,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const prospect = scoutingPool.find((p) => p.id === prospectId) ?? widePool.find((p) => p.id === prospectId);
     const { cost } = CONTACT_ACTIONS[action];
     if (!prospect || coachPoints < cost || prospect.actionsThisWeek?.includes(action)) return;
+    if (onProbation(get().userProbationUntil, get().currentYear) && restrictedOnProbation(prospect)) return;
     const bonus = staffBonuses(get().coachingStaff).feederInterest;
     const contact = (p: FeederProspect) => (p.id === prospectId ? contactProspect(p, action, bonus) : p);
     set({ coachPoints: coachPoints - cost, ...(prospect.scope ? { widePool: widePool.map(contact) } : { scoutingPool: scoutingPool.map(contact) }) });
@@ -1230,7 +1257,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   offerFeederInducement: (prospectId) => {
     const { coachPoints, scoutingPool, userViolationHeat } = get();
     const prospect = scoutingPool.find((p) => p.id === prospectId);
-    if (!prospect || prospect.userInducement || coachPoints < INDUCEMENT_CP_COST) return;
+    if (!prospect || prospect.userInducement || coachPoints < INDUCEMENT_CP_COST || onProbation(get().userProbationUntil, get().currentYear)) return;
     set({
       coachPoints: coachPoints - INDUCEMENT_CP_COST,
       userViolationHeat: userViolationHeat + inducementHeat(prospect),
@@ -1240,7 +1267,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   pitchFeederStar: (prospectId) => {
     const { coachPoints, scoutingPool, districtTeams, userTeamId } = get();
-    if (coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR) return;
+    if (coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR || onProbation(get().userProbationUntil, get().currentYear)) return;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     set({
       coachPoints: coachPoints - PROSPECT_ACTION_COSTS.PITCH_STAR,
@@ -1283,9 +1310,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     [...feederClass.rivalSignings, ...wide.rivalSignings, ...elite.signings].forEach(({ teamId, player }) => {
       rivalIncoming.set(teamId, [...(rivalIncoming.get(teamId) ?? []), player]);
     });
+    const probationPenalty = (until: number | null | undefined) => (onProbation(until, currentYear) ? PROBATION_FRESHMAN_PENALTY : 0);
     leagueTeams.forEach((team) => {
-      if (team.id === userTeamId) addIncomingClass(team, feederClass.joined);
-      else addIncomingClass(team, rivalIncoming.get(team.id) ?? [], STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL']);
+      if (team.id === userTeamId) addIncomingClass(team, feederClass.joined, -probationPenalty(get().userProbationUntil));
+      else
+        addIncomingClass(
+          team,
+          rivalIncoming.get(team.id) ?? [],
+          STRATEGY_FRESHMAN_ADJUSTMENT[team.feederProfile?.strategy ?? 'BUILD_LOCAL'] - probationPenalty(team.feederProfile?.probationUntil)
+        );
     });
     enforceVarsityRosterLimit(userTeam, feederClass.joined, feederClass.outcomes);
     // The pool is shared across the region: report only on the user's own pipeline (and anyone who chose the user)

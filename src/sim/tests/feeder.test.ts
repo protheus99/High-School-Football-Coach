@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { generateDistrictTeams, generateProceduralPlayer } from '../../generators/rosterGenerator';
+import { generateDistrictTeams, generateProceduralPlayer, INTAKE_SHIFT } from '../../generators/rosterGenerator';
 import {
   MAX_POOL_SIZE,
   MIN_POOL_SIZE,
@@ -53,7 +53,7 @@ describe('Feeder pool', () => {
     };
     expect(avg('TRYOUT')).toBeLessThan(avg('FEEDER_MIDDLE_SCHOOL'));
     const stars = Array.from({ length: 200 }, () => createProspect('STAR_RECRUIT', teamWithPrestige(95)));
-    expect(Math.min(...stars.map((p) => p.trueOverall))).toBeGreaterThanOrEqual(76);
+    expect(Math.min(...stars.map((p) => p.trueOverall))).toBeGreaterThanOrEqual(80 - 4 - INTAKE_SHIFT); // freshmen arrive raw
     many.filter((p) => p.source === 'SEVEN_ON_SEVEN').forEach((p) => expect(['QB', 'RB', 'WR', 'TE', 'LB', 'CB', 'S']).toContain(p.projectedPosition));
   });
 });

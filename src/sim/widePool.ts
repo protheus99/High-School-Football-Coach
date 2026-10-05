@@ -1,6 +1,6 @@
 import { FeederOutcome, FeederProspect, PotentialGrade, Team } from '../types/game';
 import { clamp, randomInt } from './math/variance';
-import { COMMIT_THRESHOLD, createProspect, prospectRankScore, prospectToPlayer, RivalSigning, schoolInterest } from './feederEngine';
+import { COMMIT_THRESHOLD, createProspect, prospectRankScore, prospectToPlayer, RivalSigning, schoolInterest, signProspect } from './feederEngine';
 import { RecruitingContext } from './feederCompetition';
 import type { LightLeague } from './nationalWorld';
 
@@ -99,13 +99,13 @@ export function resolveWidePool(
     const base = { prospectId: p.id, prospectName: p.name, source: p.source, position: p.projectedPosition };
     const userWins = Math.random() < wideJoinProbability(p, ctx.userTeamId);
     if (userWins) {
-      const player = prospectToPlayer(p);
+      const player = signProspect(p, ctx.userTeamId, ctx.userTeamId);
       joined.push(player);
       outcomes.push({ ...base, outcome: 'JOINED', playerId: player.id, overall: p.trueOverall });
       return;
     }
     const home = p.suitors[0];
-    if (home && ctx.teamsById.has(home.teamId)) rivalSignings.push({ teamId: home.teamId, player: prospectToPlayer(p) });
+    if (home && ctx.teamsById.has(home.teamId)) rivalSignings.push({ teamId: home.teamId, player: signProspect(p, home.teamId) });
     if (recruited) outcomes.push({ ...base, outcome: 'OTHER_SCHOOL', destinationTeamId: home?.teamId, destinationName: home ? `${home.teamName}${p.scope === 'NATIONAL' ? ` (${p.homeState})` : ''}` : 'Stayed home' });
   });
   return { joined, rivalSignings, outcomes };

@@ -26,7 +26,7 @@ import {
   schoolInterest,
   userJoinProbability
 } from '../sim/feederEngine';
-import { FACTOR_LABELS, RecruitingContext, buildRecruitingContext, choiceShares, topPriority } from '../sim/feederCompetition';
+import { FACTOR_LABELS, RecruitingContext, buildRecruitingContext, choiceShares, onProbation, restrictedOnProbation, topPriority } from '../sim/feederCompetition';
 import { wideJoinProbability } from '../sim/widePool';
 import { staffBonuses } from '../sim/coachingStaff';
 
@@ -109,8 +109,10 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     league,
     leagueTeams,
     currentYear,
-    feederClassYear
+    feederClassYear,
+    userProbationUntil
   } = useGameStore();
+  const probation = onProbation(userProbationUntil, currentYear);
   const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
   // The pool scopes in the state's words; a one-region league's "region" pool is the whole state class
   const districtWord = rulesForState(league?.state).districtLabel;
@@ -318,6 +320,13 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             </div>
           )}
 
+          {probation && (
+            <div role="status" style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B', borderRadius: '8px', padding: '8px 10px', fontSize: '13px', marginBottom: '8px' }}>
+              🚫 Recruiting probation through {userProbationUntil}: no recruiting out-of-area stars, rivals&apos; zoned players or the State and
+              National lists, and walk-on freshmen arrive weaker.
+            </div>
+          )}
+
           {/* Pool: how far to look (scope), then which list (filter) */}
           <div aria-label="Pool scope" style={{ display: 'grid', gridTemplateColumns: `repeat(${scopes.length}, 1fr)`, gap: '6px', marginBottom: '6px' }}>
             {scopes.map((s) => (
@@ -362,6 +371,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                 chance={p.scope ? wideJoinProbability(p, userTeamId) : userJoinProbability(p, userTeam.prestige, ctx)}
                 coachPoints={coachPoints}
                 onContact={(action) => contactFeederProspect(p.id, action)}
+                locked={probation && restrictedOnProbation(p)}
                 interestBonus={interestBonus}
                 rank={rankLabel(p)}
                 schools={schoolInterest(p, userTeamId).slice(0, 3).map((e) => ({ name: schoolName(e.teamId, p), interest: e.interest, isYou: e.teamId === userTeamId }))}
@@ -403,7 +413,8 @@ const ProspectCard: React.FC<{
   schools: { name: string; interest: number; isYou: boolean }[];
   commitment: { name: string; interest: number; isYou: boolean; tied: boolean } | null;
   interestBonus: number; // the staff's Feeder Pipeline
-}> = ({ prospect: p, chance, coachPoints, onContact, positionFilled, onRemove, rank, schools, commitment, interestBonus }) => {
+  locked?: boolean; // off limits while the program is on recruiting probation
+}> = ({ prospect: p, chance, coachPoints, onContact, positionFilled, onRemove, rank, schools, commitment, interestBonus, locked }) => {
   const [confirmRemove, setConfirmRemove] = useState(false);
   // Evaluated once scouted or at 50+ interest: his potential, speed and strength show
   const scouted = isEvaluated(p);
@@ -494,11 +505,13 @@ const ProspectCard: React.FC<{
         {CONTACT_ORDER.map((action) => {
           const { label, cost } = CONTACT_ACTIONS[action];
           const done = p.actionsThisWeek?.includes(action);
-          const disabled = done || coachPoints < cost;
+          const disabled = done || coachPoints < cost || !!locked;
           return (
             <button key={action} onClick={() => onContact(action)} disabled={disabled} style={{ ...actionBtn('#2563EB', disabled), padding: '6px 4px', lineHeight: 1.2 }}>
               {done ? `✓ ${label}` : label}
-              <span style={{ display: 'block', fontSize: '11px', fontWeight: 'normal' }}>{done ? 'this week' : `₡${cost} · +${contactGain(p, action, interestBonus)}`}</span>
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: 'normal' }}>
+                {locked ? 'probation' : done ? 'this week' : `₡${cost} · +${contactGain(p, action, interestBonus)}`}
+              </span>
             </button>
           );
         })}

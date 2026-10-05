@@ -1,6 +1,6 @@
 import { Player, Position, Team } from '../types/game';
 import { DEPTH_TEMPLATE, rebuildDepthChart } from './depthChart';
-import { generateProceduralPlayer, programTalent } from '../generators/rosterGenerator';
+import { generateProceduralPlayer, INTAKE_SHIFT, programTalent } from '../generators/rosterGenerator';
 import { STAFF_DEVELOPMENT_CAP } from './coachingStaff';
 import { processOffSeasonProgression } from './playerEngine';
 import { createEmptyPlayerStats } from './playerStats';
@@ -17,7 +17,7 @@ const newFreshman = (pos: Position, team: Team, takenNames: Set<string>, adjustm
   const { roster, core } = DEPTH_TEMPLATE[pos];
   const tier = Math.random() < (core / roster) * STARTER_FRESHMAN_SHARE ? 1 : 3;
   // Freshmen carry the program's talent (prestige and state), as a rebuilt program would: dynasties reload
-  return generateProceduralPlayer(pos, 'Freshman', tier, Math.round(adjustment + programTalent(team.prestige, team.state)) - randomInt(4, 8), { nameProfile: team.nameProfile, takenNames });
+  return generateProceduralPlayer(pos, 'Freshman', tier, Math.round(adjustment + programTalent(team.prestige, team.state)) - randomInt(4, 8) - INTAKE_SHIFT, { nameProfile: team.nameProfile, takenNames });
 };
 
 const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior' } as const;

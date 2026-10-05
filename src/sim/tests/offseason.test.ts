@@ -4,6 +4,8 @@ import { advanceTeamToNextSeason } from '../offseasonEngine';
 import { DEPTH_TEMPLATE } from '../depthChart';
 import { teamStarterRating } from '../macroSim';
 import { Position, Team } from '../../types/game';
+import { buildTexasLeague } from '../league';
+import texas6A from '../../data/texas-6a.json';
 
 const positions = Object.keys(DEPTH_TEMPLATE) as Position[];
 
@@ -53,7 +55,13 @@ describe('Off-season rollover', () => {
   });
 
   it('keeps program strength stable across a decade of graduations', () => {
-    const teams = generateDistrictTeams();
+    // Forty real schools with prestige-based talent, as the game builds them
+    const schools = texas6A.regions[0].districts.flatMap((d) => d.schools).slice(0, 40);
+    const teams = generateDistrictTeams(
+      'tx_6a_d1',
+      schools.map((s) => ({ name: s.name, mascot: s.mascot, primary: s.primaryColor, secondary: s.secondaryColor, prestige: s.prestige })),
+      { talentFromPrestige: true, state: 'Texas' }
+    );
     const average = () => teams.reduce((s, t) => s + teamStarterRating(t), 0) / teams.length;
     const yearly = [average()];
     for (let year = 0; year < 8; year++) {
@@ -61,6 +69,16 @@ describe('Off-season rollover', () => {
       teams.forEach(expectFullDepthChart);
       yearly.push(average());
     }
-    yearly.forEach((avg) => expect(Math.abs(avg - yearly[0])).toBeLessThan(6));
+    // No drift: the generated rosters already have the age curve the yearly progression keeps (this rollover alone
+    // runs a little low; in the game, feeder recruits top classes up)
+    yearly.forEach((avg) => expect(Math.abs(avg - yearly[0])).toBeLessThan(2.5));
+  });
+
+  it('generates rosters with an age curve: seniors ahead of juniors, sophomores and freshmen', () => {
+    const players = buildTexasLeague().teams.flatMap((t) => t.roster);
+    const mean = (c: string) => players.filter((p) => p.classYear === c).reduce((s, p, _, all) => s + p.overallRating / all.length, 0);
+    expect(mean('Senior')).toBeGreaterThan(mean('Junior'));
+    expect(mean('Junior')).toBeGreaterThan(mean('Sophomore'));
+    expect(mean('Sophomore')).toBeGreaterThan(mean('Freshman'));
   });
 });
