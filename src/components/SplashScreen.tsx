@@ -87,7 +87,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   };
 
   return (
-    <div style={pageStyle}>
+    <div className="ui-on-dark" style={pageStyle}>
       <div style={{ width: '100%', maxWidth: '760px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ fontSize: '48px' }}>🏈</div>

@@ -337,6 +337,12 @@ h3 {
   border-color: #0f172a;
   color: #fff;
 }
+/* On dark screens (the title screen) the selected chip is amber, so it stands out from the background */
+.ui-on-dark .ui-chip[aria-pressed='true'] {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: #0f172a;
+}
 
 .ui-chip:disabled {
   color: #cbd5e1;
