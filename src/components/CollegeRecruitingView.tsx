@@ -37,7 +37,7 @@ const ACTIONS: {
   {
     action: 'CAMP',
     label: 'Take to Camp',
-    color: '#D97706',
+    color: '#B45309',
     help: `Take him to a summer camp (weeks 1-${CAMP_WEEKS}): +20 exposure, a chance to impress evaluators, and an immediate look.`
   }
 ];
@@ -126,7 +126,7 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
           <span style={pill('#EEF2FF', '#3730A3')}>₡{coachPoints}</span>
           <span style={pill('#ECFDF5', '#065F46')}>Committed: {committed}</span>
           <span style={pill('#EFF6FF', '#1E40AF')}>With D-I offers: {d1Offers}</span>
-          <span style={pill(currentWeek <= CAMP_WEEKS ? '#FEF3C7' : '#F1F5F9', currentWeek <= CAMP_WEEKS ? '#92400E' : '#64748B')}>
+          <span style={pill(currentWeek <= CAMP_WEEKS ? '#FEF3C7' : '#F1F5F9', currentWeek <= CAMP_WEEKS ? '#92400E' : '#475569')}>
             {currentWeek <= CAMP_WEEKS ? `Camp season (through week ${CAMP_WEEKS})` : 'Camps closed'}
           </span>
         </div>
@@ -148,7 +148,17 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="ui-sticky-nav" style={{ margin: '0 -16px 10px', padding: '8px 16px' }}>
+        <div className="ui-chip-row ui-chip-row-3" role="navigation" aria-label="College sections" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
+          <button className="ui-chip" onClick={() => document.getElementById('college-mine')?.scrollIntoView()}>
+            Your players ({recruits.length})
+          </button>
+          <button className="ui-chip" onClick={() => document.getElementById('college-state')?.scrollIntoView()}>
+            State top seniors
+          </button>
+        </div>
+      </div>
+      <div id="college-mine" style={{ display: 'flex', flexDirection: 'column', gap: '8px', scrollMarginTop: '64px' }}>
         {recruits.map((p) => (
           <RecruitRow
             key={p.id}
@@ -165,7 +175,7 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
         {recruits.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No juniors or seniors on the roster.</div>}
       </div>
 
-      <h3 style={{ margin: '24px 0 6px 0', fontSize: '15px' }}>Top Senior Recruits in the State</h3>
+      <h3 id="college-state" style={{ margin: '24px 0 6px 0', scrollMarginTop: '64px' }}>Top Senior Recruits in the State</h3>
       <DataList
         rows={statewide.map((row, i) => ({ ...row, rank: i + 1 }))}
         rowKey={(r) => r.player.id}
@@ -183,7 +193,7 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
             )
           },
           { key: 'school', label: 'School', render: (r) => r.team.name },
-          { key: 'stars', label: 'Stars', render: (r) => <span style={{ color: '#D97706' }}>{stars(r.player.recruiting.starRating)}</span> },
+          { key: 'stars', label: 'Stars', render: (r) => <span style={{ color: '#B45309' }}>{stars(r.player.recruiting.starRating)}</span> },
           {
             key: 'status',
             label: 'Status',
@@ -243,7 +253,7 @@ const RecruitRow: React.FC<{
             </span>
           </div>
           <div style={{ fontSize: '12px' }}>
-            <span style={{ color: '#D97706', fontWeight: 'bold' }}>{stars(r.starRating)}</span>
+            <span style={{ color: '#B45309', fontWeight: 'bold' }}>{stars(r.starRating)}</span>
             <span
               style={{
                 color: status.color,
@@ -336,8 +346,8 @@ const pill = (background: string, color: string): React.CSSProperties => ({
 const btn = (color: string, disabled: boolean): React.CSSProperties => ({
   minHeight: '40px', // comfortable tap target
   padding: '8px 12px',
-  background: disabled ? '#CBD5E1' : color,
-  color: '#fff',
+  background: disabled ? '#E2E8F0' : color,
+  color: disabled ? '#475569' : '#fff',
   border: 'none',
   borderRadius: '4px',
   cursor: disabled ? 'default' : 'pointer',

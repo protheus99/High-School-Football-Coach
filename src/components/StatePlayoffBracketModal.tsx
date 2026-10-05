@@ -107,7 +107,7 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({ bracketS
                     <div key={team.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginBottom: i === 0 ? '4px' : 0, flexWrap: 'nowrap' }}>
                       <span style={{ fontWeight: won ? 'bold' : 'normal', color: won ? '#16A34A' : node.winnerTeamId ? '#94A3B8' : '#1E293B', minWidth: 0 }}>
                         {team.name}{' '}
-                        <span style={{ fontSize: '12px', color: '#94A3B8' }}>
+                        <span style={{ fontSize: '12px', color: '#64748B' }}>
                           ({team.record.wins}-{team.record.losses})
                         </span>
                       </span>
@@ -115,7 +115,7 @@ export const StatePlayoffBracketModal: React.FC<PlayoffModalProps> = ({ bracketS
                     </div>
                   );
                 })}
-                {node.isBye && <div style={{ fontSize: '12px', color: '#94A3B8' }}>Bye: advances without playing</div>}
+                {node.isBye && <div style={{ fontSize: '12px', color: '#64748B' }}>Bye: advances without playing</div>}
               </div>
             ))}
           </div>

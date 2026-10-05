@@ -1,4 +1,5 @@
 import React from 'react';
+import { readableOnWhite } from '../utils/color';
 import { useGameStore } from '../store/gameStore';
 import { FEEDER_SIGNING_WEEK, getSeasonPhase, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK, LAST_TRAINING_CAMP_WEEK, SEASON_PHASE_LABELS, SeasonPhase, firstPlayoffWeek } from '../sim/scheduleEngine';
 
@@ -102,7 +103,7 @@ export const ScheduleView: React.FC = () => {
             {(i === 0 || schedule[i - 1].type !== game.type) && (
               <h4 style={{ margin: i === 0 ? '0' : '10px 0 0', fontSize: '13px', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 {SEASON_PHASE_LABELS[game.type].replace('District', rulesForState(league?.state).districtLabel)}{' '}
-                <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>
+                <span style={{ color: '#475569', fontWeight: 'normal' }}>
                   · {(() => {
                     const last = schedule.filter((g) => g.type === game.type).pop()!.week;
                     return last === game.week ? `Week ${game.week}` : `Weeks ${game.week}–${last}`;
@@ -121,24 +122,24 @@ export const ScheduleView: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'nowrap' }}>
                 <span style={{ fontSize: '14px' }}>
                   <strong>Week {game.week}</strong>
-                  {game.label && <span style={{ color: '#64748B', fontSize: '13px' }}> · {game.label}</span>}
+                  {game.label && <span style={{ color: '#475569', fontSize: '13px' }}> · {game.label}</span>}
                 </span>
                 {game.result && <strong style={{ color: game.result.startsWith('W') ? '#059669' : '#DC2626', fontSize: '14px' }}>{game.result}</strong>}
               </div>
               {game.opponent ? (
                 <div style={{ fontSize: '14px', marginTop: '2px' }}>
                   {game.isHome ? 'vs.' : 'at'}{' '}
-                  <button onClick={() => openTeamProfile(game.opponent!.id)} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}>
-                    <strong style={{ color: game.opponent.primaryColor, textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                  <button onClick={() => openTeamProfile(game.opponent!.id)} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer', minHeight: '40px', display: 'inline-flex', alignItems: 'center', textAlign: 'left' }}>
+                    <strong style={{ color: readableOnWhite(game.opponent.primaryColor, game.opponent.secondaryColor), textDecoration: 'underline', textUnderlineOffset: '2px' }}>
                       {game.opponent.name} {game.opponent.mascot}
                     </strong>
                   </button>
-                  <div style={{ fontSize: '12px', color: '#64748B' }}>
+                  <div style={{ fontSize: '12px', color: '#475569' }}>
                     {game.opponent.record.wins}-{game.opponent.record.losses} · {game.opponent.schemeOffense.replace(/_/g, ' ')} offense
                   </div>
                 </div>
               ) : (
-                <div style={{ color: '#64748B', fontSize: '13px', marginTop: '2px' }}>{weekNote(
+                <div style={{ color: '#475569', fontSize: '13px', marginTop: '2px' }}>{weekNote(
                     game.week,
                     game.type,
                     game.week === totalWeeks,

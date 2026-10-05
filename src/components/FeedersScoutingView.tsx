@@ -48,9 +48,9 @@ const OUTCOME_LABELS: Record<FeederOutcomeType, string> = {
 };
 
 function outlook(chance: number): { label: string; color: string } {
-  if (chance >= 0.65) return { label: 'Likely', color: '#16A34A' };
+  if (chance >= 0.65) return { label: 'Likely', color: '#15803D' };
   if (chance >= 0.4) return { label: 'Possible', color: '#2563EB' };
-  if (chance >= 0.15) return { label: 'Unlikely', color: '#D97706' };
+  if (chance >= 0.15) return { label: 'Unlikely', color: '#B45309' };
   return { label: 'Long shot', color: '#DC2626' };
 }
 
@@ -468,7 +468,7 @@ const ProspectCard: React.FC<{
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
         <strong style={{ fontSize: '14px' }}>
           {p.name}
-          {rank && <span style={{ marginLeft: '6px', fontSize: '11px', color: '#B45309' }}>{rank}</span>}
+          {rank && <span style={{ marginLeft: '6px', fontSize: '12px', color: '#B45309' }}>{rank}</span>}
         </strong>
         <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontWeight: 'bold' }}>{p.projectedPosition}</span>
@@ -497,7 +497,7 @@ const ProspectCard: React.FC<{
         {scouted ? (
           <>Potential <strong>{seen.revealedPotential}</strong> · Speed {seen.scoutedSpeed} · Strength {seen.scoutedStrength}</>
         ) : (
-          <span style={{ color: '#94A3B8' }}>Not evaluated · evaluated at {EVALUATION_INTEREST} interest</span>
+          <span style={{ color: '#64748B' }}>Not evaluated · evaluated at {EVALUATION_INTEREST} interest</span>
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
@@ -544,7 +544,7 @@ const ProspectCard: React.FC<{
           return (
             <button key={action} onClick={() => onContact(action)} disabled={disabled} style={{ ...actionBtn('#2563EB', disabled), padding: '6px 4px', lineHeight: 1.2 }}>
               {done ? `✓ ${label}` : label}
-              <span style={{ display: 'block', fontSize: '11px', fontWeight: 'normal' }}>
+              <span style={{ display: 'block', fontSize: '12px', fontWeight: 'normal' }}>
                 {locked ? 'probation' : done ? 'this week' : `₡${cost} · +${contactGain(p, action, interestBonus)}`}
               </span>
             </button>
@@ -558,8 +558,8 @@ const ProspectCard: React.FC<{
 const actionBtn = (color: string, disabled: boolean): React.CSSProperties => ({
   minHeight: '40px', // comfortable tap target
   padding: '8px 12px',
-  background: disabled ? '#CBD5E1' : color,
-  color: '#fff',
+  background: disabled ? '#E2E8F0' : color,
+  color: disabled ? '#475569' : '#fff',
   border: 'none',
   borderRadius: '4px',
   cursor: disabled ? 'default' : 'pointer',
@@ -575,7 +575,11 @@ const playerLink: React.CSSProperties = {
   fontWeight: 'bold',
   textDecoration: 'underline',
   cursor: 'pointer',
-  fontSize: 'inherit'
+  fontSize: 'inherit',
+  // A finger-sized tap area around the text
+  minHeight: '40px',
+  display: 'inline-flex',
+  alignItems: 'center'
 };
 
 /** Holes in the roster by position, most urgent first, with how many prospects the pipeline has there. */
@@ -607,7 +611,7 @@ const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void }
           {n.returning} of {n.target} spots filled
         </div>
       </div>
-      <div style={{ textAlign: 'right', fontSize: '12px', color: n.pipeline >= n.need ? '#16A34A' : '#B45309', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+      <div style={{ textAlign: 'right', fontSize: '12px', color: n.pipeline >= n.need ? '#15803D' : '#B45309', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
         {n.pipeline} in pipeline
       </div>
     </div>
@@ -617,7 +621,7 @@ const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void }
       <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#64748B' }}>
         Holes in next season&apos;s roster by position, after the seniors leave. Target these positions with visits and programs: Big Man Camp
         brings in linemen, the QB &amp; Skills Academy skill players.{' '}
-        <button onClick={onPrograms} style={{ ...playerLink, color: '#2563EB' }}>
+        <button onClick={onPrograms} style={{ ...playerLink, color: '#1D4ED8' }}>
           Off Season Programs →
         </button>
       </p>
@@ -627,7 +631,7 @@ const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void }
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>{priority.map((n) => row(n, true))}</div>
         </>
       ) : (
-        <p style={{ fontSize: '13px', color: '#16A34A', fontWeight: 'bold' }}>No urgent needs: the pipeline covers every position.</p>
+        <p style={{ fontSize: '13px', color: '#15803D', fontWeight: 'bold' }}>No urgent needs: the pipeline covers every position.</p>
       )}
       <h3 style={{ margin: '0 0 8px 0', fontSize: '15px' }}>Covered</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{rest.map((n) => row(n, false))}</div>

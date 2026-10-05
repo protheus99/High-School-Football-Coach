@@ -75,7 +75,7 @@ export const AroundTheLeague: React.FC<{ quarter: GameQuarter; clock: number; is
                     </div>
                   ))}
                 </div>
-                <div style={{ flex: '0 0 64px', textAlign: 'right', fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>
+                <div style={{ flex: '0 0 64px', textAlign: 'right', fontSize: '12px', color: '#64748B', lineHeight: 1.3 }}>
                   <strong style={{ color: s.status.startsWith('Final') ? '#0F172A' : '#B45309' }}>{s.status}</strong>
                   <br />
                   {g.label ?? (districtIds.has(g.homeId) && districtIds.has(g.awayId) ? 'District' : g.state)}

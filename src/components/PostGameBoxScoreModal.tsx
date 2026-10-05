@@ -1,4 +1,5 @@
 import React from 'react';
+import { readableOnWhite } from '../utils/color';
 import { GameSimulationState, Player, PlayerStats, Team } from '../types/game';
 import { addPlayerStats, createEmptyPlayerStats } from '../sim/playerStats';
 import { Sheet } from './ui/Sheet';
@@ -43,12 +44,12 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
       {/* Final score */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', background: '#F8FAFC', padding: '14px 10px', borderRadius: '10px', marginBottom: '14px', textAlign: 'center' }}>
         <div>
-          <div style={{ fontWeight: 'bold', fontSize: '14px', color: homeTeam.primaryColor }}>{homeTeam.name}</div>
+          <div style={{ fontWeight: 'bold', fontSize: '14px', color: readableOnWhite(homeTeam.primaryColor, homeTeam.secondaryColor) }}>{homeTeam.name}</div>
           <div style={{ fontSize: '34px', fontWeight: 'bold' }}>{homeScore}</div>
         </div>
-        <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#94A3B8' }}>FINAL</div>
+        <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#64748B' }}>FINAL</div>
         <div>
-          <div style={{ fontWeight: 'bold', fontSize: '14px', color: awayTeam.primaryColor }}>{awayTeam.name}</div>
+          <div style={{ fontWeight: 'bold', fontSize: '14px', color: readableOnWhite(awayTeam.primaryColor, awayTeam.secondaryColor) }}>{awayTeam.name}</div>
           <div style={{ fontSize: '34px', fontWeight: 'bold' }}>{awayScore}</div>
         </div>
       </div>
@@ -94,7 +95,7 @@ const TeamPlayerStats: React.FC<{ team: Team; gameStats: Record<string, PlayerSt
 
   return (
     <div style={{ fontSize: '13px', color: '#334155' }}>
-      <div style={{ fontWeight: 'bold', fontSize: '15px', color: team.primaryColor, borderBottom: '1px solid #E2E8F0', marginBottom: '6px', paddingBottom: '4px' }}>{team.name}</div>
+      <div style={{ fontWeight: 'bold', fontSize: '15px', color: readableOnWhite(team.primaryColor, team.secondaryColor), borderBottom: '1px solid #E2E8F0', marginBottom: '6px', paddingBottom: '4px' }}>{team.name}</div>
       {sections.filter((sec) => sec.rows.length > 0).map((sec) => (
         <div key={sec.title} style={{ marginBottom: '6px' }}>
           <div style={{ fontWeight: 'bold', color: '#64748B', fontSize: '12px', textTransform: 'uppercase' }}>{sec.title}</div>

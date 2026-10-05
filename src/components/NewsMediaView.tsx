@@ -1,5 +1,6 @@
 import React from 'react';
 import { NewsArticle } from '../sim/newsEngine';
+import { PageHeader } from './ui/PageHeader';
 
 interface NewsMediaViewProps {
   articles: NewsArticle[];
@@ -7,11 +8,9 @@ interface NewsMediaViewProps {
 
 export const NewsMediaView: React.FC<NewsMediaViewProps> = ({ articles }) => {
   return (
+    <>
+    <PageHeader title="News" subtitle="The Friday Night Chronicle: the local sports desk and sideline rumor mill" />
     <div className="ui-screen" style={{ maxWidth: '850px' }}>
-      <div style={{ borderBottom: '2px solid #0F172A', paddingBottom: '8px', marginBottom: '16px' }}>
-        <h2 style={{ margin: 0 }}>📰 The Friday Night Chronicle</h2>
-        <div style={{ fontSize: '13px', color: '#64748B' }}>Local high school sports desk and sideline rumor mill</div>
-      </div>
 
       {articles.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -30,7 +29,7 @@ export const NewsMediaView: React.FC<NewsMediaViewProps> = ({ articles }) => {
                 <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748B', textTransform: 'uppercase' }}>
                   {art.outlet.replace(/_/g, ' ')}
                 </span>
-                <span style={{ fontSize: '12px', color: '#94A3B8' }}>Week {art.week}</span>
+                <span style={{ fontSize: '12px', color: '#64748B' }}>Week {art.week}</span>
               </div>
               <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#0F172A' }}>{art.headline}</h3>
               <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: '1.5' }}>{art.content}</p>
@@ -38,8 +37,9 @@ export const NewsMediaView: React.FC<NewsMediaViewProps> = ({ articles }) => {
           ))}
         </div>
       ) : (
-        <div style={{ color: '#94A3B8', textAlign: 'center', padding: '30px' }}>No headlines recorded yet this season.</div>
+        <div style={{ color: '#64748B', textAlign: 'center', padding: '30px' }}>No headlines recorded yet this season.</div>
       )}
     </div>
+    </>
   );
 };

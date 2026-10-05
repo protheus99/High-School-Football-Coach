@@ -42,7 +42,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
     >
       {/* The essentials */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '12px' }}>
-        <Tile label="Stars" value={<span style={{ color: '#D97706', letterSpacing: '1px' }}>{stars(p.recruiting.starRating)}</span>} small />
+        <Tile label="Stars" value={<span style={{ color: '#B45309', letterSpacing: '1px' }}>{stars(p.recruiting.starRating)}</span>} small />
         <Tile label="Overall" value={isOwnPlayer ? p.overallRating : '🔒'} tone={isOwnPlayer ? '#2563EB' : undefined} />
         <Tile label="Potential" value={isOwnPlayer ? p.potential : '🔒'} />
       </div>
@@ -64,7 +64,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
             </div>
             <div>
               <dt>Eligibility</dt>
-              <dd style={{ color: !p.academics.isEligible || injured ? '#DC2626' : '#16A34A' }}>
+              <dd style={{ color: !p.academics.isEligible || injured ? '#DC2626' : '#15803D' }}>
                 {!p.academics.isEligible ? 'Ineligible (grades)' : injured ? `Injured, ${p.condition.injuryWeeksRemaining} wk` : 'Eligible'}
               </dd>
             </div>
@@ -114,7 +114,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
             {offers.length > 3 && `, +${offers.length - 3} more`}
           </div>
         ) : (
-          <div style={{ fontSize: '13px', color: '#64748B' }}>No scholarship offers yet.</div>
+          <div style={{ fontSize: '13px', color: '#475569' }}>No scholarship offers yet.</div>
         )}
         {(p.recruiting.decommitCount ?? 0) > 0 && <div style={{ fontSize: '12px', color: '#92400E', marginTop: '4px' }}>Flipped his commitment {p.recruiting.decommitCount}×</div>}
         {onOpenRecruiting && (
@@ -151,7 +151,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
 
 const Tile: React.FC<{ label: string; value: React.ReactNode; tone?: string; small?: boolean }> = ({ label, value, tone, small }) => (
   <div style={{ background: '#F1F5F9', borderRadius: '10px', padding: '8px 6px', textAlign: 'center' }}>
-    <div style={{ fontSize: '12px', color: '#64748B' }}>{label}</div>
+    <div style={{ fontSize: '12px', color: '#475569' }}>{label}</div>
     <div style={{ fontWeight: 'bold', fontSize: small ? '14px' : '20px', color: tone ?? '#0F172A', whiteSpace: 'nowrap', lineHeight: 1.4 }}>{value}</div>
   </div>
 );
@@ -160,7 +160,7 @@ const StatLines: React.FC<{ lines: [string, string][] }> = ({ lines }) => (
   <div style={{ fontSize: '13px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 12px', marginBottom: '10px' }}>
     {lines.map(([label, value]) => (
       <React.Fragment key={label}>
-        <span style={{ color: '#64748B' }}>{label}</span>
+        <span style={{ color: '#475569' }}>{label}</span>
         <span>{value}</span>
       </React.Fragment>
     ))}
@@ -169,8 +169,8 @@ const StatLines: React.FC<{ lines: [string, string][] }> = ({ lines }) => (
 
 const AttrCard: React.FC<{ label: string; val: number }> = ({ label, val }) => (
   <div style={{ background: '#F1F5F9', padding: '6px 4px', borderRadius: '8px', textAlign: 'center' }}>
-    <div style={{ color: '#64748B', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
-    <div style={{ fontWeight: 'bold', fontSize: '15px', color: val >= 80 ? '#16A34A' : val >= 65 ? '#2563EB' : '#475569' }}>{val}</div>
+    <div style={{ color: '#475569', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+    <div style={{ fontWeight: 'bold', fontSize: '15px', color: val >= 80 ? '#15803D' : val >= 65 ? '#2563EB' : '#475569' }}>{val}</div>
   </div>
 );
 
@@ -178,7 +178,7 @@ const sectionTitle: React.CSSProperties = { margin: '0 0 6px 0', fontSize: '15px
 
 const lockNote: React.CSSProperties = {
   fontSize: '12px',
-  color: '#64748B',
+  color: '#475569',
   background: '#F8FAFC',
   border: '1px dashed #CBD5E1',
   borderRadius: '8px',

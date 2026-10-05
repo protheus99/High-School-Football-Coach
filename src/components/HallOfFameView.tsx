@@ -25,7 +25,9 @@ export const HallOfFameView: React.FC = () => {
       <div className="ui-screen" style={{ paddingBottom: '8px' }}>
         <TrophyCase trophies={trophies} collegeSignees={signees} schoolPrestige={userTeam.prestige} />
       </div>
-      <h3 style={{ margin: '8px 16px 10px', fontSize: '15px' }}>Leaderboard</h3>
+      <h3 className="ui-subsection-title" style={{ margin: '8px 16px 10px' }}>
+        Leaderboard
+      </h3>
       <LeaderboardView />
     </div>
   );

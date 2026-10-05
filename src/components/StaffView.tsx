@@ -89,7 +89,7 @@ export const StaffView: React.FC = () => {
             <div key={info.role} style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '12px', fontSize: '13px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'nowrap' }}>
                 <strong style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</strong>
-                {coach ? <GradeBadge grade={coachGrade(coach.rating)} /> : <span style={{ color: '#94A3B8', fontSize: '12px' }}>Vacant</span>}
+                {coach ? <GradeBadge grade={coachGrade(coach.rating)} /> : <span style={{ color: '#64748B', fontSize: '12px' }}>Vacant</span>}
               </div>
               {coach && (
                 <>

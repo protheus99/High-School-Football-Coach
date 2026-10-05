@@ -102,6 +102,6 @@ const RatingTile: React.FC<{ label: string; value: number; help: string; strong?
   <div style={{ background: strong ? '#0F172A' : '#fff', color: strong ? '#fff' : '#0F172A', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '8px', textAlign: 'center' }}>
     <div style={{ fontSize: '12px', fontWeight: 'bold', color: strong ? '#CBD5E1' : '#64748B' }}>{label} OVR</div>
     <div style={{ fontSize: '24px', fontWeight: 900, lineHeight: 1.2 }}>{value}</div>
-    <div style={{ fontSize: '12px', color: '#94A3B8' }}>{help}</div>
+    <div style={{ fontSize: '12px', color: strong ? '#94A3B8' : '#64748B' }}>{help}</div>
   </div>
 );

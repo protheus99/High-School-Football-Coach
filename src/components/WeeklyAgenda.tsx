@@ -706,11 +706,11 @@ export const WeeklyAgenda: React.FC<{
   return (
     <section aria-labelledby="this-week-title" style={{ marginBottom: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px 12px' }}>
-        <h2 id="this-week-title" style={{ margin: '0 0 4px 0' }}>
+        <h2 id="this-week-title" className="ui-section-title">
           This Week <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
         </h2>
         <span style={{ fontSize: '13px', color: '#64748B' }}>
-          ₡{coachPoints} <span style={{ color: '#94A3B8' }}>· +₡{weeklyCpIncome(currentWeek + 1, coachTalents, team.programMeters.schoolBoardTrust)} next week</span>
+          ₡{coachPoints} <span style={{ color: '#64748B' }}>· +₡{weeklyCpIncome(currentWeek + 1, coachTalents, team.programMeters.schoolBoardTrust)} next week</span>
         </span>
       </div>
       {flash && (
@@ -749,12 +749,16 @@ const choiceBtn: React.CSSProperties = {
 const linkBtn: React.CSSProperties = {
   background: 'none',
   border: 'none',
-  color: '#2563EB',
+  color: '#1D4ED8',
   fontWeight: 'bold',
-  fontSize: '13px',
+  fontSize: '14px',
   cursor: 'pointer',
-  padding: 0,
-  whiteSpace: 'nowrap'
+  padding: '0 4px',
+  whiteSpace: 'nowrap',
+  // A finger-sized tap area around the text
+  minHeight: '40px',
+  display: 'inline-flex',
+  alignItems: 'center'
 };
 
 const actionBtn = (primary: boolean, disabled: boolean): React.CSSProperties => ({

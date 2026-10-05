@@ -48,13 +48,13 @@ export const CoachRPGSkillTreeModal: React.FC<{ onClose: () => void }> = ({ onCl
                     <strong style={{ fontSize: '14px' }}>{t.name}</strong>
                     <div style={{ fontSize: '13px', color: '#64748B', margin: '2px 0 8px' }}>{t.description}</div>
                     {unlocked ? (
-                      <span style={{ fontSize: '13px', color: '#16A34A', fontWeight: 'bold' }}>✓ Unlocked</span>
+                      <span style={{ fontSize: '13px', color: '#15803D', fontWeight: 'bold' }}>✓ Unlocked</span>
                     ) : (
                       <>
                         <button className="ui-btn ui-btn-primary" onClick={() => handleUnlock(t.id, t.name)} disabled={!!blocker}>
                           Unlock ({formatCP(t.cost)})
                         </button>
-                        {blocker && <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>{blocker}</div>}
+                        {blocker && <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>{blocker}</div>}
                       </>
                     )}
                   </div>

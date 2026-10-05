@@ -342,7 +342,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
             </button>
           </>
         ) : (
-          <button onClick={() => setShowBoxScore(true)} style={{ ...controlBtnStyle, background: '#10B981', color: '#fff' }}>
+          <button onClick={() => setShowBoxScore(true)} style={{ ...controlBtnStyle, background: '#047857', color: '#fff' }}>
             📊 Final Box Score
           </button>
         )}
@@ -386,7 +386,7 @@ const controlBtnStyle: React.CSSProperties = {
   minHeight: '48px',
   flex: '1 1 0', // share the row evenly so labels fit on phones
   padding: '10px 8px',
-  background: '#3B82F6',
+  background: '#2563EB',
   color: '#fff',
   border: 'none',
   borderRadius: '6px',

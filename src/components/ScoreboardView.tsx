@@ -94,8 +94,8 @@ export const ScoreboardView: React.FC = () => {
   // Team names open the team's page
   const teamBtn = (id: string, name: string, home: boolean) => (
     <button onClick={() => openTeamProfile(id)} style={teamLink}>
-      {home && <span style={{ color: '#94A3B8', fontWeight: 'normal' }}>@ </span>}
-      {name} <span style={{ color: '#94A3B8', fontWeight: 'normal', fontSize: '12px' }}>({records.get(id)})</span>
+      {home && <span style={{ color: '#475569', fontWeight: 'normal' }}>@ </span>}
+      {name} <span style={{ color: '#475569', fontWeight: 'normal', fontSize: '12px' }}>({records.get(id)})</span>
     </button>
   );
 
@@ -124,7 +124,7 @@ export const ScoreboardView: React.FC = () => {
         return (
           <section key={section.key} style={{ marginBottom: '16px' }}>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '15px' }}>
-              {section.title} <span style={{ color: '#64748B', fontWeight: 'normal' }}>· {weekLabel(section.week)}</span>
+              {section.title} <span style={{ color: '#475569', fontWeight: 'normal' }}>· {weekLabel(section.week)}</span>
             </h3>
             {rows.length === 0 ? (
               <div className="ui-muted">
@@ -148,7 +148,7 @@ export const ScoreboardView: React.FC = () => {
                     >
                       {line(r.awayId, r.awayName, r.awayScore, final && r.awayScore! > r.homeScore!, false)}
                       {line(r.homeId, r.homeName, r.homeScore, final && r.homeScore! > r.awayScore!, true)}
-                      <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+                      <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>
                         {final ? 'Final' : 'Scheduled'}
                         {r.tag ? ` · ${r.tag}` : ''}
                       </div>

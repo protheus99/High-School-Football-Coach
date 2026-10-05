@@ -99,7 +99,7 @@ export const DashboardView: React.FC<{
       {/* Team name (wrapping to a second line when long) with Advance Week always on the right */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '12px', marginBottom: '20px' }}>
         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-          <h1 style={{ margin: 0, fontSize: 'clamp(20px, 6vw, 32px)', lineHeight: 1.15, overflowWrap: 'anywhere' }} title={`${userTeam.name} ${userTeam.mascot}`}>
+          <h1 className="ui-page-title" style={{ overflowWrap: 'anywhere' }} title={`${userTeam.name} ${userTeam.mascot}`}>
             {userTeam.name} {userTeam.mascot}
           </h1>
           <div style={{ color: '#6B7280', marginTop: '2px' }}>

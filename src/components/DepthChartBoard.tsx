@@ -134,7 +134,7 @@ export const DepthChartBoard: React.FC<{
           {rows.map((i, r) => line(i, r))}
           {reserves.length > 0 && (
             <div style={{ borderTop: '1px dashed #E2E8F0', marginTop: '2px', paddingTop: '2px' }}>
-              <div style={{ fontSize: '12px', color: '#94A3B8' }}>Reserves</div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>Reserves</div>
               {reserves.map((i) => line(i, DEPTH_ROWS))}
             </div>
           )}
@@ -149,7 +149,7 @@ export const DepthChartBoard: React.FC<{
 
   const section = (title: string, rows: FormationRow[]) => (
     <div id={`depth-${title.toLowerCase()}`} style={{ marginBottom: '18px', scrollMarginTop: isPhone ? '64px' : undefined }}>
-      <h3 style={sectionTitle}>{title}</h3>
+      <h3 style={sectionTitle}>{title.charAt(0) + title.slice(1).toLowerCase()}</h3>
       {isPhone ? (
         // Phones: one slot card per row (two on larger phones), in formation order, with thumb-sized arrows
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: `${GAP}px` }}>
@@ -211,16 +211,7 @@ const jumpBar: React.CSSProperties = {
   flexWrap: 'nowrap'
 };
 
-const sectionTitle: React.CSSProperties = {
-  margin: '0 0 8px 0',
-  fontSize: '15px',
-  fontWeight: 900,
-  letterSpacing: '1px',
-  color: '#0F172A',
-  borderBottom: '2px solid #0F172A',
-  paddingBottom: '2px',
-  textAlign: 'right'
-};
+const sectionTitle: React.CSSProperties = { margin: '0 0 8px 0' };
 
 const cardStyle: React.CSSProperties = {
   width: `${CARD_WIDTH}px`,
@@ -266,7 +257,7 @@ const nameBtn: React.CSSProperties = {
 /** Arrow buttons: thumb-sized on phones, compact in the desktop formation view. */
 const arrowBtn = (disabled: boolean, phone: boolean): React.CSSProperties => ({
   width: phone ? '40px' : '22px',
-  height: phone ? '36px' : '22px',
+  height: phone ? '40px' : '22px',
   padding: 0,
   fontSize: phone ? '14px' : '12px',
   lineHeight: 1,

@@ -20,8 +20,8 @@ export const TrophyCase: React.FC<{ trophies: TrophyRecord[]; collegeSignees: nu
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '18px' }}>
         {stat('Prestige', schoolPrestige, '#2563EB')}
-        {stat('College signees', collegeSignees, '#10B981')}
-        {stat('Titles', trophies.length, '#F59E0B')}
+        {stat('College signees', collegeSignees, '#047857')}
+        {stat('Titles', trophies.length, '#B45309')}
       </div>
 
       <h3 style={{ margin: '0 0 10px 0', fontSize: '15px' }}>Trophy showcase</h3>

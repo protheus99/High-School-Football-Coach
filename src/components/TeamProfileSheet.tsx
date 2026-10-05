@@ -110,7 +110,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
         {games.map((g) => (
           <div key={`${g.week}-${g.opponent?.id}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '13px', padding: '6px 0', borderBottom: '1px solid #F1F5F9' }}>
             <span style={{ minWidth: 0 }}>
-              <span style={{ color: '#94A3B8' }}>Wk {g.week}</span> {g.isHome ? 'vs' : 'at'}{' '}
+              <span style={{ color: '#64748B' }}>Wk {g.week}</span> {g.isHome ? 'vs' : 'at'}{' '}
               {g.opponent ? (
                 <button onClick={() => openTeamProfile(g.opponent!.id)} style={{ ...linkBtn, fontWeight: g.opponent.id === userTeamId ? 'bold' : 'normal' }}>
                   {g.opponent.name}
@@ -118,7 +118,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
               ) : (
                 'TBD'
               )}
-              {g.label && <span style={{ color: '#94A3B8', fontSize: '12px' }}> · {g.label}</span>}
+              {g.label && <span style={{ color: '#64748B', fontSize: '12px' }}> · {g.label}</span>}
             </span>
             <strong style={{ whiteSpace: 'nowrap', color: g.won === undefined ? '#94A3B8' : g.won ? '#059669' : '#DC2626' }}>
               {g.won === undefined ? '—' : `${g.won ? 'W' : 'L'} ${g.result}`}
@@ -136,7 +136,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '6px', marginBottom: '14px' }}>
           {leaders.map((l) => (
             <div key={l.label} style={leaderCard}>
-              <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 'bold', textTransform: 'uppercase' }}>{l.label}</div>
+              <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold', textTransform: 'uppercase' }}>{l.label}</div>
               {playerBtn(l.player, `${l.player.position} ${l.player.firstName.charAt(0)}. ${l.player.lastName}`)}
               <div style={{ fontSize: '12px', color: '#334155' }}>
                 {l.value} {l.unit}
@@ -177,5 +177,9 @@ const linkBtn: React.CSSProperties = {
   fontSize: 'inherit',
   textAlign: 'left',
   textDecoration: 'underline',
-  textUnderlineOffset: '2px'
+  textUnderlineOffset: '2px',
+  // A finger-sized tap area around the text
+  minHeight: '40px',
+  display: 'inline-flex',
+  alignItems: 'center'
 };

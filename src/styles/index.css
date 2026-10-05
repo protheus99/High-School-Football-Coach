@@ -90,6 +90,52 @@ h3 {
   line-height: 1.3;
 }
 
+/* One heading scale for every screen: the page title (Hub, Team, Rankings, Leaders, Feeders, News), a section of
+   a page ("This Week"), and its sub-sections (h3s in pages and pop-ups, whatever their inline sizes said) */
+.ui-page-title {
+  margin: 0;
+  font-size: clamp(24px, 6.5vw, 30px);
+  font-weight: 800;
+  line-height: 1.15;
+  color: #0f172a;
+}
+
+.ui-section-title {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #0f172a;
+}
+
+.ui-screen h3,
+.ui-sheet h3,
+.ui-subsection-title {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #0f172a;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+/* Back to top: appears once a long page has been scrolled, above the tab bar */
+.ui-back-to-top {
+  position: fixed;
+  right: 16px;
+  bottom: calc(92px + env(safe-area-inset-bottom));
+  z-index: 90;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+  background: #0f172a;
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+  cursor: pointer;
+}
+
 /* Title-left / controls-right rows wrap instead of squeezing... */
 [style*='justify-content: space-between'] {
   flex-wrap: wrap;
@@ -150,7 +196,7 @@ h3 {
 /* A page's navigation that stays at the top of the screen while its content scrolls */
 /* Compact chips with their counts inline, and labelled dropdowns, in a sticky bar */
 .ui-sticky-nav .ui-chip {
-  min-height: 36px;
+  min-height: 40px;
   padding: 4px 6px;
 }
 
@@ -170,13 +216,13 @@ h3 {
   padding: 0 4px 0 12px;
   font-size: 13px;
   font-weight: bold;
-  color: #64748b;
+  color: #475569;
 }
 
 .ui-nav-select select {
   flex: 1;
   min-width: 0;
-  min-height: 36px;
+  min-height: 40px;
   border: none;
   background: transparent;
   font: inherit;
@@ -317,7 +363,7 @@ h3 {
 }
 
 .ui-muted {
-  color: #64748b;
+  color: #475569;
   font-size: 13px;
 }
 
@@ -403,7 +449,7 @@ h3 {
 }
 .ui-chip-count {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: normal;
   opacity: 0.8;
 }
@@ -480,7 +526,7 @@ h3 {
 
 .ui-sheet-subtitle {
   font-size: 13px;
-  color: #64748b;
+  color: #475569;
   margin-top: 2px;
 }
 
@@ -561,7 +607,7 @@ h3 {
 
 .ui-card-pairs dt {
   font-size: 12px;
-  color: #64748b;
+  color: #475569;
 }
 
 .ui-card-pairs dd {
@@ -624,7 +670,7 @@ h3 {
 
 .ui-standings-record small {
   font-size: 12px;
-  color: #64748b;
+  color: #475569;
   font-weight: normal;
 }
 

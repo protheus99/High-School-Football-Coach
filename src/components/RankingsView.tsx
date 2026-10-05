@@ -18,7 +18,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
 
   const renderMovementBadge = (entry: RankedTeamEntry) => {
     if (entry.movement === 'UP') {
-      return <span style={{ color: '#16A34A', fontWeight: 'bold', fontSize: '12px' }}>▲ {entry.movementDelta}</span>;
+      return <span style={{ color: '#15803D', fontWeight: 'bold', fontSize: '12px' }}>▲ {entry.movementDelta}</span>;
     }
     if (entry.movement === 'DOWN') {
       return <span style={{ color: '#DC2626', fontWeight: 'bold', fontSize: '12px' }}>▼ {entry.movementDelta}</span>;
@@ -26,7 +26,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
     if (entry.movement === 'NEW_ENTRY') {
       return <span style={{ background: '#2563EB', color: '#fff', padding: '1px 5px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>NEW</span>;
     }
-    return <span style={{ color: '#94A3B8', fontSize: '12px' }}>—</span>;
+    return <span style={{ color: '#64748B', fontSize: '12px' }}>—</span>;
   };
 
   const title = selectedView === 'NATIONAL' ? 'National Top 25' : `${selectedView} Top 25`;
@@ -64,7 +64,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
               </span>
               <span className="ui-standings-name">
                 {entry.teamName}
-                {entry.firstPlaceVotes > 0 && <span style={{ color: '#D97706', fontSize: '12px' }}> ({entry.firstPlaceVotes})</span>}
+                {entry.firstPlaceVotes > 0 && <span style={{ color: '#B45309', fontSize: '12px' }}> ({entry.firstPlaceVotes})</span>}
                 <br />
                 <small style={{ color: '#64748B', fontWeight: 'normal', fontSize: '12px' }}>
                   {entry.mascot} · {entry.state}
@@ -96,7 +96,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
               render: (e) => (
                 <strong>
                   {e.teamName} {e.mascot}
-                  {e.firstPlaceVotes > 0 && <span style={{ color: '#D97706', fontSize: '12px' }}> ({e.firstPlaceVotes})</span>}
+                  {e.firstPlaceVotes > 0 && <span style={{ color: '#B45309', fontSize: '12px' }}> ({e.firstPlaceVotes})</span>}
                 </strong>
               )
             },

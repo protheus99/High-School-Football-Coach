@@ -7,6 +7,7 @@ import { NewsMediaView } from './components/NewsMediaView';
 import { TeamView, TeamSection } from './components/TeamView';
 import { RankingsHub, RankingsSection } from './components/RankingsHub';
 import { LeaderboardView } from './components/LeaderboardView';
+import { BackToTop } from './components/ui/BackToTop';
 import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { TeamProfileSheet } from './components/TeamProfileSheet';
@@ -352,6 +353,7 @@ export const App: React.FC = () => {
       </div>
 
       {/* Bottom Tab Bar */}
+      <BackToTop />
       <nav className="app-tabbar" aria-label="Main sections">
         {NAV_TABS.map((t) => (
           <button
@@ -375,7 +377,7 @@ export const App: React.FC = () => {
 
 // Header stats: the value with a small label underneath
 const statStack: React.CSSProperties = { display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.1, whiteSpace: 'nowrap' };
-const statLabel: React.CSSProperties = { fontSize: '10px', fontWeight: 'bold', opacity: 0.85 };
+const statLabel: React.CSSProperties = { fontSize: '10px', fontWeight: 'bold', opacity: 0.9 }; // 11px wraps the bar to two rows on a 375px phone
 
 const topPill: React.CSSProperties = {
   display: 'inline-flex',

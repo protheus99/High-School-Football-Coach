@@ -133,7 +133,7 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
           { key: 'school', label: 'School', render: (e) => e.teamName },
           { key: 'state', label: 'State', desktopOnly: true, render: (e) => `${e.state} (${e.classification})` },
           isProspects
-            ? { key: 'stars', label: 'Stars', render: (e) => <span style={{ color: '#D97706' }}>{renderStarBadges(e.player.recruiting.starRating)}</span> }
+            ? { key: 'stars', label: 'Stars', render: (e) => <span style={{ color: '#B45309' }}>{renderStarBadges(e.player.recruiting.starRating)}</span> }
             : { key: 'stat', label: 'Production', render: (e) => <strong>{e.primaryStatLine}</strong> },
           isProspects
             ? { key: 'grade', label: 'Recruit grade', render: (e) => <strong style={{ color: '#2563EB' }}>{e.compositeRecruitScore} pts</strong> }

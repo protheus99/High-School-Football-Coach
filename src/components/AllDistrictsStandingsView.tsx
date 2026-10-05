@@ -8,6 +8,11 @@ import { districtPlayoffSpots, playoffQualifyText, rulesForState } from '../sim/
 export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackButton?: boolean }> = ({ onBack, hideBackButton }) => {
   const { league, leagueTeams, userTeamId } = useGameStore();
   const [regionIndex, setRegionIndex] = useState<number | 'ALL'>('ALL');
+  // Picking a region from far down the list starts it from the top
+  const pickRegion = (i: number | 'ALL') => {
+    setRegionIndex(i);
+    window.scrollTo({ top: 0 });
+  };
   const [search, setSearch] = useState('');
 
   // leagueTeams is replaced after each week, so standings refresh with it
@@ -44,11 +49,12 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackB
           ← My {rulesForState(league.state).districtLabel.toLowerCase()}
         </button>
       )}
-      {!hideBackButton && <h2 style={{ margin: '0 0 4px 0' }}>All {rulesForState(league.state).districtLabel} Standings</h2>}
+      {!hideBackButton && <h2 className="ui-section-title">All {rulesForState(league.state).districtLabel} Standings</h2>}
       <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
         {league.name}. {playoffQualifyText(rulesForState(league.state))}
       </p>
 
+      <div className="ui-sticky-nav" style={{ margin: '0 -16px 14px', padding: '8px 16px' }}>
       <input
         className="ui-input"
         value={search}
@@ -57,15 +63,16 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackB
         aria-label="Find a school"
         style={{ marginBottom: '8px' }}
       />
-      <div className="ui-chips" role="group" aria-label="Region" style={{ marginBottom: '14px' }}>
-        <button className="ui-chip" aria-pressed={regionIndex === 'ALL'} onClick={() => setRegionIndex('ALL')}>
+      <div className="ui-chips-scroll" role="group" aria-label="Region">
+        <button className="ui-chip" aria-pressed={regionIndex === 'ALL'} onClick={() => pickRegion('ALL')}>
           All regions
         </button>
         {regions.map((region, i) => (
-          <button key={region.name} className="ui-chip" aria-pressed={regionIndex === i} onClick={() => setRegionIndex(i)}>
+          <button key={region.name} className="ui-chip" aria-pressed={regionIndex === i} onClick={() => pickRegion(i)}>
             {region.name}
           </button>
         ))}
+      </div>
       </div>
 
       {shownRegions.length === 0 && <p className="ui-muted">No school matches &quot;{search}&quot;.</p>}
@@ -107,11 +114,11 @@ const CompactStandings: React.FC<{ rows: ReturnType<typeof calculateDistrictStan
             fontWeight: row.teamId === userTeamId ? 'bold' : undefined
           }}
         >
-          <span className="ui-standings-seed" style={{ background: row.isPlayoffBound ? '#16A34A' : '#CBD5E1' }}>
+          <span className="ui-standings-seed" style={{ background: row.isPlayoffBound ? '#15803D' : '#E2E8F0', color: row.isPlayoffBound ? '#fff' : '#334155' }}>
             {row.rank}
           </span>
           <span className="ui-standings-name">
-            <button onClick={() => useGameStore.getState().openTeamProfile(row.teamId)} style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
+            <button onClick={() => useGameStore.getState().openTeamProfile(row.teamId)} style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', font: 'inherit', cursor: 'pointer', textAlign: 'left', minHeight: '40px', minWidth: '44px', display: 'inline-flex', alignItems: 'center' }}>
               {row.name}
             </button>
           </span>
@@ -119,7 +126,7 @@ const CompactStandings: React.FC<{ rows: ReturnType<typeof calculateDistrictStan
             <strong>{row.districtRecord}</strong>
             <small>
               {row.overallRecord} ·{' '}
-              <span style={{ color: row.pointDifferential >= 0 ? '#059669' : '#DC2626' }}>
+              <span style={{ color: row.pointDifferential >= 0 ? '#047857' : '#DC2626' }}>
                 {row.pointDifferential > 0 ? `+${row.pointDifferential}` : row.pointDifferential}
               </span>
             </small>

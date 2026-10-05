@@ -5,7 +5,7 @@ import { useGameStore } from '../../store/gameStore';
 import { rulesForState } from '../../sim/stateRules';
 
 const diff = (n: number) => (n > 0 ? `+${n}` : `${n}`);
-const diffColor = (n: number) => (n >= 0 ? '#059669' : '#DC2626');
+const diffColor = (n: number) => (n >= 0 ? '#047857' : '#B91C1C');
 
 /**
  * District standings, mobile-first: one compact row per team on phones (seed, school, district record,
@@ -28,7 +28,7 @@ export const StandingsList: React.FC<{ rows: DistrictStandingRow[]; highlightTea
             className="ui-standings-row"
             style={{ background: row.isPlayoffBound ? '#F0FDF4' : undefined, fontWeight: row.teamId === highlightTeamId ? 'bold' : undefined, minHeight: dense ? '40px' : undefined }}
           >
-            <span className="ui-standings-seed" style={{ background: row.isPlayoffBound ? '#16A34A' : '#CBD5E1' }}>
+            <span className="ui-standings-seed" style={{ background: row.isPlayoffBound ? '#15803D' : '#E2E8F0', color: row.isPlayoffBound ? '#fff' : '#334155' }}>
               {row.rank}
             </span>
             <span className="ui-standings-name">{teamLink(row)}</span>
@@ -56,7 +56,7 @@ export const StandingsList: React.FC<{ rows: DistrictStandingRow[]; highlightTea
               key: 'status',
               label: 'Status',
               render: (r) => (
-                <span style={{ fontSize: '12px', fontWeight: 'bold', color: r.isPlayoffBound ? '#16A34A' : '#9CA3AF' }}>{r.isPlayoffBound ? '🏆 Playoff spot' : 'Out'}</span>
+                <span style={{ fontSize: '12px', fontWeight: 'bold', color: r.isPlayoffBound ? '#15803D' : '#64748B' }}>{r.isPlayoffBound ? '🏆 Playoff spot' : 'Out'}</span>
               )
             }
           ]}

@@ -10,7 +10,7 @@ const SHOW_CLASSIC_GAME = false;
 import { deleteSaveGame, listSaveSummaries, loadSaveGame, SaveSummary } from '../services/db';
 
 const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; color: string }[] = [
-  { id: 'EASY', label: 'Easy', blurb: 'Take over a powerhouse: deep talent, rich boosters, title expectations.', color: '#16A34A' },
+  { id: 'EASY', label: 'Easy', blurb: 'Take over a powerhouse: deep talent, rich boosters, title expectations.', color: '#15803D' },
   { id: 'MEDIUM', label: 'Medium', blurb: 'A solid contender. Good players, but you have to win the big games.', color: '#2563EB' },
   { id: 'HARD', label: 'Hard', blurb: 'An underdog program. Build it from the ground up.', color: '#DC2626' }
 ];
@@ -102,7 +102,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
                 ▶️ Continue
               </button>
             )}
-            <button onClick={() => setView('NEW')} style={menuBtn('#16A34A', '#fff')}>
+            <button onClick={() => setView('NEW')} style={menuBtn('#15803D', '#fff')}>
               🆕 New Game
             </button>
             <button onClick={() => setView('LOAD')} style={menuBtn('#334155', '#fff')}>
@@ -185,7 +185,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               <button
                 onClick={startCareer}
                 disabled={!pick || busy}
-                style={{ ...menuBtn('#16A34A', '#fff'), opacity: !pick || busy ? 0.5 : 1, cursor: !pick ? 'not-allowed' : busy ? 'wait' : 'pointer' }}
+                style={{ ...menuBtn('#15803D', '#fff'), opacity: !pick || busy ? 0.5 : 1, cursor: !pick ? 'not-allowed' : busy ? 'wait' : 'pointer' }}
               >
                 {pickedProgram ? `Start at ${pickedProgram.displayName}` : 'Pick a program'}
               </button>

@@ -617,12 +617,12 @@ export function recruitingStatus(player: Player): {
   color: string;
 } {
   const r = player.recruiting;
-  if (r.isNationalLetterOfIntentSigned && r.committedCollege) return { label: `Signed: ${r.committedCollege}`, color: '#16A34A' };
+  if (r.isNationalLetterOfIntentSigned && r.committedCollege) return { label: `Signed: ${r.committedCollege}`, color: '#15803D' };
   if (r.committedCollege) return { label: `Committed: ${r.committedCollege}`, color: '#2563EB' };
   if (r.offers.length > 0)
     return {
       label: `Uncommitted (${r.offers.length} offer${r.offers.length === 1 ? '' : 's'})`,
-      color: '#D97706'
+      color: '#B45309'
     };
   return { label: 'No offers', color: '#64748B' };
 }

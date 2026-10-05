@@ -21,7 +21,7 @@ export function PageHeader<T extends string>({
 }) {
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '16px 16px 0' }}>
-      <h2 style={{ margin: 0 }}>{title}</h2>
+      <h1 className="ui-page-title">{title}</h1>
       {subtitle && (
         <p className="ui-muted" style={{ margin: '2px 0 0 0', fontSize: '14px' }}>
           {subtitle}

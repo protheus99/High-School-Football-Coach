@@ -45,7 +45,7 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({
       footer={
         <button
           className="ui-btn ui-btn-block"
-          style={{ background: '#10B981', borderColor: '#10B981', color: '#fff', minHeight: '50px', fontSize: '15px' }}
+          style={{ background: '#047857', borderColor: '#047857', color: '#fff', minHeight: '50px', fontSize: '15px' }}
           onClick={() => onKickoff({ selectedOffScheme: offScheme, selectedDefScheme: defScheme, focusTarget: focus })}
         >
           🏈 Take the Field

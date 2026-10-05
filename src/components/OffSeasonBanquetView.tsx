@@ -78,7 +78,7 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
 
       {/* Next season: pinned to the bottom of the screen on phones */}
       <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', background: '#fff', borderTop: '1px solid #E2E8F0', zIndex: 50 }}>
-        <button className="ui-btn ui-btn-block" style={{ background: '#10B981', borderColor: '#10B981', color: '#fff', minHeight: '50px', fontSize: '16px', maxWidth: '800px', margin: '0 auto', display: 'block' }} onClick={onStartNextYear}>
+        <button className="ui-btn ui-btn-block" style={{ background: '#047857', borderColor: '#047857', color: '#fff', minHeight: '50px', fontSize: '16px', maxWidth: '800px', margin: '0 auto', display: 'block' }} onClick={onStartNextYear}>
           ➡️ Continue to Off Season
         </button>
       </div>
