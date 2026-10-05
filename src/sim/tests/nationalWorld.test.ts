@@ -11,7 +11,7 @@ import { PLAYABLE_STATES } from '../stateRules';
 describe('National world', () => {
   it('builds light teams: a team rating and only the stat leaders', () => {
     const light = buildLightLeague('Alabama', 2026);
-    expect(light.teams).toHaveLength(32);
+    expect(light.teams).toHaveLength(34);
     const leaders = LIGHT_STARTERS.reduce((n, [, count]) => n + count, 0);
     light.teams.forEach((t) => {
       expect(t.roster).toHaveLength(leaders);

@@ -83,6 +83,16 @@
       "prestige": 66,
       "offenseScheme": "POWER_I",
       "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Vigor",
+      "city": "Prichard",
+      "mascot": "Wolves",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 72,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
     }
   ]
 }

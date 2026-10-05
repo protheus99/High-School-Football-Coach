@@ -37,7 +37,7 @@
        "mascot": "Pirates",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFFFFF",
-       "prestige": 72,
+       "prestige": 71,
        "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_THREE"
       },
@@ -57,7 +57,7 @@
        "mascot": "Pride",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFC72C",
-       "prestige": 90,
+       "prestige": 89,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       },
@@ -67,7 +67,7 @@
        "mascot": "Wildcats",
        "primaryColor": "#00573F",
        "secondaryColor": "#B3A369",
-       "prestige": 94,
+       "prestige": 93,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -77,7 +77,7 @@
        "mascot": "Rams",
        "primaryColor": "#002D62",
        "secondaryColor": "#B3A369",
-       "prestige": 97,
+       "prestige": 96,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -87,7 +87,7 @@
        "mascot": "Wolverines",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#C0C0C0",
-       "prestige": 81,
+       "prestige": 80,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "FOUR_THREE"
       }
@@ -114,7 +114,7 @@
        "mascot": "Patriots",
        "primaryColor": "#00573F",
        "secondaryColor": "#FFC72C",
-       "prestige": 92,
+       "prestige": 91,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -134,7 +134,7 @@
        "mascot": "Gators",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#B3A369",
-       "prestige": 80,
+       "prestige": 79,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -144,7 +144,7 @@
        "mascot": "Falcons",
        "primaryColor": "#002D62",
        "secondaryColor": "#FFD700",
-       "prestige": 91,
+       "prestige": 90,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -181,27 +181,7 @@
        "mascot": "Cougars",
        "primaryColor": "#C8102E",
        "secondaryColor": "#FFC72C",
-       "prestige": 93,
-       "offenseScheme": "SPREAD",
-       "defenseScheme": "FOUR_THREE"
-      },
-      {
-       "name": "Mallard Creek",
-       "city": "Charlotte",
-       "mascot": "Mavericks",
-       "primaryColor": "#C8102E",
-       "secondaryColor": "#FFD700",
-       "prestige": 99,
-       "offenseScheme": "SPREAD",
-       "defenseScheme": "FOUR_THREE"
-      },
-      {
-       "name": "West Charlotte",
-       "city": "Charlotte",
-       "mascot": "Lions",
-       "primaryColor": "#4F2683",
-       "secondaryColor": "#B3A369",
-       "prestige": 72,
+       "prestige": 92,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       },
@@ -221,9 +201,19 @@
        "mascot": "Huskies",
        "primaryColor": "#C8102E",
        "secondaryColor": "#B3A369",
-       "prestige": 99,
+       "prestige": 98,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Mallard Creek",
+       "city": "Charlotte",
+       "mascot": "Mavericks",
+       "primaryColor": "#C8102E",
+       "secondaryColor": "#FFD700",
+       "prestige": 97,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
       },
       {
        "name": "Myers Park",
@@ -231,7 +221,7 @@
        "mascot": "Mustangs",
        "primaryColor": "#003087",
        "secondaryColor": "#C0C0C0",
-       "prestige": 93,
+       "prestige": 92,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -241,9 +231,19 @@
        "mascot": "Sabres",
        "primaryColor": "#00573F",
        "secondaryColor": "#000000",
-       "prestige": 86,
+       "prestige": 85,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "West Charlotte",
+       "city": "Charlotte",
+       "mascot": "Lions",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#B3A369",
+       "prestige": 71,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
       }
      ]
     },
@@ -258,7 +258,7 @@
        "mascot": "Knights",
        "primaryColor": "#00843D",
        "secondaryColor": "#FFC72C",
-       "prestige": 90,
+       "prestige": 89,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -278,9 +278,19 @@
        "mascot": "Pumas",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#C0C0C0",
-       "prestige": 57,
+       "prestige": 56,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Pisgah",
+       "city": "Canton",
+       "mascot": "Bears",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 71,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "THREE_THREE_FIVE"
       },
       {
        "name": "Providence",
@@ -288,8 +298,28 @@
        "mascot": "Panthers",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFD700",
-       "prestige": 82,
+       "prestige": 81,
        "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Shelby",
+       "city": "Shelby",
+       "mascot": "Golden Lions",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 76,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Weddington",
+       "city": "Matthews",
+       "mascot": "Warriors",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 95,
+       "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       }
      ]
@@ -305,9 +335,19 @@
        "mascot": "Vikings",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFC72C",
-       "prestige": 97,
+       "prestige": 96,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Hoke County",
+       "city": "Raeford",
+       "mascot": "Bucks",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 67,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "DROP_EIGHT"
       },
       {
        "name": "Laney",
@@ -320,14 +360,14 @@
        "defenseScheme": "FOUR_THREE"
       },
       {
-       "name": "Hoke County",
-       "city": "Raeford",
-       "mascot": "Bucks",
-       "primaryColor": "#4F2683",
-       "secondaryColor": "#C0C0C0",
-       "prestige": 68,
-       "offenseScheme": "SPREAD",
-       "defenseScheme": "DROP_EIGHT"
+       "name": "Northwest Guilford",
+       "city": "Greensboro",
+       "mascot": "Vikings",
+       "primaryColor": "#00205B",
+       "secondaryColor": "#FFC72C",
+       "prestige": 84,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
       },
       {
        "name": "Pinecrest",
@@ -335,19 +375,19 @@
        "mascot": "Patriots",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#B3A369",
-       "prestige": 92,
+       "prestige": 91,
        "offenseScheme": "TRIPLE_OPTION",
        "defenseScheme": "FOUR_FOUR"
       },
       {
-       "name": "Northwest Guilford",
-       "city": "Greensboro",
-       "mascot": "Vikings",
-       "primaryColor": "#00205B",
+       "name": "Reidsville",
+       "city": "Reidsville",
+       "mascot": "Rams",
+       "primaryColor": "#003087",
        "secondaryColor": "#FFC72C",
-       "prestige": 85,
+       "prestige": 98,
        "offenseScheme": "TRIPLE_OPTION",
-       "defenseScheme": "FOUR_THREE"
+       "defenseScheme": "DROP_EIGHT"
       },
       {
        "name": "West Forsyth",
@@ -355,7 +395,7 @@
        "mascot": "Titans",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFFFFF",
-       "prestige": 93,
+       "prestige": 92,
        "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_THREE"
       }

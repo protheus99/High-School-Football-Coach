@@ -17,7 +17,7 @@
        "mascot": "Coyotes",
        "primaryColor": "#8B0000",
        "secondaryColor": "#000000",
-       "prestige": 79,
+       "prestige": 77,
        "offenseScheme": "TRIPLE_OPTION",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -27,7 +27,7 @@
        "mascot": "Trojans",
        "primaryColor": "#6F263D",
        "secondaryColor": "#000000",
-       "prestige": 73,
+       "prestige": 71,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       },
@@ -37,7 +37,7 @@
        "mascot": "Jaguars",
        "primaryColor": "#4F2683",
        "secondaryColor": "#000000",
-       "prestige": 99,
+       "prestige": 97,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "FOUR_THREE"
       },
@@ -57,7 +57,7 @@
        "mascot": "Rockets",
        "primaryColor": "#002D62",
        "secondaryColor": "#000000",
-       "prestige": 62,
+       "prestige": 61,
        "offenseScheme": "SPREAD",
        "defenseScheme": "DROP_EIGHT"
       },
@@ -67,7 +67,7 @@
        "mascot": "Screaming Eagles",
        "primaryColor": "#6F263D",
        "secondaryColor": "#B3A369",
-       "prestige": 82,
+       "prestige": 79,
        "offenseScheme": "TRIPLE_OPTION",
        "defenseScheme": "FOUR_FOUR"
       },
@@ -77,7 +77,7 @@
        "mascot": "Wildcats",
        "primaryColor": "#006747",
        "secondaryColor": "#C0C0C0",
-       "prestige": 82,
+       "prestige": 79,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "FOUR_THREE"
       },
@@ -87,7 +87,7 @@
        "mascot": "Bulldogs",
        "primaryColor": "#4B0082",
        "secondaryColor": "#C0C0C0",
-       "prestige": 88,
+       "prestige": 85,
        "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_THREE"
       }
@@ -104,49 +104,9 @@
        "mascot": "Barons",
        "primaryColor": "#003087",
        "secondaryColor": "#FFC72C",
-       "prestige": 67,
+       "prestige": 66,
        "offenseScheme": "TRIPLE_OPTION",
        "defenseScheme": "DROP_EIGHT"
-      },
-      {
-       "name": "James Hubert Blake",
-       "city": "Silver Spring",
-       "mascot": "Bengals",
-       "primaryColor": "#6F263D",
-       "secondaryColor": "#000000",
-       "prestige": 64,
-       "offenseScheme": "POWER_I",
-       "defenseScheme": "DROP_EIGHT"
-      },
-      {
-       "name": "Montgomery Blair",
-       "city": "Silver Spring",
-       "mascot": "Blazers",
-       "primaryColor": "#FF6600",
-       "secondaryColor": "#B3A369",
-       "prestige": 62,
-       "offenseScheme": "TRIPLE_OPTION",
-       "defenseScheme": "FOUR_FOUR"
-      },
-      {
-       "name": "Paint Branch",
-       "city": "Burtonsville",
-       "mascot": "Panthers",
-       "primaryColor": "#6F263D",
-       "secondaryColor": "#C0C0C0",
-       "prestige": 92,
-       "offenseScheme": "SPREAD",
-       "defenseScheme": "FOUR_THREE"
-      },
-      {
-       "name": "Wheaton",
-       "city": "Silver Spring",
-       "mascot": "Knights",
-       "primaryColor": "#00573F",
-       "secondaryColor": "#FFFFFF",
-       "prestige": 50,
-       "offenseScheme": "TRIPLE_OPTION",
-       "defenseScheme": "FOUR_FOUR"
       },
       {
        "name": "High Point",
@@ -159,13 +119,33 @@
        "defenseScheme": "FOUR_THREE"
       },
       {
+       "name": "James Hubert Blake",
+       "city": "Silver Spring",
+       "mascot": "Bengals",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#000000",
+       "prestige": 63,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
+      },
+      {
        "name": "Laurel",
        "city": "Laurel",
        "mascot": "Spartans",
        "primaryColor": "#7C2529",
        "secondaryColor": "#B3A369",
-       "prestige": 59,
+       "prestige": 58,
        "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Montgomery Blair",
+       "city": "Silver Spring",
+       "mascot": "Blazers",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#B3A369",
+       "prestige": 61,
+       "offenseScheme": "TRIPLE_OPTION",
        "defenseScheme": "FOUR_FOUR"
       },
       {
@@ -174,9 +154,29 @@
        "mascot": "Wildcats",
        "primaryColor": "#000000",
        "secondaryColor": "#000000",
-       "prestige": 99,
+       "prestige": 97,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Paint Branch",
+       "city": "Burtonsville",
+       "mascot": "Panthers",
+       "primaryColor": "#6F263D",
+       "secondaryColor": "#C0C0C0",
+       "prestige": 89,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Wheaton",
+       "city": "Silver Spring",
+       "mascot": "Knights",
+       "primaryColor": "#00573F",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 50,
+       "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
       }
      ]
     },
@@ -201,8 +201,18 @@
        "mascot": "Jaguars",
        "primaryColor": "#4B0082",
        "secondaryColor": "#B3A369",
-       "prestige": 99,
+       "prestige": 95,
        "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "DeMatha Catholic",
+       "city": "Hyattsville",
+       "mascot": "Stags",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 99,
+       "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_THREE"
       },
       {
@@ -221,7 +231,7 @@
        "mascot": "Tigers",
        "primaryColor": "#C8102E",
        "secondaryColor": "#B3A369",
-       "prestige": 73,
+       "prestige": 71,
        "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_THREE"
       },
@@ -231,7 +241,7 @@
        "mascot": "Raiders",
        "primaryColor": "#002D62",
        "secondaryColor": "#FFFFFF",
-       "prestige": 67,
+       "prestige": 66,
        "offenseScheme": "POWER_I",
        "defenseScheme": "DROP_EIGHT"
       },
@@ -251,7 +261,7 @@
        "mascot": "Rams",
        "primaryColor": "#4B0082",
        "secondaryColor": "#000000",
-       "prestige": 79,
+       "prestige": 77,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       }
@@ -268,8 +278,18 @@
        "mascot": "Panthers",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFD700",
-       "prestige": 70,
+       "prestige": 69,
        "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Bowie",
+       "city": "Bowie",
+       "mascot": "Bulldogs",
+       "primaryColor": "#4B0082",
+       "secondaryColor": "#FFD700",
+       "prestige": 66,
+       "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       },
       {
@@ -278,9 +298,29 @@
        "mascot": "Bruins",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#FFC72C",
-       "prestige": 95,
+       "prestige": 91,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Dunbar",
+       "city": "Baltimore",
+       "mascot": "Poets",
+       "primaryColor": "#4F2683",
+       "secondaryColor": "#FFC72C",
+       "prestige": 82,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Dundalk",
+       "city": "Dundalk",
+       "mascot": "Owls",
+       "primaryColor": "#006747",
+       "secondaryColor": "#FFFFFF",
+       "prestige": 58,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "DROP_EIGHT"
       },
       {
        "name": "Glen Burnie",
@@ -288,7 +328,7 @@
        "mascot": "Gophers",
        "primaryColor": "#003087",
        "secondaryColor": "#B3A369",
-       "prestige": 64,
+       "prestige": 63,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "DROP_EIGHT"
       },
@@ -298,7 +338,7 @@
        "mascot": "Mustangs",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFD700",
-       "prestige": 73,
+       "prestige": 71,
        "offenseScheme": "SPREAD",
        "defenseScheme": "DROP_EIGHT"
       },
@@ -308,29 +348,9 @@
        "mascot": "Knights",
        "primaryColor": "#00843D",
        "secondaryColor": "#000000",
-       "prestige": 62,
+       "prestige": 61,
        "offenseScheme": "TRIPLE_OPTION",
        "defenseScheme": "THREE_THREE_FIVE"
-      },
-      {
-       "name": "Dundalk",
-       "city": "Dundalk",
-       "mascot": "Owls",
-       "primaryColor": "#006747",
-       "secondaryColor": "#FFFFFF",
-       "prestige": 59,
-       "offenseScheme": "POWER_I",
-       "defenseScheme": "DROP_EIGHT"
-      },
-      {
-       "name": "Bowie",
-       "city": "Bowie",
-       "mascot": "Bulldogs",
-       "primaryColor": "#4B0082",
-       "secondaryColor": "#FFD700",
-       "prestige": 67,
-       "offenseScheme": "SPREAD",
-       "defenseScheme": "FOUR_THREE"
       }
      ]
     }

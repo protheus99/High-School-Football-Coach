@@ -83,6 +83,16 @@
       "prestige": 62,
       "offenseScheme": "TRIPLE_OPTION",
       "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Saraland",
+      "city": "Saraland",
+      "mascot": "Spartans",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#000000",
+      "prestige": 96,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
     }
   ]
 }

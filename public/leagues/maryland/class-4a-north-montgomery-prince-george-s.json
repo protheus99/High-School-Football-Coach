@@ -15,6 +15,16 @@
       "defenseScheme": "DROP_EIGHT"
     },
     {
+      "name": "High Point",
+      "city": "Beltsville",
+      "mascot": "Eagles",
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 52,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
       "name": "James Hubert Blake",
       "city": "Silver Spring",
       "mascot": "Bengals",
@@ -25,6 +35,16 @@
       "defenseScheme": "DROP_EIGHT"
     },
     {
+      "name": "Laurel",
+      "city": "Laurel",
+      "mascot": "Spartans",
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#B3A369",
+      "prestige": 56,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
       "name": "Montgomery Blair",
       "city": "Silver Spring",
       "mascot": "Blazers",
@@ -33,6 +53,16 @@
       "prestige": 58,
       "offenseScheme": "TRIPLE_OPTION",
       "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Northwestern",
+      "city": "Hyattsville",
+      "mascot": "Wildcats",
+      "primaryColor": "#000000",
+      "secondaryColor": "#000000",
+      "prestige": 85,
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "Paint Branch",
@@ -53,36 +83,6 @@
       "prestige": 50,
       "offenseScheme": "TRIPLE_OPTION",
       "defenseScheme": "FOUR_FOUR"
-    },
-    {
-      "name": "High Point",
-      "city": "Beltsville",
-      "mascot": "Eagles",
-      "primaryColor": "#FF6600",
-      "secondaryColor": "#C0C0C0",
-      "prestige": 52,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "Laurel",
-      "city": "Laurel",
-      "mascot": "Spartans",
-      "primaryColor": "#7C2529",
-      "secondaryColor": "#B3A369",
-      "prestige": 56,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_FOUR"
-    },
-    {
-      "name": "Northwestern",
-      "city": "Hyattsville",
-      "mascot": "Wildcats",
-      "primaryColor": "#000000",
-      "secondaryColor": "#000000",
-      "prestige": 85,
-      "offenseScheme": "AIR_RAID",
-      "defenseScheme": "FOUR_THREE"
     }
   ]
 }

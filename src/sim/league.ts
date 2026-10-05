@@ -78,6 +78,17 @@ const STATE_WORLDS: Record<string, { data: StateWorldData; leagueName: string; s
   California: { data: californiaOpen, leagueName: 'CIF Open Division', splitDivisions: false, idPrefix: 'ca_open_l', defaultSchool: 'Mater Dei' }
 };
 
+/** A school's entry in a playable state's world data (mascot, colors, prestige) and its district, if it plays there. */
+export function stateSchool(state: string, name: string): { mascot: string; primaryColor: string; secondaryColor: string; prestige: number; district: string } | undefined {
+  for (const region of STATE_WORLDS[state]?.data.regions ?? []) {
+    for (const district of region.districts) {
+      const s = district.schools.find((school) => school.name === name);
+      if (s) return { mascot: s.mascot, primaryColor: s.primaryColor, secondaryColor: s.secondaryColor, prestige: s.prestige, district: district.name };
+    }
+  }
+  return undefined;
+}
+
 /** A random school in the state's top class whose prestige fits the difficulty. */
 export function pickSchoolForDifficulty(difficulty: Difficulty, state = 'Texas'): string {
   const { min, max } = DIFFICULTY_PRESTIGE[difficulty];
@@ -101,7 +112,7 @@ export function buildTexasLeague(userSchool = DEFAULT_USER_SCHOOL): GameWorld {
 }
 
 /** A playable state's whole top class (Texas 6A, Georgia 7A), with the user at the given school. */
-export function buildStateWorld(state: string, userSchool?: string, light = false): GameWorld {
+export function buildStateWorld(state: string, userSchool?: string, light = false, userPrestige?: (dataPrestige: number) => number): GameWorld {
   const world = STATE_WORLDS[state] ?? STATE_WORLDS.Texas;
   const stateName = STATE_WORLDS[state] ? state : 'Texas';
   const teams: Team[] = [];
@@ -116,7 +127,8 @@ export function buildStateWorld(state: string, userSchool?: string, light = fals
           mascot: s.mascot,
           primary: s.primaryColor,
           secondary: s.secondaryColor,
-          prestige: s.prestige,
+          // A scenario sets the coach's program's starting prestige (its roster is generated to match)
+          prestige: userPrestige && s.name === userSchool ? userPrestige(s.prestige) : s.prestige,
           offenseScheme: s.offenseScheme as OffensiveScheme,
           defenseScheme: s.defenseScheme as DefensiveScheme
         })),

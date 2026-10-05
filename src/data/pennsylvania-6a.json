@@ -721,6 +721,24 @@
        "prestige": 71,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
+      },
+      {
+       "name": "Berwick",
+       "mascot": "Bulldogs",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 72,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Southern Columbia",
+       "mascot": "Tigers",
+       "primaryColor": "#FF6600",
+       "secondaryColor": "#000000",
+       "prestige": 95,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "FOUR_FOUR"
       }
      ]
     }

@@ -8,8 +8,9 @@ import { RankingsView } from './RankingsView';
 import { PageHeader } from './ui/PageHeader';
 import { rulesForState } from '../sim/stateRules';
 import { ScoreboardView } from './ScoreboardView';
+import { LeaderboardView } from './LeaderboardView';
 
-export type RankingsSection = 'HOME' | 'DISTRICT' | 'ALL_DISTRICTS' | 'POLLS' | 'SCORES';
+export type RankingsSection = 'HOME' | 'DISTRICT' | 'ALL_DISTRICTS' | 'POLLS' | 'SCORES' | 'LEADERBOARD';
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 
@@ -17,7 +18,8 @@ const TABS: { id: Exclude<RankingsSection, 'HOME'>; label: string; short?: strin
   { id: 'DISTRICT', label: '🏆 District', short: 'District' },
   { id: 'POLLS', label: '🥇 Polls', short: 'Polls' },
   { id: 'ALL_DISTRICTS', label: '🗺️ All Districts', short: 'All Districts' },
-  { id: 'SCORES', label: '📋 Scoreboard', short: 'Scores' }
+  { id: 'SCORES', label: '📋 Scoreboard', short: 'Scores' },
+  { id: 'LEADERBOARD', label: '🎖️ Leaderboard', short: 'Leaderboard' }
 ];
 
 /** Rankings: district standings, the polls, every district and the scoreboard, under one sub navigation. */
@@ -34,7 +36,8 @@ export const RankingsHub: React.FC<{ section: RankingsSection; onSection: (secti
     DISTRICT: `${districtName} standings${myRow ? ` · you're ${ordinal(myRow.rank)} (${myRow.districtRecord})` : ''}`,
     POLLS: 'State and national polls',
     ALL_DISTRICTS: `Standings for every ${label.toLowerCase()} in ${league?.name ?? 'the league'}`,
-    SCORES: "Last week's results and this week's games"
+    SCORES: "Last week's results and this week's games",
+    LEADERBOARD: 'Coaching careers, ranked by points each season'
   };
   return (
     <div>
@@ -43,6 +46,7 @@ export const RankingsHub: React.FC<{ section: RankingsSection; onSection: (secti
       {active === 'ALL_DISTRICTS' && <AllDistrictsStandingsView onBack={() => onSection('DISTRICT')} hideBackButton />}
       {active === 'POLLS' && polls && <RankingsView polls={polls} userTeamId={userTeamId} />}
       {active === 'SCORES' && <ScoreboardView />}
+      {active === 'LEADERBOARD' && <LeaderboardView />}
     </div>
   );
 };

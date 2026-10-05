@@ -25,8 +25,8 @@
     {
       "name": "Brentwood Academy",
       "mascot": "",
-      "primaryColor": "#00843D",
-      "secondaryColor": "#FFFFFF",
+      "primaryColor": "#CC0000",
+      "secondaryColor": "#002D62",
       "prestige": 70,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"

@@ -99,9 +99,38 @@ def defense_scheme(label: str) -> str:
     return 'FOUR_THREE'
 
 
+# School colors for the scenario programs the game adds (everyone else gets a stable palette pick)
+PROGRAM_COLORS = {
+    'Clarke Central': ('#000000', '#FFC72C'), 'Miami Carol City': ('#003087', '#FFC72C'), 'DeMatha Catholic': ('#BA0C2F', '#000000'),
+    'Dunbar': ('#4F2683', '#FFC72C'), 'Shelby': ('#003087', '#FFC72C'), 'Pisgah': ('#000000', '#FFC72C'),
+    'Reidsville': ('#003087', '#FFC72C'), 'Weddington': ('#BA0C2F', '#000000'), 'Vigor': ('#003087', '#FFC72C'),
+    'Saraland': ('#BA0C2F', '#000000'), 'Brentwood Academy': ('#CC0000', '#002D62'), 'Alcoa': ('#BA0C2F', '#000000'),
+    'Archbishop Hoban': ('#00573F', '#FFC72C'), 'Berwick': ('#003087', '#FFC72C'), 'Southern Columbia': ('#FF6600', '#000000')
+}
+
+
 def colors(name: str) -> tuple:
+    if name in PROGRAM_COLORS:
+        return PROGRAM_COLORS[name]
     h = int(hashlib.md5(name.encode()).hexdigest(), 16)
     return PALETTE[h % len(PALETTE)], SECONDARY[(h // 7) % len(SECONDARY)]
+
+
+def added_school(name: str, mascot: str, prestige: int, offense: str = '', defense: str = '') -> dict:
+    """A program the game adds to a spec state's world (a scenario pick from a smaller class or a private league)."""
+    h = int(hashlib.md5(name.encode()).hexdigest(), 16)
+    primary, secondary = colors(name)
+    return {'name': name, 'mascot': mascot, 'primaryColor': primary, 'secondaryColor': secondary, 'prestige': prestige,
+            'offenseScheme': offense or OFFENSE_MIX[h % len(OFFENSE_MIX)], 'defenseScheme': defense or DEFENSE_MIX[(h // 11) % len(DEFENSE_MIX)]}
+
+
+# Scenario programs added to spec states, by the district they join
+SPEC_ADDED_SCHOOLS = {
+    # Brentwood Academy is in the spec's private Division II-AAA group (left out of the 6A world): its spec data
+    'Tennessee': {6: [('Brentwood Academy', 'Eagles', 92, 'SPREAD', 'THREE_THREE_FIVE')], 2: [('Alcoa', 'Tornadoes', 95)]},
+    'Ohio': {1: [('Archbishop Hoban', 'Knights', 95)]},  # Ohio: by playoff region (dealt into its leagues)
+    'Pennsylvania': {10: [('Berwick', 'Bulldogs', 72), ('Southern Columbia', 'Tigers', 95)]}
+}
 
 
 def slug(text: str) -> str:
@@ -282,6 +311,8 @@ def build_spec_worlds(leagues_dir: Path, out_dir: Path):
         if match:
             districts.append({'number': int(match.group(1)), 'name': f"Region {match.group(1)}-6A", 'area': match.group(2), 'schools': d['schools']})
     districts.sort(key=lambda d: d['number'])
+    for number, schools in SPEC_ADDED_SCHOOLS['Tennessee'].items():
+        next(d for d in districts if d['number'] == number)['schools'].extend(added_school(*s) for s in schools)
     write_world(out_dir / 'tennessee-6a.json', 'Tennessee', '6A', districts)
 
     # Ohio Division I: four playoff regions. The spec splits each region into prestige tiers, so each region's
@@ -290,6 +321,8 @@ def build_spec_worlds(leagues_dir: Path, out_dir: Path):
     for d in files['Ohio']:
         match = re.match(r'^Region (\d+) \((.*?)\)', d['districtName'])
         regions.setdefault(int(match.group(1)), {'area': match.group(2), 'schools': []})['schools'].extend(d['schools'])
+    for number, schools in SPEC_ADDED_SCHOOLS['Ohio'].items():
+        regions[number]['schools'].extend(added_school(*s) for s in schools)
     districts = []
     for number in sorted(regions):
         for j, league_schools in enumerate(deal(regions[number]['schools'], 3)):
@@ -312,6 +345,8 @@ def build_spec_worlds(leagues_dir: Path, out_dir: Path):
         for j, league_schools in enumerate(leagues):
             name = parent if len(leagues) == 1 else f"{parent} League {'ABC'[j]}"
             districts.append({'number': len(districts) + 1, 'name': name, 'area': entry['area'], 'schools': league_schools})
+    for number, schools in SPEC_ADDED_SCHOOLS['Pennsylvania'].items():
+        districts[number - 1]['schools'].extend(added_school(*s) for s in schools)
     write_world(out_dir / 'pennsylvania-6a.json', 'Pennsylvania', '6A', districts)
 
     # New Jersey: Non-Public A and Public Group 5 (North and South super sections), each dealt into leagues;

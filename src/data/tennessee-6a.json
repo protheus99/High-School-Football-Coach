@@ -125,6 +125,15 @@
        "prestige": 78,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
+      },
+      {
+       "name": "Alcoa",
+       "mascot": "Tornadoes",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 95,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
       }
      ]
     },
@@ -414,6 +423,15 @@
        "prestige": 75,
        "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Brentwood Academy",
+       "mascot": "Eagles",
+       "primaryColor": "#CC0000",
+       "secondaryColor": "#002D62",
+       "prestige": 92,
+       "offenseScheme": "SPREAD",
+       "defenseScheme": "THREE_THREE_FIVE"
       }
      ]
     },

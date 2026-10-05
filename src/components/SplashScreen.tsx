@@ -1,7 +1,9 @@
 import { PLAYABLE_STATES, rulesForState } from '../sim/stateRules';
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { DIFFICULTY_PRESTIGE, Difficulty } from '../sim/league';
+import { DIFFICULTY_PRESTIGE, Difficulty, stateSchool } from '../sim/league';
+import { SCENARIOS, ScenarioId } from '../data/scenarios';
+import { CAREER_POINTS } from '../sim/careerScore';
 import { deleteSaveGame, listSaveSummaries, loadSaveGame, SaveSummary } from '../services/db';
 
 const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; color: string }[] = [
@@ -15,9 +17,9 @@ const prestigeRange = (d: Difficulty) => {
   return max >= 100 ? `${min}+` : `${min}–${max}`;
 };
 
-/** Title screen: start a new game at a difficulty, continue, or load a saved game. */
+/** Title screen: start a scenario career (or a classic game at a difficulty), continue, or load a saved game. */
 export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: boolean }> = ({ onEnterGame, canContinue }) => {
-  const { newGame, loadGame } = useGameStore();
+  const { newGame, newScenarioGame, loadGame } = useGameStore();
   const [view, setView] = useState<'MENU' | 'NEW' | 'LOAD'>('MENU');
   const [saves, setSaves] = useState<SaveSummary[] | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -32,6 +34,23 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   }, [view]);
 
   const [state, setState] = useState('Texas');
+  const [pick, setPick] = useState<{ scenario: ScenarioId; school: string } | null>(null);
+  const [coachName, setCoachName] = useState('');
+  const [showClassic, setShowClassic] = useState(false);
+  const chooseState = (st: string) => {
+    setState(st);
+    setPick(null);
+  };
+  const pickedProgram = pick && SCENARIOS.flatMap((s) => s.programs).find((p) => p.state === state && p.school === pick.school);
+  const startCareer = () => {
+    if (!pick) return;
+    setBusy(true);
+    setTimeout(() => {
+      newScenarioGame(pick.scenario, state, pick.school, coachName);
+      setBusy(false);
+      onEnterGame();
+    }, 20);
+  };
   const startNew = (difficulty: Difficulty) => {
     setBusy(true);
     // Let the button state paint before building the 254-team world
@@ -93,7 +112,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             <h2 style={sectionTitle}>Choose a State</h2>
             <div aria-label="State" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', marginBottom: '8px' }}>
               {PLAYABLE_STATES.map((st) => (
-                <button key={st} className="ui-chip" aria-pressed={state === st} onClick={() => setState(st)} style={{ justifyContent: 'center' }}>
+                <button key={st} className="ui-chip" aria-pressed={state === st} onClick={() => chooseState(st)} style={{ justifyContent: 'center' }}>
                   {st}
                 </button>
               ))}
@@ -101,20 +120,92 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
               {rulesForState(state).governingBody} {/^\d+A$/.test(rulesForState(state).classification) ? 'Class ' : ''}{rulesForState(state).classification} · title game at {rulesForState(state).playoffs.championshipVenue}
             </p>
-            <h2 style={sectionTitle}>Choose a Difficulty</h2>
+            <h2 style={sectionTitle}>Choose Your Program</h2>
             <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
-              You&apos;ll be hired at a random {state} {rulesForState(state).classification} school in the matching prestige range (or the closest one).
+              Every season is scored ({CAREER_POINTS.win} per win, {CAREER_POINTS.loss} per loss, {CAREER_POINTS.playoffWin} per playoff win, {CAREER_POINTS.stateTitle} for a state title,{' '}
+              {CAREER_POINTS.collegeSignee} per player signing with a college) and ranked against every coach who started at the same program.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-              {DIFFICULTIES.map((d) => (
-                <button key={d.id} onClick={() => startNew(d.id)} disabled={busy} style={cardBtn(d.color, busy)}>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: d.color }}>{d.label}</div>
-                  <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 8px 0' }}>School prestige {prestigeRange(d.id)}</div>
-                  <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.4 }}>{d.blurb}</div>
-                </button>
-              ))}
+            {SCENARIOS.map((scenario) => (
+              <section key={scenario.id} aria-label={scenario.title} style={{ marginBottom: '18px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                  <h3 style={{ margin: 0, color: scenario.id === 'RECLAIM' ? '#FCA5A5' : '#FCD34D', fontSize: '17px' }}>{scenario.title}</h3>
+                  <span style={{ color: '#94A3B8', fontSize: '13px' }}>{scenario.tagline}</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+                  {scenario.programs
+                    .filter((p) => p.state === state)
+                    .map((program) => {
+                      const school = stateSchool(state, program.school);
+                      const selected = pick?.scenario === scenario.id && pick.school === program.school;
+                      return (
+                        <button
+                          key={program.school}
+                          aria-pressed={selected}
+                          onClick={() => setPick({ scenario: scenario.id, school: program.school })}
+                          disabled={busy}
+                          style={{ ...cardBtn(school?.primaryColor ?? '#334155', busy), outline: selected ? '3px solid #F59E0B' : 'none', outlineOffset: '2px' }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#0F172A' }}>{program.displayName}</span>
+                            <span style={{ ...badge(scenario.id === 'RECLAIM' ? '#FEE2E2' : '#FEF3C7', scenario.id === 'RECLAIM' ? '#991B1B' : '#92400E'), whiteSpace: 'nowrap' }}>
+                              Prestige {scenario.startingPrestige(school?.prestige ?? 0)}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 8px 0' }}>
+                            {school?.mascot}
+                            {school && ` · ${school.district}`}
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.45 }}>{program.legacy}</div>
+                        </button>
+                      );
+                    })}
+                </div>
+              </section>
+            ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '420px', margin: '0 auto' }}>
+              <label style={{ color: '#CBD5E1', fontSize: '13px' }}>
+                Coach name (shown on the leaderboard)
+                <input
+                  value={coachName}
+                  onChange={(e) => setCoachName(e.target.value.slice(0, 24))}
+                  placeholder="Coach"
+                  style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: '4px', padding: '12px', borderRadius: '8px', border: '1px solid #475569', fontSize: '16px' }}
+                />
+              </label>
+              <button
+                onClick={startCareer}
+                disabled={!pick || busy}
+                style={{ ...menuBtn('#16A34A', '#fff'), opacity: !pick || busy ? 0.5 : 1, cursor: !pick ? 'not-allowed' : busy ? 'wait' : 'pointer' }}
+              >
+                {pickedProgram ? `Start at ${pickedProgram.displayName}` : 'Pick a program'}
+              </button>
             </div>
             {busy && <p style={{ textAlign: 'center', color: '#CBD5E1', marginTop: '16px' }}>Building the league…</p>}
+            <div style={{ textAlign: 'center', marginTop: '18px' }}>
+              <button
+                onClick={() => setShowClassic((v) => !v)}
+                aria-expanded={showClassic}
+                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}
+              >
+                {showClassic ? 'Hide classic game' : 'Classic game: a random school (not ranked)'}
+              </button>
+            </div>
+            {showClassic && (
+              <div style={{ marginTop: '10px' }}>
+                <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 12px 0' }}>
+                  You&apos;ll be hired at a random {state} {rulesForState(state).classification} school in the matching prestige range (or the closest one).
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                  {DIFFICULTIES.map((d) => (
+                    <button key={d.id} onClick={() => startNew(d.id)} disabled={busy} style={cardBtn(d.color, busy)}>
+                      <div style={{ fontSize: '20px', fontWeight: 'bold', color: d.color }}>{d.label}</div>
+                      <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 8px 0' }}>School prestige {prestigeRange(d.id)}</div>
+                      <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.4 }}>{d.blurb}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <BackButton onClick={() => setView('MENU')} />
           </div>
         )}

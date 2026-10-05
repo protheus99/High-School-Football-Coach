@@ -92,6 +92,9 @@ import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { collectResults } from '../sim/computerRankings';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
 import { HiredCoach, staffBonuses, staffGameDayEdge } from '../sim/coachingStaff';
+import { Career, scoreSeason } from '../sim/careerScore';
+import { ScenarioId, scenarioById } from '../data/scenarios';
+import { recordCareer } from '../services/leaderboard';
 import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
 import { expandToFullRoster, INTERSTATE_WEEK, scheduleInterstateGames } from '../sim/interstate';
 import { buildNationalWorld, calibrateLightLeagues, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
@@ -263,6 +266,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     weekResults: state.weekResults,
     interstateGames: state.interstateGames,
     coachingStaff: state.coachingStaff,
+    career: state.career,
     userViolationHeat: state.userViolationHeat,
     pendingUserBan: state.pendingUserBan,
     onHotSeat: state.onHotSeat,
@@ -326,6 +330,7 @@ const emptyRecord = () => ({
 
 interface GameStoreState {
   difficulty: Difficulty | null; // chosen at New Game
+  career: Career | null; // a scenario career: its seasons are scored for the starting program's leaderboard
   currentWeek: number;
   currentYear: number;
   userTeamId: string;
@@ -374,6 +379,7 @@ interface GameStoreState {
   // Actions
   startNewSeason: (world?: GameWorld) => void; // default: the Texas 6A world
   newGame: (difficulty: Difficulty, state?: string) => string; // random school in the state (Texas by default) for the difficulty; returns its name
+  newScenarioGame: (scenario: ScenarioId, state: string, school: string, coachName: string) => void; // a scored career at a scenario program
   loadGame: (save: GameSaveRecord) => void;
   saveGame: (saveName?: string) => Promise<string>; // new save slot; returns its id
   advanceWeek: () => void;
@@ -408,6 +414,7 @@ export function feederEventsOpen(state: Pick<GameStoreState, 'currentWeek' | 'le
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
   difficulty: null,
+  career: null,
   currentWeek: 1,
   currentYear: 2026,
   userTeamId: 'team_austin_westlake',
@@ -503,9 +510,26 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   newGame: (difficulty, state = 'Texas') => {
     const school = pickSchoolForDifficulty(difficulty, state);
-    set({ currentYear: 2026, difficulty });
+    set({ currentYear: 2026, difficulty, career: null });
     get().startNewSeason(buildStateWorld(state, school));
     return school;
+  },
+
+  newScenarioGame: (scenarioId, state, school, coachName) => {
+    const scenario = scenarioById(scenarioId);
+    const program = scenario.programs.find((p) => p.state === state && p.school === school);
+    const career: Career = {
+      id: `career_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      coachName: coachName.trim() || 'Coach',
+      scenario: scenarioId,
+      state,
+      startingSchool: school,
+      startingProgram: program?.displayName ?? school,
+      startedYear: 2026,
+      seasons: []
+    };
+    set({ currentYear: 2026, difficulty: scenario.difficulty, career });
+    get().startNewSeason(buildStateWorld(state, school, false, scenario.startingPrestige));
   },
 
   // League saves restore the whole world; older saves get a world built around their district
@@ -531,6 +555,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       seasonSchedule: save.league && save.seasonSchedule ? relinkInterstate(save.seasonSchedule, save.interstateGames ?? []) : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
       interstateGames: save.interstateGames ?? [],
       coachingStaff: save.coachingStaff ?? [],
+      career: save.career ?? null,
       playoffBracket: save.league && save.playoffBracket ? relinkBracketTeams(save.playoffBracket, world.teams) : null,
       sanctionLevel: save.sanctionLevel ?? 0,
       statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
@@ -797,7 +822,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const news = signingDayNews(signings, prestigeChanges.get(userTeamId) ?? 0, userTeam, get().currentYear, nextWeek);
       // The final polls and leaders, with every state's title game in
       const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
+      // The full year is in: score it for the career's leaderboard
+      const career = get().career;
+      const scored = career && !career.seasons.some((s) => s.year === get().currentYear) ? { ...career, seasons: [...career.seasons, scoreSeason(userTeam, get().playoffBracket, get().currentYear)] } : career;
+      if (scored && scored !== career) recordCareer(scored);
       set({
+        career: scored,
         currentWeek: nextWeek,
         graduatingSeniors: seniors,
         isBanquetActive: true,

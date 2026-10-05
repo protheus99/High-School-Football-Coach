@@ -15,26 +15,6 @@
       "defenseScheme": "FOUR_THREE"
     },
     {
-      "name": "Mallard Creek",
-      "city": "Charlotte",
-      "mascot": "Mavericks",
-      "primaryColor": "#C8102E",
-      "secondaryColor": "#FFD700",
-      "prestige": 94,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "West Charlotte",
-      "city": "Charlotte",
-      "mascot": "Lions",
-      "primaryColor": "#4F2683",
-      "secondaryColor": "#B3A369",
-      "prestige": 70,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
       "name": "Garinger",
       "city": "Charlotte",
       "mascot": "Wildcats",
@@ -55,6 +35,16 @@
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
+      "name": "Mallard Creek",
+      "city": "Charlotte",
+      "mascot": "Mavericks",
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "prestige": 94,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
       "name": "Myers Park",
       "city": "Charlotte",
       "mascot": "Mustangs",
@@ -73,6 +63,16 @@
       "prestige": 83,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "West Charlotte",
+      "city": "Charlotte",
+      "mascot": "Lions",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "prestige": 70,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
     }
   ]
 }

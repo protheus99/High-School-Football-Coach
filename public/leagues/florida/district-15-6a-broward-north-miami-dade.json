@@ -45,6 +45,16 @@
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
+      "name": "Miami Carol City",
+      "city": "Miami Gardens",
+      "mascot": "Chiefs",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 80,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
       "name": "Miami Central",
       "city": "Miami",
       "mascot": "Rockets",

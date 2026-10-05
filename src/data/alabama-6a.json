@@ -27,7 +27,7 @@
        "mascot": "Hornets",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFD700",
-       "prestige": 91,
+       "prestige": 90,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -37,7 +37,7 @@
        "mascot": "Trojans",
        "primaryColor": "#00573F",
        "secondaryColor": "#FFFFFF",
-       "prestige": 89,
+       "prestige": 88,
        "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_THREE"
       },
@@ -47,7 +47,7 @@
        "mascot": "Warriors",
        "primaryColor": "#003087",
        "secondaryColor": "#FFFFFF",
-       "prestige": 77,
+       "prestige": 76,
        "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_FOUR"
       },
@@ -57,7 +57,7 @@
        "mascot": "Pirates",
        "primaryColor": "#00573F",
        "secondaryColor": "#B3A369",
-       "prestige": 87,
+       "prestige": 86,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -67,7 +67,7 @@
        "mascot": "Lions",
        "primaryColor": "#000000",
        "secondaryColor": "#C0C0C0",
-       "prestige": 82,
+       "prestige": 81,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       },
@@ -77,7 +77,7 @@
        "mascot": "Vikings",
        "primaryColor": "#FF6600",
        "secondaryColor": "#C0C0C0",
-       "prestige": 94,
+       "prestige": 93,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -89,6 +89,16 @@
        "secondaryColor": "#FFD700",
        "prestige": 62,
        "offenseScheme": "TRIPLE_OPTION",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
+       "name": "Saraland",
+       "city": "Saraland",
+       "mascot": "Spartans",
+       "primaryColor": "#BA0C2F",
+       "secondaryColor": "#000000",
+       "prestige": 96,
+       "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_FOUR"
       }
      ]
@@ -104,7 +114,7 @@
        "mascot": "Tigers",
        "primaryColor": "#003087",
        "secondaryColor": "#000000",
-       "prestige": 97,
+       "prestige": 96,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       },
@@ -114,7 +124,7 @@
        "mascot": "Wolverines",
        "primaryColor": "#003087",
        "secondaryColor": "#FFD700",
-       "prestige": 84,
+       "prestige": 83,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       },
@@ -134,7 +144,7 @@
        "mascot": "Wolves",
        "primaryColor": "#003087",
        "secondaryColor": "#FFFFFF",
-       "prestige": 86,
+       "prestige": 85,
        "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_THREE"
       },
@@ -144,7 +154,7 @@
        "mascot": "Wildcats",
        "primaryColor": "#4F2683",
        "secondaryColor": "#C0C0C0",
-       "prestige": 93,
+       "prestige": 92,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -164,7 +174,7 @@
        "mascot": "Bulldogs",
        "primaryColor": "#00843D",
        "secondaryColor": "#FFD700",
-       "prestige": 91,
+       "prestige": 90,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -177,6 +187,16 @@
        "prestige": 66,
        "offenseScheme": "POWER_I",
        "defenseScheme": "DROP_EIGHT"
+      },
+      {
+       "name": "Vigor",
+       "city": "Prichard",
+       "mascot": "Wolves",
+       "primaryColor": "#003087",
+       "secondaryColor": "#FFC72C",
+       "prestige": 72,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "THREE_THREE_FIVE"
       }
      ]
     },
@@ -191,7 +211,7 @@
        "mascot": "Huskies",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFD700",
-       "prestige": 95,
+       "prestige": 94,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -201,7 +221,7 @@
        "mascot": "Buccaneers",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#B3A369",
-       "prestige": 98,
+       "prestige": 97,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       },
@@ -211,7 +231,7 @@
        "mascot": "Eagles",
        "primaryColor": "#8B0000",
        "secondaryColor": "#000000",
-       "prestige": 81,
+       "prestige": 80,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_FOUR"
       },
@@ -221,7 +241,7 @@
        "mascot": "Lions",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#C0C0C0",
-       "prestige": 84,
+       "prestige": 83,
        "offenseScheme": "POWER_I",
        "defenseScheme": "FOUR_THREE"
       },
@@ -231,7 +251,7 @@
        "mascot": "Jaguars",
        "primaryColor": "#00843D",
        "secondaryColor": "#B3A369",
-       "prestige": 89,
+       "prestige": 88,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -261,7 +281,7 @@
        "mascot": "Rebels",
        "primaryColor": "#C8102E",
        "secondaryColor": "#FFC72C",
-       "prestige": 91,
+       "prestige": 90,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       }
@@ -278,7 +298,7 @@
        "mascot": "Patriots",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#FFFFFF",
-       "prestige": 84,
+       "prestige": 83,
        "offenseScheme": "SPREAD",
        "defenseScheme": "FOUR_THREE"
       },
@@ -328,7 +348,7 @@
        "mascot": "Panthers",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFC72C",
-       "prestige": 85,
+       "prestige": 84,
        "offenseScheme": "AIR_RAID",
        "defenseScheme": "FOUR_THREE"
       },
@@ -338,7 +358,7 @@
        "mascot": "Jets",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFD700",
-       "prestige": 92,
+       "prestige": 91,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       },
@@ -348,7 +368,7 @@
        "mascot": "Senators",
        "primaryColor": "#002D62",
        "secondaryColor": "#FFC72C",
-       "prestige": 87,
+       "prestige": 86,
        "offenseScheme": "SPREAD",
        "defenseScheme": "THREE_THREE_FIVE"
       }

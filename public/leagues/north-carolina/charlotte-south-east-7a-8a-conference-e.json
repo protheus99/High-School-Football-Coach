@@ -35,6 +35,16 @@
       "defenseScheme": "FOUR_THREE"
     },
     {
+      "name": "Pisgah",
+      "city": "Canton",
+      "mascot": "Bears",
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "prestige": 70,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
       "name": "Providence",
       "city": "Charlotte",
       "mascot": "Panthers",
@@ -42,6 +52,26 @@
       "secondaryColor": "#FFD700",
       "prestige": 79,
       "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Shelby",
+      "city": "Shelby",
+      "mascot": "Golden Lions",
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFC72C",
+      "prestige": 74,
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Weddington",
+      "city": "Matthews",
+      "mascot": "Warriors",
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#000000",
+      "prestige": 92,
+      "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
     }
   ]

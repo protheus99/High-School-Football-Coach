@@ -1,5 +1,5 @@
 {
- "_about": "Full top football classifications from the official 2026 alignments (GHSA Region Alignment for 2026-2028, FHSAA 2026-27/2027-28 Finalized FB Classification, AHSAA 2026-28 public classes (7A eliminated), MPSSAA 2025 Football Classification Alignment, NCHSAA 2025-29 realignment). Each school: [name, city, mascot, prestige estimate]. Prestige and schemes from the design spec win when the spec rates the school. Florida also lists its national powers that play in smaller classes or as independents (St. Thomas Aquinas, IMG Academy, Miami Central, Armwood...), in their home districts, as the spec ranks them among the state's best.",
+ "_about": "Full top football classifications from the official 2026 alignments (GHSA Region Alignment for 2026-2028, FHSAA 2026-27/2027-28 Finalized FB Classification, AHSAA 2026-28 public classes (7A eliminated), MPSSAA 2025 Football Classification Alignment, NCHSAA 2025-29 realignment). Each school: [name, city, mascot, prestige estimate]. Prestige and schemes from the design spec win when the spec rates the school. Florida also lists its national powers that play in smaller classes or as independents (St. Thomas Aquinas, IMG Academy, Miami Central, Armwood...), in their home districts, as the spec ranks them among the state's best. Scenario programs from smaller classes or private leagues (Clarke Central, Miami Carol City, DeMatha Catholic (as the spec lists it), Dunbar, Shelby, Pisgah, Reidsville, Weddington, Saraland) play in their home districts so they can be chosen; Vigor (Alabama Region 2) and Shelby (Charlotte South & East) join the district that keeps every schedule full.",
  "Georgia": {
   "classification": "7A",
   "districts": [
@@ -316,6 +316,12 @@
       "Lawrenceville",
       "Black Knights",
       60
+     ],
+     [
+      "Clarke Central",
+      "Athens",
+      "Gladiators",
+      72
      ],
      [
       "Collins Hill",
@@ -908,6 +914,12 @@
       62
      ],
      [
+      "Miami Carol City",
+      "Miami Gardens",
+      "Chiefs",
+      80
+     ],
+     [
       "Miami Central",
       "Miami",
       "Rockets",
@@ -1054,16 +1066,34 @@
       62
      ],
      [
+      "High Point",
+      "Beltsville",
+      "Eagles",
+      54
+     ],
+     [
       "James Hubert Blake",
       "Silver Spring",
       "Bengals",
       60
      ],
      [
+      "Laurel",
+      "Laurel",
+      "Spartans",
+      56
+     ],
+     [
       "Montgomery Blair",
       "Silver Spring",
       "Blazers",
       58
+     ],
+     [
+      "Northwestern",
+      "Hyattsville",
+      "Wildcats",
+      50
      ],
      [
       "Paint Branch",
@@ -1075,24 +1105,6 @@
       "Wheaton",
       "Silver Spring",
       "Knights",
-      50
-     ],
-     [
-      "High Point",
-      "Beltsville",
-      "Eagles",
-      54
-     ],
-     [
-      "Laurel",
-      "Laurel",
-      "Spartans",
-      56
-     ],
-     [
-      "Northwestern",
-      "Hyattsville",
-      "Wildcats",
       50
      ]
     ]
@@ -1111,6 +1123,12 @@
       "Springdale",
       "Jaguars",
       64
+     ],
+     [
+      "DeMatha Catholic",
+      "Hyattsville",
+      "Stags",
+      95
      ],
      [
       "Dr. Henry A. Wise",
@@ -1154,10 +1172,28 @@
       64
      ],
      [
+      "Bowie",
+      "Bowie",
+      "Bulldogs",
+      62
+     ],
+     [
       "Broadneck",
       "Annapolis",
       "Bruins",
       74
+     ],
+     [
+      "Dunbar",
+      "Baltimore",
+      "Poets",
+      74
+     ],
+     [
+      "Dundalk",
+      "Dundalk",
+      "Owls",
+      56
      ],
      [
       "Glen Burnie",
@@ -1176,18 +1212,6 @@
       "Glen Burnie",
       "Knights",
       58
-     ],
-     [
-      "Dundalk",
-      "Dundalk",
-      "Owls",
-      56
-     ],
-     [
-      "Bowie",
-      "Bowie",
-      "Bulldogs",
-      62
      ]
     ]
    }
@@ -1306,18 +1330,6 @@
       80
      ],
      [
-      "Mallard Creek",
-      "Charlotte",
-      "Mavericks",
-      92
-     ],
-     [
-      "West Charlotte",
-      "Charlotte",
-      "Lions",
-      70
-     ],
-     [
       "Garinger",
       "Charlotte",
       "Wildcats",
@@ -1330,6 +1342,12 @@
       94
      ],
      [
+      "Mallard Creek",
+      "Charlotte",
+      "Mavericks",
+      92
+     ],
+     [
       "Myers Park",
       "Charlotte",
       "Mustangs",
@@ -1340,6 +1358,12 @@
       "Charlotte",
       "Sabres",
       64
+     ],
+     [
+      "West Charlotte",
+      "Charlotte",
+      "Lions",
+      70
      ]
     ]
    },
@@ -1365,10 +1389,28 @@
       56
      ],
      [
+      "Pisgah",
+      "Canton",
+      "Bears",
+      70
+     ],
+     [
       "Providence",
       "Charlotte",
       "Panthers",
       66
+     ],
+     [
+      "Shelby",
+      "Shelby",
+      "Golden Lions",
+      74
+     ],
+     [
+      "Weddington",
+      "Matthews",
+      "Warriors",
+      92
      ]
     ]
    },
@@ -1382,16 +1424,22 @@
       76
      ],
      [
+      "Hoke County",
+      "Raeford",
+      "Bucks",
+      66
+     ],
+     [
       "Laney",
       "Wilmington",
       "Buccaneers",
       74
      ],
      [
-      "Hoke County",
-      "Raeford",
-      "Bucks",
-      66
+      "Northwest Guilford",
+      "Greensboro",
+      "Vikings",
+      82
      ],
      [
       "Pinecrest",
@@ -1400,10 +1448,10 @@
       72
      ],
      [
-      "Northwest Guilford",
-      "Greensboro",
-      "Vikings",
-      82
+      "Reidsville",
+      "Reidsville",
+      "Rams",
+      95
      ],
      [
       "West Forsyth",
@@ -1468,6 +1516,12 @@
       "Robertsdale",
       "Golden Bears",
       62
+     ],
+     [
+      "Saraland",
+      "Saraland",
+      "Spartans",
+      96
      ]
     ]
    },
@@ -1521,6 +1575,12 @@
       "Smiths Station",
       "Panthers",
       66
+     ],
+     [
+      "Vigor",
+      "Prichard",
+      "Wolves",
+      72
      ]
     ]
    },

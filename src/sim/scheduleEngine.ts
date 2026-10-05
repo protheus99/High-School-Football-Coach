@@ -186,7 +186,7 @@ function fillIdleWeeks(
   // The most fill-in games possible: every week's idle teams, less one where an odd number sit idle
   const ceiling = weeks.reduce((n, week) => n + Math.floor((regionIds.size - bookedIn.get(week)!.size) / 2), 0);
   let best: [number, string, string][] = [];
-  for (let attempt = 0; attempt < 12 && best.length < ceiling; attempt++) {
+  for (let attempt = 0; attempt < 60 && best.length < ceiling; attempt++) {
     const added: [number, string, string][] = [];
     const met = new Map<string, Set<string>>();
     const meet = (a: string, b: string) => {

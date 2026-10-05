@@ -15,6 +15,16 @@
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
+      "name": "Hoke County",
+      "city": "Raeford",
+      "mascot": "Bucks",
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#C0C0C0",
+      "prestige": 66,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
       "name": "Laney",
       "city": "Wilmington",
       "mascot": "Buccaneers",
@@ -25,14 +35,14 @@
       "defenseScheme": "FOUR_THREE"
     },
     {
-      "name": "Hoke County",
-      "city": "Raeford",
-      "mascot": "Bucks",
-      "primaryColor": "#4F2683",
-      "secondaryColor": "#C0C0C0",
-      "prestige": 66,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "DROP_EIGHT"
+      "name": "Northwest Guilford",
+      "city": "Greensboro",
+      "mascot": "Vikings",
+      "primaryColor": "#00205B",
+      "secondaryColor": "#FFC72C",
+      "prestige": 82,
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "Pinecrest",
@@ -45,14 +55,14 @@
       "defenseScheme": "FOUR_FOUR"
     },
     {
-      "name": "Northwest Guilford",
-      "city": "Greensboro",
-      "mascot": "Vikings",
-      "primaryColor": "#00205B",
+      "name": "Reidsville",
+      "city": "Reidsville",
+      "mascot": "Rams",
+      "primaryColor": "#003087",
       "secondaryColor": "#FFC72C",
-      "prestige": 82,
+      "prestige": 95,
       "offenseScheme": "TRIPLE_OPTION",
-      "defenseScheme": "FOUR_THREE"
+      "defenseScheme": "DROP_EIGHT"
     },
     {
       "name": "West Forsyth",

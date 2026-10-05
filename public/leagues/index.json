@@ -5,12 +5,12 @@
       {
         "name": "Region 1-6A (Mobile & Baldwin County)",
         "file": "alabama/region-1-6a-mobile-baldwin-county.json",
-        "schools": 8
+        "schools": 9
       },
       {
         "name": "Region 2-6A (East Alabama, River Region & Wiregrass)",
         "file": "alabama/region-2-6a-east-alabama-river-region-wiregrass.json",
-        "schools": 8
+        "schools": 9
       },
       {
         "name": "Region 3-6A (Birmingham Metro & Over-the-Mountain)",
@@ -160,7 +160,7 @@
       {
         "name": "District 15-6A (Broward & North Miami-Dade)",
         "file": "florida/district-15-6a-broward-north-miami-dade.json",
-        "schools": 9
+        "schools": 10
       },
       {
         "name": "District 16-6A (South Miami-Dade)",
@@ -210,7 +210,7 @@
       {
         "name": "Region 8-7A (Gwinnett North & Buford)",
         "file": "georgia/region-8-7a-gwinnett-north-buford.json",
-        "schools": 7
+        "schools": 8
       }
     ]
   },
@@ -285,12 +285,12 @@
       {
         "name": "Class 4A South (Prince George's County)",
         "file": "maryland/class-4a-south-prince-george-s-county.json",
-        "schools": 7
+        "schools": 8
       },
       {
         "name": "Class 4A East (Anne Arundel, Baltimore County & Bowie)",
         "file": "maryland/class-4a-east-anne-arundel-baltimore-county-bowie.json",
-        "schools": 7
+        "schools": 8
       }
     ]
   },
@@ -360,12 +360,12 @@
       {
         "name": "Charlotte South & East (7A/8A Conference E)",
         "file": "north-carolina/charlotte-south-east-7a-8a-conference-e.json",
-        "schools": 4
+        "schools": 7
       },
       {
         "name": "Coast, Sandhills & Triad (8A in mixed conferences)",
         "file": "north-carolina/coast-sandhills-triad-8a-in-mixed-conferences.json",
-        "schools": 6
+        "schools": 7
       }
     ]
   },

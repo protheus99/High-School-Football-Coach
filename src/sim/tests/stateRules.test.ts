@@ -71,9 +71,9 @@ describe('State rules', () => {
 });
 
 describe('Georgia (GHSA 7A)', () => {
-  it('builds the whole class: 51 teams in 8 regions, a 5-round playoff', () => {
+  it('builds the whole class: 52 teams in 8 regions, a 5-round playoff', () => {
     const { league, teams } = buildStateWorld('Georgia');
-    expect(teams).toHaveLength(51);
+    expect(teams).toHaveLength(52);
     expect(league.regions[0].districts).toHaveLength(8);
     expect(teams.every((t) => t.state === 'Georgia')).toBe(true);
     expect(playoffRoundCount(league)).toBe(5);

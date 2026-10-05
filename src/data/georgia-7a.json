@@ -521,6 +521,16 @@
        "defenseScheme": "FOUR_THREE"
       },
       {
+       "name": "Clarke Central",
+       "city": "Athens",
+       "mascot": "Gladiators",
+       "primaryColor": "#000000",
+       "secondaryColor": "#FFC72C",
+       "prestige": 75,
+       "offenseScheme": "POWER_I",
+       "defenseScheme": "FOUR_FOUR"
+      },
+      {
        "name": "Collins Hill",
        "city": "Suwanee",
        "mascot": "Eagles",
