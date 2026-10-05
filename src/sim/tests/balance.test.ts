@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { districtEnrollments } from '../../generators/rosterGenerator';
 import { prestigeReversion, PRESTIGE_REVERSION } from '../programMeters';
-import { mapLightRating } from '../nationalWorld';
+import { buildNationalWorld, mapLightRating, seasonPrestigeNudge, simulateLightWeek } from '../nationalWorld';
+import { STATE_FINAL_WEEK } from '../scheduleEngine';
 import { scheduleInterstateGames } from '../interstate';
 import type { Team } from '../../types/game';
 
@@ -73,4 +74,37 @@ describe('Out-of-state pairing', () => {
     const week8 = games.filter((g) => g.week === 8);
     expect(week8.some((g) => [g.homeTeamId, g.awayTeamId].sort().join() === 'a1,b1')).toBe(true);
   });
+});
+
+describe("Other states' prestige", () => {
+  const light = (id: string, rating: number, wins: number, losses: number) =>
+    ({ id, name: id, lightRating: rating, record: { wins, losses }, roster: [] }) as unknown as Team;
+  const game = (home: string, away: string, homeScore: number, awayScore: number) => ({ gameId: `${home}_${away}`, week: 9, homeTeamId: home, awayTeamId: away, isDistrictGame: true, homeScore, awayScore });
+
+  it('moves with how a season went against its schedule, not with wins alone', () => {
+    // A heavy favorite that wins every game did what was expected; an underdog that wins them all overachieved
+    const fav = light('fav', 80, 4, 0);
+    const dog = light('dog', 60, 4, 0);
+    const weak = ['w1', 'w2', 'w3', 'w4'].map((id) => light(id, 60, 0, 4));
+    const strong = ['s1', 's2', 's3', 's4'].map((id) => light(id, 80, 0, 4));
+    const byId = new Map([fav, dog, ...weak, ...strong].map((t) => [t.id, t]));
+    const favSchedule = weak.map((w) => game('fav', w.id, 35, 7));
+    const dogSchedule = strong.map((s) => game('dog', s.id, 21, 20));
+    const avg = (f: () => number) => Array.from({ length: 2000 }, f).reduce((s, x) => s + x, 0) / 2000;
+    expect(Math.abs(avg(() => seasonPrestigeNudge(fav, favSchedule, byId, false)))).toBeLessThan(0.15);
+    expect(avg(() => seasonPrestigeNudge(dog, dogSchedule, byId, false))).toBeGreaterThan(1.5);
+    expect(avg(() => seasonPrestigeNudge(fav, favSchedule, byId, true))).toBeGreaterThan(0.85); // a title still counts
+  });
+
+  it('holds its shape over a decade: no pile-up at 99 or under 60', () => {
+    let leagues = buildNationalWorld('Texas', 2026);
+    const count = (pred: (p: number) => boolean) => leagues.flatMap((l) => l.teams).filter((t) => pred(t.prestige)).length;
+    const [top0, low0] = [count((p) => p >= 95), count((p) => p < 60)];
+    for (let y = 0; y < 10; y++) {
+      for (let w = 1; w <= STATE_FINAL_WEEK + 1; w++) leagues.forEach((l) => simulateLightWeek(l, w));
+      leagues = buildNationalWorld('Texas', 2027 + y, leagues);
+    }
+    expect(count((p) => p >= 95)).toBeLessThan(top0 * 1.35);
+    expect(count((p) => p < 60)).toBeLessThan(low0 * 1.5);
+  }, 120_000);
 });

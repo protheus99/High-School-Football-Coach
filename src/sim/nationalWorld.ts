@@ -23,6 +23,30 @@ export interface LightLeague {
   bracket: PlayoffBracketState | null;
 }
 
+const WIN_ODDS_PER_RATING = 0.49; // logistic slope: a 1-point edge wins about 62% (the macro engine's calibration)
+const WINS_PER_PRESTIGE_POINT = 2; // wins beyond (or short of) expectations per prestige point
+
+/**
+ * How a light program's season moves its prestige: by how it did against what its schedule predicted (wins over or
+ * under the expected wins against the opponents it actually played), plus a point for a state title. Judging
+ * seasons by wins alone moved favorites up and underdogs down every year, and prestige feeds the next roster: within
+ * 20 years the other states had 3x as many programs at 99 and 2x as many under 60.
+ */
+export function seasonPrestigeNudge(team: Team, schedule: ScheduledGame[], teamsById: Map<string, Team>, champion: boolean): number {
+  const rating = (t?: Team) => t?.lightRating ?? 0;
+  const played = schedule.filter((g) => g.homeScore !== undefined && (g.homeTeamId === team.id || g.awayTeamId === team.id));
+  const expected = played.reduce((sum, g) => {
+    const opponent = teamsById.get(g.homeTeamId === team.id ? g.awayTeamId : g.homeTeamId);
+    return opponent ? sum + 1 / (1 + Math.exp(-WIN_ODDS_PER_RATING * (rating(team) - rating(opponent)))) : sum;
+  }, 0);
+  const wins = played.filter((g) => (g.homeTeamId === team.id ? g.homeScore! > g.awayScore! : g.awayScore! > g.homeScore!)).length;
+  // Fractions round by chance, so a season moves prestige by exactly what it earned on average (rounding to the
+  // nearest point docked favorites, who can only fall short, nearly every year)
+  const surprise = Math.max(-2, Math.min(2, (wins - expected) / WINS_PER_PRESTIGE_POINT));
+  const whole = Math.trunc(surprise);
+  return whole + (Math.random() < Math.abs(surprise - whole) ? Math.sign(surprise) : 0) + (champion ? 1 : 0);
+}
+
 /**
  * A state's whole top class as a light league with this year's schedule. Programs keep last year's prestige
  * (with a nudge for how the season went) when `previous` is given.
@@ -38,7 +62,7 @@ export function buildLightLeague(state: string, year: number, previous?: LightLe
   teams.forEach((t) => {
     const last = before.get(t.id);
     if (!last) return;
-    const nudge = (champions.has(t.id) ? 2 : 0) + (last.record.wins >= 9 ? 1 : last.record.wins <= 3 ? -1 : 0);
+    const nudge = seasonPrestigeNudge(last, previous!.schedule, before, champions.has(t.id));
     // t.prestige is the school's historical prestige (fresh from the data): seasons pull it away, history pulls it back
     const prestige = Math.max(40, Math.min(99, last.prestige + nudge + prestigeReversion(last.prestige, t.prestige)));
     // Talent follows prestige the way roster generation does
