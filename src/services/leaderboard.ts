@@ -67,7 +67,7 @@ export function recordCareer(career: Career): void {
   } catch {
     // Storage unavailable (private window): the career still lives in the save
   }
-  void submitRemote(toEntry(career));
+  void submitRemote(career);
 }
 
 /** Ranks entries: points, then titles, then fewer seasons (the faster climb wins ties). */
@@ -86,20 +86,25 @@ export function localLeaderboard(startingSchool?: string, state?: string, length
 const REMOTE_URL: string | undefined = import.meta.env.VITE_LEADERBOARD_URL;
 export const hasRemoteLeaderboard = () => !!REMOTE_URL;
 
-async function submitRemote(entry: LeaderboardEntry): Promise<void> {
-  if (!REMOTE_URL) return;
+async function submitRemote(career: Career): Promise<void> {
+  if (!REMOTE_URL || !career.token || career.seasons.length === 0) return;
   try {
-    await fetch(`${REMOTE_URL}/careers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...entry, isLocal: undefined }) });
+    const entry = { ...toEntry(career), isLocal: undefined, updatedAt: undefined, token: career.token };
+    await fetch(`${REMOTE_URL}/careers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) });
   } catch {
     // Offline: the next season's submission carries the whole career
   }
 }
 
-/** The shared leaderboard for a starting program and career length from the server (null without a server or when offline). */
-export async function fetchRemoteLeaderboard(startingSchool: string, state: string, length: Career['length']): Promise<LeaderboardEntry[] | null> {
+/**
+ * The shared leaderboard from the server: one starting program at one career length, or (without a program)
+ * the top careers across every program. Null without a server or when offline.
+ */
+export async function fetchRemoteLeaderboard(program?: { startingSchool: string; state: string; length: Career['length'] }): Promise<LeaderboardEntry[] | null> {
   if (!REMOTE_URL) return null;
+  const query = program ? `?state=${encodeURIComponent(program.state)}&school=${encodeURIComponent(program.startingSchool)}&length=${program.length}` : '';
   try {
-    const res = await fetch(`${REMOTE_URL}/leaderboard?state=${encodeURIComponent(state)}&school=${encodeURIComponent(startingSchool)}&length=${length}`);
+    const res = await fetch(`${REMOTE_URL}/leaderboard${query}`);
     if (!res.ok) return null;
     return rankEntries((await res.json()) as LeaderboardEntry[]);
   } catch {

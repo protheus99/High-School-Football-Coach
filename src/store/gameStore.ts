@@ -530,6 +530,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       startingProgram: program?.displayName ?? school,
       startedYear: 2026,
       length,
+      token: crypto.randomUUID(),
       seasons: []
     };
     set({ currentYear: 2026, difficulty: scenario.difficulty, career });

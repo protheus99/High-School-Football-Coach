@@ -34,6 +34,7 @@ export interface Career {
   startingProgram: string; // the name the program is known by
   startedYear: number;
   length: CareerLength; // seasons in the career
+  token?: string; // the career's secret for the global leaderboard (only this device can update it)
   seasons: CareerSeason[];
 }
 

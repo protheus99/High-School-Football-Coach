@@ -22,9 +22,10 @@ export const LeaderboardView: React.FC = () => {
   const [remote, setRemote] = useState<LeaderboardEntry[] | null>(null);
 
   useEffect(() => {
-    if (!career || scope !== 'PROGRAM' || !hasRemoteLeaderboard()) return;
+    if (!hasRemoteLeaderboard()) return;
     let live = true;
-    fetchRemoteLeaderboard(career.startingSchool, career.state, career.length).then((entries) => live && setRemote(entries));
+    setRemote(null);
+    fetchRemoteLeaderboard(scope === 'PROGRAM' && career ? career : undefined).then((entries) => live && setRemote(entries));
     return () => {
       live = false;
     };
@@ -33,7 +34,7 @@ export const LeaderboardView: React.FC = () => {
   // This device's careers (the current one as it stands now), plus the server's for the program
   const local = scope === 'PROGRAM' && career ? localLeaderboard(career.startingSchool, career.state, career.length) : localLeaderboard();
   const merged = new Map<string, LeaderboardEntry>();
-  [...(scope === 'PROGRAM' ? remote ?? [] : []), ...local].forEach((e) => merged.set(e.careerId, { ...merged.get(e.careerId), ...e }));
+  [...(remote ?? []), ...local].forEach((e) => merged.set(e.careerId, { ...merged.get(e.careerId), ...e }));
   if (career && career.seasons.length) merged.set(career.id, toEntry(career));
   const board = rankEntries([...merged.values()]);
 

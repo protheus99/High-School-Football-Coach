@@ -1,0 +1,20 @@
+{
+  // The global leaderboard API: a Worker with a D1 database. Deployed on its own (see README.md), separate
+  // from the game's static site so a site deploy never depends on the database.
+  "name": "hsfhc-leaderboard",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hsfhc-leaderboard",
+      // Paste the id printed by `npx wrangler d1 create hsfhc-leaderboard`
+      "database_id": "REPLACE_WITH_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    // The game's site (comma-separated if more than one); add http://localhost:3000 to test from the dev server
+    "ALLOWED_ORIGINS": "https://high-school-football-coach.REPLACE_WITH_SUBDOMAIN.workers.dev"
+  }
+}
