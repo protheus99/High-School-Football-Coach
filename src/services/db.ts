@@ -34,6 +34,7 @@ export interface GameSaveRecord {
   coachingStaff?: import('../sim/coachingStaff').HiredCoach[]; // the coach's paid assistants
   career?: import('../sim/careerScore').Career | null; // a scenario career (scored each season)
   userProbationUntil?: number | null; // last season of the coach's recruiting probation
+  lightCalibration?: import('../sim/nationalWorld').LightCalibration | null; // the other states' rating mapping
   userViolationHeat?: number;
   pendingUserBan?: boolean;
   onHotSeat?: boolean; // board warning from last season's review

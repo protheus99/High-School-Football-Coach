@@ -80,6 +80,24 @@ export function schoolEnrollment(name: string): number {
   return 2300 + (hash % 2700);
 }
 
+/**
+ * Enrollments for a district's schools that split its powers between the playoff divisions. The UIL sends a
+ * district's two largest-enrollment qualifiers to Division 1, so by prestige the district's 1st, 4th, 5th and 8th
+ * schools get the larger enrollments and the 2nd, 3rd, 6th and 7th the smaller ones (the name still sets the exact
+ * figure). With made-up enrollments, most of the state's powers had landed in one division.
+ */
+export function districtEnrollments(schools: { name: string; prestige: number }[]): Map<string, number> {
+  const larger = (i: number) => i % 4 === 0 || i % 4 === 3;
+  return new Map(
+    [...schools]
+      .sort((a, b) => b.prestige - a.prestige || a.name.localeCompare(b.name))
+      .map((s, i) => {
+        const base = schoolEnrollment(s.name);
+        return [s.name, larger(i) ? 3700 + (base % 1300) : 2300 + (base % 1300)] as const;
+      })
+  );
+}
+
 let playerIdCounter = 0;
 
 /** Pareto talent roll: most players are rotational or depth, a few are All-State or phenoms. */
@@ -379,8 +397,10 @@ export function generateDistrictTeams(
   const schemesOffense: OffensiveScheme[] = ['TRIPLE_OPTION', 'AIR_RAID', 'POWER_I', 'SPREAD'];
   const schemesDefense: DefensiveScheme[] = ['FOUR_THREE', 'FOUR_FOUR', 'THREE_THREE_FIVE', 'DROP_EIGHT'];
 
+  const prestiges = schools.map((hs) => hs.prestige ?? randomInt(68, 92));
+  const enrollments = districtEnrollments(schools.map((hs, i) => ({ name: hs.name, prestige: prestiges[i] })));
   return schools.map((hs, i) => {
-    const prestige = hs.prestige ?? randomInt(68, 92);
+    const prestige = prestiges[i];
     const nameProfile = options.nameProfile ?? 'DEFAULT';
     // Talent leans toward the school's prestige (within its state) plus its state's national strength
     const talent = options.talentFromPrestige ? programTalent(prestige, options.state) : 0;
@@ -401,7 +421,8 @@ export function generateDistrictTeams(
       playbookFamiliarity: randomInt(70, 90),
       schemeOffense: hs.offenseScheme ?? schemesOffense[i % schemesOffense.length],
       schemeDefense: hs.defenseScheme ?? schemesDefense[i % schemesDefense.length],
-      enrollment: schoolEnrollment(hs.name),
+      enrollment: enrollments.get(hs.name) ?? schoolEnrollment(hs.name),
+      historicalPrestige: prestige,
       nameProfile,
       ...(options.state && { state: options.state }),
       programMeters: {

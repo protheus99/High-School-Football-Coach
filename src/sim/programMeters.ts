@@ -79,3 +79,15 @@ export function boardReview(boardTrust: number, alreadyOnHotSeat: boolean): Boar
   if (boardTrust >= HOT_SEAT_TRUST) return 'SECURE';
   return alreadyOnHotSeat ? 'FIRED' : 'HOT_SEAT';
 }
+
+/**
+ * A program's prestige drifts back toward its history: each season it moves this share of the way to the school's
+ * historical level (fractions round by chance). Good and bad seasons still move it for years at a time, but without
+ * the pull every program wandered further each decade, piling powers up at 99 and strugglers under 60.
+ */
+export const PRESTIGE_REVERSION = 0.1;
+export function prestigeReversion(prestige: number, historical: number): number {
+  const pull = (historical - prestige) * PRESTIGE_REVERSION;
+  const whole = Math.trunc(pull);
+  return whole + (Math.random() < Math.abs(pull - whole) ? Math.sign(pull) : 0);
+}

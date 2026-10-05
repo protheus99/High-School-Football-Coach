@@ -44,9 +44,11 @@ export interface StateLeagueSchedule {
 const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
 
 /**
- * Pairs teams from different states for one week: strongest first, each against the closest-rated team left
- * from another state (neighbors preferred). `first` is placed before anyone else (the coach's team always gets
- * a game). Pairs that already met are skipped.
+ * Pairs teams from different states for one week: in random order, each against the closest-rated team left from
+ * another state, above or below it (neighbors preferred). Going strongest-first made the team choosing always the
+ * favorite, and a big state's teams, which have to look past their own state's crowd, chose far more often: they
+ * opened as favorites and their wins inflated their state in the computer rankings. `first` is placed before anyone
+ * else (the coach's team always gets a game). Pairs that already met are skipped.
  */
 function pairAcrossStates(
   pool: { team: Team; state: string; rating: number }[],
@@ -55,7 +57,7 @@ function pairAcrossStates(
   met: Set<string>,
   first?: string
 ): ScheduledGame[] {
-  const open = [...pool].sort((a, b) => (a.team.id === first ? -1 : b.team.id === first ? 1 : b.rating - a.rating));
+  const open = [...pool].map((e) => ({ e, key: e.team.id === first ? -1 : Math.random() })).sort((a, b) => a.key - b.key).map(({ e }) => e);
   const games: ScheduledGame[] = [];
   while (open.length > 1) {
     const me = open.shift()!;
@@ -83,8 +85,13 @@ function pairAcrossStates(
  * The season's out-of-state games: everyone in week 8, then week-9 fill-ins for teams their own league leaves
  * idle (odd-sized states). League schedules must already leave week 8 open.
  */
-export function scheduleInterstateGames(leagues: StateLeagueSchedule[], year: number, firstTeamId?: string): ScheduledGame[] {
-  const entries = leagues.flatMap((l) => l.teams.map((team) => ({ team, state: l.state, rating: teamStarterRating(team) })));
+export function scheduleInterstateGames(
+  leagues: StateLeagueSchedule[],
+  year: number,
+  firstTeamId?: string,
+  ratingOf: (team: Team) => number = teamStarterRating // pairing strength (default: today's game-day rating)
+): ScheduledGame[] {
+  const entries = leagues.flatMap((l) => l.teams.map((team) => ({ team, state: l.state, rating: ratingOf(team) })));
   const met = new Set(leagues.flatMap((l) => l.schedule.map((g) => pairKey(g.homeTeamId, g.awayTeamId))));
   const games = pairAcrossStates(entries, INTERSTATE_WEEK, year, met, firstTeamId);
   for (let week = INTERSTATE_WEEK + 1; week <= LAST_INTERSTATE_WEEK; week++) {

@@ -230,6 +230,9 @@ export function pickHomeRival(ctx: RecruitingContext): Team | undefined {
 // ---------------------------------------------------------------------------
 
 /** A program's hidden integrity: most are honest-ish, some will cut corners. */
+/** Chance an AI program changes head coach in an off-season (the new coach brings his own integrity). */
+export const COACHING_CHANGE_CHANCE = 0.08;
+
 export function initialFeederProfile(): FeederProfile {
   const r = Math.random();
   const ethics = r < 0.15 ? randomInt(10, 35) : r < 0.75 ? randomInt(40, 75) : randomInt(76, 95);

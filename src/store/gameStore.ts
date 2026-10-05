@@ -18,7 +18,7 @@ import {
   buildTexasLeague,
   Difficulty,
   findDistrict,
-  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, seasonLength, buildStateWorld } from '../sim/league';
+  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, seasonLength, buildStateWorld, stateSchool } from '../sim/league';
 import {
   applyGameResult,
   FEEDER_SIGNING_WEEK,
@@ -81,10 +81,11 @@ import {
   removeImproperRecruits,
   restrictedOnProbation,
   initialFeederProfile,
+  COACHING_CHANGE_CHANCE,
   weeklyDetectionChance,
   yearEndDetectionChance
 } from '../sim/feederCompetition';
-import { simulateMacroMatch, rollGameInjuries } from '../sim/macroSim';
+import { simulateMacroMatch, rollGameInjuries, teamStarterRating } from '../sim/macroSim';
 import {
   evaluateAcademicReport,
   isAcademicallyAtRisk,
@@ -103,13 +104,24 @@ import { ScenarioId, scenarioById } from '../data/scenarios';
 import { recordCareer } from '../services/leaderboard';
 import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
 import { expandToFullRoster, INTERSTATE_WEEK, scheduleInterstateGames } from '../sim/interstate';
-import { buildNationalWorld, calibrateLightLeagues, catchUpNationalWorld, LightLeague, nationalTeams, relinkNationalWorld, simulateLightWeek } from '../sim/nationalWorld';
+import {
+  applyLightCalibration,
+  buildNationalWorld,
+  catchUpNationalWorld,
+  LightCalibration,
+  LightLeague,
+  measureLightCalibration,
+  nationalTeams,
+  relinkNationalWorld,
+  simulateLightWeek
+} from '../sim/nationalWorld';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
 import type { GameSaveRecord } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
 import { addIncomingClass, graduateAndProgress } from '../sim/offseasonEngine';
 import { NOTABLE_CLASS_WAVE, rollClassWave } from '../generators/rosterGenerator';
+import { randomSurname } from '../generators/names';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { moveInDepthChart, setDepthTier } from '../sim/depthChart';
 import { ASSISTANT_DRILLS_PER_WEEK, DrillFocus, runAssistantDrills } from '../sim/drillEngine';
@@ -125,7 +137,7 @@ import {
   weeklyCpIncome,
   winBonus
 } from '../sim/coachPoints';
-import { BOARD_RESULT_DELTA, PRACTICE_DISCIPLINE, boardReview, pickSuspension } from '../sim/programMeters';
+import { BOARD_RESULT_DELTA, PRACTICE_DISCIPLINE, boardReview, pickSuspension, prestigeReversion } from '../sim/programMeters';
 import { rulesForState } from '../sim/stateRules';
 
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
@@ -283,6 +295,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     coachingStaff: state.coachingStaff,
     career: state.career,
     userProbationUntil: state.userProbationUntil,
+    lightCalibration: state.lightCalibration,
     userViolationHeat: state.userViolationHeat,
     pendingUserBan: state.pendingUserBan,
     onHotSeat: state.onHotSeat,
@@ -296,8 +309,17 @@ const AUTOSAVE_SLOT = 'current_save';
  * The season's out-of-state games for every state. The league's own are added to its schedule (the same
  * objects, so a result shows in both), and the coach's out-of-state opponents get full rosters for a live game.
  */
-function planInterstate(state: string, teams: Team[], schedule: ScheduledGame[], nationalLeagues: LightLeague[], year: number, userTeamId: string): ScheduledGame[] {
-  const games = scheduleInterstateGames([{ state, teams, schedule }, ...nationalLeagues.map((l) => ({ state: l.state, teams: l.teams, schedule: l.schedule }))], year, userTeamId);
+function planInterstate(
+  state: string,
+  teams: Team[],
+  schedule: ScheduledGame[],
+  nationalLeagues: LightLeague[],
+  year: number,
+  userTeamId: string,
+  openerRatings?: Record<string, number> // the league's ratings at the last opener (its rosters are between classes now)
+): ScheduledGame[] {
+  const ratingOf = (t: Team) => openerRatings?.[t.id] ?? teamStarterRating(t);
+  const games = scheduleInterstateGames([{ state, teams, schedule }, ...nationalLeagues.map((l) => ({ state: l.state, teams: l.teams, schedule: l.schedule }))], year, userTeamId, ratingOf);
   const ids = new Set(teams.map((t) => t.id));
   schedule.push(...games.filter((g) => ids.has(g.homeTeamId) || ids.has(g.awayTeamId)));
   const lightTeams = new Map(nationalLeagues.flatMap((l) => l.teams).map((t) => [t.id, t]));
@@ -393,6 +415,7 @@ interface GameStoreState {
   firedFrom: string | null; // set when the board fires the coach (game over for this save)
   careerComplete: boolean; // the career's last season is done (game over for this save)
   userProbationUntil: number | null; // last season of the coach's recruiting probation after getting caught
+  lightCalibration: LightCalibration | null; // how the other states' rolled ratings map onto the coach's league (measured each opener)
 
   // Actions
   startNewSeason: (world?: GameWorld) => void; // default: the Texas 6A world
@@ -458,6 +481,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   firedFrom: null,
   careerComplete: false,
   userProbationUntil: null,
+  lightCalibration: null,
   newsArticles: [],
   polls: null,
   playerRankings: null,
@@ -488,6 +512,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const ctx = buildRecruitingContext(league, teams, userTeamId);
     updateStarRatings(teams, false);
     const nationalLeagues = buildNationalWorld(league.state ?? 'Texas', get().currentYear);
+    // The generated league is complete (freshmen in): put the country on its scale before pairing out-of-state games
+    const lightCalibration = measureLightCalibration(league.state ?? 'Texas', teams);
+    applyLightCalibration(nationalLeagues, lightCalibration);
     updateStarRatings(nationalLeagues.flatMap((l) => l.teams), false); // the other states' stars, by the same quotas
     const everyone = nationalTeams(teams, nationalLeagues);
     const seasonSchedule = generateSeasonSchedule(leagueRegionTeams(league, teams), get().currentYear, { reservedWeeks: [INTERSTATE_WEEK] });
@@ -513,6 +540,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       firedFrom: null,
       careerComplete: false,
       userProbationUntil: null,
+      lightCalibration,
       feederEventsThisWeek: [],
       lastFeederResults: null,
       newsArticles: generateWeeklyNewsStream(1, userTeam),
@@ -567,9 +595,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     let nationalLeagues = save.nationalLeagues ? relinkNationalWorld(save.nationalLeagues) : null;
     if (!nationalLeagues) {
       nationalLeagues = buildNationalWorld(world.league.state ?? 'Texas', year);
+      applyLightCalibration(nationalLeagues, save.lightCalibration ?? measureLightCalibration(world.league.state ?? 'Texas', world.teams));
       catchUpNationalWorld(nationalLeagues, loadedWeek - 1);
     }
     const everyone = nationalTeams(world.teams, nationalLeagues);
+    // Saves from before prestige history: each school's history comes from the data
+    world.teams.forEach((t) => {
+      if (t.historicalPrestige === undefined) t.historicalPrestige = stateSchool(world.league.state ?? 'Texas', t.name)?.prestige ?? t.prestige;
+    });
     // Saves from before star quotas get today's star ratings
     updateStarRatings(everyone, loadedWeek >= MID_SEASON_STAR_UPDATE_WEEK);
     set({
@@ -594,6 +627,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       firedFrom: null,
       careerComplete: false,
       userProbationUntil: save.userProbationUntil ?? null,
+      lightCalibration: save.lightCalibration ?? null,
       dilemmaLog: save.dilemmaLog ?? [],
       currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
       userTeamId: userTeam.id,
@@ -839,7 +873,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
 
     // Season opener: the other states develop at the same pace as the coach's fully simulated league
-    if (nextWeek === FIRST_NON_DISTRICT_WEEK && league) calibrateLightLeagues(get().nationalLeagues, league.state ?? 'Texas', leagueTeams);
+    // Season opener: measure the league against a rolled one (next season's light leagues are mapped with it)
+    if (nextWeek === FIRST_NON_DISTRICT_WEEK && league) set({ lightCalibration: measureLightCalibration(league.state ?? 'Texas', leagueTeams) });
 
     // Postseason starts the week after the regular season
     if (nextWeek === LAST_REGULAR_SEASON_WEEK + 1) {
@@ -1066,11 +1101,22 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     resetSeasonRecruiting(leagueTeams);
     updateStarRatings(leagueTeams, false);
 
+    // AI programs' prestige drifts back toward their history (the coach's program is his to build or lose)
+    leagueTeams.forEach((team) => {
+      if (team.id === userTeamId) return;
+      team.prestige = Math.max(40, Math.min(99, team.prestige + prestigeReversion(team.prestige, team.historicalPrestige ?? team.prestige)));
+    });
+
     // Year-end investigations: some programs get caught, the rest see their evidence fade
     const investigationNews: NewsArticle[] = [];
     leagueTeams.forEach((team) => {
       const profile = team.feederProfile;
       if (!profile || team.id === userTeamId) return;
+      // Coaching changes: a new head coach brings his own integrity (a cleaned-up program can slip again)
+      if (Math.random() < COACHING_CHANGE_CHANCE) {
+        profile.ethics = initialFeederProfile().ethics;
+        team.staff.headCoachName = `Coach ${randomSurname(team.nameProfile)}`;
+      }
       if (profile.violationHeat > 0 && Math.random() < yearEndDetectionChance(profile.violationHeat)) {
         investigationNews.push(punishCaughtProgram(team, currentYear + 1, 1));
       } else {
@@ -1110,10 +1156,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // The other states start their new season too (programs keep their prestige, nudged by last season)
     const nationalLeagues = buildNationalWorld(league?.state ?? 'Texas', currentYear + 1, get().nationalLeagues);
+    // Mapped with this season's opener measurement (rosters are between classes now), before the pairing below
+    applyLightCalibration(nationalLeagues, get().lightCalibration ?? measureLightCalibration(league?.state ?? 'Texas', leagueTeams));
     updateStarRatings(nationalLeagues.flatMap((l) => l.teams), false);
     const everyone = nationalTeams(leagueTeams, nationalLeagues);
     const nextSchedule = league ? generateSeasonSchedule(leagueRegionTeams(league, leagueTeams), currentYear + 1, { reservedWeeks: [INTERSTATE_WEEK] }) : [];
-    const interstateGames = league ? planInterstate(league.state ?? 'Texas', leagueTeams, nextSchedule, nationalLeagues, currentYear + 1, userTeamId) : [];
+    // Paired on last opener's ratings: this year's freshmen haven't arrived, and the thinned rosters would have drawn
+    // weaker opponents (the league then opened every season as a favorite and inflated its national rankings)
+    const interstateGames = league
+      ? planInterstate(league.state ?? 'Texas', leagueTeams, nextSchedule, nationalLeagues, currentYear + 1, userTeamId, get().lightCalibration?.teamRatings)
+      : [];
     const newPolls = generateNationalAndStatePolls(everyone, null, 1);
     const newPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, 1);
 

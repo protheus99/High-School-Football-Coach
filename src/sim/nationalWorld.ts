@@ -5,6 +5,7 @@ import { simulateMacroMatch, teamStarterRating } from './macroSim';
 import { advancePlayoffRound, bracketRoundForWeek, buildPlayoffBracket, PlayoffBracketState, relinkBracketTeams } from './playoffEngine';
 import { PLAYABLE_STATES, rulesForState } from './stateRules';
 import { programTalent } from '../generators/rosterGenerator';
+import { prestigeReversion } from './programMeters';
 import { applyRunAheadRound, gameKey, WeekResults } from './runAhead';
 
 // ---------------------------------------------------------------------------
@@ -38,7 +39,8 @@ export function buildLightLeague(state: string, year: number, previous?: LightLe
     const last = before.get(t.id);
     if (!last) return;
     const nudge = (champions.has(t.id) ? 2 : 0) + (last.record.wins >= 9 ? 1 : last.record.wins <= 3 ? -1 : 0);
-    const prestige = Math.max(40, Math.min(99, last.prestige + nudge));
+    // t.prestige is the school's historical prestige (fresh from the data): seasons pull it away, history pulls it back
+    const prestige = Math.max(40, Math.min(99, last.prestige + nudge + prestigeReversion(last.prestige, t.prestige)));
     // Talent follows prestige the way roster generation does
     t.lightRating = (t.lightRating ?? 60) + programTalent(prestige, state) - programTalent(t.prestige, state);
     t.prestige = prestige;
@@ -106,20 +108,59 @@ export function relinkNationalWorld(leagues: LightLeague[]): LightLeague[] {
   return leagues.map((l) => ({ ...l, bracket: l.bracket ? relinkBracketTeams(l.bracket, l.teams) : null }));
 }
 
+/** How rolled light ratings map onto the coach's league: the same state's rolled and real ratings, sorted. */
+export interface LightCalibration {
+  rolled: number[]; // a freshly rolled light version of the coach's state, ascending
+  real: number[]; // the coach's league's game-day ratings, ascending
+  teamRatings: Record<string, number>; // the same ratings by team (next season's out-of-state pairing uses them)
+}
+
 /**
- * Keeps the country developing at the same pace. The coach's league is fully simulated: its players grow
- * season by season, while light leagues are rebuilt from the data each year. At each season's opener the
- * league's top quarter (game-day rating) is compared with a freshly built league of its state, and every light
- * team moves by that difference. Returns the shift.
+ * Keeps the country on the coach's league's scale. The coach's league is fully simulated (rosters, classes, talent
+ * waves), while light leagues are rolled from the data each year. A freshly rolled light version of the coach's
+ * state is compared with the real league, rating by rating: the mapping matches the whole shape, the top tail
+ * included (talent waves give real leagues more standout teams than rolled ratings have, and a level-and-spread match
+ * left the coach's state owning the national polls). Measured at each season's opener, once the freshmen are in.
  */
-export function calibrateLightLeagues(leagues: LightLeague[], userState: string, leagueTeams: Team[]): number {
-  const average = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / Math.max(1, xs.length);
-  // Compared on each league's top quarter: the programs that decide national rankings
-  const topQuarter = (xs: number[]) => [...xs].sort((a, b) => b - a).slice(0, Math.max(1, Math.round(xs.length / 4)));
-  const fresh = buildStateWorld(userState, undefined, true).teams.map((t) => t.lightRating ?? 0);
-  const shift = average(topQuarter(leagueTeams.map(teamStarterRating))) - average(topQuarter(fresh));
-  leagues.forEach((l) => l.teams.forEach((t) => t.lightRating !== undefined && (t.lightRating += shift)));
-  return shift;
+export function measureLightCalibration(userState: string, leagueTeams: Team[]): LightCalibration {
+  const teamRatings = Object.fromEntries(leagueTeams.map((t) => [t.id, teamStarterRating(t)]));
+  return {
+    rolled: buildStateWorld(userState, undefined, true).teams.map((t) => t.lightRating ?? 0).sort((a, b) => a - b),
+    real: Object.values(teamRatings).sort((a, b) => a - b),
+    teamRatings
+  };
+}
+
+/** A rolled rating's place on the real scale: same rank in the distribution (straight-line beyond its ends). */
+export function mapLightRating(x: number, { rolled, real }: LightCalibration): number {
+  const n = rolled.length;
+  const at = (q: number) => {
+    const pos = q * (real.length - 1);
+    const i = Math.floor(pos);
+    return real[i] + (real[Math.min(i + 1, real.length - 1)] - real[i]) * (pos - i);
+  };
+  const tail = Math.max(2, Math.round(n / 10));
+  if (x >= rolled[n - 1]) {
+    const slope = (real[real.length - 1] - real[real.length - tail]) / Math.max(0.5, rolled[n - 1] - rolled[n - tail]);
+    return real[real.length - 1] + (x - rolled[n - 1]) * Math.max(0.5, Math.min(2, slope));
+  }
+  if (x <= rolled[0]) {
+    const slope = (real[tail - 1] - real[0]) / Math.max(0.5, rolled[tail - 1] - rolled[0]);
+    return real[0] + (x - rolled[0]) * Math.max(0.5, Math.min(2, slope));
+  }
+  let i = 0;
+  while (rolled[i + 1] < x) i++;
+  const q = (i + (x - rolled[i]) / Math.max(1e-9, rolled[i + 1] - rolled[i])) / (n - 1);
+  return at(q);
+}
+
+/**
+ * Puts freshly rolled light leagues on the coach's league's scale. Applied as each season's light leagues are built,
+ * before the out-of-state games are paired by rating: pairing on unmapped ratings had handed the coach's state
+ * slightly weaker opponents, and its out-of-state wins inflated every in-state schedule in the computer rankings.
+ */
+export function applyLightCalibration(leagues: LightLeague[], c: LightCalibration): void {
+  leagues.forEach((l) => l.teams.forEach((t) => t.lightRating !== undefined && (t.lightRating = mapLightRating(t.lightRating, c))));
 }
 
 /** Every team in the country: the user's league plus the light leagues. */
