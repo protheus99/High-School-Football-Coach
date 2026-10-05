@@ -470,6 +470,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const ctx = buildRecruitingContext(league, teams, userTeamId);
     updateStarRatings(teams, false);
     const nationalLeagues = buildNationalWorld(league.state ?? 'Texas', get().currentYear);
+    updateStarRatings(nationalLeagues.flatMap((l) => l.teams), false); // the other states' stars, by the same quotas
     const everyone = nationalTeams(teams, nationalLeagues);
     const seasonSchedule = generateSeasonSchedule(leagueRegionTeams(league, teams), get().currentYear, { reservedWeeks: [INTERSTATE_WEEK] });
     const interstateGames = planInterstate(league.state ?? 'Texas', teams, seasonSchedule, nationalLeagues, get().currentYear, userTeamId);
@@ -550,6 +551,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       catchUpNationalWorld(nationalLeagues, loadedWeek - 1);
     }
     const everyone = nationalTeams(world.teams, nationalLeagues);
+    // Saves from before star quotas get today's star ratings
+    updateStarRatings(everyone, loadedWeek >= MID_SEASON_STAR_UPDATE_WEEK);
     set({
       difficulty: save.difficulty ?? null,
       currentYear: year,
@@ -908,7 +911,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, nextWeek);
 
     // 4. College recruiting statewide (offers, commitments, flips) & Weekly Dilemma
-    if (nextWeek === MID_SEASON_STAR_UPDATE_WEEK) updateStarRatings(leagueTeams, true);
+    if (nextWeek === MID_SEASON_STAR_UPDATE_WEEK) updateStarRatings(nationalTeams(leagueTeams, get().nationalLeagues), true);
     const collegeNews = collegeRecruitingNews(advanceCollegeRecruiting(leagueTeams, nextWeek, currentYear), userTeamId, nextWeek, currentYear);
     const recentTemplates = dilemmaLog
       .filter((r) => r.year === currentYear && nextWeek - r.week < DILEMMA_COOLDOWN_WEEKS)
@@ -1081,6 +1084,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // The other states start their new season too (programs keep their prestige, nudged by last season)
     const nationalLeagues = buildNationalWorld(league?.state ?? 'Texas', currentYear + 1, get().nationalLeagues);
+    updateStarRatings(nationalLeagues.flatMap((l) => l.teams), false);
     const everyone = nationalTeams(leagueTeams, nationalLeagues);
     const nextSchedule = league ? generateSeasonSchedule(leagueRegionTeams(league, leagueTeams), currentYear + 1, { reservedWeeks: [INTERSTATE_WEEK] }) : [];
     const interstateGames = league ? planInterstate(league.state ?? 'Texas', leagueTeams, nextSchedule, nationalLeagues, currentYear + 1, userTeamId) : [];

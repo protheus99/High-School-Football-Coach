@@ -9,12 +9,12 @@ import {
   alumniPrestigeChanges,
   collegeActionBlocker,
   performCollegeAction,
-  playerStars,
   positionValue,
   recruitScore,
   rollOffer,
   runSigningDay,
   starsFromScore,
+  stateStarQuota,
   updateStarRatings
 } from '../collegeRecruitingEngine';
 import { COLLEGES, COLLEGES_BY_ID } from '../../data/colleges';
@@ -45,8 +45,28 @@ const team = { prestige: 80 } as Team;
 describe('Evaluations and offers', () => {
   const { teams, events, seniors } = season();
 
-  it('uses the spec star bands', () => {
+  it('uses the spec star bands below the ranked tiers', () => {
     expect([95, 85, 76, 68, 60, 50].map(starsFromScore)).toEqual([5, 4, 3, 2, 1, 0]);
+  });
+
+  it('hands out five-, four- and three-stars by rank: each class gets its state share of the national counts', () => {
+    // Texas: about 11% of a class's rated recruits nationally, 70% of them in 6A
+    expect([5, 4, 3].map((s) => stateStarQuota('Texas', s as 3 | 4 | 5))).toEqual([3, 28, 100]);
+    expect([5, 4, 3].map((s) => stateStarQuota('Maryland', s as 3 | 4 | 5))).toEqual([1, 6, 23]);
+    (['Senior', 'Junior', 'Sophomore', 'Freshman'] as const).forEach((classYear) => {
+      const players = teams.flatMap((t) => t.roster).filter((p) => p.classYear === classYear);
+      const count = (stars: number) => players.filter((p) => p.recruiting.starRating === stars).length;
+      expect(count(5)).toBeLessThanOrEqual(3);
+      expect(count(4)).toBeLessThanOrEqual(28);
+      expect(count(3)).toBeLessThanOrEqual(100);
+    });
+  });
+
+  it('ranks stars by evaluation: every five-star outscores every four-star (specialists aside)', () => {
+    const ranked = seniors.filter((p) => p.position !== 'K' && p.position !== 'P');
+    const lowestFive = Math.min(...ranked.filter((p) => p.recruiting.starRating === 5).map((p) => recruitScore(p, false)));
+    const bestFour = Math.max(...ranked.filter((p) => p.recruiting.starRating === 4).map((p) => recruitScore(p, false)));
+    expect(lowestFive).toBeGreaterThanOrEqual(bestFour);
   });
 
   it('never duplicates an offer and never gives Power 4 scholarships to kickers or punters', () => {
@@ -80,8 +100,8 @@ describe('Evaluations and offers', () => {
       t.roster
         .filter((p) => p.classYear === 'Junior')
         .forEach((p) => {
-          if (p.recruiting.offers.length > 0) expect(recruitScore(p)).toBeGreaterThanOrEqual(74);
-          if (p.recruiting.committedCollege) expect(recruitScore(p)).toBeGreaterThanOrEqual(82);
+          if (p.recruiting.offers.length > 0) expect(p.recruiting.starRating).toBeGreaterThanOrEqual(3);
+          if (p.recruiting.committedCollege) expect(p.recruiting.starRating).toBeGreaterThanOrEqual(4);
         })
     );
   });
@@ -187,6 +207,7 @@ describe('Head coach actions', () => {
     const junior = userTeam.roster.find((p) => p.classYear === 'Junior' && p.recruiting.offers.length > 0);
     store.getState().transitionToNextYear();
     if (junior) expect(junior.recruiting.offers.length).toBeGreaterThan(0);
-    store.getState().leagueTeams.forEach((t) => t.roster.forEach((p) => expect(p.recruiting.starRating).toBe(playerStars(p, false))));
+    const seniorsNow = store.getState().leagueTeams.flatMap((t) => t.roster).filter((p) => p.classYear === 'Senior');
+    expect(seniorsNow.filter((p) => p.recruiting.starRating === 5)).toHaveLength(stateStarQuota('Texas', 5));
   }, 120000);
 });

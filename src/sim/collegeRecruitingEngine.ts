@@ -1,6 +1,7 @@
 import { CollegeOffer, CollegeTier, Player, Position, Team } from '../types/game';
 import { COLLEGES, COLLEGES_BY_ID, COLLEGES_BY_NAME, College } from '../data/colleges';
 import { clamp, randomInt } from './math/variance';
+import { recruitShare } from './stateRules';
 
 // ---------------------------------------------------------------------------
 // College recruiting (design spec 15): every junior and senior in the state is
@@ -55,8 +56,8 @@ const MAX_OFFERS = 16;
 const MIN_OFFER_WEEK = 2;
 const LANES_CONSIDERED = 2; // a player hears from the top two levels he can reach
 const JUNIOR_OFFER_FACTOR = 0.35;
-const JUNIOR_OFFER_MIN_SCORE = 74; // juniors hear from colleges only as 3-star prospects and up
-const JUNIOR_COMMIT_MIN_SCORE = 82; // only 4-star juniors and up commit early
+const JUNIOR_OFFER_MIN_STARS = 3; // juniors hear from colleges only as 3-star prospects and up
+const JUNIOR_COMMIT_MIN_STARS = 4; // only 4-star juniors and up commit early
 const FLIP_MARGIN = 10;
 const FLIP_CHANCE = 0.4;
 export const CAMP_WEEKS = 7; // the summer camp circuit runs through pre season and training camp
@@ -158,14 +159,45 @@ export function starsFromScore(score: number): Player['recruiting']['starRating'
 
 const SPECIALIST_MAX_STARS = 3; // recruiting services rarely rate kickers and punters higher
 
-/** A player's star rating: the spec bands, capped for specialists. */
-export function playerStars(player: Player, withProduction = true): Player['recruiting']['starRating'] {
-  const stars = starsFromScore(recruitScore(player, withProduction));
-  return player.position === 'K' || player.position === 'P' ? (Math.min(stars, SPECIALIST_MAX_STARS) as Player['recruiting']['starRating']) : stars;
+/** Each class nationally: about 35 five-stars, 365 four-stars and 1,300 three-stars (everyone else is two stars or unrated). */
+export const NATIONAL_STAR_COUNTS = { 5: 35, 4: 365, 3: 1300 } as const;
+/** The share of a state's rated recruits that play in its top class (the class the game simulates). */
+const TOP_CLASS_COVERAGE = 0.7;
+/** The lowest evaluation for each tier, so a thin class doesn't produce a paper five-star. */
+const STAR_FLOORS = { 5: 86, 4: 80, 3: 72 } as const;
+
+/** How many five-, four- and three-stars one class in a state's top class gets. */
+export function stateStarQuota(state: string | undefined, stars: 3 | 4 | 5): number {
+  return Math.round(NATIONAL_STAR_COUNTS[stars] * recruitShare(state) * TOP_CLASS_COVERAGE);
 }
 
+/**
+ * Star ratings the way recruiting services hand them out: by rank. Within each state and class, the best
+ * evaluations take the state's five-star spots, then its four- and three-star spots (each tier has a minimum
+ * evaluation); everyone else is two stars, one star or unrated by the spec bands. Kickers and punters top
+ * out at three stars.
+ */
 export function updateStarRatings(teams: Team[], withProduction: boolean): void {
-  teams.forEach((t) => t.roster.forEach((p) => (p.recruiting.starRating = playerStars(p, withProduction))));
+  const classes = new Map<string, { player: Player; score: number }[]>();
+  teams.forEach((t) =>
+    t.roster.forEach((player) => {
+      const key = `${t.state ?? 'Texas'}|${player.classYear}`;
+      if (!classes.has(key)) classes.set(key, []);
+      classes.get(key)!.push({ player, score: recruitScore(player, withProduction) });
+    })
+  );
+  classes.forEach((players, key) => {
+    const state = key.split('|')[0];
+    const left = { 5: stateStarQuota(state, 5), 4: stateStarQuota(state, 4), 3: stateStarQuota(state, 3) };
+    players
+      .sort((a, b) => b.score - a.score)
+      .forEach(({ player, score }) => {
+        const specialist = player.position === 'K' || player.position === 'P';
+        const tier = ([5, 4, 3] as const).find((stars) => left[stars] > 0 && score >= STAR_FLOORS[stars] && !(specialist && stars > SPECIALIST_MAX_STARS));
+        if (tier) left[tier]--;
+        player.recruiting.starRating = tier ?? (Math.min(starsFromScore(score), 2) as Player['recruiting']['starRating']);
+      });
+  });
 }
 
 /** Exposure college coaches have to a player before the head coach does anything. */
@@ -217,13 +249,27 @@ function lanesFor(score: number, position: Position): typeof LANES {
   return LANES.filter((l) => score >= l.floor && positionValue(position, LANE_TIER[l.lane]) > 0).slice(0, LANES_CONSIDERED);
 }
 
+/**
+ * The evaluation colleges act on, kept within the player's star tier: five-stars are national Power 4
+ * targets, four- and three-stars are Power 4 targets (most Power 4 signees nationally are three-stars), and
+ * two-stars top out at Group of 5.
+ */
+export function offerScore(player: Player): number {
+  const score = recruitScore(player);
+  const stars = player.recruiting.starRating;
+  if (stars === 5) return Math.max(score, 89);
+  if (stars === 4) return Math.max(score, 83);
+  if (stars === 3) return clamp(score, 81, 88);
+  return Math.min(score, 80);
+}
+
 /** Rolls the colleges that might offer this week (skipping full classes); returns any new offer. */
 export function rollOffer(player: Player, team: Team, week: number, year: number, boost = 1, counts?: Map<string, number>): CollegeOffer | null {
   const r = player.recruiting;
   if (r.isNationalLetterOfIntentSigned || r.offers.length >= MAX_OFFERS) return null;
   if (player.classYear !== 'Senior' && player.classYear !== 'Junior') return null;
-  const score = recruitScore(player);
-  if (player.classYear === 'Junior' && score < JUNIOR_OFFER_MIN_SCORE) return null;
+  const score = offerScore(player);
+  if (player.classYear === 'Junior' && r.starRating < JUNIOR_OFFER_MIN_STARS) return null;
   const visibility = visibilityFactor(visibilityOf(player, team));
   const classFactor = player.classYear === 'Senior' ? 1 : JUNIOR_OFFER_FACTOR;
   const offered = new Set(r.offers.map((o) => collegeOf(o)?.id ?? o.collegeName));
@@ -330,9 +376,9 @@ function commitTo(player: Player, offer: CollegeOffer, week: number): void {
 function commitChance(player: Player, week: number): number {
   const r = player.recruiting;
   if (r.offers.length === 0) return 0;
-  const score = recruitScore(player);
+  const score = offerScore(player);
   if (player.classYear === 'Junior') {
-    return score >= JUNIOR_COMMIT_MIN_SCORE && r.offers.some((o) => o.tier === 'POWER_4') ? 0.03 : 0;
+    return r.starRating >= JUNIOR_COMMIT_MIN_STARS && r.offers.some((o) => o.tier === 'POWER_4') ? 0.03 : 0;
   }
   let chance = 0.03 + 0.012 * r.offers.length + (week >= 13 ? 0.05 : 0) + (week >= 18 ? 0.08 : 0);
   // Players who expect a higher level wait for it

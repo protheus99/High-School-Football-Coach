@@ -637,6 +637,27 @@ export const STATE_TALENT: Record<string, number> = {
 };
 export const stateTalent = (state?: string) => (state ? STATE_TALENT[state] ?? 0 : 0);
 
+/**
+ * Each state's share of the nation's rated recruits in a class (roughly its share of four- and five-star
+ * prospects in recent classes). Star ratings are handed out by these shares, so a state's class gets about
+ * as many five-, four- and three-stars as the real state does.
+ */
+export const STATE_RECRUIT_SHARE: Record<string, number> = {
+  Texas: 0.11,
+  Florida: 0.11,
+  California: 0.09,
+  Georgia: 0.08,
+  Ohio: 0.04,
+  Louisiana: 0.04,
+  Alabama: 0.035,
+  'North Carolina': 0.035,
+  Tennessee: 0.03,
+  Pennsylvania: 0.03,
+  'New Jersey': 0.025,
+  Maryland: 0.025
+};
+export const recruitShare = (state?: string) => (state ? STATE_RECRUIT_SHARE[state] ?? 0.03 : 0.03);
+
 /** Playable states and their rules. Add a state here once its rules and complete district data exist. */
 export const STATE_RULES: Record<string, StateRules> = {
   Texas: TEXAS_RULES,
