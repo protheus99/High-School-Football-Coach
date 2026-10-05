@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { feederEventsOpen, useGameStore } from '../store/gameStore';
 import { FEEDER_SIGNING_WEEK } from '../sim/scheduleEngine';
 import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
@@ -26,7 +26,7 @@ import {
   schoolInterest,
   userJoinProbability
 } from '../sim/feederEngine';
-import { FACTOR_LABELS, RecruitingContext, buildRecruitingContext, choiceShares, onProbation, restrictedOnProbation, topPriority } from '../sim/feederCompetition';
+import { FACTOR_LABELS, buildRecruitingContext, onProbation, restrictedOnProbation, topPriority } from '../sim/feederCompetition';
 import { wideJoinProbability } from '../sim/widePool';
 import { staffBonuses } from '../sim/coachingStaff';
 
@@ -60,6 +60,8 @@ type PoolFilter = 'ALL' | 'TOP10' | 'COMMITTED';
 const PAGE_SIZE = 20; // prospect cards shown at a time (the State and National lists run to 100+)
 
 /** Position tabs above the prospect list (lines and the secondary grouped). */
+// Two rows in the sticky bar: everyone and the offense, then the defense and the specialists
+const OFFENSE_GROUPS = ['ALL', 'QB', 'RB', 'WR', 'TE', 'OL'];
 const POSITION_GROUPS: { id: string; label: string; positions?: Position[] }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'QB', label: 'QB', positions: ['QB'] },
@@ -103,7 +105,6 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     runFeederEvent,
     contactFeederProspect,
     removeFeederProspect,
-    statewideRecruits,
     widePool,
     coachingStaff,
     league,
@@ -123,18 +124,31 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const [filter, setFilterState] = useState<PoolFilter>('ALL');
   const [positionGroup, setPositionGroupState] = useState<string>('ALL');
   const [visible, setVisible] = useState(PAGE_SIZE);
-  // Any change of list starts again at the first page
+  const navRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  // Any change of list starts again at the first page; from further down the page, back to the list's top
+  const showListTop = () =>
+    requestAnimationFrame(() => {
+      const list = listRef.current;
+      if (!list) return;
+      const navHeight = navRef.current?.offsetHeight ?? 0;
+      const top = list.getBoundingClientRect().top + window.scrollY - navHeight - 8;
+      if (window.scrollY > top) window.scrollTo({ top });
+    });
   const setScope = (s: PoolScope) => {
     setScopeState(s);
     setVisible(PAGE_SIZE);
+    showListTop();
   };
   const setFilter = (f: PoolFilter) => {
     setFilterState(f);
     setVisible(PAGE_SIZE);
+    showListTop();
   };
   const setPositionGroup = (g: string) => {
     setPositionGroupState(g);
     setVisible(PAGE_SIZE);
+    showListTop();
   };
   const [feedback, setFeedback] = useState<string | null>(null);
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
@@ -202,13 +216,64 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
 
   return (
     <>
-    <PageHeader
-      title="Feeders"
-      subtitle={FEEDER_SUBTITLES[section]}
-      tabs={SECTIONS}
-      active={section}
-      onTab={onSection}
-    />
+    <PageHeader title="Feeders" subtitle={FEEDER_SUBTITLES[section]} />
+    {/* Sticky navigation: the page is long, so its sections and the Students list controls stay on screen */}
+    <div ref={navRef} className="ui-sticky-nav">
+      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 16px', display: 'grid', gap: '6px' }}>
+        <div className="ui-chip-row ui-chip-row-3" role="tablist" aria-label="Feeders sections">
+          {SECTIONS.map((t) => (
+            <button key={t.id} role="tab" className="ui-chip" aria-selected={section === t.id} aria-pressed={section === t.id} onClick={() => onSection(t.id)}>
+              <span className="hide-sm">{t.label}</span>
+              <span className="show-sm">{t.short}</span>
+            </button>
+          ))}
+        </div>
+        {section === 'STUDENTS' && (
+          <>
+            {/* Pool and list as two dropdowns: one row on a phone, nothing cut off */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '6px' }}>
+              <label className="ui-nav-select">
+                <span>Pool</span>
+                <select value={scope} onChange={(e) => setScope(e.target.value as PoolScope)}>
+                  {scopes.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="ui-nav-select">
+                <span>List</span>
+                <select value={filter} onChange={(e) => setFilter(e.target.value as PoolFilter)}>
+                  {filters.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.label}
+                      {f.count !== undefined ? ` (${f.count})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {[
+              { label: 'Offense', groups: POSITION_GROUPS.filter((g) => OFFENSE_GROUPS.includes(g.id)) },
+              { label: 'Defense and specialists', groups: POSITION_GROUPS.filter((g) => !OFFENSE_GROUPS.includes(g.id)) }
+            ].map((row) => (
+              <div key={row.label} className="ui-chip-row ui-chip-row-6" aria-label={`Positions: ${row.label}`}>
+                {row.groups.map((g) => {
+                  const count = g.positions ? shown.filter((p) => g.positions!.includes(p.projectedPosition)).length : shown.length;
+                  return (
+                    <button key={g.id} className="ui-chip" aria-pressed={positionGroup === g.id} onClick={() => setPositionGroup(g.id)}>
+                      {g.label}
+                      <span className="ui-chip-count">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    </div>
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
 
       {feedback && <div style={{ background: '#EEF2FF', color: '#3730A3', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', marginBottom: '12px' }}>{feedback}</div>}
@@ -327,43 +392,14 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             </div>
           )}
 
-          {/* Pool: how far to look (scope), then which list (filter) */}
-          <div aria-label="Pool scope" style={{ display: 'grid', gridTemplateColumns: `repeat(${scopes.length}, 1fr)`, gap: '6px', marginBottom: '6px' }}>
-            {scopes.map((s) => (
-              <button key={s.id} className="ui-chip" aria-pressed={scope === s.id} onClick={() => setScope(s.id)} style={{ justifyContent: 'center' }}>
-                {s.label}
-              </button>
-            ))}
-          </div>
-          <div className="ui-chips" aria-label="Pool filter" style={{ marginBottom: '6px' }}>
-            {filters.map((f) => (
-              <button key={f.id} className="ui-chip" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>
-                {f.label}
-                {f.count !== undefined && <span className="ui-chip-count">{f.count}</span>}
-              </button>
-            ))}
-          </div>
           <p className="ui-muted" style={{ margin: '0 0 10px 0', fontSize: '12px' }}>
             {scope === 'NATIONAL' || (scope === 'STATE' && multiRegion)
               ? `Faraway prospects are long shots: contacts earn ${scope === 'NATIONAL' ? 'half' : 'three quarters of'} the usual interest, and even with his commitment his family has to agree to move. His zoned school is working him too.`
               : `Every program in the ${(scope === 'DISTRICT' ? regionWord : scopeName).toLowerCase()} recruits this pool. At ${COMMIT_THRESHOLD}+ interest a prospect commits; on signing day the school with the highest interest signs him, and a tie at the top is a coin flip.`}
           </p>
 
-          {/* Positions */}
-          <div className="ui-chip-grid" aria-label="Position" style={{ marginBottom: '10px' }}>
-            {POSITION_GROUPS.map((g) => {
-              const count = g.positions ? shown.filter((p) => g.positions!.includes(p.projectedPosition)).length : shown.length;
-              return (
-                <button key={g.id} className="ui-chip" aria-pressed={positionGroup === g.id} onClick={() => setPositionGroup(g.id)}>
-                  {g.label}
-                  <span className="ui-chip-count">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-
           {/* Prospects */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '10px' }}>
+          <div ref={listRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '10px' }}>
             {page.map((p) => (
               <ProspectCard
                 key={p.id}
@@ -394,7 +430,6 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             </button>
           )}
 
-          {ctx && statewideRecruits.length > 0 && <StatewideElitePanel recruits={statewideRecruits} ctx={ctx} />}
         </>
       )}
     </div>
@@ -520,32 +555,6 @@ const ProspectCard: React.FC<{
   );
 };
 
-/** Elite out-of-area recruits contested among the state's top programs. */
-const StatewideElitePanel: React.FC<{ recruits: FeederProspect[]; ctx: RecruitingContext }> = ({ recruits, ctx }) => (
-  <div style={{ marginTop: '20px' }}>
-    <h3 style={{ margin: '0 0 6px 0', fontSize: '15px' }}>Statewide Elite Recruits</h3>
-    <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#64748B' }}>Top out-of-area talent being fought over by the state&apos;s powerhouse programs this year.</p>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '8px' }}>
-      {recruits.map((p) => {
-        const leader = [...choiceShares(p, ctx, false)].sort((a, b) => b.share - a.share)[0];
-        return (
-          <div key={p.id} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '8px', padding: '10px', fontSize: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <strong>{p.name}</strong>
-              <span>{p.incomingClass} {p.projectedPosition}</span>
-            </div>
-            <div style={{ color: '#6B7280' }}>{p.middleSchool}</div>
-            <div style={{ marginTop: '4px' }}>
-              Suitors: {p.suitors.map((s) => `${s.teamName}${s.inducement ? ' 🚩' : ''}`).join(', ')}
-            </div>
-            {leader && <div style={{ color: '#92400E', fontWeight: 'bold' }}>Leaning: {leader.name}</div>}
-          </div>
-        );
-      })}
-    </div>
-  </div>
-);
-
 const actionBtn = (color: string, disabled: boolean): React.CSSProperties => ({
   minHeight: '40px', // comfortable tap target
   padding: '8px 12px',
@@ -627,8 +636,8 @@ const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void }
 };
 
 const removeBtn: React.CSSProperties = {
-  minWidth: '32px',
-  minHeight: '32px',
+  minWidth: '40px',
+  minHeight: '40px',
   border: '1px solid #CBD5E1',
   borderRadius: '6px',
   background: '#fff',

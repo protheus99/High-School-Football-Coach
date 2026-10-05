@@ -405,6 +405,8 @@ interface GameStoreState {
   seasonRecap: SeasonRecap | null; // last season in brief, for the Hub's new-season headline
   viewedTeamId: string | null; // the team page that is open (not saved)
   openTeamProfile: (teamId: string | null) => void;
+  viewedPlayerId: string | null; // the player card that is open (not saved): the same card from every screen
+  openPlayerCard: (playerId: string | null) => void;
   lastDrillReport: string[]; // who the assistants worked with last week
 
   // Postseason & Offseason state
@@ -495,6 +497,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   seasonRecap: null,
   viewedTeamId: null,
   openTeamProfile: (teamId) => set({ viewedTeamId: teamId }),
+  viewedPlayerId: null,
+  openPlayerCard: (playerId) => set({ viewedPlayerId: playerId }),
   lastDrillReport: [],
   playoffBracket: null,
   graduatingSeniors: [],
@@ -541,6 +545,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       careerComplete: false,
       userProbationUntil: null,
       lightCalibration,
+      coachingStaff: [], // a new program starts without assistants
       feederEventsThisWeek: [],
       lastFeederResults: null,
       newsArticles: generateWeeklyNewsStream(1, userTeam),

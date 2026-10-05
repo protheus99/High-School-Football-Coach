@@ -27,7 +27,18 @@ import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 
 /** Screens the Hub can send the coach to. */
-export type AgendaTab = 'ROSTER' | 'PRACTICE' | 'COLLEGE' | 'OFFICE' | 'FEEDERS' | 'FEEDER_PROGRAMS' | 'FEEDER_NEEDS' | 'DISTRICT' | 'SCOREBOARD';
+export type AgendaTab =
+  | 'ROSTER'
+  | 'PRACTICE'
+  | 'COLLEGE'
+  | 'STAFF'
+  | 'SCHEDULE'
+  | 'TALENTS'
+  | 'FEEDERS'
+  | 'FEEDER_PROGRAMS'
+  | 'FEEDER_NEEDS'
+  | 'DISTRICT'
+  | 'SCOREBOARD';
 
 /** This week's game, as the Hub needs it. */
 export interface HubGame {
@@ -122,7 +133,8 @@ export const WeeklyAgenda: React.FC<{
     playoffBracket,
     onHotSeat,
     sanctionLevel,
-    seasonRecap
+    seasonRecap,
+    coachingStaff
   } = store;
   // Confirmation for the last quick action; it belongs to the week it happened in
   const [flashState, setFlashState] = useState<{ text: string; week: number } | null>(null);
@@ -435,6 +447,17 @@ export const WeeklyAgenda: React.FC<{
               link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
             };
       task = signingThisSeason ? visitsCard('Signing day is next week: final visits', 'todo') : collegeCard();
+      // Week 1: set the program up (a new program has no assistants)
+      if (coachingStaff.length === 0)
+        extras.push({
+          id: 'hire-staff',
+          icon: '🧑‍🏫',
+          title: 'Hire your coaching staff',
+          detail: 'The program has no assistant coaches. Coordinators and position coaches give an edge on game day, develop players and earn Coach Points.',
+          tone: 'todo',
+          link: { label: 'Staff', onClick: () => onNavigate('STAFF') }
+        });
+      extras.push({ ...practiceCard(), id: 'practice-focus', title: 'Set your practice focus' });
     } else if (currentWeek === FEEDER_SIGNING_WEEK && signingThisSeason) {
       headline = visitsCard('Feeder signing day: last chance to win prospects over', 'urgent', 'signing');
       task = collegeCard();
@@ -489,7 +512,7 @@ export const WeeklyAgenda: React.FC<{
           const opp = nationalTeams(leagueTeams, nationalLeagues).find((t) => t.id === (home ? g!.awayTeamId : g!.homeTeamId));
           return `Wk ${g!.week} ${home ? 'vs' : 'at'} ${opp?.name ?? '?'}`;
         });
-      task = { id: 'preview', icon: '🗓️', title: 'Season preview', detail: preview.join(' · '), tone: 'info', link: { label: 'Schedule', onClick: () => onNavigate('OFFICE') } };
+      task = { id: 'preview', icon: '🗓️', title: 'Season preview', detail: preview.join(' · '), tone: 'info', link: { label: 'Schedule', onClick: () => onNavigate('SCHEDULE') } };
     }
   } else if (phase === 'STATE_PLAYOFFS' && playoffBracket?.isPlayoffsActive && bracketRoundForWeek(playoffBracket, currentWeek) < 0) {
     // A five-round state's open week: the field is set and the first round is next week
@@ -634,7 +657,7 @@ export const WeeklyAgenda: React.FC<{
     more.push({ id: 'drills', icon: '🏋️', title: 'Drill focus', tone: 'info', content: drillChips(), link: { label: 'Practice', onClick: () => onNavigate('PRACTICE') } });
   }
   if (COACH_TALENTS.some((t) => !talentBlocker(t.id, coachTalents, coachPoints))) {
-    more.push({ id: 'talents', icon: '🎖️', title: 'You can afford a coach talent', detail: 'Spend Coach Points on a permanent upgrade.', tone: 'info', link: { label: 'Office', onClick: () => onNavigate('OFFICE') } });
+    more.push({ id: 'talents', icon: '🎖️', title: 'You can afford a coach talent', detail: 'Spend Coach Points on a permanent upgrade.', tone: 'info', link: { label: 'Talents', onClick: () => onNavigate('TALENTS') } });
   }
   if (isGamePhase) {
     more.push({ id: 'scores', icon: '📋', title: 'Scores around the league', tone: 'info', link: { label: 'Scoreboard', onClick: () => onNavigate('SCOREBOARD') } });

@@ -73,5 +73,9 @@ const nameBtn: React.CSSProperties = {
   color: 'inherit',
   font: 'inherit',
   cursor: 'pointer',
-  textAlign: 'left'
+  textAlign: 'left',
+  // A full-height tap target on phones (the row is taller than the text)
+  minHeight: '40px',
+  display: 'inline-flex',
+  alignItems: 'center'
 };

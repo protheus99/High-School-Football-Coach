@@ -105,7 +105,7 @@ export const DepthChartBoard: React.FC<{
         <div key={p.id} style={{ ...lineStyle, minHeight: isPhone ? '44px' : '22px', fontWeight: row === 0 ? 'bold' : 'normal', fontSize: isPhone ? '14px' : row === 0 ? '13px' : '12px' }}>
           <button
             onClick={() => onSelect?.(p)}
-            style={{ ...nameBtn, color: out ? '#B91C1C' : row === 0 ? '#0F172A' : '#475569' }}
+            style={{ ...nameBtn, color: out ? '#B91C1C' : row === 0 ? '#0F172A' : '#475569', ...(isPhone && { alignSelf: 'stretch' }) }}
             title={`${p.firstName} ${p.lastName} · ${p.classYear}${out ? ' · unavailable (injured or ineligible)' : ''}`}
           >
             {depthChartName(p)}
@@ -148,7 +148,7 @@ export const DepthChartBoard: React.FC<{
   );
 
   const section = (title: string, rows: FormationRow[]) => (
-    <div style={{ marginBottom: '18px' }}>
+    <div id={`depth-${title.toLowerCase()}`} style={{ marginBottom: '18px', scrollMarginTop: isPhone ? '64px' : undefined }}>
       <h3 style={sectionTitle}>{title}</h3>
       {isPhone ? (
         // Phones: one slot card per row (two on larger phones), in formation order, with thumb-sized arrows
@@ -169,10 +169,28 @@ export const DepthChartBoard: React.FC<{
 
   return (
     // Mid-size screens scroll the formation sideways rather than breaking it; phones get the grid above
-    <div style={{ overflowX: 'auto' }}>
+    // (phones skip the sideways scroller: it would keep the jump bar from sticking)
+    <div style={{ overflowX: isPhone ? 'visible' : 'auto' }}>
       <div style={{ minWidth: isPhone ? undefined : `${BOARD_MIN_WIDTH}px` }}>
-        {section('DEFENSE', DEFENSE)}
-        {section('OFFENSE', OFFENSE)}
+        {isPhone ? (
+          <>
+            {/* Phones: offense first, with a jump bar that stays on screen down the long chart */}
+            <div className="ui-chips" role="navigation" aria-label="Depth chart sections" style={jumpBar}>
+              {['OFFENSE', 'DEFENSE', 'SPECIALISTS'].map((s) => (
+                <button key={s} className="ui-chip" onClick={() => document.getElementById(`depth-${s.toLowerCase()}`)?.scrollIntoView()}>
+                  {s.charAt(0) + s.slice(1).toLowerCase()}
+                </button>
+              ))}
+            </div>
+            {section('OFFENSE', OFFENSE)}
+            {section('DEFENSE', DEFENSE)}
+          </>
+        ) : (
+          <>
+            {section('DEFENSE', DEFENSE)}
+            {section('OFFENSE', OFFENSE)}
+          </>
+        )}
         {section('SPECIALISTS', SPECIALISTS)}
         <div style={{ fontSize: '12px', color: '#64748B', textAlign: 'center' }}>
           Bold = starter. ▲▼ swaps a player with the one above or below him in that slot. <span style={{ color: '#B91C1C' }}>*</span> injured or
@@ -181,6 +199,16 @@ export const DepthChartBoard: React.FC<{
       </div>
     </div>
   );
+};
+
+const jumpBar: React.CSSProperties = {
+  position: 'sticky',
+  top: 0,
+  zIndex: 20,
+  background: '#F8FAFC',
+  padding: '8px 0',
+  marginBottom: '8px',
+  flexWrap: 'nowrap'
 };
 
 const sectionTitle: React.CSSProperties = {

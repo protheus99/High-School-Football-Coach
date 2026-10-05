@@ -3,7 +3,7 @@ import { DEPTH_TEMPLATE, rebuildDepthChart } from './depthChart';
 import { generateIncomingFreshman, programTalent, rollClassWave, starterChance } from '../generators/rosterGenerator';
 import { STAFF_DEVELOPMENT_CAP } from './coachingStaff';
 import { processOffSeasonProgression } from './playerEngine';
-import { createEmptyPlayerStats } from './playerStats';
+import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 
 // Freshmen carry the program's talent (prestige and state), as a rebuilt program would: dynasties reload
 const newFreshman = (pos: Position, team: Team, takenNames: Set<string>, adjustment: number, starterOdds = 1) =>
@@ -51,6 +51,9 @@ export function graduateAndProgress(
     }
     p.classYear = NEXT_CLASS[p.classYear as keyof typeof NEXT_CLASS];
     p.age += 1;
+    // The season goes into the career totals before the new season's line starts
+    p.careerStats = p.careerStats ?? createEmptyPlayerStats();
+    addPlayerStats(p.careerStats, p.stats);
     p.stats = createEmptyPlayerStats();
     p.academics.isEligible = true;
     p.academics.consecutiveFailingWeeks = 0;

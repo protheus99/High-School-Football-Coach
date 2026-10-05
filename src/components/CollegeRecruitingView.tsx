@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { collegeActionCost } from '../sim/coachPoints';
 import { Player, Team } from '../types/game';
@@ -47,13 +47,20 @@ const byStock = (a: Player, b: Player) => b.recruiting.starRating - a.recruiting
 
 const stars = (n: number) => (n > 0 ? '★'.repeat(n) : '—');
 
-export const CollegeRecruitingView: React.FC = () => {
+/** College recruiting for the coach's juniors and seniors. `focusPlayerId` (from a player card) opens on that player. */
+export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> = ({ focusPlayerId }) => {
   const { leagueTeams, userTeamId, coachPoints, currentWeek, currentYear, collegeRecruitAction } = useGameStore();
   const [message, setMessage] = useState<{
     text: string;
     good: boolean;
   } | null>(null);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(focusPlayerId ?? null);
+  // Arriving from a player card: show his row, open
+  useEffect(() => {
+    if (!focusPlayerId) return;
+    setExpanded(focusPlayerId);
+    document.getElementById(`recruit-${focusPlayerId}`)?.scrollIntoView({ block: 'start' });
+  }, [focusPlayerId]);
   const userTeam = leagueTeams.find((t) => t.id === userTeamId);
 
   const recruits = useMemo(
@@ -209,6 +216,7 @@ const RecruitRow: React.FC<{
   const top = offers[0];
   return (
     <div
+      id={`recruit-${p.id}`}
       style={{
         background: '#fff',
         border: '1px solid #E2E8F0',

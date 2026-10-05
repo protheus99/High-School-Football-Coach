@@ -172,5 +172,9 @@ const teamLink: React.CSSProperties = {
   fontWeight: 'inherit',
   fontSize: 'inherit',
   cursor: 'pointer',
-  textAlign: 'left'
+  textAlign: 'left',
+  // A full-height tap target on phones (the row is taller than the text)
+  minHeight: '40px',
+  display: 'inline-flex',
+  alignItems: 'center'
 };

@@ -7,7 +7,7 @@ export interface TrophyRecord {
   opponent?: string;
 }
 
-/** Trophy case (Team › Office): program prestige, college signees and the titles the program has won. */
+/** Trophy case (Team › Hall of Fame): program prestige, college signees and the titles the program has won. */
 export const TrophyCase: React.FC<{ trophies: TrophyRecord[]; collegeSignees: number; schoolPrestige: number }> = ({ trophies, collegeSignees, schoolPrestige }) => {
   const stat = (label: string, value: number, color: string) => (
     <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '10px', borderRadius: '10px', textAlign: 'center' }}>

@@ -96,13 +96,13 @@ export const DashboardView: React.FC<{
       )}
 
       {/* Header Banner */}
-      {/* Team name (shortened with … when long) with Advance Week always on the right */}
+      {/* Team name (wrapping to a second line when long) with Advance Week always on the right */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '12px', marginBottom: '20px' }}>
         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-          <h1 style={{ margin: 0, fontSize: 'clamp(20px, 6vw, 32px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${userTeam.name} ${userTeam.mascot}`}>
+          <h1 style={{ margin: 0, fontSize: 'clamp(20px, 6vw, 32px)', lineHeight: 1.15, overflowWrap: 'anywhere' }} title={`${userTeam.name} ${userTeam.mascot}`}>
             {userTeam.name} {userTeam.mascot}
           </h1>
-          <div style={{ color: '#6B7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ color: '#6B7280', marginTop: '2px' }}>
             {district?.name ?? 'Class 6A'}
             {region ? ` · ${region.name}` : ''} · {userTeam.record.wins}-{userTeam.record.losses} ({userTeam.record.districtWins}-{userTeam.record.districtLosses})
           </div>

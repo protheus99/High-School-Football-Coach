@@ -20,7 +20,7 @@ import { StatePlayoffBracketModal } from './components/StatePlayoffBracketModal'
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
 import { AllStateAwardsModal } from './components/AllStateAwardsModal';
 import { calculateSeasonAwards, SeasonAwardsRecord } from './sim/awardsEngine';
-import { GameSimulationState, OffensiveScheme, Player } from './types/game';
+import { GameSimulationState, OffensiveScheme } from './types/game';
 
 type AppTab = 'DASHBOARD' | 'TEAM' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS';
 
@@ -42,7 +42,7 @@ export const App: React.FC = () => {
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [showBracketModal, setShowBracketModal] = useState(false);
   const [showTalents, setShowTalents] = useState(false);
-  const [selectedPlayerDetail, setSelectedPlayerDetail] = useState<Player | null>(null);
+  const [collegeFocusId, setCollegeFocusId] = useState<string | null>(null); // the College page opens on this player
   const [awardsRecord, setAwardsRecord] = useState<SeasonAwardsRecord | null>(null);
   const [awardsShownForYear, setAwardsShownForYear] = useState<number | null>(null);
   const [showMenu, setShowMenu] = useState(true); // title screen until a game is started or loaded
@@ -66,6 +66,9 @@ export const App: React.FC = () => {
     career,
     viewedTeamId,
     openTeamProfile,
+    viewedPlayerId,
+    openPlayerCard,
+    updatePlayerTier,
     graduatingSeniors,
     finishBanquet,
     advancePlayoffGame,
@@ -73,6 +76,15 @@ export const App: React.FC = () => {
   } = useGameStore();
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
+  // The open player card: a player in the league or another state's (stat leaders)
+  const viewedPlayer = (() => {
+    if (!viewedPlayerId) return null;
+    for (const team of [...leagueTeams, ...nationalLeagues.flatMap((l) => l.teams)]) {
+      const player = team.roster.find((p) => p.id === viewedPlayerId);
+      if (player) return { player, team };
+    }
+    return null;
+  })();
 
   const FOCUS_TO_DEFENSIVE_CALL = { STOP_RUN: 'RUN_BLITZ', STOP_PASS: 'PASS_COVERAGE', BALANCED: 'BASE' } as const;
 
@@ -226,13 +238,24 @@ export const App: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
       {showSaveLoadModal && <SaveLoadManagerModal onClose={() => setShowSaveLoadModal(false)} />}
-      {viewedTeamId && <TeamProfileSheet teamId={viewedTeamId} onClose={() => openTeamProfile(null)} onOpenPlayer={setSelectedPlayerDetail} />}
-      {selectedPlayerDetail && (
+      {viewedTeamId && <TeamProfileSheet teamId={viewedTeamId} onClose={() => openTeamProfile(null)} onOpenPlayer={(p) => openPlayerCard(p.id)} />}
+      {viewedPlayer && (
         <PlayerDetailModal
-          player={selectedPlayerDetail}
-          isOwnPlayer={!!userTeam?.roster.some((p) => p.id === selectedPlayerDetail.id)}
-          teamName={leagueTeams.find((t) => t.roster.some((p) => p.id === selectedPlayerDetail.id))?.name}
-          onClose={() => setSelectedPlayerDetail(null)}
+          player={viewedPlayer.player}
+          isOwnPlayer={viewedPlayer.team.id === userTeamId}
+          teamName={viewedPlayer.team.name}
+          onSetString={viewedPlayer.team.id === userTeamId ? (tier) => updatePlayerTier(viewedPlayer.player.id, tier) : undefined}
+          onOpenRecruiting={
+            viewedPlayer.team.id === userTeamId && (viewedPlayer.player.classYear === 'Junior' || viewedPlayer.player.classYear === 'Senior')
+              ? () => {
+                  openPlayerCard(null);
+                  setCollegeFocusId(viewedPlayer.player.id);
+                  setTeamSection('COLLEGE');
+                  setTab('TEAM');
+                }
+              : undefined
+          }
+          onClose={() => openPlayerCard(null)}
         />
       )}
 
@@ -303,6 +326,8 @@ export const App: React.FC = () => {
               } else if (target === 'DISTRICT') {
                 setRankingsSection('DISTRICT');
                 setTab('RANKINGS');
+              } else if (target === 'TALENTS') {
+                setShowTalents(true);
               } else {
                 setTeamSection(target);
                 setTab('TEAM');
@@ -310,12 +335,19 @@ export const App: React.FC = () => {
             }}
           />
         )}
-        {tab === 'TEAM' && <TeamView section={teamSection} onSection={setTeamSection} />}
+        {tab === 'TEAM' && <TeamView
+            section={teamSection}
+            onSection={(section) => {
+              setCollegeFocusId(null);
+              setTeamSection(section);
+            }}
+            collegeFocusId={collegeFocusId}
+          />}
         {tab === 'RANKINGS' && <RankingsHub section={rankingsSection} onSection={setRankingsSection} />}
         {tab === 'LEADERS' && playerRankings && (
-          <PlayerLeaderboardView rankingsState={playerRankings} userTeamId={userTeamId} onSelectPlayer={(entry) => setSelectedPlayerDetail(entry.player)} />
+          <PlayerLeaderboardView rankingsState={playerRankings} userTeamId={userTeamId} onSelectPlayer={(entry) => openPlayerCard(entry.player.id)} />
         )}
-        {tab === 'FEEDERS' && <FeedersScoutingView section={feederSection} onSection={setFeederSection} onOpenPlayer={setSelectedPlayerDetail} />}
+        {tab === 'FEEDERS' && <FeedersScoutingView section={feederSection} onSection={setFeederSection} onOpenPlayer={(p) => openPlayerCard(p.id)} />}
         {tab === 'NEWS' && <NewsMediaView articles={newsArticles} />}
       </div>
 
@@ -326,6 +358,7 @@ export const App: React.FC = () => {
             key={t.id}
             onClick={() => {
               setTab(t.id);
+              setCollegeFocusId(null);
               if (t.id === 'RANKINGS') setRankingsSection('DISTRICT');
             }}
             aria-current={tab === t.id ? 'page' : undefined}
@@ -342,7 +375,7 @@ export const App: React.FC = () => {
 
 // Header stats: the value with a small label underneath
 const statStack: React.CSSProperties = { display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.1, whiteSpace: 'nowrap' };
-const statLabel: React.CSSProperties = { fontSize: '9px', fontWeight: 'bold', opacity: 0.85 };
+const statLabel: React.CSSProperties = { fontSize: '10px', fontWeight: 'bold', opacity: 0.85 };
 
 const topPill: React.CSSProperties = {
   display: 'inline-flex',

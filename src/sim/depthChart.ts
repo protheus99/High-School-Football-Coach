@@ -114,3 +114,20 @@ export function setDepthTier(roster: Player[], playerId: string, tier: Player['d
   group.splice(Math.min(group.length, (tier - 1) * DEPTH_TEMPLATE[player.position].starters), 0, player);
   applyOrder(group, player.position);
 }
+
+export const OFFENSE_POSITIONS: Position[] = ['QB', 'RB', 'WR', 'TE', 'OT', 'OG', 'C'];
+export const DEFENSE_POSITIONS: Position[] = ['DE', 'DT', 'LB', 'CB', 'S'];
+
+/** The depth chart's ratings: the average overall of every starter, and of the offensive and defensive starters. */
+export function starterRatings(roster: Player[]): Record<'team' | 'offense' | 'defense', { rating: number; starters: number }> {
+  const starters = roster.filter((p) => p.depthChartTier === 1);
+  const rate = (players: Player[]) => ({
+    rating: players.length ? Math.round(players.reduce((s, p) => s + p.overallRating, 0) / players.length) : 0,
+    starters: players.length
+  });
+  return {
+    team: rate(starters),
+    offense: rate(starters.filter((p) => OFFENSE_POSITIONS.includes(p.position))),
+    defense: rate(starters.filter((p) => DEFENSE_POSITIONS.includes(p.position)))
+  };
+}

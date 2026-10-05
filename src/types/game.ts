@@ -146,7 +146,8 @@ export interface Player {
   attributes: PlayerAttributes;
   condition: PlayerCondition;
   academics: PlayerAcademics;
-  stats: PlayerStats;
+  stats: PlayerStats; // this season
+  careerStats?: PlayerStats; // previous seasons at this school (this season is added when shown)
   recruiting: RecruitingProfile;
   parent: ParentProfile;
 }

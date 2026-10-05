@@ -1,42 +1,34 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { Position, Player } from '../types/game';
-import { DepthChartEditorModal } from './DepthChartEditorModal';
 import { DepthChartBoard } from './DepthChartBoard';
 import { DataList } from './ui/DataList';
+import { DEFENSE_POSITIONS, OFFENSE_POSITIONS, starterRatings } from '../sim/depthChart';
 
 export const RosterDepthChartView: React.FC = () => {
-  const { districtTeams, userTeamId, updatePlayerTier, moveDepthChartPlayer } = useGameStore();
+  const { districtTeams, userTeamId, moveDepthChartPlayer, openPlayerCard } = useGameStore();
   const [view, setView] = useState<'CHART' | 'ROSTER'>('CHART');
   const [filter, setFilter] = useState<'ALL' | 'OFF' | 'DEF'>('ALL');
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   if (!userTeam) return null;
 
-  const offPos: Position[] = ['QB', 'RB', 'WR', 'TE', 'OT', 'OG', 'C'];
-  const defPos: Position[] = ['DE', 'DT', 'LB', 'CB', 'S'];
-
   const filtered = userTeam.roster.filter((p) => {
-    if (filter === 'OFF') return offPos.includes(p.position);
-    if (filter === 'DEF') return defPos.includes(p.position);
+    if (filter === 'OFF') return OFFENSE_POSITIONS.includes(p.position);
+    if (filter === 'DEF') return DEFENSE_POSITIONS.includes(p.position);
     return true;
   });
+  const ratings = starterRatings(userTeam.roster);
 
   const STRING_LABEL = { 1: '1st', 2: '2nd', 3: '3rd' } as const;
 
   return (
     <div className="ui-screen">
-      {selectedPlayer && (
-        <DepthChartEditorModal
-          player={selectedPlayer}
-          onUpdateTier={(id, tier) => {
-            updatePlayerTier(id, tier);
-            setSelectedPlayer(null);
-          }}
-          onClose={() => setSelectedPlayer(null)}
-        />
-      )}
+      {/* The starters' ratings */}
+      <div aria-label="Starter ratings" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '12px' }}>
+        <RatingTile label="Team" value={ratings.team.rating} help={`${ratings.team.starters} starters`} strong />
+        <RatingTile label="Offense" value={ratings.offense.rating} help={`${ratings.offense.starters} starters`} />
+        <RatingTile label="Defense" value={ratings.defense.rating} help={`${ratings.defense.starters} starters`} />
+      </div>
 
       <div className="ui-chips" aria-label="Roster view" style={{ marginBottom: '14px' }}>
         <button className="ui-chip" aria-pressed={view === 'CHART'} onClick={() => setView('CHART')}>
@@ -47,7 +39,7 @@ export const RosterDepthChartView: React.FC = () => {
         </button>
       </div>
 
-      {view === 'CHART' && <DepthChartBoard team={userTeam} onMove={moveDepthChartPlayer} onSelect={setSelectedPlayer} />}
+      {view === 'CHART' && <DepthChartBoard team={userTeam} onMove={moveDepthChartPlayer} onSelect={(p) => openPlayerCard(p.id)} />}
 
       {view === 'ROSTER' && (
         <>
@@ -63,12 +55,12 @@ export const RosterDepthChartView: React.FC = () => {
             </button>
           </div>
           <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
-            Tap a player to change his string or assign study hall.
+            Tap a player for his card: stats, grades, recruiting and his depth chart string.
           </p>
           <DataList
             rows={filtered}
             rowKey={(p) => p.id}
-            onRowClick={setSelectedPlayer}
+            onRowClick={(p) => openPlayerCard(p.id)}
             rowTone={(p) => (!p.academics.isEligible || p.condition.injuryStatus !== 'HEALTHY' ? '#FEF2F2' : undefined)}
             columns={[
               {
@@ -105,3 +97,11 @@ export const RosterDepthChartView: React.FC = () => {
     </div>
   );
 };
+
+const RatingTile: React.FC<{ label: string; value: number; help: string; strong?: boolean }> = ({ label, value, help, strong }) => (
+  <div style={{ background: strong ? '#0F172A' : '#fff', color: strong ? '#fff' : '#0F172A', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '8px', textAlign: 'center' }}>
+    <div style={{ fontSize: '12px', fontWeight: 'bold', color: strong ? '#CBD5E1' : '#64748B' }}>{label} OVR</div>
+    <div style={{ fontSize: '24px', fontWeight: 900, lineHeight: 1.2 }}>{value}</div>
+    <div style={{ fontSize: '12px', color: '#94A3B8' }}>{help}</div>
+  </div>
+);
