@@ -320,7 +320,7 @@ export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: Na
 export const LIGHT_STARTERS: [Position, number][] = [
   ['QB', 1],
   ['RB', 1],
-  ['WR', 2],
+  ['WR', 3],
   ['TE', 1],
   ['LB', 1],
   ['DE', 1],

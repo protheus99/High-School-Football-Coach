@@ -317,7 +317,7 @@ function pickWeighted(options: [Player | undefined, number][]): Player | undefin
 // Usage shares from design spec 11.1
 const pickReceiver = (team: Team) => {
   const wr = getPositionGroup(team, 'WR');
-  return pickWeighted([[wr[0], 45], [wr[1], 25], [getPositionGroup(team, 'TE')[0], 15], [getPositionGroup(team, 'RB')[0], 15]]);
+  return pickWeighted([[wr[0], 38], [wr[1], 24], [wr[2], 15], [getPositionGroup(team, 'TE')[0], 12], [getPositionGroup(team, 'RB')[0], 11]]);
 };
 const pickRusher = (team: Team) => {
   const rb = getPositionGroup(team, 'RB');

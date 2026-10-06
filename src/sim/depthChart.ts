@@ -1,7 +1,7 @@
 import { Player, Position } from '../types/game';
 
 /**
- * Roster shape per position: three deep at every slot (a 67-man varsity like a real 6A program) plus two
+ * Roster shape per position: three deep at every slot (a 70-man varsity like a real 6A program) plus two
  * kickers and two punters. `starters` start; the `core` players roll starter/backup talent and the rest are
  * developmental depth (third-string talent), so adding depth doesn't inflate starter quality. Shared by the
  * roster generator and the off-season so depth charts always have the same shape.
@@ -9,7 +9,7 @@ import { Player, Position } from '../types/game';
 export const DEPTH_TEMPLATE: Record<Position, { roster: number; starters: number; core: number }> = {
   QB: { roster: 3, starters: 1, core: 2 },
   RB: { roster: 3, starters: 1, core: 3 },
-  WR: { roster: 6, starters: 2, core: 4 },
+  WR: { roster: 9, starters: 3, core: 6 }, // two outside receivers and the slot
   TE: { roster: 3, starters: 1, core: 2 },
   OT: { roster: 6, starters: 2, core: 2 },
   OG: { roster: 6, starters: 2, core: 2 },
@@ -27,7 +27,7 @@ export const DEPTH_TEMPLATE: Record<Position, { roster: number; starters: number
 export const SLOT_LABELS: Record<Position, string[]> = {
   QB: ['QB'],
   RB: ['RB'],
-  WR: ['WR', 'WR'],
+  WR: ['WR', 'WR', 'SLOT'],
   TE: ['TE'],
   OT: ['LT', 'RT'],
   OG: ['LG', 'RG'],
@@ -68,6 +68,14 @@ function applyOrder(group: Player[], position: Position): void {
     p.depthOrder = i;
     p.depthChartTier = Math.min(3, Math.floor(i / starters) + 1) as Player['depthChartTier'];
   });
+}
+
+/**
+ * Re-applies each position's strings from its current order (keeps the coach's order). Saves from before a
+ * position's starter count changed (the third receiver) get strings that match the new shape.
+ */
+export function normalizeDepthChart(roster: Player[]): void {
+  (Object.keys(DEPTH_TEMPLATE) as Position[]).forEach((pos) => applyOrder(depthGroup(roster, pos), pos));
 }
 
 /** Best players at each position start; the rest fill the second and third strings by rating. */

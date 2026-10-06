@@ -50,7 +50,10 @@ const OFFENSE: FormationRow[] = [
     ]
   },
   {
-    left: [['WR', 0]],
+    left: [
+      ['WR', 0],
+      ['WR', 2]
+    ],
     right: [
       ['TE', 0],
       ['WR', 1]

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS } from '../dilemmaEngine';
 import { TEMPLATES } from '../dilemmaTemplates';
+import { DEPTH_TEMPLATE } from '../depthChart';
 import { DilemmaChoice } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -110,7 +111,7 @@ describe('Dilemma consequences', () => {
     executeDilemmaDecision(team, choice({ promoteToStarterPlayerId: backup.id }));
     const starters = team.roster.filter((p) => p.position === 'WR' && p.depthChartTier === 1);
     expect(backup.depthChartTier).toBe(1);
-    expect(starters).toHaveLength(2);
+    expect(starters).toHaveLength(DEPTH_TEMPLATE.WR.starters);
   });
 
   it('adds a transfer near the advertised rating and keeps the depth chart sorted', () => {

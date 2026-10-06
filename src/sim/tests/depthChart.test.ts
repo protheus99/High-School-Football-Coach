@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { generateProceduralPlayer } from '../../generators/rosterGenerator';
-import { depthChartName, depthGroup, moveInDepthChart, promoteToStarter, rebuildDepthChart, setDepthTier } from '../depthChart';
+import { DEFENSE_POSITIONS, OFFENSE_POSITIONS, depthChartName, depthGroup, moveInDepthChart, normalizeDepthChart, promoteToStarter, rebuildDepthChart, setDepthTier } from '../depthChart';
 import { getPositionGroup } from '../matchEngine';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -76,5 +76,32 @@ describe('Depth chart', () => {
     const [, backup] = depthGroup(team.roster, 'RB');
     store.getState().moveDepthChartPlayer(backup.id, -1);
     expect(depthGroup(team.roster, 'RB')[0].id).toBe(backup.id);
+  });
+});
+
+describe('Starting lineup', () => {
+  it('puts eleven starters on each side: three receivers on offense', () => {
+    const [team] = generateDistrictTeams();
+    const starters = team.roster.filter((p) => p.depthChartTier === 1);
+    expect(starters.filter((p) => OFFENSE_POSITIONS.includes(p.position))).toHaveLength(11);
+    expect(starters.filter((p) => DEFENSE_POSITIONS.includes(p.position))).toHaveLength(11);
+    expect(depthGroup(team.roster, 'WR')).toHaveLength(9);
+    expect(starters.filter((p) => p.position === 'WR')).toHaveLength(3);
+  });
+
+  it('gives an older save (two starting receivers) three starters, keeping the coach order', () => {
+    const [team] = generateDistrictTeams();
+    team.roster = team.roster.filter((p) => p.position !== 'WR');
+    // The old shape: six receivers, two per string
+    const old = Array.from({ length: 6 }, (_, i) => {
+      const p = generateProceduralPlayer('WR', 'Junior', 1);
+      p.depthOrder = i;
+      p.depthChartTier = (Math.floor(i / 2) + 1) as 1 | 2 | 3;
+      return p;
+    });
+    team.roster.push(...old);
+    normalizeDepthChart(team.roster);
+    expect(depthGroup(team.roster, 'WR').map((p) => p.id)).toEqual(old.map((p) => p.id));
+    expect(old.map((p) => p.depthChartTier)).toEqual([1, 1, 1, 2, 2, 2]);
   });
 });

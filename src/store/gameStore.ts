@@ -123,7 +123,7 @@ import { addIncomingClass, graduateAndProgress } from '../sim/offseasonEngine';
 import { NOTABLE_CLASS_WAVE, rollClassWave } from '../generators/rosterGenerator';
 import { randomSurname } from '../generators/names';
 import { calculateDistrictStandings } from '../sim/districtEngine';
-import { moveInDepthChart, setDepthTier } from '../sim/depthChart';
+import { moveInDepthChart, normalizeDepthChart, setDepthTier } from '../sim/depthChart';
 import { ASSISTANT_DRILLS_PER_WEEK, DrillFocus, runAssistantDrills } from '../sim/drillEngine';
 import {
   COACH_TALENTS,
@@ -608,6 +608,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     world.teams.forEach((t) => {
       if (t.historicalPrestige === undefined) t.historicalPrestige = stateSchool(world.league.state ?? 'Texas', t.name)?.prestige ?? t.prestige;
     });
+    // Saves from before the third receiver: strings follow today's depth chart shape (the off-season fills the room)
+    world.teams.forEach((t) => normalizeDepthChart(t.roster));
     // Saves from before star quotas get today's star ratings
     updateStarRatings(everyone, loadedWeek >= MID_SEASON_STAR_UPDATE_WEEK);
     set({

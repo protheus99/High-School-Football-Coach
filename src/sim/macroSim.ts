@@ -54,7 +54,7 @@ function distributeMacroStats(
   const rb = getPositionGroup(team, 'RB');
   const wr = getPositionGroup(team, 'WR');
   const te = getPositionGroup(team, 'TE');
-  const receivers: [Player | undefined, number][] = [[wr[0], 45], [wr[1], 25], [te[0], 15], [rb[0], 15]];
+  const receivers: [Player | undefined, number][] = [[wr[0], 38], [wr[1], 24], [wr[2], 15], [te[0], 12], [rb[0], 11]];
   const rushers: [Player | undefined, number][] = [[rb[0], 65], [rb[1], 25], [qb[0], 10]];
   const passers: [Player | undefined, number][] = [[qb[0], 85], [qb[1], 15]];
 
