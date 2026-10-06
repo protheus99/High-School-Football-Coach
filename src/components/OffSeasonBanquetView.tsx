@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Player, Team } from '../types/game';
 import { TIER_LABELS, isDivisionOne, tierRank } from '../sim/collegeRecruitingEngine';
+import { PlayerDetailModal } from './PlayerDetailModal';
+import { BackToTop } from './ui/BackToTop';
 
 interface BanquetProps {
   userTeam: Team;
@@ -18,12 +20,15 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
     .filter((p) => p.recruiting.isNationalLetterOfIntentSigned && p.recruiting.signedTier)
     .sort((a, b) => tierRank(b.recruiting.signedTier!) - tierRank(a.recruiting.signedTier!) || b.overallRating - a.overallRating);
   const d1Count = signees.filter((p) => isDivisionOne(p.recruiting.signedTier)).length;
+  // The banquet replaces the app's screens, so it opens the shared player card itself
+  const [viewed, setViewed] = useState<Player | null>(null);
 
   return (
     <div className="ui-screen" style={{ maxWidth: '800px', paddingBottom: '96px' }}>
+      {viewed && <PlayerDetailModal player={viewed} isOwnPlayer teamName={userTeam.name} onClose={() => setViewed(null)} />}
       {/* Banquet Header */}
       <div style={{ background: '#0F172A', color: '#fff', padding: '20px 16px', borderRadius: '12px', textAlign: 'center', marginBottom: '16px' }}>
-        <h1 style={{ margin: 0, color: '#F59E0B' }}>🎓 Football Banquet</h1>
+        <h1 className="ui-page-title" style={{ color: '#F59E0B' }}>🎓 Football Banquet</h1>
         <p style={{ margin: '8px 0 0 0', color: '#94A3B8' }}>
           Celebrating the graduating senior class of {userTeam.name} and looking ahead to next season
         </p>
@@ -42,9 +47,10 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
               const tier = senior.recruiting.signedTier!;
               const d1 = isDivisionOne(tier);
               return (
-                <div
+                <button
                   key={senior.id}
-                  style={{ background: d1 ? '#EFF6FF' : '#F8FAFC', border: `1px solid ${d1 ? '#93C5FD' : '#CBD5E1'}`, borderRadius: '6px', padding: '12px' }}
+                  onClick={() => setViewed(senior)}
+                  style={{ display: 'block', width: '100%', textAlign: 'left', font: 'inherit', color: 'inherit', cursor: 'pointer', background: d1 ? '#EFF6FF' : '#F8FAFC', border: `1px solid ${d1 ? '#93C5FD' : '#CBD5E1'}`, borderRadius: '6px', padding: '12px' }}
                 >
                   <div style={{ fontWeight: 'bold' }}>{senior.firstName} {senior.lastName} ({senior.position})</div>
                   <div style={{ color: '#2563EB', fontSize: '13px', fontWeight: 'bold' }}>
@@ -54,7 +60,7 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
                   <div style={{ fontSize: '12px', color: '#64748B' }}>
                     Rating: {senior.overallRating} OVR ({senior.recruiting.starRating}★)
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -68,10 +74,14 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
         <h3 style={{ margin: '0 0 12px 0', color: '#1E293B' }}>Graduating Senior Class ({graduatingSeniors.length})</h3>
         <div style={{ fontSize: '14px' }}>
           {graduatingSeniors.map((s) => (
-            <div key={s.id} style={{ padding: '8px 0', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'nowrap' }}>
+            <button
+              key={s.id}
+              onClick={() => setViewed(s)}
+              style={{ width: '100%', minHeight: '44px', padding: '8px 0', background: 'none', border: 'none', borderBottom: '1px solid #F1F5F9', font: 'inherit', color: 'inherit', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'nowrap' }}
+            >
               <span><strong>{s.firstName} {s.lastName}</strong> ({s.position})</span>
-              <span style={{ color: '#64748B', flex: '0 0 auto' }}>{s.overallRating} OVR</span>
-            </div>
+              <span style={{ color: '#64748B', flex: '0 0 auto' }}>{s.overallRating} OVR ›</span>
+            </button>
           ))}
         </div>
       </div>
@@ -82,6 +92,7 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
           ➡️ Continue to Off Season
         </button>
       </div>
+      <BackToTop />
     </div>
   );
 };

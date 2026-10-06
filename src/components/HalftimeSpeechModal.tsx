@@ -33,10 +33,10 @@ export const HalftimeSpeechModal: React.FC<HalftimeSpeechModalProps> = ({
     >
       <p style={{ fontSize: '14px', color: '#475569', margin: '0 0 12px 0' }}>Pick your halftime message for the second half:</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {speech('FIRED_UP', '#DC2626', '🔥 Passionate rally speech', '+1 momentum and more 3rd-quarter effort (slightly more penalties).')}
+        {speech('FIRED_UP', '#B91C1C', '🔥 Passionate rally speech', '+1 momentum and more 3rd-quarter effort (slightly more penalties).')}
         {speech('TACTICAL_CALM', '#2563EB', '📐 Tactical adjustments', 'Better scheme execution and fewer blown assignments.')}
-        {speech('DISCIPLINE_CHEW', '#D97706', '⚡ Demand focus and ball security', 'Half the fumble and drop risk, fewer explosive plays.')}
-        {speech('REST_TIRED', '#059669', '🧊 Hydrate and recover', '+12 stamina for every starter for the finish.')}
+        {speech('DISCIPLINE_CHEW', '#B45309', '⚡ Demand focus and ball security', 'Half the fumble and drop risk, fewer explosive plays.')}
+        {speech('REST_TIRED', '#047857', '🧊 Hydrate and recover', '+12 stamina for every starter for the finish.')}
       </div>
     </Sheet>
   );

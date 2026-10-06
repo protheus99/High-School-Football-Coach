@@ -28,7 +28,7 @@ export const AllStateAwardsModal: React.FC<AllStateAwardsModalProps> = ({ awards
     <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '12px', borderRadius: '10px', marginBottom: '16px' }}>
       <div style={{ fontWeight: 'bold', color: '#1E40AF', fontSize: '13px' }}>🏆 State Coach of the Year</div>
       <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{awards.coachOfTheYear.coachName}</div>
-      <div style={{ fontSize: '13px', color: '#3B82F6' }}>
+      <div style={{ fontSize: '13px', color: '#1D4ED8' }}>
         {awards.coachOfTheYear.teamName} ({awards.coachOfTheYear.record})
       </div>
     </div>
