@@ -9,12 +9,12 @@
       "binding": "DB",
       "database_name": "hsfhc-leaderboard",
       // Paste the id printed by `npx wrangler d1 create hsfhc-leaderboard`
-      "database_id": "REPLACE_WITH_DATABASE_ID",
+      "database_id": "207adbc5-935d-452f-8823-dd4d2f3e33de",
       "migrations_dir": "migrations"
     }
   ],
   "vars": {
     // The game's site (comma-separated if more than one); add http://localhost:3000 to test from the dev server
-    "ALLOWED_ORIGINS": "https://high-school-football-coach.REPLACE_WITH_SUBDOMAIN.workers.dev"
+    "ALLOWED_ORIGINS": "https://high-school-football-coach.protheus99.workers.dev,http://localhost:3000"
   }
 }
