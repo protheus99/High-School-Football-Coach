@@ -144,7 +144,7 @@ export function productionScore(player: Player): number {
  */
 export function recruitScore(player: Player, withProduction = true): number {
   const potential = POTENTIAL_BONUS[player.potential] * (player.classYear === 'Senior' ? 1 : 1.5);
-  return player.overallRating + potential + (withProduction ? productionScore(player) : 0) + (player.recruiting.campBoost ?? 0);
+  return player.overallRating + potential + (withProduction ? productionScore(player) : 0) + (player.recruiting.campBoost ?? 0) + (player.recruiting.exposure ?? 0);
 }
 
 /** Spec 15.1 star bands: 5 (90+), 4 (82-89), 3 (74-81), 2 (66-73), 1 (58-65), 0 below. */

@@ -820,6 +820,7 @@ export function simulateSnap(
     playId,
     quarter: state.currentQuarter,
     snapQuarter,
+    snapTeamId: offense.id,
     clockTimeRemainingSeconds: state.clockSecondsRemaining,
     down: state.down,
     distance: state.distance,

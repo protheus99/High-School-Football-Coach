@@ -3,6 +3,7 @@ import { generateProceduralPlayer } from '../generators/rosterGenerator';
 import { promoteToStarter, rebuildDepthChart } from './depthChart';
 import { TEMPLATES, pick, starters } from './dilemmaTemplates';
 import { rulesForState } from './stateRules';
+import { gameBallSkill } from './postGame';
 
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices (library in dilemmaTemplates.ts)
 const DILEMMA_CHANCE = 0.6; // not every week brings a crisis
@@ -79,6 +80,8 @@ export function dilemmaChoiceEffects(choice: DilemmaChoice, userTeam: Team): Cho
     const who = grades.length === 1 ? `${name(grades[0].playerId)} grades` : `Grades for ${grades.length} players`;
     (up ? gains : losses).push(`${who} ${up ? 'up' : 'down'}`);
   }
+  impact.exposurePlayerIds?.forEach((id) => gains.push(`${name(id)} college exposure +1`));
+  if (impact.skillBoostPlayerIds?.length) gains.push(impact.skillBoostPlayerIds.length === 1 ? `${name(impact.skillBoostPlayerIds[0])} +1 skill` : `${impact.skillBoostPlayerIds.length} young starters +1 skill`);
   if (impact.sidelinePlayer) {
     const w = impact.sidelinePlayer.weeks;
     losses.push(`${name(impact.sidelinePlayer.playerId)} out ${w} wk`);
@@ -138,6 +141,18 @@ export function executeDilemmaDecision(userTeam: Team, choice: DilemmaChoice): v
     userTeam.roster.push(transfer);
     rebuildDepthChart(userTeam.roster);
   }
+
+  // The coach talks a player up (college exposure), or credits young players' growth (+1 to a key skill)
+  choice.impact.exposurePlayerIds?.forEach((id) => {
+    const ply = findPlayer(id);
+    if (ply) ply.recruiting.exposure = (ply.recruiting.exposure ?? 0) + 1;
+  });
+  choice.impact.skillBoostPlayerIds?.forEach((id) => {
+    const ply = findPlayer(id);
+    if (!ply) return;
+    const skill = gameBallSkill(ply);
+    ply.attributes[skill] = Math.min(99, ply.attributes[skill] + 1);
+  });
 
   if (removePlayerId && userTeam.roster.some((p) => p.id === removePlayerId)) {
     userTeam.roster = userTeam.roster.filter((p) => p.id !== removePlayerId);

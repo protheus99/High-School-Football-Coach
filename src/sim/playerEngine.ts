@@ -119,7 +119,7 @@ export function evaluateAcademicReport(player: Player, support = 0, rules: State
  * Calculates off-season player progression and growth spurts.
  */
 // Position skills the roster generator ties to overall rating; they grow with it
-const POSITION_KEY_SKILLS: Record<Position, (keyof Player['attributes'])[]> = {
+export const POSITION_KEY_SKILLS: Record<Position, (keyof Player['attributes'])[]> = {
   QB: ['passingAccuracy', 'armStrength', 'vision'],
   RB: ['carrying', 'vision'],
   WR: ['routeRunning', 'catching'],

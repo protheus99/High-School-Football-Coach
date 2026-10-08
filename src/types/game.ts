@@ -118,6 +118,7 @@ export interface RecruitingProfile {
   signedTier?: CollegeTier;
   visibility?: number; // 0-100: how much college coaches know about the player
   campBoost?: number; // evaluation bump earned at a summer camp
+  exposure?: number; // evaluation bump from game balls and the coach talking him up to the press
   filmSentYear?: number;
   campYear?: number;
   coachCalls?: number; // college calls made by the head coach this season
@@ -150,6 +151,9 @@ export interface Player {
   careerStats?: PlayerStats; // previous seasons at this school (this season is added when shown)
   recruiting: RecruitingProfile;
   parent: ParentProfile;
+  gameBalls?: number; // Player of the Game awards, career
+  gameBallsThisSeason?: number;
+  gameBallYear?: number; // the season gameBallsThisSeason counts
 }
 
 export interface ProgramMeters {
@@ -211,6 +215,7 @@ export interface Team {
   lightRating?: number; // a light team (another state's league): its fixed game-day rating; the roster holds only its stat leaders
   gameDayEdge?: number; // the coach's paid staff: team-rating points added on game day (capped at +2)
   fridayEdge?: number; // a dilemma decision's edge (or handicap) for the coach's next game, in team-rating points
+  pendingFridayEdge?: number; // from the post-game press: becomes the Friday edge once this week's game is in the books
   injuryResistance?: number; // the coach's paid staff: share of game injuries avoided (0-1)
 }
 
@@ -225,6 +230,7 @@ export interface PlayEvent {
   snapDistance?: number;
   snapYardLine?: number;
   isTry?: boolean; // the snap was a PAT or two-point try
+  snapTeamId?: string; // the team that snapped the ball (possessionTeamId is who has it after the play)
   snapQuarter?: 1 | 2 | 3 | 4 | 'OT'; // the period the ball was snapped in (quarter is stamped after the clock runs)
   homeScoreAfter?: number; // the score after the play (the box score's line score)
   awayScoreAfter?: number;
@@ -360,6 +366,8 @@ export interface DilemmaChoice {
     gpaChanges?: { playerId: string; amount: number }[]; // tutoring / study hall (eligibility re-checked at 2.0)
     coachPointsDelta?: number; // ₡ gained (a booster's thanks) or spent (tutors, travel)
     fridayEdgeDelta?: number; // team-rating points for the next game: scouting, preparation, practice time lost or won
+    exposurePlayerIds?: string[]; // college exposure +1 (the coach talks a player up)
+    skillBoostPlayerIds?: string[]; // +1 to a key skill for each
   };
 }
 

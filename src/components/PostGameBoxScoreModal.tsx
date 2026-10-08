@@ -10,9 +10,10 @@ import { useGameStore } from '../store/gameStore';
 interface BoxScoreProps {
   gameState: GameSimulationState;
   onClose: () => void;
+  closeLabel?: string;
 }
 
-export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onClose }) => {
+export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onClose, closeLabel = 'Back to Hub' }) => {
   const { homeTeam, awayTeam } = gameState;
   const gameStats = gameState.playerGameStats ?? {};
   const { seasonSchedule, interstateGames } = useGameStore();
@@ -43,7 +44,7 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
       width="wide"
       footer={
         <button className="ui-btn ui-btn-primary ui-btn-block" onClick={onClose}>
-          Back to Hub
+          {closeLabel}
         </button>
       }
     >

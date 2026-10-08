@@ -31,6 +31,8 @@ import {
 } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
 import { exposureNews } from '../sim/dilemmaExposures';
+import { attributeLabel, awardGameBall } from '../sim/postGame';
+import { NO_COMMENT, PressQuestion, PressRecord } from '../sim/pressConference';
 import { randomInt } from '../sim/math/variance';
 import {
   COLLEGE_ACTION_COSTS,
@@ -287,6 +289,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     seasonSchedule: state.seasonSchedule,
     nationalLeagues: state.nationalLeagues.map((l) => ({ ...l, bracket: l.bracket && compactBracket(l.bracket) })),
     dilemmaLog: state.dilemmaLog,
+    pressLog: state.pressLog,
     playoffBracket: state.playoffBracket && compactBracket(state.playoffBracket),
     sanctionLevel: state.sanctionLevel,
     statewideRecruits: state.statewideRecruits,
@@ -380,6 +383,7 @@ interface GameStoreState {
   activeGame: GameSimulationState | null;
   activeDilemma: NarrativeDilemma | null;
   dilemmaLog: DilemmaRecord[];
+  pressLog: PressRecord[]; // post-game press questions asked (rotation and cooldowns)
   sanctionLevel: 0 | 1 | 2 | 3; // state association sanctions this season (design spec 12.2)
   scoutingPool: FeederProspect[]; // next season's feeder pipeline (15-40 prospects)
   feederEventsThisWeek: FeederEventType[];
@@ -428,6 +432,8 @@ interface GameStoreState {
   saveGame: (saveName?: string) => Promise<string>; // new save slot; returns its id
   advanceWeek: () => void;
   resolveDilemma: (choice: DilemmaChoice) => void;
+  awardGameBall: (playerId: string, summary: { opponentName: string; won: boolean; score: string; line: string }) => void;
+  answerPress: (question: PressQuestion, choice: DilemmaChoice) => void;
   setPracticeIntensity: (mode: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT') => void;
   setActiveGame: (game: GameSimulationState | null) => void;
   recordUserGame: (finalState: GameSimulationState) => void;
@@ -469,6 +475,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   activeGame: null,
   activeDilemma: null,
   dilemmaLog: [],
+  pressLog: [],
   sanctionLevel: 0,
   scoutingPool: [],
   feederEventsThisWeek: [],
@@ -558,6 +565,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       activeGame: null,
       activeDilemma: null,
       dilemmaLog: [],
+      pressLog: [],
       sanctionLevel: 0,
       playoffBracket: null,
       graduatingSeniors: [],
@@ -637,6 +645,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       userProbationUntil: save.userProbationUntil ?? null,
       lightCalibration: save.lightCalibration ?? null,
       dilemmaLog: save.dilemmaLog ?? [],
+      pressLog: save.pressLog ?? [],
       currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
       userTeamId: userTeam.id,
       coachPoints: save.coachPoints ?? save.coachingAP ?? STARTING_COACH_POINTS,
@@ -830,6 +839,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       currentWeek > LAST_REGULAR_SEASON_WEEK ||
       [...seasonSchedule, ...get().interstateGames].some((g) => g.week === currentWeek && (g.homeTeamId === userTeamId || g.awayTeamId === userTeamId));
     if (userPlayed) userTeam.fridayEdge = 0;
+    // What the coach said at the post-game press carries into next week's game
+    if (userTeam.pendingFridayEdge) {
+      userTeam.fridayEdge = Math.max(-3, Math.min(3, (userTeam.fridayEdge ?? 0) + userTeam.pendingFridayEdge));
+      userTeam.pendingFridayEdge = 0;
+    }
 
     // Whistleblowers: risky/corrupt decisions can surface in a later week (design spec 12.1)
     const { dilemmaLog, currentYear } = get();
@@ -1207,6 +1221,51 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       leagueTeams: [...leagueTeams],
       seasonSchedule: nextSchedule,
       interstateGames
+    });
+  },
+
+  // Player of the Game: +1 to a key skill and college exposure, and a story in the paper
+  awardGameBall: (playerId, summary) => {
+    const { districtTeams, userTeamId, currentYear, currentWeek } = get();
+    const team = districtTeams.find((t) => t.id === userTeamId);
+    const player = team?.roster.find((p) => p.id === playerId);
+    if (!team || !player) return;
+    const { skill, exposure } = awardGameBall(player, currentYear);
+    const article: NewsArticle = {
+      id: `news_gameball_${player.id}_${currentYear}_${currentWeek}`,
+      week: currentWeek,
+      outlet: 'TOWN_JOURNAL',
+      headline: `${player.firstName} ${player.lastName} Earns the Game Ball ${summary.won ? 'in' : 'Despite'} ${summary.won ? 'Win Over' : 'Loss to'} ${summary.opponentName}`,
+      content: `${player.position} ${player.firstName} ${player.lastName} was ${team.name}'s Player of the Game (${summary.score}): ${summary.line}. ${attributeLabel(skill)} +1${exposure ? ', and more college exposure' : ''}.`,
+      impactSentiment: 'POSITIVE',
+      featuredPlayerName: `${player.firstName} ${player.lastName}`,
+      featuredTeamName: team.name
+    };
+    set({ districtTeams: [...districtTeams], newsArticles: [article, ...get().newsArticles] });
+  },
+
+  // The post-game press: the answer works like a dilemma choice; its Friday edge waits for next week's game
+  answerPress: (question, choice) => {
+    const { districtTeams, userTeamId, currentYear, currentWeek, pressLog } = get();
+    const team = districtTeams.find((t) => t.id === userTeamId);
+    if (!team) return;
+    const { fridayEdgeDelta, ...rest } = choice.impact;
+    executeDilemmaDecision(team, { ...choice, impact: rest });
+    if (fridayEdgeDelta) team.pendingFridayEdge = (team.pendingFridayEdge ?? 0) + fridayEdgeDelta;
+    const quote: NewsArticle = {
+      id: `news_press_${question.id}_${currentYear}_${currentWeek}`,
+      week: currentWeek,
+      outlet: question.outlet,
+      headline: choice.id === NO_COMMENT.id ? `${team.name} Coach Skips the Press Conference` : `Coach on the Record: ${choice.label}`,
+      content: choice.id === NO_COMMENT.id ? `Asked "${question.question}", the ${team.name} coach left without taking questions.` : `Asked "${question.question}", the ${team.name} coach said ${choice.label}`,
+      impactSentiment: choice.id === NO_COMMENT.id ? 'NEGATIVE' : 'NEUTRAL',
+      featuredTeamName: team.name
+    };
+    set({
+      districtTeams: [...districtTeams],
+      pressLog: [...pressLog, { questionId: question.id, year: currentYear, week: currentWeek, phrasing: question.phrasing }],
+      coachPoints: Math.max(0, get().coachPoints + (choice.impact.coachPointsDelta ?? 0)),
+      newsArticles: [quote, ...get().newsArticles]
     });
   },
 

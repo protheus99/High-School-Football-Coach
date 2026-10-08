@@ -11,6 +11,11 @@ import { readableOnWhite } from '../utils/color';
 import { PlayCallingPanel } from './PlayCallingPanel';
 import { AroundTheLeague } from './AroundTheLeague';
 import { GamePlanBar, GamePlanSheet } from './GamePlanSheet';
+import { GameBallSheet, PressConferenceSheet } from './PostGameSheets';
+import { useGameStore } from '../store/gameStore';
+import { GameBallCandidate, gameBallCandidates } from '../sim/postGame';
+import { PressQuestion, buildPressContext, pickPressQuestion } from '../sim/pressConference';
+import { DilemmaChoice } from '../types/game';
 import { DefensiveFocus, FOCUS_CALL, focusFromCall } from '../sim/gamePlan';
 import { OffensiveScheme } from '../types/game';
 
@@ -48,6 +53,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   }, [autoPlay]);
   const [showBoxScore, setShowBoxScore] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
+  // After the box score: the Player of the Game, then the press conference, then back to the Hub
+  const [postStep, setPostStep] = useState<'GAME_BALL' | 'PRESS' | null>(null);
+  const [pressQuestion, setPressQuestion] = useState<PressQuestion | null>(null);
+  const changedPlanAtHalftimeRef = useRef(false);
   const [showHalftimeModal, setShowHalftimeModal] = useState(false);
   // A ref (not state) so flipping it doesn't re-run the setup effect and restart the game
   const halftimeHandledRef = useRef(false);
@@ -199,6 +208,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     if (!showHalftimeModal) resumeAutoSim();
   };
   const applyPlan = (offense: OffensiveScheme, focus: DefensiveFocus) => {
+    if (showHalftimeModal) changedPlanAtHalftimeRef.current = true; // the press may ask about it
     const call = FOCUS_CALL[focus];
     simWorkerBridge.setGamePlan(userTeamId, offense, call);
     setGameState((s) => {
@@ -214,13 +224,51 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       ? 'Overtime'
       : `Q${gameState.currentQuarter} ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}`;
 
+  // The post-game steps (the game ball and the press work on the store's copy of the coach's team)
+  const candidates: GameBallCandidate[] = gameState.isGameOver ? gameBallCandidates(gameState, userTeam) : [];
+  const finalHeadline = `Final · ${gameState.awayTeam.name} ${gameState.awayScore}, ${gameState.homeTeam.name} ${gameState.homeScore}${gameState.overtime ? ' (OT)' : ''}`;
+  const finishPostGame = () => {
+    setPostStep(null);
+    onExit(gameState);
+  };
+  const askPress = (gameBall?: GameBallCandidate) => {
+    const s = useGameStore.getState();
+    const team = s.districtTeams.find((t) => t.id === userTeamId);
+    if (!team) return finishPostGame();
+    const context = buildPressContext({
+      game: gameState,
+      team,
+      userTeamId,
+      schedule: [...s.seasonSchedule, ...s.interstateGames],
+      week: s.currentWeek,
+      bracket: s.playoffBracket,
+      gameBall: gameBall && team.roster.find((p) => p.id === gameBall.player.id),
+      gameBallLine: gameBall?.line,
+      changedPlanAtHalftime: changedPlanAtHalftimeRef.current
+    });
+    const question = pickPressQuestion(context, s.pressLog, s.currentYear);
+    if (!question) return finishPostGame();
+    setPressQuestion(question);
+    setPostStep('PRESS');
+  };
+  const awardBall = (c: GameBallCandidate) => {
+    const ours = gameState.homeTeam.id === userTeamId ? gameState.homeScore : gameState.awayScore;
+    const theirs = gameState.homeTeam.id === userTeamId ? gameState.awayScore : gameState.homeScore;
+    useGameStore.getState().awardGameBall(c.player.id, { opponentName: opponent.name, won: ours > theirs, score: `${ours}-${theirs}`, line: c.line });
+    askPress(c);
+  };
+  const answerPress = (choice: DilemmaChoice) => {
+    if (pressQuestion) useGameStore.getState().answerPress(pressQuestion, choice);
+    finishPostGame();
+  };
+
   const isHomePoss = gameState.possessionTeamId === gameState.homeTeam.id;
   const currentPossTeam = isHomePoss ? gameState.homeTeam : gameState.awayTeam;
 
   return (
     <div style={{ padding: '16px', maxWidth: '840px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       {showBoxScore && (
-        <PostGameBoxScoreModal gameState={gameState} onClose={() => { setShowBoxScore(false); onExit(gameState); }} />
+        <PostGameBoxScoreModal gameState={gameState} closeLabel="Continue" onClose={() => { setShowBoxScore(false); setPostStep('GAME_BALL'); }} />
       )}
 
       {showHalftimeModal && (
@@ -235,6 +283,16 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
             resumeAutoSim();
           }}
         />
+      )}
+
+      {postStep === 'GAME_BALL' &&
+        (candidates.length > 0 ? (
+          <GameBallSheet candidates={candidates} headline={finalHeadline} year={useGameStore.getState().currentYear} onAward={awardBall} />
+        ) : (
+          <SkipStep onReady={() => askPress()} />
+        ))}
+      {postStep === 'PRESS' && pressQuestion && (
+        <PressConferenceSheet question={pressQuestion} team={useGameStore.getState().districtTeams.find((t) => t.id === userTeamId) ?? userTeam} onAnswer={answerPress} />
       )}
 
       {planOpen && (
@@ -495,4 +553,15 @@ const controlBtnStyle: React.CSSProperties = {
   borderRadius: '6px',
   cursor: 'pointer',
   fontWeight: 'bold'
+};
+
+/** Moves straight on when a step has nothing to show (no one recorded a stat). */
+const SkipStep: React.FC<{ onReady: () => void }> = ({ onReady }) => {
+  const done = useRef(false);
+  useEffect(() => {
+    if (done.current) return;
+    done.current = true;
+    onReady();
+  }, [onReady]);
+  return null;
 };

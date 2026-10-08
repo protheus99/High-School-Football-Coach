@@ -41,6 +41,7 @@ export interface GameSaveRecord {
   seasonSchedule?: ScheduledGame[];
   nationalLeagues?: import('../sim/nationalWorld').LightLeague[]; // the other states' light leagues
   dilemmaLog?: DilemmaRecord[];
+  pressLog?: { questionId: string; year: number; week: number; phrasing?: number }[];
   difficulty?: Difficulty;
   drillFocus?: DrillFocus;
   campSchedule?: 'TWO_A_DAY' | 'THREE_A_DAY';
