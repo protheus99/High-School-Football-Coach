@@ -5,7 +5,6 @@ import { OffensiveScheme } from '../types/game';
 import { PreGameStrategyModal } from './PreGameStrategyModal';
 import { Sheet } from './ui/Sheet';
 import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
-import { FilmStudyModal } from './FilmStudyModal';
 import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
 import { getUserMatchup } from '../sim/userMatchup';
 import { findDistrict, findRegion } from '../sim/league';
@@ -18,7 +17,6 @@ export const DashboardView: React.FC<{
 }> = ({ onLaunchGame, onNavigate }) => {
   const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, nationalLeagues } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
-  const [showFilmModal, setShowFilmModal] = useState(false);
   const [showSimWarning, setShowSimWarning] = useState(false);
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
@@ -41,10 +39,6 @@ export const DashboardView: React.FC<{
 
   return (
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
-      {showFilmModal && opponent && (
-        <FilmStudyModal opponent={opponent} onClose={() => setShowFilmModal(false)} />
-      )}
-
       {showSimWarning && opponent && (
         <Sheet
           title="Game not played yet"
@@ -128,7 +122,6 @@ export const DashboardView: React.FC<{
             : null
         }
         onPlayGame={() => setShowPreGameModal(true)}
-        onStudyFilm={() => setShowFilmModal(true)}
         onAutoSim={advanceWeek}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}

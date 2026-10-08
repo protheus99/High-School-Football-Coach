@@ -18,6 +18,7 @@ import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { dilemmaChoiceEffects } from '../sim/dilemmaEngine';
 import { ChoiceEffects } from './ui/ChoiceEffects';
+import { ScoutingReport } from './ScoutingReport';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, seasonLength } from '../sim/league';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
@@ -87,7 +88,6 @@ const INTENSITY: { id: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT'; label: string }[]
 
 const shortName = (p: Player) => `${p.firstName.charAt(0)}. ${p.lastName}`;
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
-const scheme = (s: string) => s.replace(/_/g, ' ').toLowerCase();
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 /**
@@ -98,12 +98,11 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 export const WeeklyAgenda: React.FC<{
   game: HubGame | null;
   onPlayGame: () => void;
-  onStudyFilm: () => void;
   onAutoSim: () => void;
   onAdvanceWeek: () => void;
   onNavigate: (tab: AgendaTab) => void;
   phaseLabel: string; // e.g. Pre Season, Regular Season District
-}> = ({ game, onPlayGame, onStudyFilm, onAutoSim, onAdvanceWeek, onNavigate, phaseLabel }) => {
+}> = ({ game, onPlayGame, onAutoSim, onAdvanceWeek, onNavigate, phaseLabel }) => {
   const store = useGameStore();
   const {
     leagueTeams,
@@ -421,12 +420,13 @@ export const WeeklyAgenda: React.FC<{
       id: 'game',
       icon: game.isPlayoff ? '🏆' : '🏈',
       title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${opp.name} (${opp.record.wins}-${opp.record.losses})`,
-      detail: [note, `${scheme(opp.schemeOffense)} offense, ${scheme(opp.schemeDefense)} defense`].filter(Boolean).join(' · '),
+      detail: note,
       tone: 'todo',
+      // The film study, right here: no extra tap before choosing to play or sim
+      content: <ScoutingReport opponent={opp} />,
       actions: [
         { label: '🏈 Play the game', primary: true, onClick: onPlayGame },
-        { label: '🎥 Study film', onClick: onStudyFilm },
-        { label: 'Auto-sim & advance', onClick: onAutoSim }
+        { label: '⏩ Sim game', onClick: onAutoSim }
       ]
     };
   } else if (game?.isPlayed && game.result) {
