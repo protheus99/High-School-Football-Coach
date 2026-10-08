@@ -3,6 +3,9 @@ import { readableOnWhite } from '../utils/color';
 import { GameSimulationState, Player, PlayerStats, Team } from '../types/game';
 import { addPlayerStats, createEmptyPlayerStats } from '../sim/playerStats';
 import { Sheet } from './ui/Sheet';
+import { GameScoreHeader } from './ui/GameScoreHeader';
+import { recordLine } from '../sim/lineScore';
+import { useGameStore } from '../store/gameStore';
 
 interface BoxScoreProps {
   gameState: GameSimulationState;
@@ -10,8 +13,11 @@ interface BoxScoreProps {
 }
 
 export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onClose }) => {
-  const { homeTeam, awayTeam, homeScore, awayScore } = gameState;
+  const { homeTeam, awayTeam } = gameState;
   const gameStats = gameState.playerGameStats ?? {};
+  const { seasonSchedule, interstateGames } = useGameStore();
+  const schedule = [...seasonSchedule, ...interstateGames];
+  const status = gameState.currentQuarter === 'OT' || gameState.overtime ? 'Final/OT' : 'Final';
 
   // Team totals are summed from the individual stat lines credited on each play
   const teamTotals = (team: Team): PlayerStats => {
@@ -23,11 +29,12 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
   const away = teamTotals(awayTeam);
   const turnovers = (t: PlayerStats) => t.interceptionsThrown + t.fumblesLost;
 
+  // Away on the left, home on the right, like the score above
   const metrics: [string, string, string, boolean?][] = [
-    ['Total yards', `${home.passYards + home.rushYards}`, `${away.passYards + away.rushYards}`],
-    ['Passing', `${home.passYards} (${home.passCompletions}/${home.passAttempts})`, `${away.passYards} (${away.passCompletions}/${away.passAttempts})`],
-    ['Rushing', `${home.rushYards} (${home.rushAttempts} car)`, `${away.rushYards} (${away.rushAttempts} car)`],
-    ['Turnovers', `${turnovers(home)}`, `${turnovers(away)}`, true]
+    ['Total yards', `${away.passYards + away.rushYards}`, `${home.passYards + home.rushYards}`],
+    ['Passing', `${away.passYards} (${away.passCompletions}/${away.passAttempts})`, `${home.passYards} (${home.passCompletions}/${home.passAttempts})`],
+    ['Rushing', `${away.rushYards} (${away.rushAttempts} car)`, `${home.rushYards} (${home.rushAttempts} car)`],
+    ['Turnovers', `${turnovers(away)}`, `${turnovers(home)}`, true]
   ];
 
   return (
@@ -41,34 +48,29 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
         </button>
       }
     >
-      {/* Final score */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', background: '#F8FAFC', padding: '14px 10px', borderRadius: '10px', marginBottom: '14px', textAlign: 'center' }}>
-        <div>
-          <div style={{ fontWeight: 'bold', fontSize: '14px', color: readableOnWhite(homeTeam.primaryColor, homeTeam.secondaryColor) }}>{homeTeam.name}</div>
-          <div style={{ fontSize: '34px', fontWeight: 'bold' }}>{homeScore}</div>
-        </div>
-        <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#64748B' }}>FINAL</div>
-        <div>
-          <div style={{ fontWeight: 'bold', fontSize: '14px', color: readableOnWhite(awayTeam.primaryColor, awayTeam.secondaryColor) }}>{awayTeam.name}</div>
-          <div style={{ fontSize: '34px', fontWeight: 'bold' }}>{awayScore}</div>
-        </div>
-      </div>
+      {/* Final score: away on the left, home on the right, with the points by quarter */}
+      <GameScoreHeader
+        game={gameState}
+        status={status}
+        awayRecord={recordLine(awayTeam, 'away', gameState, schedule)}
+        homeRecord={recordLine(homeTeam, 'home', gameState, schedule)}
+      />
 
       {/* Team comparison: metric in the middle, each team on its side */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', rowGap: '6px', columnGap: '10px', fontSize: '14px', marginBottom: '18px' }}>
-        {metrics.map(([label, h, a, lowerIsBetter]) => (
+        {metrics.map(([label, a, h, lowerIsBetter]) => (
           <React.Fragment key={label}>
-            <div style={{ textAlign: 'right', color: lowerIsBetter && Number(h) > 0 ? '#DC2626' : undefined }}>{h}</div>
-            <div style={{ textAlign: 'center', color: '#64748B', fontSize: '12px', alignSelf: 'center' }}>{label}</div>
-            <div style={{ textAlign: 'left', color: lowerIsBetter && Number(a) > 0 ? '#DC2626' : undefined }}>{a}</div>
+            <div style={{ textAlign: 'right', color: lowerIsBetter && Number(a) > 0 ? '#DC2626' : undefined }}>{a}</div>
+            <div style={{ textAlign: 'center', color: '#475569', fontSize: '12px', alignSelf: 'center' }}>{label}</div>
+            <div style={{ textAlign: 'left', color: lowerIsBetter && Number(h) > 0 ? '#DC2626' : undefined }}>{h}</div>
           </React.Fragment>
         ))}
       </div>
 
       {/* Player stats: one team after the other on phones, side by side on desktop */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
-        <TeamPlayerStats team={homeTeam} gameStats={gameStats} />
         <TeamPlayerStats team={awayTeam} gameStats={gameStats} />
+        <TeamPlayerStats team={homeTeam} gameStats={gameStats} />
       </div>
     </Sheet>
   );

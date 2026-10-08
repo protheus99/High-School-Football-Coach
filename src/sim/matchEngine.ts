@@ -468,6 +468,7 @@ export function simulateSnap(
   chosenConcept?: PlayConcept,
   chosenDefensiveCall?: DefensiveCall
 ): { state: GameSimulationState; event: PlayEvent } {
+  const snapQuarter = state.currentQuarter; // a field goal as time expires belongs to the quarter it was kicked in
   if (!state.openingPossessionTeamId) {
     state.openingPossessionTeamId = state.possessionTeamId;
   }
@@ -818,6 +819,7 @@ export function simulateSnap(
   const event: PlayEvent = {
     playId,
     quarter: state.currentQuarter,
+    snapQuarter,
     clockTimeRemainingSeconds: state.clockSecondsRemaining,
     down: state.down,
     distance: state.distance,
@@ -835,7 +837,9 @@ export function simulateSnap(
     scoreType,
     textCommentary: commentary,
     isLeverageMoment: false,
-    ...(defensiveCall && { defensiveCall })
+    ...(defensiveCall && { defensiveCall }),
+    homeScoreAfter: state.homeScore,
+    awayScoreAfter: state.awayScore
   };
 
   state.eventLog.push(event);

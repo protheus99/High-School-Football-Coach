@@ -225,6 +225,9 @@ export interface PlayEvent {
   snapDistance?: number;
   snapYardLine?: number;
   isTry?: boolean; // the snap was a PAT or two-point try
+  snapQuarter?: 1 | 2 | 3 | 4 | 'OT'; // the period the ball was snapped in (quarter is stamped after the clock runs)
+  homeScoreAfter?: number; // the score after the play (the box score's line score)
+  awayScoreAfter?: number;
   possessionTeamId: string;
   playConcept: PlayConcept;
   yardsGained: number;

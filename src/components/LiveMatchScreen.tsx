@@ -166,10 +166,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         />
       )}
 
-      {/* Scoreboard: light background so every school color reads; the ball marks who has possession */}
+      {/* Scoreboard: away on the left, home on the right; light background so every school color reads; the ball marks who has possession */}
       <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', alignItems: 'center', gap: '8px' }}>
-          {[gameState.homeTeam, null, gameState.awayTeam].map((team, i) =>
+          {[gameState.awayTeam, null, gameState.homeTeam].map((team, i) =>
             team ? (
               <div key={team.id} style={{ minWidth: 0, textAlign: i === 0 ? 'left' : 'right' }}>
                 {/* The ball icon sits outside the truncated name so long school names never hide it */}
@@ -182,7 +182,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
                 <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>
                   ({team.record.wins}-{team.record.losses})
                 </div>
-                <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1, color: '#0F172A' }}>{i === 0 ? gameState.homeScore : gameState.awayScore}</div>
+                <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1, color: '#0F172A' }}>{i === 0 ? gameState.awayScore : gameState.homeScore}</div>
               </div>
             ) : (
               <div key="clock" style={{ textAlign: 'center' }}>
