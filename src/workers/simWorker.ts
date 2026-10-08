@@ -39,6 +39,22 @@ self.onmessage = (e: MessageEvent) => {
       break;
     }
 
+    // Sim to Halftime: the rest of the first half, decisions made by the staff; the locker room opens next
+    case 'SIMULATE_TO_HALFTIME': {
+      if (!activeGameState) return;
+
+      while (!activeGameState.isGameOver && (activeGameState.currentQuarter === 1 || activeGameState.currentQuarter === 2)) {
+        const { state } = simulateSnap(activeGameState);
+        activeGameState = state;
+      }
+
+      self.postMessage({
+        type: activeGameState.isGameOver ? 'GAME_COMPLETED' : 'PLAY_RESOLVED',
+        payload: { state: activeGameState }
+      });
+      break;
+    }
+
     case 'SIMULATE_ENTIRE_GAME': {
       if (!activeGameState) return;
 

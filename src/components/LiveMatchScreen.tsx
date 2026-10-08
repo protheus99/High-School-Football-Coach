@@ -35,6 +35,14 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   const [gameState, setGameState] = useState<GameSimulationState>(initialState);
   const [leveragePrompt, setLeveragePrompt] = useState<LeverageType | null>(null);
   const [autoPlay, setAutoPlay] = useState(false);
+  // Calling plays one at a time: the play-calling panel only shows once the coach presses Next Snap
+  const [manualMode, setManualMode] = useState(false);
+  // Auto-sim pauses for a decision (4th down, a try, halftime) and picks back up once it's made
+  const autoPlayRef = useRef(false);
+  const resumeAutoRef = useRef(false);
+  useEffect(() => {
+    autoPlayRef.current = autoPlay;
+  }, [autoPlay]);
   const [showBoxScore, setShowBoxScore] = useState(false);
   const [showHalftimeModal, setShowHalftimeModal] = useState(false);
   // A ref (not state) so flipping it doesn't re-run the setup effect and restart the game
@@ -90,6 +98,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       };
       if (state.currentQuarter === 3 && !halftimeHandledRef.current) {
         halftimeHandledRef.current = true;
+        if (autoPlayRef.current) resumeAutoRef.current = true;
         setAutoPlay(false);
         setShowHalftimeModal(true);
       }
@@ -100,6 +109,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         // A decision prompt only applies to the snap it was asked about (e.g. Next Snap was pressed instead)
         setLeveragePrompt(null);
         afterSnap(state, event);
+        simmingToEndRef.current = false; // a sim to halftime has landed: banners are back on
         if (event?.isScore && event.scoreType === 'TOUCHDOWN') soundFx.playTouchdownHorn();
         else if (event?.isTurnover) soundFx.playWhistle();
         else soundFx.playTackleThud();
@@ -108,6 +118,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       onLeveragePrompt: ({ state, event, leverageType }) => {
         afterSnap(state, event);
         setLeveragePrompt(leverageType || 'FOURTH_DOWN');
+        if (autoPlayRef.current) resumeAutoRef.current = true;
         setAutoPlay(false);
         if (event?.isScore && event.scoreType === 'TOUCHDOWN') soundFx.playTouchdownHorn();
         else soundFx.playLeverageAlert();
@@ -141,9 +152,30 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     simWorkerBridge.stepPlay(undefined, call);
   };
 
+  /** After a decision that paused auto-sim, auto-sim carries on. */
+  const resumeAutoSim = () => {
+    if (!resumeAutoRef.current) return;
+    resumeAutoRef.current = false;
+    setAutoPlay(true);
+  };
+
   const handleDecision = (concept: PlayConcept) => {
     setLeveragePrompt(null);
     simWorkerBridge.stepPlay(concept);
+    resumeAutoSim();
+  };
+
+  // Sim ahead: to the locker room in the first half, to the final whistle after it
+  const firstHalf = gameState.currentQuarter === 1 || gameState.currentQuarter === 2;
+  const simAhead = () => {
+    setManualMode(false);
+    setAutoPlay(false);
+    setLeveragePrompt(null);
+    resumeAutoRef.current = false;
+    simmingToEndRef.current = true;
+    setAlertQueue([]);
+    if (firstHalf) simWorkerBridge.simToHalftime();
+    else simWorkerBridge.simToEnd();
   };
 
   const isHomePoss = gameState.possessionTeamId === gameState.homeTeam.id;
@@ -162,6 +194,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           onApplySpeech={(_speechType) => {
             setShowHalftimeModal(false);
             soundFx.playWhistle();
+            resumeAutoSim();
           }}
         />
       )}
@@ -222,13 +255,15 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         homeSecondaryColor={gameState.homeTeam.secondaryColor}
       />
 
-      {/* Manual Play Calling Controls */}
-      <PlayCallingPanel
-        side={gameState.possessionTeamId === userTeamId ? 'OFFENSE' : 'DEFENSE'}
-        onCallPlay={(concept) => handleDecision(concept)}
-        onCallDefense={handleDefensiveCall}
-        disabled={autoPlay || gameState.isGameOver || leveragePrompt !== null}
-      />
+      {/* Calling plays one at a time: only after the coach presses Next Snap (most coaches let the game run) */}
+      {manualMode && !autoPlay && !gameState.isGameOver && (
+        <PlayCallingPanel
+          side={gameState.possessionTeamId === userTeamId ? 'OFFENSE' : 'DEFENSE'}
+          onCallPlay={(concept) => handleDecision(concept)}
+          onCallDefense={handleDefensiveCall}
+          disabled={autoPlay || gameState.isGameOver || leveragePrompt !== null}
+        />
+      )}
 
       {/* Other games this week, at this game's clock */}
       <AroundTheLeague quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={gameState.isGameOver} />
@@ -271,88 +306,97 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       </div>
       )}
 
-      {/* Leverage Modal Interrupt */}
-      {leveragePrompt === 'PAT_DECISION' && !gameState.isGameOver && (
-        <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', color: '#92400E' }}>⚡ TOUCHDOWN! POINT-AFTER DECISION</h3>
-          <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
-            Kick the extra point, or go for two from the 3-yard line?
-          </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => handleDecision('PAT_KICK')} style={btnStyle}>👟 Kick Extra Point</button>
-            <button onClick={() => handleDecision('TWO_POINT_TRY')} style={btnStyle}>✌️ Go for Two</button>
-          </div>
-        </div>
-      )}
-
-      {leveragePrompt && leveragePrompt !== 'PAT_DECISION' && !gameState.isGameOver && (
-        <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', color: '#92400E' }}>⚡ {LEVERAGE_HEADINGS[leveragePrompt]}</h3>
-          <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
-            {downLabel(gameState.down)} & {gameState.yardLine + gameState.distance >= 100 ? 'Goal' : gameState.distance} at {fieldPosition(gameState.yardLine)}
-            {leveragePrompt === 'TWO_MINUTE_DRILL' && ` with ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')} left`}
-            . Choose your tactical call:
-          </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => handleDecision('INSIDE_RUN')} style={btnStyle}>🏈 Power Run</button>
-            <button onClick={() => handleDecision('SHORT_PASS')} style={btnStyle}>🎯 Quick Pass</button>
-            {leveragePrompt !== 'RED_ZONE_GOAL_TO_GO' && (
-              <button onClick={() => handleDecision('DEEP_PASS')} style={btnStyle}>🚀 Deep Shot</button>
-            )}
-            {gameState.down === 4 && 100 - gameState.yardLine + 17 <= MAX_FIELD_GOAL_PROMPT_YARDS && (
-              <button onClick={() => handleDecision('FIELD_GOAL')} style={btnStyle}>👟 Field Goal ({100 - gameState.yardLine + 17} yds)</button>
-            )}
-            {gameState.down === 4 && gameState.yardLine < 80 && (
-              <button onClick={() => handleDecision('PUNT')} style={btnStyle}>🛡️ Punt</button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Sim controls: pinned to the bottom of the screen so they're always under your thumb */}
+      {/* Pinned to the bottom of the screen, always under your thumb: a decision when one is due, then the sim controls */}
       <div
         style={{
           position: 'sticky',
           bottom: 0,
-          display: 'flex',
-          gap: '8px',
           background: '#F8FAFC',
           padding: '10px 0',
           paddingBottom: 'calc(10px + env(safe-area-inset-bottom))',
           zIndex: 20
         }}
       >
-        {!gameState.isGameOver ? (
-          <>
-            <button onClick={() => simWorkerBridge.stepPlay()} disabled={autoPlay} style={controlBtnStyle}>
-              Next Snap
-            </button>
-            <button onClick={() => setAutoPlay(!autoPlay)} style={controlBtnStyle}>
-              {autoPlay ? '⏸️ Pause' : '▶️ Auto-Sim'}
-            </button>
-            <button
-              onClick={() => {
-                simmingToEndRef.current = true;
-                setAlertQueue([]);
-                simWorkerBridge.simToEnd();
-              }}
-              style={controlBtnStyle}
-            >
-              ⏩ Sim to Final
-            </button>
-          </>
-        ) : (
-          <button onClick={() => setShowBoxScore(true)} style={{ ...controlBtnStyle, background: '#047857', color: '#fff' }}>
-            📊 Final Box Score
-          </button>
+        {leveragePrompt === 'PAT_DECISION' && !gameState.isGameOver && (
+          <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '12px', marginBottom: '8px' }}>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#92400E' }}>⚡ TOUCHDOWN! POINT-AFTER DECISION</h3>
+            <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
+              Kick the extra point, or go for two from the 3-yard line?
+            </p>
+            <div style={decisionGrid}>
+              <button onClick={() => handleDecision('PAT_KICK')} style={btnStyle}>👟 Kick Extra Point</button>
+              <button onClick={() => handleDecision('TWO_POINT_TRY')} style={btnStyle}>✌️ Go for Two</button>
+            </div>
+          </div>
         )}
+
+        {leveragePrompt && leveragePrompt !== 'PAT_DECISION' && !gameState.isGameOver && (
+          <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '12px', marginBottom: '8px' }}>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#92400E' }}>⚡ {LEVERAGE_HEADINGS[leveragePrompt]}</h3>
+            <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
+              {downLabel(gameState.down)} & {gameState.yardLine + gameState.distance >= 100 ? 'Goal' : gameState.distance} at {fieldPosition(gameState.yardLine)}
+              {leveragePrompt === 'TWO_MINUTE_DRILL' && ` with ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')} left`}
+              . Choose your tactical call:
+            </p>
+            <div style={decisionGrid}>
+              <button onClick={() => handleDecision('INSIDE_RUN')} style={btnStyle}>🏈 Power Run</button>
+              <button onClick={() => handleDecision('SHORT_PASS')} style={btnStyle}>🎯 Quick Pass</button>
+              {leveragePrompt !== 'RED_ZONE_GOAL_TO_GO' && (
+                <button onClick={() => handleDecision('DEEP_PASS')} style={btnStyle}>🚀 Deep Shot</button>
+              )}
+              {gameState.down === 4 && 100 - gameState.yardLine + 17 <= MAX_FIELD_GOAL_PROMPT_YARDS && (
+                <button onClick={() => handleDecision('FIELD_GOAL')} style={btnStyle}>👟 Field Goal ({100 - gameState.yardLine + 17} yds)</button>
+              )}
+              {gameState.down === 4 && gameState.yardLine < 80 && (
+                <button onClick={() => handleDecision('PUNT')} style={btnStyle}>🛡️ Punt</button>
+              )}
+            </div>
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {!gameState.isGameOver ? (
+            <>
+              <button
+                onClick={() => {
+                  setManualMode(true);
+                  simWorkerBridge.stepPlay();
+                }}
+                disabled={autoPlay}
+                style={controlBtnStyle}
+              >
+                Next Snap
+              </button>
+              <button
+                onClick={() => {
+                  if (!autoPlay) setManualMode(false);
+                  resumeAutoRef.current = false;
+                  setAutoPlay(!autoPlay);
+                }}
+                style={controlBtnStyle}
+              >
+                {autoPlay ? '⏸️ Pause' : '▶️ Auto-Sim'}
+              </button>
+              <button onClick={simAhead} style={controlBtnStyle}>
+                {firstHalf ? '⏩ Sim to Halftime' : '⏩ Sim to Final'}
+              </button>
+            </>
+          ) : (
+            <button onClick={() => setShowBoxScore(true)} style={{ ...controlBtnStyle, background: '#047857', color: '#fff' }}>
+              📊 Final Box Score
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
+// Decision buttons: two to a row so four or five options fit a phone
+const decisionGrid: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' };
+
 const btnStyle: React.CSSProperties = {
-  padding: '8px 14px',
+  minHeight: '44px',
+  padding: '8px 10px',
   background: '#1F2937',
   color: '#fff',
   border: 'none',

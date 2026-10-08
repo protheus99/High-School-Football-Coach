@@ -37,6 +37,10 @@ class WorkerBridge {
     this.worker?.postMessage({ type: 'SIMULATE_NEXT_PLAY', payload: { chosenConcept: concept, defensiveCall } });
   }
 
+  public simToHalftime(): void {
+    this.worker?.postMessage({ type: 'SIMULATE_TO_HALFTIME' });
+  }
+
   public simToEnd(): void {
     this.worker?.postMessage({ type: 'SIMULATE_ENTIRE_GAME' });
   }
