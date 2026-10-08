@@ -28,6 +28,15 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The newest save (autosave or manual): Continue picks up there after a refresh or a new visit
+  const [latest, setLatest] = useState<SaveSummary | null>(null);
+
+  useEffect(() => {
+    if (view !== 'MENU' || canContinue) return;
+    listSaveSummaries()
+      .then((list) => setLatest(list[0] ?? null))
+      .catch(() => setLatest(null));
+  }, [view, canContinue]);
 
   useEffect(() => {
     if (view !== 'LOAD') return;
@@ -97,11 +106,19 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
 
         {view === 'MENU' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
-            {canContinue && (
-              <button onClick={onEnterGame} style={menuBtn('#F59E0B', '#0F172A')}>
-                ▶️ Continue
+            {/* Continue: the game in progress, or (after a refresh or a new visit) the newest save */}
+            {(canContinue || latest) && (
+              <button onClick={() => (canContinue ? onEnterGame() : latest && load(latest.id))} disabled={busy} style={menuBtn('#F59E0B', '#0F172A')}>
+                ▶️ {busy ? 'Loading…' : 'Continue'}
+                {!canContinue && latest && (
+                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginTop: '2px' }}>
+                    {latest.teamName} · {latest.currentYear} Wk {latest.currentWeek} · {latest.wins}-{latest.losses}
+                    {latest.isAutosave ? ' · Autosave' : ''}
+                  </span>
+                )}
               </button>
             )}
+            {error && <div style={{ color: '#FCA5A5', fontSize: '13px', textAlign: 'center' }}>{error}</div>}
             <button onClick={() => setView('NEW')} style={menuBtn('#15803D', '#fff')}>
               🆕 New Game
             </button>

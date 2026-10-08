@@ -74,6 +74,8 @@ html,
 body {
   overflow-x: hidden;
   overflow-x: clip;
+  /* No pull-to-refresh: pulling down at the top of a page would reload the game and drop the coach on the title screen */
+  overscroll-behavior-y: none;
 }
 
 h1 {
