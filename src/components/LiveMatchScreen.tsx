@@ -379,7 +379,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
                 {autoPlay ? '⏸️ Pause' : '▶️ Auto-Sim'}
               </button>
               <button onClick={simAhead} style={controlBtnStyle}>
-                {firstHalf ? '⏩ Sim to Halftime' : '⏩ Sim to Final'}
+                {firstHalf ? '⏩ Sim to Half' : '⏩ Sim to Final'}
               </button>
             </>
           ) : (

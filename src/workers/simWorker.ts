@@ -39,7 +39,7 @@ self.onmessage = (e: MessageEvent) => {
       break;
     }
 
-    // Sim to Halftime: the rest of the first half, decisions made by the staff; the locker room opens next
+    // Sim to Half: the rest of the first half, decisions made by the staff; the locker room opens next
     case 'SIMULATE_TO_HALFTIME': {
       if (!activeGameState) return;
 

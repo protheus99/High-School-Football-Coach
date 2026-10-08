@@ -57,7 +57,7 @@ export const AroundTheLeague: React.FC<{ quarter: GameQuarter; clock: number; is
   return (
     <div style={{ marginBottom: '10px' }}>
       <button className="ui-btn ui-btn-block" onClick={toggle} aria-expanded={open} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span>🏟️ Around the league ({rows.length})</span>
+        <span>🏟️ Scoreboard ({rows.length})</span>
         <span aria-hidden="true">{open ? '▴' : '▾'}</span>
       </button>
       {open && (
