@@ -72,24 +72,34 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
           {endZoneLabel}
         </text>
 
-        {/* Yard Lines (every 10 yards) */}
-        {[20, 30, 40, 50, 60, 70, 80, 90, 100].map((x) => (
-          <line key={x} x1={x} y1="0" x2={x} y2="40" stroke="#FFFFFF" strokeWidth="0.4" strokeOpacity="0.6" />
+        {/* Yard lines: every 5 yards, the 10s brighter */}
+        {Array.from({ length: 19 }, (_, i) => 15 + i * 5).map((x) => (
+          <line key={x} x1={x} y1="0" x2={x} y2="40" stroke="#FFFFFF" strokeWidth={x % 10 === 0 ? 0.4 : 0.25} strokeOpacity={x % 10 === 0 ? 0.6 : 0.4} />
         ))}
 
         {/* 50-Yard Line Marker */}
         <line x1="60" y1="0" x2="60" y2="40" stroke="#FFFFFF" strokeWidth="0.8" />
 
-        {/* Yard Number Markings (every 10-yard line, 10 through 50 and back) */}
-        <text x="20" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">10</text>
-        <text x="30" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">20</text>
-        <text x="40" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">30</text>
-        <text x="50" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">40</text>
-        <text x="60" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" fontWeight="bold">50</text>
-        <text x="70" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">40</text>
-        <text x="80" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">30</text>
-        <text x="90" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">20</text>
-        <text x="100" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">10</text>
+        {/* Hash marks every yard: along both sidelines and the two inbounds rows (the field in thirds, like high school) */}
+        {Array.from({ length: 99 }, (_, i) => 11 + i)
+          .filter((x) => x % 5 !== 0)
+          .map((x) => (
+            <g key={`hash${x}`} stroke="#FFFFFF" strokeWidth="0.25" strokeOpacity="0.75">
+              <line x1={x} y1="0.3" x2={x} y2="1.3" />
+              <line x1={x} y1="12.8" x2={x} y2="13.8" />
+              <line x1={x} y1="26.2" x2={x} y2="27.2" />
+              <line x1={x} y1="38.7" x2={x} y2="39.7" />
+            </g>
+          ))}
+
+        {/* Yard numbers on both sides of the field: 10 through 50 and back */}
+        {[10, 20, 30, 40, 50, 40, 30, 20, 10].map((yard, i) =>
+          [8, 35].map((y) => (
+            <text key={`${i}-${y}`} x={20 + i * 10} y={y} fill="#FFFFFF" fontSize="4" textAnchor="middle" fontWeight={yard === 50 ? 'bold' : undefined} opacity={yard === 50 ? 1 : 0.9}>
+              {yard}
+            </text>
+          ))
+        )}
 
         {/* Line to Gain (Yellow Line) */}
         <line x1={lineToGainX} y1="0" x2={lineToGainX} y2="40" stroke="#FACC15" strokeWidth="1.2" strokeDasharray="1 0.5" />
