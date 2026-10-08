@@ -30,6 +30,7 @@ import {
   LAST_REGULAR_SEASON_WEEK
 } from '../sim/scheduleEngine';
 import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
+import { exposureNews } from '../sim/dilemmaExposures';
 import { randomInt } from '../sim/math/variance';
 import {
   COLLEGE_ACTION_COSTS,
@@ -838,12 +839,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       meters.complianceScore = Math.max(0, meters.complianceScore - 15);
       meters.schoolBoardTrust = Math.max(0, meters.schoolBoardTrust - 10);
       meters.boosterApproval = Math.max(0, meters.boosterApproval - 5);
+      // The dilemma's own story (its "future reckoning"), then the call that was made
+      const story = exposureNews(r, userTeam.name);
       return {
         id: `news_exposed_${r.templateId}_${nextWeek}`,
         week: nextWeek,
         outlet: 'TOWN_JOURNAL',
-        headline: `State Association Opens Inquiry Into ${userTeam.name} Football`,
-        content: `A whistleblower has come forward about the program's handling of "${r.title}" in Week ${r.week}. Compliance officials are reviewing the decision.`,
+        headline: story.headline,
+        content: story.content,
         impactSentiment: 'NEGATIVE',
         featuredTeamName: userTeam.name
       };
@@ -1210,6 +1213,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   resolveDilemma: (choice) => {
     const { districtTeams, userTeamId, activeDilemma, dilemmaLog, currentWeek, currentYear } = get();
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
+    // Named before the decision runs: a player who leaves the program is still the one the story is about
+    const involved = userTeam.roster.find((p) => p.id === activeDilemma?.involvedPlayerId);
     executeDilemmaDecision(userTeam, choice);
 
     const record: DilemmaRecord = {
@@ -1218,6 +1223,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       year: currentYear,
       week: currentWeek,
       tier: choice.tier,
+      choiceLabel: choice.label,
+      ...(involved && { playerName: `${involved.firstName} ${involved.lastName}` }),
       ...(Math.random() < EXPOSURE_CHANCE[choice.tier] && { exposureWeek: currentWeek + randomInt(1, 3) })
     };
     set({

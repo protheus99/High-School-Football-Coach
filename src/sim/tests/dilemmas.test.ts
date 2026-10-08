@@ -4,6 +4,7 @@ import { generateWeeklyDilemma, executeDilemmaDecision, dilemmaChoiceEffects, DI
 import { TEMPLATES } from '../dilemmaTemplates';
 import { DEPTH_TEMPLATE } from '../depthChart';
 import { teamStarterRating } from '../macroSim';
+import { EXPOSURES, exposureNews } from '../dilemmaExposures';
 import { DilemmaChoice } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -204,7 +205,9 @@ describe('Whistleblower exposure', () => {
     const { userTeamId, currentYear } = useGameStore.getState();
     useGameStore.setState({
       currentWeek: 6,
-      dilemmaLog: [{ templateId: 'FILM_ROOM_GIFT', title: "Booster's Film Room Offer", year: currentYear, week: 5, tier: 'CORRUPT', exposureWeek: 7 }]
+      dilemmaLog: [
+        { templateId: 'FILM_ROOM_GIFT', title: "Booster's Film Room Offer", year: currentYear, week: 5, tier: 'CORRUPT', exposureWeek: 7, choiceLabel: 'Take the Cash and Gear Directly' }
+      ]
     });
     const team = () => useGameStore.getState().districtTeams.find((t) => t.id === userTeamId)!;
     const complianceBefore = team().programMeters.complianceScore;
@@ -212,7 +215,41 @@ describe('Whistleblower exposure', () => {
     useGameStore.getState().advanceWeek();
 
     expect(team().programMeters.complianceScore).toBe(Math.max(0, complianceBefore - 15));
-    expect(useGameStore.getState().newsArticles.some((a) => a.headline.includes('Inquiry'))).toBe(true);
+    // The dilemma's own story, then the call that was made
+    const story = useGameStore.getState().newsArticles.find((a) => a.id.startsWith('news_exposed_FILM_ROOM_GIFT'))!;
+    expect(story.headline).toBe(`Off-the-Books Gifts Found in ${team().name} Film Room`);
+    expect(story.content).toMatch(/Auditors are tracing the money\. The Week 5 decision: Take the Cash and Gear Directly\.$/);
+  });
+
+  it('gives every dilemma its own story, naming the player only when there is one', () => {
+    const [team] = generateDistrictTeams();
+    team.roster.slice(0, 3).forEach((p) => (p.academics.gpa = 2.1));
+    const subject = team.roster.find((p) => p.depthChartTier === 1)!;
+    TEMPLATES.forEach((t) => {
+      const text = EXPOSURES[t.id];
+      expect({ id: t.id, hasStory: !!text }).toEqual({ id: t.id, hasStory: true });
+      const aboutPlayer = !!t.build(team, 12, subject).involvedPlayerId;
+      const namesPlayer = `${text.headline} ${text.story}`.includes('{player}');
+      expect({ id: t.id, namesPlayer: namesPlayer && !aboutPlayer }).toEqual({ id: t.id, namesPlayer: false });
+    });
+    const filled = exposureNews({ templateId: 'GRADE_CRISIS', title: 'Midterm Grade Crisis', year: 2026, week: 9, tier: 'CORRUPT', playerName: 'Jordan Hill' }, 'Westlake');
+    expect(filled.headline).toBe('Grade Changes Questioned at Westlake');
+    expect(filled.content).toContain("Jordan Hill's grades");
+    // A retired dilemma from an older save still gets a story
+    expect(exposureNews({ templateId: 'LIGHTNING_DELAY', title: 'Lightning on Game Night', year: 2026, week: 9, tier: 'RISKY' }, 'Westlake').headline).toBe(
+      'State Association Opens Inquiry Into Westlake Football'
+    );
+  });
+
+  it('records the call and the player when a decision is made', () => {
+    useGameStore.getState().startNewSeason();
+    const { userTeamId } = useGameStore.getState();
+    const player = useGameStore.getState().districtTeams.find((t) => t.id === userTeamId)!.roster[0];
+    useGameStore.setState({ activeDilemma: { id: 'd', templateId: 'GRADE_CRISIS', title: 'Midterm Grade Crisis', scenario: '', weekTriggered: 1, involvedPlayerId: player.id, choices: [] } });
+    useGameStore.getState().resolveDilemma({ ...choice({}), label: 'Assign Emergency Study Hall' });
+    const record = useGameStore.getState().dilemmaLog.at(-1)!;
+    expect(record.choiceLabel).toBe('Assign Emergency Study Hall');
+    expect(record.playerName).toBe(`${player.firstName} ${player.lastName}`);
   });
 });
 

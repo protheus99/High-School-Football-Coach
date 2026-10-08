@@ -334,6 +334,8 @@ export interface DilemmaRecord {
   week: number;
   tier: DilemmaChoice['tier'];
   exposureWeek?: number;
+  choiceLabel?: string; // the call that was made (quoted if it comes out)
+  playerName?: string; // the player the dilemma was about
 }
 
 export interface DilemmaChoice {
