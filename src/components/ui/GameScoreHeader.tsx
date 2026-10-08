@@ -1,46 +1,14 @@
 import React from 'react';
 import { GameSimulationState, Team } from '../../types/game';
 import { lineScore, teamAbbreviation } from '../../sim/lineScore';
-import { luminance } from '../../utils/color';
 import { DESKTOP_QUERY, useMediaQuery } from '../../hooks/useMediaQuery';
-
-/** A logo stand-in: the school's initials on its primary color. */
-const TeamBadge: React.FC<{ team: Team; label: string; size: number }> = ({ team, label, size }) => {
-  const light = (luminance(team.primaryColor) ?? 0) > 0.55;
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        width: size,
-        height: size,
-        flex: '0 0 auto',
-        borderRadius: '50%',
-        background: team.primaryColor,
-        border: `2px solid ${team.secondaryColor || '#CBD5E1'}`,
-        color: light ? '#0F172A' : '#fff',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: size >= 44 ? '13px' : '11px',
-        fontWeight: 800,
-        letterSpacing: '0.5px'
-      }}
-    >
-      {label}
-    </span>
-  );
-};
 
 /**
  * The final score, ESPN style: the away team on the left and the home team on the right, each with its record, the
- * winner's score dark with an arrow pointing at it, and the points by quarter in the middle.
+ * winner's score dark with an arrow pointing at it, and the points by quarter in the middle. Both sides get the same
+ * space; long school names are trimmed (the full name shows on hover and to screen readers).
  */
-export const GameScoreHeader: React.FC<{ game: GameSimulationState; status: string; awayRecord?: string; homeRecord?: string }> = ({
-  game,
-  status,
-  awayRecord,
-  homeRecord
-}) => {
+export const GameScoreHeader: React.FC<{ game: GameSimulationState; awayRecord?: string; homeRecord?: string }> = ({ game, awayRecord, homeRecord }) => {
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const { awayTeam: away, homeTeam: home, awayScore, homeScore } = game;
   const line = lineScore(game);
@@ -66,13 +34,12 @@ export const GameScoreHeader: React.FC<{ game: GameSimulationState; status: stri
       </svg>
     ) : null;
 
-  const teamBlock = (team: Team, label: string, record: string | undefined, side: 'home' | 'away') => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexDirection: side === 'away' ? 'row' : 'row-reverse', minWidth: 0 }}>
-      <TeamBadge team={team} label={label} size={desktop ? 48 : 40} />
-      <div style={{ minWidth: 0, textAlign: side === 'away' ? 'left' : 'right' }}>
-        <div style={{ fontWeight: 800, fontSize: '15px', lineHeight: 1.2, color: '#0F172A', overflowWrap: 'anywhere' }}>{team.name}</div>
-        {record && <div style={{ fontSize: '12px', color: '#475569', whiteSpace: 'nowrap' }}>{record}</div>}
+  const teamBlock = (team: Team, record: string | undefined, side: 'home' | 'away') => (
+    <div style={{ minWidth: 0, textAlign: side === 'away' ? 'left' : 'right' }}>
+      <div title={team.name} style={{ fontWeight: 800, fontSize: '15px', lineHeight: 1.3, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {team.name}
       </div>
+      {record && <div style={{ fontSize: '12px', color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{record}</div>}
     </div>
   );
 
@@ -112,35 +79,27 @@ export const GameScoreHeader: React.FC<{ game: GameSimulationState; status: stri
     </table>
   );
 
-  const center = (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>{status}</div>
-      {desktop && table}
-    </div>
-  );
-
   return desktop ? (
-    // One row: away team, away score, the line score, home score, home team
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto auto auto minmax(0, 1fr)', alignItems: 'center', gap: '16px', padding: '14px 12px', background: '#F8FAFC', borderRadius: '10px', marginBottom: '14px' }}>
-      {teamBlock(away, awayLabel, awayRecord, 'away')}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+    // One row: away team, away score, the line score, home score, home team (fixed score columns, equal team columns)
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 84px auto 84px minmax(0, 1fr)', alignItems: 'center', gap: '12px', padding: '14px 12px', background: '#F8FAFC', borderRadius: '10px', marginBottom: '14px' }}>
+      {teamBlock(away, awayRecord, 'away')}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
         <span style={scoreStyle('away')}>{awayScore}</span>
         {arrow('away')}
       </div>
-      {center}
+      {table}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         {arrow('home')}
         <span style={scoreStyle('home')}>{homeScore}</span>
       </div>
-      {teamBlock(home, homeLabel, homeRecord, 'home')}
+      {teamBlock(home, homeRecord, 'home')}
     </div>
   ) : (
-    // Phones: the status on top, the two teams and their scores side by side, the line score underneath
+    // Phones: the two teams and their scores in equal halves, the line score underneath
     <div style={{ padding: '12px 10px', background: '#F8FAFC', borderRadius: '10px', marginBottom: '14px' }}>
-      {center}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', alignItems: 'start', gap: '8px 12px' }}>
-        {teamBlock(away, awayLabel, awayRecord, 'away')}
-        {teamBlock(home, homeLabel, homeRecord, 'home')}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', alignItems: 'start', gap: '4px 16px' }}>
+        {teamBlock(away, awayRecord, 'away')}
+        {teamBlock(home, homeRecord, 'home')}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={scoreStyle('away')}>{awayScore}</span>
           {arrow('away')}

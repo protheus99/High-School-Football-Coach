@@ -17,7 +17,6 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
   const gameStats = gameState.playerGameStats ?? {};
   const { seasonSchedule, interstateGames } = useGameStore();
   const schedule = [...seasonSchedule, ...interstateGames];
-  const status = gameState.currentQuarter === 'OT' || gameState.overtime ? 'Final/OT' : 'Final';
 
   // Team totals are summed from the individual stat lines credited on each play
   const teamTotals = (team: Team): PlayerStats => {
@@ -51,7 +50,6 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
       {/* Final score: away on the left, home on the right, with the points by quarter */}
       <GameScoreHeader
         game={gameState}
-        status={status}
         awayRecord={recordLine(awayTeam, 'away', gameState, schedule)}
         homeRecord={recordLine(homeTeam, 'home', gameState, schedule)}
       />
