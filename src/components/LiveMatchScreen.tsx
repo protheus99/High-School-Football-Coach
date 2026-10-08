@@ -255,6 +255,44 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         homeSecondaryColor={gameState.homeTeam.secondaryColor}
       />
 
+      {/* A decision, when one is due: right under the field, where the eye already is */}
+      {leveragePrompt === 'PAT_DECISION' && !gameState.isGameOver && (
+        <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+          <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#92400E' }}>⚡ TOUCHDOWN! POINT-AFTER DECISION</h3>
+          <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
+            Kick the extra point, or go for two from the 3-yard line?
+          </p>
+          <div style={decisionGrid}>
+            <button onClick={() => handleDecision('PAT_KICK')} style={btnStyle}>👟 Kick Extra Point</button>
+            <button onClick={() => handleDecision('TWO_POINT_TRY')} style={btnStyle}>✌️ Go for Two</button>
+          </div>
+        </div>
+      )}
+
+      {leveragePrompt && leveragePrompt !== 'PAT_DECISION' && !gameState.isGameOver && (
+        <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+          <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#92400E' }}>⚡ {LEVERAGE_HEADINGS[leveragePrompt]}</h3>
+          <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
+            {downLabel(gameState.down)} & {gameState.yardLine + gameState.distance >= 100 ? 'Goal' : gameState.distance} at {fieldPosition(gameState.yardLine)}
+            {leveragePrompt === 'TWO_MINUTE_DRILL' && ` with ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')} left`}
+            . Choose your tactical call:
+          </p>
+          <div style={decisionGrid}>
+            <button onClick={() => handleDecision('INSIDE_RUN')} style={btnStyle}>🏈 Power Run</button>
+            <button onClick={() => handleDecision('SHORT_PASS')} style={btnStyle}>🎯 Quick Pass</button>
+            {leveragePrompt !== 'RED_ZONE_GOAL_TO_GO' && (
+              <button onClick={() => handleDecision('DEEP_PASS')} style={btnStyle}>🚀 Deep Shot</button>
+            )}
+            {gameState.down === 4 && 100 - gameState.yardLine + 17 <= MAX_FIELD_GOAL_PROMPT_YARDS && (
+              <button onClick={() => handleDecision('FIELD_GOAL')} style={btnStyle}>👟 Field Goal ({100 - gameState.yardLine + 17} yds)</button>
+            )}
+            {gameState.down === 4 && gameState.yardLine < 80 && (
+              <button onClick={() => handleDecision('PUNT')} style={btnStyle}>🛡️ Punt</button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Calling plays one at a time: only after the coach presses Next Snap (most coaches let the game run) */}
       {manualMode && !autoPlay && !gameState.isGameOver && (
         <PlayCallingPanel
@@ -306,7 +344,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       </div>
       )}
 
-      {/* Pinned to the bottom of the screen, always under your thumb: a decision when one is due, then the sim controls */}
+      {/* Sim controls: pinned to the bottom of the screen so they're always under your thumb */}
       <div
         style={{
           position: 'sticky',
@@ -317,42 +355,6 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           zIndex: 20
         }}
       >
-        {leveragePrompt === 'PAT_DECISION' && !gameState.isGameOver && (
-          <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '12px', marginBottom: '8px' }}>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#92400E' }}>⚡ TOUCHDOWN! POINT-AFTER DECISION</h3>
-            <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
-              Kick the extra point, or go for two from the 3-yard line?
-            </p>
-            <div style={decisionGrid}>
-              <button onClick={() => handleDecision('PAT_KICK')} style={btnStyle}>👟 Kick Extra Point</button>
-              <button onClick={() => handleDecision('TWO_POINT_TRY')} style={btnStyle}>✌️ Go for Two</button>
-            </div>
-          </div>
-        )}
-
-        {leveragePrompt && leveragePrompt !== 'PAT_DECISION' && !gameState.isGameOver && (
-          <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '12px', marginBottom: '8px' }}>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#92400E' }}>⚡ {LEVERAGE_HEADINGS[leveragePrompt]}</h3>
-            <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
-              {downLabel(gameState.down)} & {gameState.yardLine + gameState.distance >= 100 ? 'Goal' : gameState.distance} at {fieldPosition(gameState.yardLine)}
-              {leveragePrompt === 'TWO_MINUTE_DRILL' && ` with ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')} left`}
-              . Choose your tactical call:
-            </p>
-            <div style={decisionGrid}>
-              <button onClick={() => handleDecision('INSIDE_RUN')} style={btnStyle}>🏈 Power Run</button>
-              <button onClick={() => handleDecision('SHORT_PASS')} style={btnStyle}>🎯 Quick Pass</button>
-              {leveragePrompt !== 'RED_ZONE_GOAL_TO_GO' && (
-                <button onClick={() => handleDecision('DEEP_PASS')} style={btnStyle}>🚀 Deep Shot</button>
-              )}
-              {gameState.down === 4 && 100 - gameState.yardLine + 17 <= MAX_FIELD_GOAL_PROMPT_YARDS && (
-                <button onClick={() => handleDecision('FIELD_GOAL')} style={btnStyle}>👟 Field Goal ({100 - gameState.yardLine + 17} yds)</button>
-              )}
-              {gameState.down === 4 && gameState.yardLine < 80 && (
-                <button onClick={() => handleDecision('PUNT')} style={btnStyle}>🛡️ Punt</button>
-              )}
-            </div>
-          </div>
-        )}
         <div style={{ display: 'flex', gap: '8px' }}>
           {!gameState.isGameOver ? (
             <>

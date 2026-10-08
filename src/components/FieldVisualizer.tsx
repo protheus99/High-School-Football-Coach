@@ -80,7 +80,8 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
         {/* 50-Yard Line Marker */}
         <line x1="60" y1="0" x2="60" y2="40" stroke="#FFFFFF" strokeWidth="0.8" />
 
-        {/* Yard Number Markings */}
+        {/* Yard Number Markings (every 10-yard line, 10 through 50 and back) */}
+        <text x="20" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">10</text>
         <text x="30" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">20</text>
         <text x="40" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">30</text>
         <text x="50" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">40</text>
@@ -88,6 +89,7 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
         <text x="70" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">40</text>
         <text x="80" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">30</text>
         <text x="90" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">20</text>
+        <text x="100" y="8" fill="#FFFFFF" fontSize="4" textAnchor="middle" opacity="0.9">10</text>
 
         {/* Line to Gain (Yellow Line) */}
         <line x1={lineToGainX} y1="0" x2={lineToGainX} y2="40" stroke="#FACC15" strokeWidth="1.2" strokeDasharray="1 0.5" />
