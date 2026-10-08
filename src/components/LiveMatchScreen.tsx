@@ -430,10 +430,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
                 }}
                 style={controlBtnStyle}
               >
-                {autoPlay ? '⏸️ Pause' : '▶️ Auto-Sim'}
+                {autoPlay ? 'Pause' : 'Auto-Sim'}
               </button>
               <button onClick={simAhead} style={controlBtnStyle}>
-                {firstHalf ? '⏩ Sim to Half' : '⏩ Sim to Final'}
+                {firstHalf ? 'Sim to Half' : 'Sim to Final'}
               </button>
             </>
           ) : (
@@ -485,7 +485,10 @@ const teamNameStyle = (color: string): React.CSSProperties => ({
 const controlBtnStyle: React.CSSProperties = {
   minHeight: '48px',
   flex: '1 1 0', // share the row evenly so labels fit on phones
-  padding: '10px 8px',
+  minWidth: 0,
+  padding: '10px 4px',
+  whiteSpace: 'nowrap', // one line: "Sim to Final" fits a third of a phone screen, down to 320px wide
+  fontSize: 'clamp(13px, 4vw, 15px)',
   background: '#2563EB',
   color: '#fff',
   border: 'none',
