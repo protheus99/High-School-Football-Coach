@@ -151,7 +151,7 @@ export const DepthChartBoard: React.FC<{
   );
 
   const section = (title: string, rows: FormationRow[]) => (
-    <div id={`depth-${title.toLowerCase()}`} style={{ marginBottom: '18px', scrollMarginTop: isPhone ? '64px' : undefined }}>
+    <div id={`depth-${title.toLowerCase()}`} style={{ marginBottom: '18px', scrollMarginTop: isPhone ? 'calc(var(--topbar-h) + 64px)' : undefined }}>
       <h3 style={sectionTitle}>{title.charAt(0) + title.slice(1).toLowerCase()}</h3>
       {isPhone ? (
         // Phones: one slot card per row (two on larger phones), in formation order, with thumb-sized arrows
@@ -206,7 +206,7 @@ export const DepthChartBoard: React.FC<{
 
 const jumpBar: React.CSSProperties = {
   position: 'sticky',
-  top: 0,
+  top: 'var(--topbar-h)',
   zIndex: 20,
   background: '#F8FAFC',
   padding: '8px 0',

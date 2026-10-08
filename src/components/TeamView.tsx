@@ -6,11 +6,13 @@ import { PageHeader } from './ui/PageHeader';
 import { StaffView } from './StaffView';
 import { ScheduleView } from './ScheduleView';
 import { HallOfFameView } from './HallOfFameView';
+import { InjuryReportView } from './InjuryReportView';
 
-export type TeamSection = 'ROSTER' | 'PRACTICE' | 'COLLEGE' | 'STAFF' | 'SCHEDULE' | 'HALL_OF_FAME';
+export type TeamSection = 'ROSTER' | 'INJURIES' | 'PRACTICE' | 'COLLEGE' | 'STAFF' | 'SCHEDULE' | 'HALL_OF_FAME';
 
 const SECTIONS: { id: TeamSection; label: string; short: string }[] = [
   { id: 'ROSTER', label: '📋 Roster', short: 'Roster' },
+  { id: 'INJURIES', label: '🩹 Injuries', short: 'Injuries' },
   { id: 'PRACTICE', label: '🏋️ Practice', short: 'Practice' },
   { id: 'COLLEGE', label: '🎓 College', short: 'College' },
   { id: 'STAFF', label: '🧑‍🏫 Staff', short: 'Staff' },
@@ -20,6 +22,7 @@ const SECTIONS: { id: TeamSection; label: string; short: string }[] = [
 
 const SUBTITLES: Record<TeamSection, string> = {
   ROSTER: 'Roster and depth chart',
+  INJURIES: "Injury report: who's out, for how long, and who's wearing down",
   PRACTICE: 'Practice plan: development focus and intensity',
   COLLEGE: 'College recruiting for your juniors and seniors',
   STAFF: 'Your coaching staff: assistants who give the program an edge',
@@ -27,7 +30,7 @@ const SUBTITLES: Record<TeamSection, string> = {
   HALL_OF_FAME: 'Trophies, titles and your career on the leaderboard'
 };
 
-/** Team: roster and depth chart, practice plan, college recruiting, the coaching staff, the schedule and the Hall of Fame. */
+/** Team: roster and depth chart, the injury report, practice plan, college recruiting, the coaching staff, the schedule and the Hall of Fame. */
 export const TeamView: React.FC<{ section: TeamSection; onSection: (section: TeamSection) => void; collegeFocusId?: string | null }> = ({
   section,
   onSection,
@@ -36,6 +39,7 @@ export const TeamView: React.FC<{ section: TeamSection; onSection: (section: Tea
   <div>
     <PageHeader title="Team" subtitle={SUBTITLES[section]} tabs={SECTIONS} active={section} onTab={onSection} />
     {section === 'ROSTER' && <RosterDepthChartView />}
+    {section === 'INJURIES' && <InjuryReportView />}
     {section === 'PRACTICE' && (
       <div className="ui-screen" style={{ maxWidth: '900px' }}>
         <PracticePlan />

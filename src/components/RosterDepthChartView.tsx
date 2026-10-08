@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatPercent } from '../utils/format';
 import { useGameStore } from '../store/gameStore';
 import { DepthChartBoard } from './DepthChartBoard';
 import { DataList } from './ui/DataList';
@@ -70,6 +71,12 @@ export const RosterDepthChartView: React.FC = () => {
                 render: (p) => (
                   <>
                     {p.firstName} {p.lastName} <span style={{ color: '#64748B', fontWeight: 'normal', fontSize: '13px' }}>{p.position}</span>
+                    {/* Star rating, when colleges have rated him */}
+                    {p.recruiting.starRating > 0 && (
+                      <span aria-label={`${p.recruiting.starRating}-star recruit`} style={{ color: '#B45309', fontSize: '13px', marginLeft: '6px', whiteSpace: 'nowrap' }}>
+                        {'★'.repeat(p.recruiting.starRating)}
+                      </span>
+                    )}
                   </>
                 )
               },
@@ -77,7 +84,7 @@ export const RosterDepthChartView: React.FC = () => {
               { key: 'pos', label: 'Pos', desktopOnly: true, render: (p) => p.position },
               { key: 'class', label: 'Class', render: (p) => p.classYear },
               { key: 'string', label: 'String', render: (p) => STRING_LABEL[p.depthChartTier] },
-              { key: 'stamina', label: 'Stamina', desktopOnly: true, render: (p) => `${p.condition.inGameStamina}%` },
+              { key: 'stamina', label: 'Stamina', desktopOnly: true, render: (p) => formatPercent(p.condition.inGameStamina) },
               {
                 key: 'status',
                 label: 'Status',
@@ -85,7 +92,7 @@ export const RosterDepthChartView: React.FC = () => {
                   p.condition.injuryStatus !== 'HEALTHY' ? (
                     <span style={{ color: '#DC2626' }}>Injured ({p.condition.injuryWeeksRemaining} wk)</span>
                   ) : (
-                    `Wear ${p.condition.seasonWear}%`
+                    `Wear ${formatPercent(p.condition.seasonWear)}`
                   )
               },
               { key: 'gpa', label: 'GPA', render: (p) => <span style={{ color: p.academics.isEligible ? '#059669' : '#DC2626' }}>{p.academics.gpa.toFixed(2)}</span> },

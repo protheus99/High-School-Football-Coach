@@ -131,7 +131,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     requestAnimationFrame(() => {
       const list = listRef.current;
       if (!list) return;
-      const navHeight = navRef.current?.offsetHeight ?? 0;
+      // The sticky bars above the list: the app's top bar and this page's navigation
+      const navHeight = (navRef.current?.offsetHeight ?? 0) + ((document.querySelector('.app-topbar') as HTMLElement | null)?.offsetHeight ?? 0);
       const top = list.getBoundingClientRect().top + window.scrollY - navHeight - 8;
       if (window.scrollY > top) window.scrollTo({ top });
     });

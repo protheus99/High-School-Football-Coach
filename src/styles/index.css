@@ -232,7 +232,7 @@ h3 {
 
 .ui-sticky-nav {
   position: sticky;
-  top: 0;
+  top: var(--topbar-h);
   z-index: 40;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
@@ -247,14 +247,25 @@ h3 {
 }
 
 /* App shell: compact top bar */
+/* The top bar stays on screen (Coach Points, Prestige and Rating always visible) on one line; page bars that also
+   stick sit right under it */
+:root {
+  --topbar-h: 52px;
+}
+
 .app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  box-sizing: border-box;
+  height: var(--topbar-h);
   background: #0f172a;
   color: #fff;
-  padding: 10px 12px;
+  padding: 6px 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
 }
 
@@ -326,8 +337,12 @@ h3 {
     display: none;
   }
 
+  :root {
+    --topbar-h: 60px;
+  }
+
   .app-topbar {
-    padding: 12px 24px;
+    padding: 8px 24px;
   }
 
   .app-title {

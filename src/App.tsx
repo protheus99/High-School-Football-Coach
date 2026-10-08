@@ -264,21 +264,16 @@ export const App: React.FC = () => {
 
       {/* Top Navigation Bar */}
       <div className="app-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-          {/* Year over week keeps the bar to one row on phones */}
-          <div style={{ fontSize: '12px', color: '#CBD5E1', fontWeight: 'bold', whiteSpace: 'nowrap', lineHeight: 1.2, textAlign: 'center' }}>
-            {currentYear}
-            <br />
-            Wk {currentWeek}
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
           {/* Coach Points: the one currency. Tap to spend it on coach talents. */}
           <button
             onClick={() => setShowTalents(true)}
             aria-label={`Coach Points: ${coachPoints}. Open coach talents`}
-            title="Coach Points"
+            title={`Coach Points: ${formatCP(coachPoints)}`}
             style={{ ...topBtn('#FACC15'), ...statStack, color: '#0F172A', padding: '2px 5px' }}
           >
-            {formatCP(coachPoints)}
+            {/* Five figures shorten (₡12.3k) so the bar stays one line on the narrowest phones */}
+            {coachPoints >= 10000 ? `₡${(coachPoints / 1000).toFixed(1)}k` : formatCP(coachPoints)}
             <span style={statLabel}>Coach PTS</span>
           </button>
           {userTeam && (
@@ -294,19 +289,20 @@ export const App: React.FC = () => {
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          <button onClick={() => setTab('NEWS')} aria-label="News" title="News" style={topBtn(tab === 'NEWS' ? '#2563EB' : '#334155')}>
+        {/* Narrow icon buttons (full height for thumbs) keep the bar to one line, even with the playoff bracket */}
+        <div style={{ display: 'flex', gap: '3px', flexWrap: 'nowrap', flex: '0 0 auto' }}>
+          <button onClick={() => setTab('NEWS')} aria-label="News" title="News" style={iconBtn(tab === 'NEWS' ? '#2563EB' : '#334155')}>
             📰 <span className="hide-sm">News</span>
           </button>
           {playoffBracket && (
-            <button onClick={() => setShowBracketModal(true)} aria-label="Bracket" title="Bracket" style={{ ...topBtn('#F59E0B'), color: '#000' }}>
+            <button onClick={() => setShowBracketModal(true)} aria-label="Bracket" title="Bracket" style={{ ...iconBtn('#F59E0B'), color: '#000' }}>
               🗓️ <span className="hide-sm">Bracket</span>
             </button>
           )}
-          <button onClick={() => setShowSaveLoadModal(true)} aria-label="Save / Load" title="Save / Load" style={topBtn('#334155')}>
+          <button onClick={() => setShowSaveLoadModal(true)} aria-label="Save / Load" title="Save / Load" style={iconBtn('#334155')}>
             ⚙️ <span className="hide-sm">Save / Load</span>
           </button>
-          <button onClick={() => setShowMenu(true)} aria-label="Main Menu" title="Main Menu" style={{ ...topBtn('#1E293B'), border: '1px solid #475569' }}>
+          <button onClick={() => setShowMenu(true)} aria-label="Main Menu" title="Main Menu" style={{ ...iconBtn('#1E293B'), border: '1px solid #475569' }}>
             🏠 <span className="hide-sm">Menu</span>
           </button>
         </div>
@@ -391,6 +387,21 @@ const topPill: React.CSSProperties = {
   fontWeight: 'bold',
   whiteSpace: 'nowrap'
 };
+
+// The bar's icon buttons: narrow on phones (the labels show on wider screens), full height for thumbs
+const iconBtn = (background: string): React.CSSProperties => ({
+  minHeight: '38px',
+  minWidth: '28px',
+  padding: '0 6px',
+  background,
+  color: '#fff',
+  border: 'none',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  fontSize: '13px',
+  fontWeight: 'bold',
+  whiteSpace: 'nowrap'
+});
 
 const topBtn = (background: string): React.CSSProperties => ({
   minHeight: '40px',

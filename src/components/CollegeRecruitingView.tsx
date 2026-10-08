@@ -158,7 +158,7 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
           </button>
         </div>
       </div>
-      <div id="college-mine" style={{ display: 'flex', flexDirection: 'column', gap: '8px', scrollMarginTop: '64px' }}>
+      <div id="college-mine" style={{ display: 'flex', flexDirection: 'column', gap: '8px', scrollMarginTop: 'calc(var(--topbar-h) + 64px)' }}>
         {recruits.map((p) => (
           <RecruitRow
             key={p.id}
@@ -175,7 +175,7 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
         {recruits.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No juniors or seniors on the roster.</div>}
       </div>
 
-      <h3 id="college-state" style={{ margin: '24px 0 6px 0', scrollMarginTop: '64px' }}>Top Senior Recruits in the State</h3>
+      <h3 id="college-state" style={{ margin: '24px 0 6px 0', scrollMarginTop: 'calc(var(--topbar-h) + 64px)' }}>Top Senior Recruits in the State</h3>
       <DataList
         rows={statewide.map((row, i) => ({ ...row, rank: i + 1 }))}
         rowKey={(r) => r.player.id}

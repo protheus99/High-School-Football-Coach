@@ -12,7 +12,7 @@ import {
   getTeamGameForWeek
 } from '../sim/scheduleEngine';
 import { CONTACT_ACTIONS, FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
-import { COACH_TALENTS, collegeActionCost, feederEventCost, talentBlocker, weeklyCpIncome } from '../sim/coachPoints';
+import { COACH_TALENTS, collegeActionCost, feederEventCost, formatCP, talentBlocker, weeklyCpIncome } from '../sim/coachPoints';
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
@@ -30,6 +30,7 @@ import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 /** Screens the Hub can send the coach to. */
 export type AgendaTab =
   | 'ROSTER'
+  | 'INJURIES'
   | 'PRACTICE'
   | 'COLLEGE'
   | 'STAFF'
@@ -208,7 +209,7 @@ export const WeeklyAgenda: React.FC<{
         .map((p) => `${p.position} ${shortName(p)} (${p.condition.isSuspended ? 'suspended' : p.condition.injuryStatus !== 'HEALTHY' ? 'injured' : 'ineligible'})`)
         .join(', ')}${out.length > 4 ? '…' : ''}. The next man up plays unless you change the depth chart.`,
       tone: 'urgent',
-      link: { label: 'Depth chart', onClick: () => onNavigate('ROSTER') }
+      link: out.some((p) => p.condition.injuryStatus !== 'HEALTHY') ? { label: 'Injury report', onClick: () => onNavigate('INJURIES') } : { label: 'Depth chart', onClick: () => onNavigate('ROSTER') }
     };
   };
 
@@ -711,10 +712,10 @@ export const WeeklyAgenda: React.FC<{
     <section aria-labelledby="this-week-title" style={{ marginBottom: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px 12px' }}>
         <h2 id="this-week-title" className="ui-section-title">
-          This Week <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
+          Week {currentWeek} <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
         </h2>
         <span style={{ fontSize: '13px', color: '#64748B' }}>
-          ₡{coachPoints} <span style={{ color: '#64748B' }}>· +₡{weeklyCpIncome(currentWeek + 1, coachTalents, team.programMeters.schoolBoardTrust)} next week</span>
+          {formatCP(coachPoints)} <span style={{ color: '#64748B' }}>· +{formatCP(weeklyCpIncome(currentWeek + 1, coachTalents, team.programMeters.schoolBoardTrust))} next week</span>
         </span>
       </div>
       {flash && (

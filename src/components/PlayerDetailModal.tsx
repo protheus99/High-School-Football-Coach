@@ -1,6 +1,7 @@
 import React from 'react';
 import { DepthChartTier, Player } from '../types/game';
 import { Sheet } from './ui/Sheet';
+import { formatPercent } from '../utils/format';
 import { TIER_LABELS, recruitingStatus, sortedOffers } from '../sim/collegeRecruitingEngine';
 import { careerTotals, positionStatLines } from '../sim/playerStats';
 
@@ -52,11 +53,11 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
           <dl className="ui-card-pairs" style={{ background: '#F8FAFC', padding: '12px', borderRadius: '10px', margin: '0 0 12px' }}>
             <div>
               <dt>Stamina</dt>
-              <dd>{p.condition.inGameStamina}%</dd>
+              <dd>{formatPercent(p.condition.inGameStamina)}</dd>
             </div>
             <div>
               <dt>Season wear</dt>
-              <dd style={{ color: p.condition.seasonWear >= 60 ? '#B45309' : undefined }}>{p.condition.seasonWear}%</dd>
+              <dd style={{ color: p.condition.seasonWear >= 60 ? '#B45309' : undefined }}>{formatPercent(p.condition.seasonWear)}</dd>
             </div>
             <div>
               <dt>GPA</dt>
