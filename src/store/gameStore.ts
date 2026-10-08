@@ -824,6 +824,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       }
     }
 
+    // A dilemma's Friday edge is used up by the coach's game this week (camp and bye weeks keep it for the next one)
+    const userPlayed =
+      currentWeek > LAST_REGULAR_SEASON_WEEK ||
+      [...seasonSchedule, ...get().interstateGames].some((g) => g.week === currentWeek && (g.homeTeamId === userTeamId || g.awayTeamId === userTeamId));
+    if (userPlayed) userTeam.fridayEdge = 0;
+
     // Whistleblowers: risky/corrupt decisions can surface in a later week (design spec 12.1)
     const { dilemmaLog, currentYear } = get();
     const exposures = dilemmaLog.filter((r) => r.year === currentYear && r.exposureWeek === nextWeek);

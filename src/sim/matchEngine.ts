@@ -83,8 +83,9 @@ export function calculateMatchupDelta(
   const s = getActivePlayer(defense, 'S');
 
   // The coach's paid staff: its game-day edge (team-rating points, capped at +2) helps every snap, on offense
-  // and on defense, the same amount it adds in simulated games
-  const staffEdge = LIVE_EDGE_SCALE * ((offense.gameDayEdge ?? 0) - (defense.gameDayEdge ?? 0));
+  // and on defense, the same amount it adds in simulated games; so does a dilemma's Friday edge
+  const edgeOf = (t: Team) => (t.gameDayEdge ?? 0) + (t.fridayEdge ?? 0);
+  const staffEdge = LIVE_EDGE_SCALE * (edgeOf(offense) - edgeOf(defense));
   const withEdge = <T extends { delta: number }>(result: T): T => ({ ...result, delta: result.delta + staffEdge });
   let delta = 0;
 

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
-import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS } from '../dilemmaEngine';
+import { generateWeeklyDilemma, executeDilemmaDecision, dilemmaChoiceEffects, DILEMMA_COOLDOWN_WEEKS } from '../dilemmaEngine';
 import { TEMPLATES } from '../dilemmaTemplates';
 import { DEPTH_TEMPLATE } from '../depthChart';
+import { teamStarterRating } from '../macroSim';
 import { DilemmaChoice } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -63,8 +64,7 @@ describe('Dilemma library', () => {
             if (subject === null) return;
             const d = t.build(team, week, subject === true ? undefined : subject);
             expect(d.title.length).toBeGreaterThan(0);
-            expect(d.choices.length).toBeGreaterThanOrEqual(3);
-            expect(d.choices.length).toBeLessThanOrEqual(4);
+            expect(d.choices.length).toBeGreaterThanOrEqual(4);
             expect(new Set(d.choices.map((c) => c.id)).size).toBe(d.choices.length);
             expect(d.choices.some((c) => c.tier === 'GOOD')).toBe(true);
             if (d.involvedPlayerId) expect(team.roster.some((p) => p.id === d.involvedPlayerId)).toBe(true);
@@ -74,6 +74,28 @@ describe('Dilemma library', () => {
       }
     }
     expect([...TEMPLATES.map((t) => t.id)].filter((id) => !built.has(id))).toEqual([]);
+  });
+
+  it('offers Good, Compromise, Risky and Corrupt options, each with a visible gain and a visible loss', () => {
+    const [team] = generateDistrictTeams();
+    team.roster.slice(0, 3).forEach((p) => (p.academics.gpa = 2.1)); // the team-grades scenario needs players at risk
+    const subject = team.roster.find((p) => p.depthChartTier === 1)!;
+    TEMPLATES.forEach((t) => {
+      const d = t.build(team, 10, subject);
+      expect({ id: t.id, tiers: [...new Set(d.choices.map((c) => c.tier))].sort() }).toEqual({ id: t.id, tiers: ['COMPROMISE', 'CORRUPT', 'GOOD', 'RISKY'] });
+      // What the card shows: the combined Rating, Coach Points, the Friday edge, and player effects (the meters stay hidden)
+      d.choices.forEach((c) => {
+        const fx = dilemmaChoiceEffects(c, team);
+        const gain = fx.rating > 0 || fx.coachPoints > 0 || fx.fridayEdge > 0 || fx.gains.length > 0;
+        const loss = fx.rating < 0 || fx.coachPoints < 0 || fx.fridayEdge < 0 || fx.losses.length > 0;
+        expect({ option: `${t.id}/${c.id}`, gain, loss }).toEqual({ option: `${t.id}/${c.id}`, gain: true, loss: true });
+      });
+      // The worst option is tempting: a payoff beyond the Rating, and the most Coach Points on the card
+      const worst = dilemmaChoiceEffects(d.choices.find((c) => c.tier === 'CORRUPT')!, team);
+      expect({ id: t.id, payoff: worst.coachPoints > 0 || worst.fridayEdge > 0 || worst.gains.length > 0 }).toEqual({ id: t.id, payoff: true });
+      const mostPoints = Math.max(...d.choices.map((c) => c.impact.coachPointsDelta ?? 0));
+      expect({ id: t.id, points: worst.coachPoints }).toEqual({ id: t.id, points: mostPoints });
+    });
   });
 
   it('every choice applies cleanly to a team', () => {
@@ -153,6 +175,24 @@ describe('Coach Points from dilemmas', () => {
     expect(useGameStore.getState().coachPoints).toBe(115);
     resolve(-500);
     expect(useGameStore.getState().coachPoints).toBe(0);
+  });
+});
+
+describe('Friday edge from dilemmas', () => {
+  it('adds to the next game’s rating and is used up when the coach plays', () => {
+    useGameStore.getState().startNewSeason();
+    const { userTeamId, seasonSchedule } = useGameStore.getState();
+    const team = () => useGameStore.getState().districtTeams.find((t) => t.id === userTeamId)!;
+    const before = teamStarterRating(team());
+    executeDilemmaDecision(team(), choice({ fridayEdgeDelta: 2 }));
+    expect(teamStarterRating(team())).toBeCloseTo(before + 2, 5);
+    // Camp weeks keep it; the coach's first game uses it up
+    const firstGame = Math.min(...seasonSchedule.filter((g) => g.homeTeamId === userTeamId || g.awayTeamId === userTeamId).map((g) => g.week));
+    useGameStore.setState({ currentWeek: firstGame - 1 });
+    useGameStore.getState().advanceWeek();
+    expect(team().fridayEdge).toBe(2);
+    useGameStore.getState().advanceWeek();
+    expect(team().fridayEdge ?? 0).toBe(0);
   });
 });
 

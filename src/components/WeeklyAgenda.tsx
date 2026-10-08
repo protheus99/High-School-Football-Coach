@@ -16,7 +16,7 @@ import { COACH_TALENTS, collegeActionCost, feederEventCost, talentBlocker, weekl
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
-import { dilemmaChoiceEffects } from '../sim/dilemmaEngine';
+import { ChevronLevel, dilemmaChoiceEffects } from '../sim/dilemmaEngine';
 import { Chevrons } from './ui/Chevrons';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, seasonLength } from '../sim/league';
@@ -193,6 +193,11 @@ export const WeeklyAgenda: React.FC<{
                     {fx.coachPoints !== 0 && (
                       <span style={{ fontSize: '13px', fontWeight: 'bold', color: fx.coachPoints > 0 ? '#15803D' : '#B91C1C' }}>
                         {fx.coachPoints > 0 ? '+' : '−'}₡{Math.abs(fx.coachPoints)}
+                      </span>
+                    )}
+                    {fx.fridayEdge !== 0 && (
+                      <span style={{ ...effectChip, display: 'inline-flex', alignItems: 'center', gap: '4px', ...(fx.fridayEdge > 0 ? { background: '#DCFCE7', color: '#166534' } : { background: '#FEE2E2', color: '#991B1B' }) }}>
+                        Friday edge <Chevrons level={Math.max(-3, Math.min(3, fx.fridayEdge)) as ChevronLevel} />
                       </span>
                     )}
                     {fx.gains.map((g) => (

@@ -48,6 +48,7 @@ export interface ChoiceEffects {
   rating: number; // the combined Rating change, in whole points
   ratingLevel: ChevronLevel;
   coachPoints: number; // ₡ gained (+) or spent (-)
+  fridayEdge: number; // the next game's edge (+) or handicap (-), in team-rating points
   gains: string[];
   losses: string[];
   investigationRisk: boolean;
@@ -86,7 +87,7 @@ export function dilemmaChoiceEffects(choice: DilemmaChoice, userTeam: Team): Cho
   if (impact.injuryRisk) losses.push(`${Math.round(impact.injuryRisk.chance * 100)}% chance a starter is hurt ${impact.injuryRisk.weeks} wk`);
   const investigationRisk = impact.complianceScoreDelta <= -10;
   if (investigationRisk) losses.push('⚠ Investigation risk');
-  return { rating, ratingLevel: chevronLevel(rating), coachPoints: impact.coachPointsDelta ?? 0, gains, losses, investigationRisk };
+  return { rating, ratingLevel: chevronLevel(rating), coachPoints: impact.coachPointsDelta ?? 0, fridayEdge: impact.fridayEdgeDelta ?? 0, gains, losses, investigationRisk };
 }
 
 export function executeDilemmaDecision(userTeam: Team, choice: DilemmaChoice): void {
@@ -96,7 +97,9 @@ export function executeDilemmaDecision(userTeam: Team, choice: DilemmaChoice): v
   meters.lockerRoomDiscipline = clampMeter(meters.lockerRoomDiscipline + choice.impact.lockerRoomDisciplineDelta);
   meters.complianceScore = clampMeter(meters.complianceScore + choice.impact.complianceScoreDelta);
 
-  const { playerAvailabilityOverride, sidelinePlayer, promoteToStarterPlayerId, addTransfer, injuryRisk, removePlayerId, gpaChanges } = choice.impact;
+  const { playerAvailabilityOverride, sidelinePlayer, promoteToStarterPlayerId, addTransfer, injuryRisk, removePlayerId, gpaChanges, fridayEdgeDelta } = choice.impact;
+  // An edge (or handicap) for the next game, used up when it is played
+  if (fridayEdgeDelta) userTeam.fridayEdge = Math.max(-3, Math.min(3, (userTeam.fridayEdge ?? 0) + fridayEdgeDelta));
   const findPlayer = (id: string) => userTeam.roster.find((p) => p.id === id);
 
   if (playerAvailabilityOverride) {

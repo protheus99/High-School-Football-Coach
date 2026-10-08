@@ -210,6 +210,7 @@ export interface Team {
   record: TeamRecord;
   lightRating?: number; // a light team (another state's league): its fixed game-day rating; the roster holds only its stat leaders
   gameDayEdge?: number; // the coach's paid staff: team-rating points added on game day (capped at +2)
+  fridayEdge?: number; // a dilemma decision's edge (or handicap) for the coach's next game, in team-rating points
   injuryResistance?: number; // the coach's paid staff: share of game injuries avoided (0-1)
 }
 
@@ -353,6 +354,7 @@ export interface DilemmaChoice {
     removePlayerId?: string; // the player leaves the program (transfers out, quits)
     gpaChanges?: { playerId: string; amount: number }[]; // tutoring / study hall (eligibility re-checked at 2.0)
     coachPointsDelta?: number; // ₡ gained (a booster's thanks) or spent (tutors, travel)
+    fridayEdgeDelta?: number; // team-rating points for the next game: scouting, preparation, practice time lost or won
   };
 }
 
