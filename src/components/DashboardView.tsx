@@ -15,7 +15,7 @@ export const DashboardView: React.FC<{
   onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
   onNavigate: (tab: AgendaTab) => void;
 }> = ({ onLaunchGame, onNavigate }) => {
-  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, nationalLeagues } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, nationalLeagues, activeDilemma } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showSimWarning, setShowSimWarning] = useState(false);
 
@@ -31,11 +31,15 @@ export const DashboardView: React.FC<{
 
   if (!userTeam) return <div>Loading Program Dashboard...</div>;
 
+  // No moving on with a decision open: every way forward takes the coach to the dilemma instead
+  const goToDecision = () => document.getElementById('agenda-dilemma')?.scrollIntoView({ block: 'start' });
   // Skipping an unplayed game auto-simulates it, so confirm first
   const handleAdvanceWeek = () => {
-    if (game && opponent && !isPlayed) setShowSimWarning(true);
+    if (activeDilemma) goToDecision();
+    else if (game && opponent && !isPlayed) setShowSimWarning(true);
     else advanceWeek();
   };
+  const handleSimGame = () => (activeDilemma ? goToDecision() : advanceWeek());
 
   return (
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
@@ -101,10 +105,16 @@ export const DashboardView: React.FC<{
             {region ? ` · ${region.name}` : ''} · {userTeam.record.wins}-{userTeam.record.losses} ({userTeam.record.districtWins}-{userTeam.record.districtLosses})
           </div>
         </div>
-        <button className="ui-btn ui-btn-dark" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} onClick={handleAdvanceWeek} aria-label="Advance Week">
-          ⏭️ <span className="hide-sm">Advance Week</span>
-          <span className="show-sm">Advance</span>
-        </button>
+        {activeDilemma ? (
+          <button className="ui-btn" style={{ flex: '0 0 auto', whiteSpace: 'nowrap', borderColor: '#F59E0B', color: '#92400E' }} onClick={goToDecision} aria-label="Decision needed before advancing">
+            ⚠️ Decide first
+          </button>
+        ) : (
+          <button className="ui-btn ui-btn-dark" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} onClick={handleAdvanceWeek} aria-label="Advance Week">
+            ⏭️ <span className="hide-sm">Advance Week</span>
+            <span className="show-sm">Advance</span>
+          </button>
+        )}
       </div>
 
       {/* This week's to-do list: quick decisions and links */}
@@ -122,7 +132,7 @@ export const DashboardView: React.FC<{
             : null
         }
         onPlayGame={() => setShowPreGameModal(true)}
-        onAutoSim={advanceWeek}
+        onAutoSim={handleSimGame}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}
         phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek)].replace('District', rulesForState(league?.state).districtLabel)}

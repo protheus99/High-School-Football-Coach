@@ -676,7 +676,9 @@ export const WeeklyAgenda: React.FC<{
   const renderCard = (item: AgendaItem, big = false) => (
     <div
       key={item.id}
+      id={`agenda-${item.id}`}
       style={{
+        scrollMarginTop: 'calc(var(--topbar-h) + 12px)',
         border: `1px solid ${TONES[item.tone].border}`,
         borderLeft: `4px solid ${TONES[item.tone].border}`,
         background: TONES[item.tone].background,
@@ -732,8 +734,9 @@ export const WeeklyAgenda: React.FC<{
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{folded.map((item) => renderCard(item))}</div>
         </details>
       )}
-      <button onClick={onAdvanceWeek} style={advanceBtn}>
-        {activeDilemma ? 'Advance Week (decision still open)' : 'All set: Advance Week ⏭️'}
+      {/* A decision must be made before the week can move on: the button takes the coach to it */}
+      <button onClick={onAdvanceWeek} style={activeDilemma ? { ...advanceBtn, background: '#FEF3C7', color: '#92400E', border: '2px solid #F59E0B' } : advanceBtn}>
+        {activeDilemma ? '⚠️ Decision needed before you advance ↑' : 'All set: Advance Week ⏭️'}
       </button>
     </section>
   );
