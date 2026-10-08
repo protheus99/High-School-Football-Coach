@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from './store/gameStore';
-import { DashboardView, DefensiveFocus } from './components/DashboardView';
+import { DashboardView } from './components/DashboardView';
+import { DefensiveFocus, FOCUS_CALL } from './sim/gamePlan';
 import { getUserMatchup } from './sim/userMatchup';
 import { FeederSection, FeedersScoutingView } from './components/FeedersScoutingView';
 import { NewsMediaView } from './components/NewsMediaView';
@@ -87,8 +88,6 @@ export const App: React.FC = () => {
     return null;
   })();
 
-  const FOCUS_TO_DEFENSIVE_CALL = { STOP_RUN: 'RUN_BLITZ', STOP_PASS: 'PASS_COVERAGE', BALANCED: 'BASE' } as const;
-
   const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED', offensiveScheme?: OffensiveScheme) => {
     if (!userTeam) return;
     // This week's game: the scheduled game, or the current playoff game
@@ -115,7 +114,8 @@ export const App: React.FC = () => {
       isMercyRuleActive: false,
       isGameOver: false,
       eventLog: [],
-      defensiveGamePlan: { [userTeam.id]: FOCUS_TO_DEFENSIVE_CALL[focus] },
+      // Balanced: the staff calls the defense by down and distance (no fixed call)
+      ...(FOCUS_CALL[focus] && { defensiveGamePlan: { [userTeam.id]: FOCUS_CALL[focus]! } }),
       offensiveGamePlan: { [userTeam.id]: offensiveScheme ?? userTeam.schemeOffense }
     };
 

@@ -10,7 +10,7 @@ import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
 import { getUserMatchup } from '../sim/userMatchup';
 import { findDistrict, findRegion } from '../sim/league';
 
-export type DefensiveFocus = 'STOP_RUN' | 'STOP_PASS' | 'BALANCED';
+import type { DefensiveFocus } from '../sim/gamePlan';
 
 export const DashboardView: React.FC<{
   onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;

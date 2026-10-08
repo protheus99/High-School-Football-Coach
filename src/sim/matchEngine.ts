@@ -224,7 +224,7 @@ const EXPLOSIVE_PLAY_QUALITY = 25;
 // teams stay better without most games snowballing into routs (league averages are unchanged).
 const MATCHUP_BASELINES = { INSIDE_RUN: 3.3, OUTSIDE_RUN: 0, SHORT_PASS: 8.3, DEEP_PASS: 2.1 };
 const MATCHUP_SPREAD_SCALE = 0.5;
-const SCHEME_EFFECT_SCALE = 0.5; // scheme and counter modifiers act all game long, so they are damped
+export const SCHEME_EFFECT_SCALE = 0.5; // scheme and counter modifiers act all game long, so they are damped
 const PREVENT_DEFENSE_DEFICIT = 15; // 4th-quarter lead at which the defense plays soft coverage
 const PREVENT_DEFENSE_BONUS = 8;
 const RED_ZONE_YARD_LINE = 80;
@@ -246,7 +246,7 @@ const SCRIMMAGE_CONCEPTS: PlayConcept[] = ['INSIDE_RUN', 'OUTSIDE_RUN', 'SHORT_P
 type ScrimmageConcept = 'INSIDE_RUN' | 'OUTSIDE_RUN' | 'SHORT_PASS' | 'DEEP_PASS';
 
 // Offense play-quality modifier for each defensive call (design spec 16 counter matrix)
-const DEFENSIVE_CALL_MODIFIERS: Record<DefensiveCall, Record<ScrimmageConcept, number>> = {
+export const DEFENSIVE_CALL_MODIFIERS: Record<DefensiveCall, Record<ScrimmageConcept, number>> = {
   BASE: { INSIDE_RUN: 0, OUTSIDE_RUN: 0, SHORT_PASS: 0, DEEP_PASS: 0 },
   RUN_BLITZ: { INSIDE_RUN: -7, OUTSIDE_RUN: -5, SHORT_PASS: 3, DEEP_PASS: 6 },
   PASS_COVERAGE: { INSIDE_RUN: 6, OUTSIDE_RUN: 5, SHORT_PASS: -4, DEEP_PASS: -7 },
@@ -255,19 +255,19 @@ const DEFENSIVE_CALL_MODIFIERS: Record<DefensiveCall, Record<ScrimmageConcept, n
 const BLITZ_EXTRA_STDEV = 3;
 
 // Tactical schemes (design spec 16)
-const OFFENSIVE_SCHEME_STYLE: Record<OffensiveScheme, { passRate: number; deepShare: number; insideShare: number }> = {
+export const OFFENSIVE_SCHEME_STYLE: Record<OffensiveScheme, { passRate: number; deepShare: number; insideShare: number }> = {
   TRIPLE_OPTION: { passRate: 0.45, deepShare: 0.3, insideShare: 0.4 }, // option runs to the edge, rare passes
   POWER_I: { passRate: 0.75, deepShare: 0.3, insideShare: 0.7 }, // downhill inside runs
   SPREAD: { passRate: 1.1, deepShare: 0.3, insideShare: 0.5 }, // quick passing game
   AIR_RAID: { passRate: 1.35, deepShare: 0.45, insideShare: 0.5 } // vertical shots
 };
-const OFFENSIVE_SCHEME_MODIFIERS: Record<OffensiveScheme, Record<ScrimmageConcept, number>> = {
+export const OFFENSIVE_SCHEME_MODIFIERS: Record<OffensiveScheme, Record<ScrimmageConcept, number>> = {
   TRIPLE_OPTION: { INSIDE_RUN: 1, OUTSIDE_RUN: 3, SHORT_PASS: 0, DEEP_PASS: 0 },
   POWER_I: { INSIDE_RUN: 2, OUTSIDE_RUN: 0, SHORT_PASS: 0, DEEP_PASS: 0 },
   SPREAD: { INSIDE_RUN: 0, OUTSIDE_RUN: 0, SHORT_PASS: 1, DEEP_PASS: 0 },
   AIR_RAID: { INSIDE_RUN: -1, OUTSIDE_RUN: 0, SHORT_PASS: 0, DEEP_PASS: 1 }
 };
-const DEFENSIVE_SCHEME_MODIFIERS: Record<DefensiveScheme, Record<ScrimmageConcept, number>> = {
+export const DEFENSIVE_SCHEME_MODIFIERS: Record<DefensiveScheme, Record<ScrimmageConcept, number>> = {
   FOUR_THREE: { INSIDE_RUN: -1, OUTSIDE_RUN: -1, SHORT_PASS: 0, DEEP_PASS: 1 }, // balanced
   FOUR_FOUR: { INSIDE_RUN: -4, OUTSIDE_RUN: -3, SHORT_PASS: 1, DEEP_PASS: 4 }, // heavy box, corners on an island
   THREE_THREE_FIVE: { INSIDE_RUN: 2, OUTSIDE_RUN: 1, SHORT_PASS: -2, DEEP_PASS: -1 }, // nickel vs spread
@@ -275,7 +275,7 @@ const DEFENSIVE_SCHEME_MODIFIERS: Record<DefensiveScheme, Record<ScrimmageConcep
 };
 
 /** Scheme-on-scheme counters from the spec 16 matrix (offense quality bonus). */
-function schemeCounterBonus(offense: OffensiveScheme, defense: DefensiveScheme, isPass: boolean): number {
+export function schemeCounterBonus(offense: OffensiveScheme, defense: DefensiveScheme, isPass: boolean): number {
   if (offense === 'TRIPLE_OPTION' && !isPass) return defense === 'THREE_THREE_FIVE' ? 3 : defense === 'FOUR_FOUR' ? -3 : 0;
   if (offense === 'AIR_RAID' && isPass) return defense === 'DROP_EIGHT' ? -3 : defense === 'FOUR_FOUR' ? 2 : 0;
   if (offense === 'SPREAD' && isPass) return defense === 'THREE_THREE_FIVE' ? -2 : 0;
