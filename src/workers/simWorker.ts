@@ -1,4 +1,4 @@
-import { GameSimulationState, PlayConcept, DefensiveCall } from '../types/game';
+import { GameSimulationState, PlayConcept, DefensiveCall, OffensiveScheme } from '../types/game';
 import { simulateSnap, evaluateLeverageTrigger } from '../sim/matchEngine';
 
 let activeGameState: GameSimulationState | null = null;
@@ -12,6 +12,18 @@ self.onmessage = (e: MessageEvent) => {
       activeGameState = payload as GameSimulationState;
       userTeamId = e.data.userTeamId;
       self.postMessage({ type: 'GAME_INITIALIZED', payload: activeGameState });
+      break;
+    }
+
+    // The coach changes the game plan mid-game: it applies from the next snap (Balanced clears the fixed call)
+    case 'SET_GAME_PLAN': {
+      if (!activeGameState) return;
+      const { teamId, offense, defensiveCall } = payload as { teamId: string; offense: OffensiveScheme; defensiveCall?: DefensiveCall };
+      activeGameState.offensiveGamePlan = { ...activeGameState.offensiveGamePlan, [teamId]: offense };
+      const defense = { ...activeGameState.defensiveGamePlan };
+      if (defensiveCall) defense[teamId] = defensiveCall;
+      else delete defense[teamId];
+      activeGameState.defensiveGamePlan = defense;
       break;
     }
 

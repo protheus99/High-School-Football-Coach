@@ -19,6 +19,13 @@ export const FOCUS_CALL: Record<DefensiveFocus, DefensiveCall | undefined> = {
   BLITZ: 'BLITZ'
 };
 
+export const FOCUS_NAMES: Record<DefensiveFocus, string> = { BALANCED: 'Balanced', STOP_RUN: 'Stop Run', STOP_PASS: 'Stop Pass', BLITZ: 'Blitz' };
+
+/** The plan a game is running: a fixed call maps back to its plan; no call (or an old save's base call) is Balanced. */
+export function focusFromCall(call: DefensiveCall | undefined): DefensiveFocus {
+  return call === 'RUN_BLITZ' ? 'STOP_RUN' : call === 'PASS_COVERAGE' ? 'STOP_PASS' : call === 'BLITZ' ? 'BLITZ' : 'BALANCED';
+}
+
 export const OFFENSE_NAMES: Record<OffensiveScheme, string> = { TRIPLE_OPTION: 'Triple Option', POWER_I: 'Power I', SPREAD: 'Spread', AIR_RAID: 'Air Raid' };
 export const OFFENSE_STYLES: Record<OffensiveScheme, string> = { TRIPLE_OPTION: 'Run-heavy', POWER_I: 'Run-first', SPREAD: 'Pass-first', AIR_RAID: 'Pass-heavy' };
 export const DEFENSE_NAMES: Record<DefensiveScheme, string> = { FOUR_THREE: '4-3', FOUR_FOUR: '4-4', THREE_THREE_FIVE: '3-3-5', DROP_EIGHT: 'Drop 8' };
@@ -66,8 +73,10 @@ export function offenseMatchup(scheme: OffensiveScheme, theirDefense: DefensiveS
 
 /** The playbook with the best matchup against their defense, if one stands out. */
 export function bestOffense(theirDefense: DefensiveScheme, weather: WeatherType = 'CLEAR'): OffensiveScheme | null {
-  const ranked = (Object.keys(OFFENSE_NAMES) as OffensiveScheme[]).map((s) => ({ s, overall: offenseMatchup(s, theirDefense, weather).overall })).sort((a, b) => b.overall - a.overall);
-  return ranked[0].overall >= 0.5 ? ranked[0].s : null;
+  const ranked = (Object.keys(OFFENSE_NAMES) as OffensiveScheme[]).map((s) => ({ s, m: offenseMatchup(s, theirDefense, weather) })).sort((a, b) => b.m.overall - a.m.overall);
+  // A star only where the arrows show it too (a hair's edge with even arrows would just confuse)
+  const top = ranked[0];
+  return top.m.overall >= 0.5 && (top.m.runArrows > 0 || top.m.passArrows > 0) ? top.s : null;
 }
 
 /**

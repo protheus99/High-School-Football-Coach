@@ -13,6 +13,7 @@ describe('Game plan arrows', () => {
   it('turns with the defense: the Air Raid throws over a heavy box, and heavy rain hurts the passing playbooks', () => {
     expect(offenseMatchup('AIR_RAID', 'FOUR_FOUR').passArrows).toBeGreaterThanOrEqual(1);
     expect(bestOffense('FOUR_FOUR')).toBe('AIR_RAID');
+    expect(bestOffense('FOUR_THREE')).toBeNull(); // every playbook even against a 4-3: no star
     expect(offenseMatchup('TRIPLE_OPTION', 'FOUR_FOUR').runArrows).toBeLessThanOrEqual(-1);
     expect(offenseMatchup('SPREAD', 'FOUR_THREE', 'HEAVY_RAIN').pass).toBeLessThan(offenseMatchup('SPREAD', 'FOUR_THREE').pass);
     expect(offenseNote('SPREAD', 'SPREAD', 'THREE_THREE_FIVE')).toMatch(/^Your usual\. .*built to stop it\.$/);

@@ -10,6 +10,9 @@ import { PlayAlertData, PreSnap, alertsForPlay } from '../sim/playAlerts';
 import { readableOnWhite } from '../utils/color';
 import { PlayCallingPanel } from './PlayCallingPanel';
 import { AroundTheLeague } from './AroundTheLeague';
+import { GamePlanBar, GamePlanSheet } from './GamePlanSheet';
+import { DefensiveFocus, FOCUS_CALL, focusFromCall } from '../sim/gamePlan';
+import { OffensiveScheme } from '../types/game';
 
 interface LiveMatchProps {
   initialState: GameSimulationState;
@@ -44,6 +47,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     autoPlayRef.current = autoPlay;
   }, [autoPlay]);
   const [showBoxScore, setShowBoxScore] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
   const [showHalftimeModal, setShowHalftimeModal] = useState(false);
   // A ref (not state) so flipping it doesn't re-run the setup effect and restart the game
   const halftimeHandledRef = useRef(false);
@@ -178,6 +182,38 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     else simWorkerBridge.simToEnd();
   };
 
+  // The game plan the coach's team is running (from the strategy room, or changed mid-game)
+  const userTeam = gameState.homeTeam.id === userTeamId ? gameState.homeTeam : gameState.awayTeam;
+  const opponent = gameState.homeTeam.id === userTeamId ? gameState.awayTeam : gameState.homeTeam;
+  const planOffense = gameState.offensiveGamePlan?.[userTeamId] ?? userTeam.schemeOffense;
+  const planFocus = focusFromCall(gameState.defensiveGamePlan?.[userTeamId]);
+  const openPlan = () => {
+    // Auto-sim waits while the coach changes the plan, then carries on
+    if (autoPlay) resumeAutoRef.current = true;
+    setAutoPlay(false);
+    setPlanOpen(true);
+  };
+  const closePlan = () => {
+    setPlanOpen(false);
+    // At halftime the speech restarts the game (and auto-sim with it)
+    if (!showHalftimeModal) resumeAutoSim();
+  };
+  const applyPlan = (offense: OffensiveScheme, focus: DefensiveFocus) => {
+    const call = FOCUS_CALL[focus];
+    simWorkerBridge.setGamePlan(userTeamId, offense, call);
+    setGameState((s) => {
+      const defense = { ...s.defensiveGamePlan };
+      if (call) defense[userTeamId] = call;
+      else delete defense[userTeamId];
+      return { ...s, offensiveGamePlan: { ...s.offensiveGamePlan, [userTeamId]: offense }, defensiveGamePlan: defense };
+    });
+    closePlan();
+  };
+  const clockLabel =
+    gameState.currentQuarter === 'OT'
+      ? 'Overtime'
+      : `Q${gameState.currentQuarter} ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}`;
+
   const isHomePoss = gameState.possessionTeamId === gameState.homeTeam.id;
   const currentPossTeam = isHomePoss ? gameState.homeTeam : gameState.awayTeam;
 
@@ -191,11 +227,26 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         <HalftimeSpeechModal
           gameState={gameState}
           userTeamId={userTeamId}
+          plan={{ offense: planOffense, focus: planFocus }}
+          onUpdatePlan={() => setPlanOpen(true)}
           onApplySpeech={(_speechType) => {
             setShowHalftimeModal(false);
             soundFx.playWhistle();
             resumeAutoSim();
           }}
+        />
+      )}
+
+      {planOpen && (
+        <GamePlanSheet
+          offense={planOffense}
+          focus={planFocus}
+          opponent={opponent}
+          usualOffense={userTeam.schemeOffense}
+          weather={gameState.weather}
+          when={showHalftimeModal ? 'Halftime' : clockLabel}
+          onDone={applyPlan}
+          onCancel={closePlan}
         />
       )}
 
@@ -302,6 +353,9 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           disabled={autoPlay || gameState.isGameOver || leveragePrompt !== null}
         />
       )}
+
+      {/* The game plan: below the boxes that pop up, above the scoreboard and the play-by-play */}
+      {!gameState.isGameOver && <GamePlanBar offense={planOffense} focus={planFocus} onUpdate={openPlan} />}
 
       {/* Other games this week, at this game's clock */}
       <AroundTheLeague quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={gameState.isGameOver} />

@@ -1,17 +1,24 @@
 import React from 'react';
 import { GameSimulationState } from '../types/game';
 import { Sheet } from './ui/Sheet';
+import { GamePlanBar } from './GamePlanSheet';
+import { DefensiveFocus } from '../sim/gamePlan';
+import { OffensiveScheme } from '../types/game';
 
 interface HalftimeSpeechModalProps {
   gameState: GameSimulationState;
   userTeamId: string;
   onApplySpeech: (speechType: 'FIRED_UP' | 'TACTICAL_CALM' | 'DISCIPLINE_CHEW' | 'REST_TIRED') => void;
+  plan?: { offense: OffensiveScheme; focus: DefensiveFocus }; // the game plan, adjustable for the second half
+  onUpdatePlan?: () => void;
 }
 
 export const HalftimeSpeechModal: React.FC<HalftimeSpeechModalProps> = ({
   gameState,
   userTeamId,
-  onApplySpeech
+  onApplySpeech,
+  plan,
+  onUpdatePlan
 }) => {
   const isUserHome = gameState.homeTeam.id === userTeamId;
   const userScore = isUserHome ? gameState.homeScore : gameState.awayScore;
@@ -38,6 +45,11 @@ export const HalftimeSpeechModal: React.FC<HalftimeSpeechModalProps> = ({
         {speech('DISCIPLINE_CHEW', '#B45309', '⚡ Demand focus and ball security', 'Half the fumble and drop risk, fewer explosive plays.')}
         {speech('REST_TIRED', '#047857', '🧊 Hydrate and recover', '+12 stamina for every starter for the finish.')}
       </div>
+      {plan && onUpdatePlan && (
+        <div style={{ marginTop: '14px' }}>
+          <GamePlanBar offense={plan.offense} focus={plan.focus} onUpdate={onUpdatePlan} />
+        </div>
+      )}
     </Sheet>
   );
 };
