@@ -16,7 +16,8 @@ import { COACH_TALENTS, collegeActionCost, feederEventCost, talentBlocker, weekl
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
 import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
-import { dilemmaChoiceCosts } from '../sim/dilemmaEngine';
+import { dilemmaChoiceEffects } from '../sim/dilemmaEngine';
+import { Chevrons } from './ui/Chevrons';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, seasonLength } from '../sim/league';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
@@ -178,12 +179,34 @@ export const WeeklyAgenda: React.FC<{
           <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>What do you do?</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {activeDilemma.choices.map((c) => {
-              const costs = dilemmaChoiceCosts(c, team);
+              const fx = dilemmaChoiceEffects(c, team);
+              const cannotAfford = fx.coachPoints < 0 && coachPoints < -fx.coachPoints;
               return (
-                <button key={c.id} onClick={() => resolveDilemma(c)} style={choiceBtn}>
+                <button key={c.id} onClick={() => resolveDilemma(c)} disabled={cannotAfford} style={{ ...choiceBtn, ...(cannotAfford && { opacity: 0.6, cursor: 'not-allowed' }) }}>
                   <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.label}</div>
-                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>{c.description}</div>
-                  {costs.length > 0 && <div style={{ fontSize: '12px', color: '#B91C1C', fontWeight: 'bold', marginTop: '4px' }}>{costs.join(' · ')}</div>}
+                  <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>{c.description}</div>
+                  {/* What it does: the combined Rating change, Coach Points, then gains (green) and losses (red) */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 6px', marginTop: '6px' }}>
+                    <span style={ratingPill}>
+                      Rating <Chevrons level={fx.ratingLevel} />
+                    </span>
+                    {fx.coachPoints !== 0 && (
+                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: fx.coachPoints > 0 ? '#15803D' : '#B91C1C' }}>
+                        {fx.coachPoints > 0 ? '+' : '−'}₡{Math.abs(fx.coachPoints)}
+                      </span>
+                    )}
+                    {fx.gains.map((g) => (
+                      <span key={g} style={{ ...effectChip, background: '#DCFCE7', color: '#166534' }}>
+                        {g}
+                      </span>
+                    ))}
+                    {fx.losses.map((l) => (
+                      <span key={l} style={{ ...effectChip, background: '#FEE2E2', color: '#991B1B' }}>
+                        {l}
+                      </span>
+                    ))}
+                  </div>
+                  {cannotAfford && <div style={{ fontSize: '12px', color: '#B91C1C', marginTop: '4px' }}>Needs ₡{-fx.coachPoints}</div>}
                 </button>
               );
             })}
@@ -745,6 +768,20 @@ const choiceBtn: React.CSSProperties = {
   cursor: 'pointer',
   color: '#0F172A'
 };
+
+const ratingPill: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  fontSize: '12px',
+  fontWeight: 'bold',
+  color: '#334155',
+  border: '1px solid #CBD5E1',
+  borderRadius: '999px',
+  padding: '1px 8px'
+};
+
+const effectChip: React.CSSProperties = { fontSize: '12px', fontWeight: 'bold', borderRadius: '999px', padding: '2px 8px' };
 
 const linkBtn: React.CSSProperties = {
   background: 'none',

@@ -47,9 +47,12 @@ describe('Weekly dilemma selection', () => {
 });
 
 describe('Dilemma library', () => {
-  it('has 51 distinct scenarios, each well-formed and playable', () => {
-    expect(TEMPLATES).toHaveLength(51);
-    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(51);
+  it('has 49 distinct scenarios, each well-formed and playable', () => {
+    expect(TEMPLATES).toHaveLength(49);
+    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(49);
+    // In-game moments the weekly hub can't ask about during a game
+    expect(TEMPLATES.map((t) => t.id)).not.toContain('LIGHTNING_DELAY');
+    expect(TEMPLATES.map((t) => t.id)).not.toContain('RUNNING_UP_SCORE');
 
     const built = new Set<string>();
     for (let attempt = 0; attempt < 30 && built.size < TEMPLATES.length; attempt++) {
@@ -133,6 +136,23 @@ describe('Dilemma consequences', () => {
     executeDilemmaDecision(team, choice({ complianceScoreDelta: -500, boosterApprovalDelta: 500 }));
     expect(team.programMeters.complianceScore).toBe(0);
     expect(team.programMeters.boosterApproval).toBe(100);
+  });
+});
+
+describe('Coach Points from dilemmas', () => {
+  it('adds a booster thank-you and spends what an option costs, never below zero', () => {
+    useGameStore.getState().startNewSeason();
+    const resolve = (coachPointsDelta: number) => {
+      useGameStore.setState({ activeDilemma: { id: 'd', title: 'Test', scenario: '', weekTriggered: 1, choices: [] } });
+      useGameStore.getState().resolveDilemma(choice({ coachPointsDelta }));
+    };
+    useGameStore.setState({ coachPoints: 100 });
+    resolve(40);
+    expect(useGameStore.getState().coachPoints).toBe(140);
+    resolve(-25);
+    expect(useGameStore.getState().coachPoints).toBe(115);
+    resolve(-500);
+    expect(useGameStore.getState().coachPoints).toBe(0);
   });
 });
 

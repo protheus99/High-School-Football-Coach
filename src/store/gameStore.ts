@@ -1214,7 +1214,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       tier: choice.tier,
       ...(Math.random() < EXPOSURE_CHANCE[choice.tier] && { exposureWeek: currentWeek + randomInt(1, 3) })
     };
-    set({ activeDilemma: null, districtTeams: [...districtTeams], dilemmaLog: [...dilemmaLog, record] });
+    set({
+      activeDilemma: null,
+      districtTeams: [...districtTeams],
+      dilemmaLog: [...dilemmaLog, record],
+      coachPoints: Math.max(0, get().coachPoints + (choice.impact.coachPointsDelta ?? 0)) // a booster's thanks, or tutors paid for
+    });
   },
 
   setPracticeIntensity: (mode) => set({ practiceIntensity: mode }),

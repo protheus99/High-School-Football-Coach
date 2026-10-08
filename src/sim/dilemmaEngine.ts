@@ -6,7 +6,7 @@ import { rulesForState } from './stateRules';
 
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices (library in dilemmaTemplates.ts)
 const DILEMMA_CHANCE = 0.6; // not every week brings a crisis
-export const DILEMMA_COOLDOWN_WEEKS = 28; // with 51 scenarios, none repeats within a season
+export const DILEMMA_COOLDOWN_WEEKS = 28; // with dozens of scenarios, none repeats within a season
 export const EXPOSURE_CHANCE: Record<DilemmaChoice['tier'], number> = { GOOD: 0, COMPROMISE: 0, RISKY: 0.15, CORRUPT: 0.3 };
 
 /**
@@ -36,29 +36,57 @@ export function generateWeeklyDilemma(week: number, userTeam: Team, recentTempla
 
 const clampMeter = (value: number) => Math.min(100, Math.max(0, value));
 
+/** A Rating change as stacked chevrons: 1-2 points one, 3-4 two, 5 or more three (negative for a loss). */
+export type ChevronLevel = -3 | -2 | -1 | 0 | 1 | 2 | 3;
+export function chevronLevel(points: number): ChevronLevel {
+  const n = Math.abs(points);
+  const level = n === 0 ? 0 : n <= 2 ? 1 : n <= 4 ? 2 : 3;
+  return (Math.sign(points) * level) as ChevronLevel;
+}
+
+export interface ChoiceEffects {
+  rating: number; // the combined Rating change, in whole points
+  ratingLevel: ChevronLevel;
+  coachPoints: number; // ₡ gained (+) or spent (-)
+  gains: string[];
+  losses: string[];
+  investigationRisk: boolean;
+}
+
 /**
- * What a choice costs, in plain words: meter drops and player consequences. Shown under each answer so
- * the price of a decision is clear (the choice's hidden tier is never shown).
+ * What a choice does, as the player sees it: the combined Rating change (the four background meters stay hidden),
+ * Coach Points, and the visible gains and losses for players, with any investigation risk flagged. The choice's
+ * tier is never shown.
  */
-export function dilemmaChoiceCosts(choice: DilemmaChoice, userTeam: Team): string[] {
+export function dilemmaChoiceEffects(choice: DilemmaChoice, userTeam: Team): ChoiceEffects {
   const { impact } = choice;
   const name = (id: string) => {
     const p = userTeam.roster.find((pl) => pl.id === id);
-    return p ? `${p.position} #${p.lastName}(${p.overallRating})` : 'A player';
+    return p ? `${p.position} ${p.lastName}` : 'A player';
   };
-  const costs: string[] = [];
   // Rating is the average of the four background meters
-  const ratingChange = Math.round((impact.schoolBoardTrustDelta + impact.boosterApprovalDelta + impact.lockerRoomDisciplineDelta + impact.complianceScoreDelta) / 4);
-  if (ratingChange < 0) costs.push(`−${-ratingChange} Rating`);
-  if (impact.complianceScoreDelta <= -10) costs.push('could draw an investigation');
-  if (impact.playerAvailabilityOverride && !impact.playerAvailabilityOverride.isEligible) costs.push(`${name(impact.playerAvailabilityOverride.playerId)} ruled ineligible`);
+  const rating = Math.round((impact.schoolBoardTrustDelta + impact.boosterApprovalDelta + impact.lockerRoomDisciplineDelta + impact.complianceScoreDelta) / 4);
+  const gains: string[] = [];
+  const losses: string[] = [];
+  const availability = impact.playerAvailabilityOverride;
+  if (availability) (availability.isEligible ? gains : losses).push(`${name(availability.playerId)} ${availability.isEligible ? 'stays eligible' : 'ruled ineligible'}`);
+  if (impact.promoteToStarterPlayerId) gains.push(`${name(impact.promoteToStarterPlayerId)} starts`);
+  if (impact.addTransfer) gains.push(`Transfer ${impact.addTransfer.position} (${impact.addTransfer.overallRating}) joins`);
+  const grades = impact.gpaChanges ?? [];
+  if (grades.length > 0) {
+    const up = grades[0].amount > 0;
+    const who = grades.length === 1 ? `${name(grades[0].playerId)} grades` : `Grades for ${grades.length} players`;
+    (up ? gains : losses).push(`${who} ${up ? 'up' : 'down'}`);
+  }
   if (impact.sidelinePlayer) {
     const w = impact.sidelinePlayer.weeks;
-    costs.push(`${name(impact.sidelinePlayer.playerId)} out ${w} week${w === 1 ? '' : 's'}`);
+    losses.push(`${name(impact.sidelinePlayer.playerId)} out ${w} wk`);
   }
-  if (impact.removePlayerId) costs.push(`${name(impact.removePlayerId)} leaves the program`);
-  if (impact.injuryRisk) costs.push(`${Math.round(impact.injuryRisk.chance * 100)}% chance a starter is hurt for ${impact.injuryRisk.weeks} weeks`);
-  return costs;
+  if (impact.removePlayerId) losses.push(`${name(impact.removePlayerId)} leaves the program`);
+  if (impact.injuryRisk) losses.push(`${Math.round(impact.injuryRisk.chance * 100)}% chance a starter is hurt ${impact.injuryRisk.weeks} wk`);
+  const investigationRisk = impact.complianceScoreDelta <= -10;
+  if (investigationRisk) losses.push('⚠ Investigation risk');
+  return { rating, ratingLevel: chevronLevel(rating), coachPoints: impact.coachPointsDelta ?? 0, gains, losses, investigationRisk };
 }
 
 export function executeDilemmaDecision(userTeam: Team, choice: DilemmaChoice): void {

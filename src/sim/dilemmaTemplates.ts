@@ -6,7 +6,7 @@ import { randomPlayerName } from '../generators/names';
 import { randomInt } from './math/variance';
 
 // ---------------------------------------------------------------------------
-// The weekly dilemma library (design spec 12-13): 51 scenarios with Good / Compromise / Risky /
+// The weekly dilemma library (design spec 12-13): 49 scenarios with Good / Compromise / Risky /
 // Corrupt choices. Each template decides when it can occur (week, roster, program meters) and
 // which player it involves.
 // ---------------------------------------------------------------------------
@@ -499,22 +499,6 @@ export const TEMPLATES: DilemmaTemplate[] = [
     })
   },
   {
-    id: 'LIGHTNING_DELAY',
-    appliesTo: (_team, week) => when(isGameWeek(week)),
-    build: () => ({
-      title: 'Lightning on Game Night',
-      scenario: 'Lightning is striking six miles away with your team up four in the third quarter. Rules require a 30-minute delay. The officials look to the coaches.',
-      choices: [
-        { id: 'opt_clear', label: 'Clear the Field and Wait It Out', description: 'Everyone shelters. Momentum may not survive the delay.', tier: 'GOOD',
-          impact: impact(6, -2, 2, 5) },
-        { id: 'opt_officials', label: 'Defer Entirely to the Officials', description: 'Not your call, not your liability.', tier: 'COMPROMISE',
-          impact: impact(0, 0, 0, 0) },
-        { id: 'opt_play_on', label: 'Lobby to Keep Playing', description: '"It\'s miles away." The crowd stays in the metal bleachers.', tier: 'RISKY',
-          impact: impact(-12, 4, 0, -10, { injuryRisk: { chance: 0.1, weeks: 1 } }) }
-      ]
-    })
-  },
-  {
     id: 'MENTAL_HEALTH',
     appliesTo: (team, week) => whenPlayer(week >= 3, pickStarter(team)),
     build: (_team, _week, player) => ({
@@ -596,22 +580,6 @@ export const TEMPLATES: DilemmaTemplate[] = [
           impact: impact(0, 0, 2, 0) },
         { id: 'opt_retaliate', label: 'Accept the Booster\'s Offer to Spy Back', description: 'An eye for an eye.', tier: 'CORRUPT',
           impact: impact(-8, 8, -4, -18) }
-      ]
-    })
-  },
-  {
-    id: 'RUNNING_UP_SCORE',
-    appliesTo: (team, week) => when(isRegularSeason(week) && team.prestige >= 75),
-    build: () => ({
-      title: 'Running Up the Score',
-      scenario: 'You are up 49-0 at halftime against a winless team. Pollsters reward margin, and boosters want to "send a message." The other coach asks for a running clock.',
-      choices: [
-        { id: 'opt_mercy', label: 'Agree to the Running Clock and Play Backups', description: 'Sportsmanship, and valuable reps for young players.', tier: 'GOOD',
-          impact: impact(6, -6, 4, 2) },
-        { id: 'opt_backups', label: 'Play Backups but Keep the Normal Clock', description: 'A respectable middle ground.', tier: 'COMPROMISE',
-          impact: impact(2, 0, 2, 0) },
-        { id: 'opt_pour_it_on', label: 'Keep the Starters In and Keep Throwing', description: 'The final score makes headlines, for the wrong reasons.', tier: 'RISKY',
-          impact: impact(-10, 10, -4, -3, { injuryRisk: { chance: 0.15, weeks: 2 } }) }
       ]
     })
   },

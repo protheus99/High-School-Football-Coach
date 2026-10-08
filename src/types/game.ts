@@ -352,6 +352,7 @@ export interface DilemmaChoice {
     injuryRisk?: { chance: number; weeks: number }; // a random first-string player may get hurt
     removePlayerId?: string; // the player leaves the program (transfers out, quits)
     gpaChanges?: { playerId: string; amount: number }[]; // tutoring / study hall (eligibility re-checked at 2.0)
+    coachPointsDelta?: number; // ₡ gained (a booster's thanks) or spent (tutors, travel)
   };
 }
 
