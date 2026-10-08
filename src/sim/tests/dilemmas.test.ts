@@ -48,16 +48,17 @@ describe('Weekly dilemma selection', () => {
 });
 
 describe('Dilemma library', () => {
-  it('has 49 distinct scenarios, each well-formed and playable', () => {
-    expect(TEMPLATES).toHaveLength(49);
-    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(49);
+  it('has 78 distinct scenarios, each well-formed and playable', () => {
+    expect(TEMPLATES).toHaveLength(78);
+    expect(new Set(TEMPLATES.map((t) => t.id)).size).toBe(78);
     // In-game moments the weekly hub can't ask about during a game
     expect(TEMPLATES.map((t) => t.id)).not.toContain('LIGHTNING_DELAY');
     expect(TEMPLATES.map((t) => t.id)).not.toContain('RUNNING_UP_SCORE');
 
     const built = new Set<string>();
     for (let attempt = 0; attempt < 30 && built.size < TEMPLATES.length; attempt++) {
-      for (const team of generateDistrictTeams()) {
+      for (const [i, team] of generateDistrictTeams().entries()) {
+        if (i % 2 === 1) Object.assign(team.record, { wins: 1, losses: 4 }); // a losing season, for the sponsors' ultimatum
         for (let week = 1; week <= 20; week++) {
           TEMPLATES.forEach((t) => {
             const subject = t.appliesTo(team, week);

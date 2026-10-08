@@ -1019,5 +1019,543 @@ export const TEMPLATES: DilemmaTemplate[] = [
           impact: impact(-8, 12, -14, -10, { coachPointsDelta: 45 }) }
       ]
     })
+  },
+  // -------------------------------------------------------------------------
+  // New in v1.1: the town, families, and the program (potential-dilemmas.txt)
+  // -------------------------------------------------------------------------
+  {
+    id: 'WATER_CRISIS',
+    appliesTo: (_team, week) => when(isRegularSeason(week)),
+    build: () => ({
+      title: 'Boil-Water Notice on Game Day',
+      scenario: `A boil-water notice hits town on game day. The stadium concession stand is the only place nearby with bottled water, and the town expects the game to go on.`,
+      choices: [
+        { id: 'opt_delay', label: 'Delay Kickoff Until Safe Water Arrives', description: 'Everyone stays safe. Your players sit in the locker room for two extra hours.', tier: 'GOOD',
+          impact: impact(8, -2, 2, 4, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_sealed', label: 'Close Concessions and Bring Sealed Water for Both Teams', description: 'The game goes on. The school spends its emergency supply and loses a night of concession money.', tier: 'COMPROMISE',
+          impact: impact(4, -2, 0, 2, { coachPointsDelta: -15 }) },
+        { id: 'opt_families', label: 'Ask Families to Bring Their Own Water', description: 'No delay and no cost. Some students arrive without enough on a hot night.', tier: 'RISKY',
+          impact: impact(-4, 2, -2, -4, { coachPointsDelta: 10, injuryRisk: { chance: 0.1, weeks: 1 } }) },
+        { id: 'opt_tap', label: 'Keep Serving Tap Water Without Mentioning the Notice', description: 'No panic and a full night of sales. People may get sick, and the health department keeps records.', tier: 'CORRUPT',
+          impact: impact(-14, 6, -4, -20, { coachPointsDelta: 35, injuryRisk: { chance: 0.15, weeks: 1 } }) }
+      ]
+    })
+  },
+  {
+    id: 'RIVAL_BAND_BUS',
+    appliesTo: (_team, week) => when(isRegularSeason(week)),
+    build: () => ({
+      title: 'The Band Bus Breaks Down',
+      scenario: `Your marching band's bus broke down, and this week's opponent offers room on theirs. After a heated week, some students refuse to ride with the rivals.`,
+      choices: [
+        { id: 'opt_accept', label: 'Accept and Send Staff With Both Groups', description: 'The band makes the game. You pay for extra chaperones.', tier: 'GOOD',
+          impact: impact(8, 2, 2, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_instruments', label: 'Ask Them to Carry Only the Instruments', description: 'You keep some distance and rent a van for the students.', tier: 'COMPROMISE',
+          impact: impact(2, 0, 0, 0, { coachPointsDelta: -15 }) },
+        { id: 'opt_parent_rides', label: 'Have Families Arrange Their Own Rides', description: 'Free, and most of the band makes it. Unapproved rides are a liability.', tier: 'RISKY',
+          impact: impact(-4, 0, -2, -6, { coachPointsDelta: 10 }) },
+        { id: 'opt_blame_band', label: 'Tell the Band to Stay Home and Say They Chose Not to Come', description: 'No travel costs at all. The band directors and parents know the truth.', tier: 'CORRUPT',
+          impact: impact(-14, -4, -6, 0, { coachPointsDelta: 20 }) }
+      ]
+    })
+  },
+  {
+    id: 'NEWSPAPER_CORRECTION',
+    appliesTo: (team, week) => whenPlayer(week >= 3, pickStarter(team)),
+    build: (_team, _week, player) => ({
+      title: 'Student Paper Gets It Wrong',
+      scenario: `The student newspaper ran an incorrect story about ${name(player!)}. The editor offers an online correction but says a printed retraction would make the paper look unreliable.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_print', label: 'Ask for a Clear Correction in Print and Online', description: 'His name is cleared everywhere. The journalism adviser takes up an afternoon of your week.', tier: 'GOOD',
+          impact: impact(6, 0, 4, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_online', label: 'Accept an Online Correction Only', description: 'Fixed fast, and the paper promises a big feature later. Print readers may never see it.', tier: 'COMPROMISE',
+          impact: impact(-2, 2, -4, 0, { coachPointsDelta: 10 }) },
+        { id: 'opt_player_responds', label: 'Ask the Player to Respond Publicly', description: 'His response goes viral and ticket requests jump. He carries the burden of correcting the story.', tier: 'RISKY',
+          impact: impact(-4, 2, -4, 0, { coachPointsDelta: 15 }) },
+        { id: 'opt_ban_paper', label: 'Threaten to Ban the Paper From Games Unless It Retracts', description: 'You get your retraction and the boosters love the fight. Press access is not yours to take away.', tier: 'CORRUPT',
+          impact: impact(-12, 6, -4, -12, { coachPointsDelta: 25 }) }
+      ]
+    })
+  },
+  {
+    id: 'STADIUM_RENAMING',
+    appliesTo: (_team, week) => when(week >= 2 && week <= 15),
+    build: () => ({
+      title: 'Stadium Renaming Debate',
+      scenario: `The school board is deciding whether to rename the stadium after a controversial former coach. Donors want your players at the meeting in matching jerseys.`,
+      choices: [
+        { id: 'opt_students_decide', label: 'Let Players Decide Whether to Attend and Speak for Themselves', description: 'They have a real voice. The donors wanted a show of support.', tier: 'GOOD',
+          impact: impact(6, -4, 6, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_attend_silent', label: 'Attend as a Team but Make No Statement', description: 'The donors are pleased. Some players feel used as a backdrop.', tier: 'COMPROMISE',
+          impact: impact(-2, 4, -6, 0, { coachPointsDelta: 10 }) },
+        { id: 'opt_captains', label: 'Ask the Captains to Endorse the Renaming', description: 'The board hears "student support." The captains don\'t speak for the whole team.', tier: 'RISKY',
+          impact: impact(-4, 8, -8, 0, { coachPointsDelta: 25 }) },
+        { id: 'opt_require', label: 'Require Players to Speak in Favor to Protect Donor Ties', description: 'The donors are thrilled. Coercing students to speak is a complaint waiting to happen.', tier: 'CORRUPT',
+          impact: impact(-12, 14, -14, -10, { coachPointsDelta: 50 }) }
+      ]
+    })
+  },
+  {
+    id: 'RIVAL_LOST_DOG',
+    appliesTo: (_team, week) => when(isDistrictPlay(week)),
+    build: () => ({
+      title: 'Lost Dog Before Kickoff',
+      scenario: `A dog wearing the rival school's bandana is wandering near the stadium before kickoff. A child from the rival town says it's her family's, and their buses are about to unload.`,
+      choices: [
+        { id: 'opt_help', label: 'Pause Your Pregame and Help the Family Call Animal Control', description: 'The dog goes home. Your pregame routine is a mess.', tier: 'GOOD',
+          impact: impact(8, 2, 2, 0, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_staff', label: 'Have a Staff Member Keep the Dog Somewhere Safe', description: 'The game starts on time. Someone has to give up their night.', tier: 'COMPROMISE',
+          impact: impact(4, 0, 0, 0, { coachPointsDelta: -5 }) },
+        { id: 'opt_post', label: 'Post a Photo Online and Start the Game', description: 'The post gets thousands of shares. The dog waits in a busy parking lot.', tier: 'RISKY',
+          impact: impact(-4, 0, 0, 0, { coachPointsDelta: 10 }) },
+        { id: 'opt_mascot', label: 'Keep the Dog as a Sideline "Mascot" Joke', description: 'The crowd loves it and the merch table sells out. The family sees their distress turned into a punchline.', tier: 'CORRUPT',
+          impact: impact(-12, 6, -6, 0, { coachPointsDelta: 25 }) }
+      ]
+    })
+  },
+  {
+    id: 'SCHOLARSHIP_CEREMONY',
+    appliesTo: (team, week) => whenPlayer(inWeeks(week, LAST_REGULAR_SEASON_WEEK - 1, LAST_REGULAR_SEASON_WEEK + 6), pick(starters(team).filter((p) => p.classYear === 'Senior'))),
+    build: (_team, _week, player) => ({
+      title: 'Scholarship Ceremony vs. Practice',
+      scenario: `${name(player!)} is a finalist for a local academic scholarship. The ceremony is during practice, and the organizer expects the whole team in the audience.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_whole_team', label: 'Move Practice So the Whole Team Can Attend', description: 'He feels the program behind him. You lose a practice before a big game.', tier: 'GOOD',
+          impact: impact(8, 2, 6, 0, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_captains', label: 'Send the Captains to Represent the Team', description: "He has support in the room. You pay for the captains' ride.", tier: 'COMPROMISE',
+          impact: impact(4, 0, 2, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_after_practice', label: 'Ask Him to Go After Practice', description: 'A full practice. He may miss his own ceremony.', tier: 'RISKY',
+          impact: impact(-4, 0, -4, 0, { fridayEdgeDelta: 1 }) },
+        { id: 'opt_cancel', label: 'Tell the Organizer the Team Will Come, Then Cancel Without Notice', description: 'A full practice, and the team gift budget stays with football. He is embarrassed in front of the room.', tier: 'CORRUPT',
+          impact: impact(-12, 0, -10, -4, { fridayEdgeDelta: 1, coachPointsDelta: 10 }) }
+      ]
+    })
+  },
+  {
+    id: 'EMPTY_TROPHY_CASE',
+    appliesTo: (_team, week) => when(isPreseasonOrCamp(week)),
+    build: () => ({
+      title: 'The Empty Trophy Case',
+      scenario: `A former player says the team's old trophies were thrown away during summer renovations. He offers to donate replacements if the school labels them as the originals.`,
+      choices: [
+        { id: 'opt_accurate', label: 'Display New Trophies With Accurate Labels and Explain the Loss', description: 'The history stays true. He withholds the donation, so you restore the case yourself.', tier: 'GOOD',
+          impact: impact(6, -6, 2, 4, { coachPointsDelta: -15 }) },
+        { id: 'opt_replicas_note', label: 'Display Replicas With a Note That They Are Replacements', description: 'The case looks whole and honest. You pay for the engraved notes.', tier: 'COMPROMISE',
+          impact: impact(4, 2, 0, 0, { coachPointsDelta: -5 }) },
+        { id: 'opt_no_note', label: 'Display the Replicas Without Explanation', description: 'He donates and the case looks complete. Former players may challenge it.', tier: 'RISKY',
+          impact: impact(-6, 6, -2, -2, { coachPointsDelta: 20 }) },
+        { id: 'opt_originals', label: 'Label the Replacements as the Originals', description: 'He donates even more. A false history is a records problem the day someone checks.', tier: 'CORRUPT',
+          impact: impact(-12, 10, -2, -12, { coachPointsDelta: 40 }) }
+      ]
+    })
+  },
+  {
+    id: 'RIVAL_MEMORIAL',
+    appliesTo: (_team, week) => when(isRegularSeason(week)),
+    build: () => ({
+      title: "A Rival Player's Memorial",
+      scenario: `A former rival player died unexpectedly. His school asks your team to attend the memorial game, scheduled on your only full rest day this week.`,
+      choices: [
+        { id: 'opt_attend', label: 'Attend as a Team and Let Players Choose How to Take Part', description: 'A moment both towns will remember. Your players lose their recovery day.', tier: 'GOOD',
+          impact: impact(10, 4, 6, 0, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_delegation', label: 'Send a Delegation With a Message From the Team', description: "You honor the player. You pay for the delegation's travel.", tier: 'COMPROMISE',
+          impact: impact(6, 2, 2, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_silence', label: 'Hold a Moment of Silence at Your Next Game Instead', description: 'The rest day stays. The rival community sees it as distant.', tier: 'RISKY',
+          impact: impact(-6, 0, 2, 0, { fridayEdgeDelta: 1 }) },
+        { id: 'opt_decline', label: 'Decline: "They Need to Focus on Their Own Season"', description: 'Rest day kept and no travel bill. It may end the relationship between the towns.', tier: 'CORRUPT',
+          impact: impact(-14, -2, -4, 0, { fridayEdgeDelta: 1, coachPointsDelta: 10 }) }
+      ]
+    })
+  },
+  {
+    id: 'COACH_JOB_OFFER',
+    appliesTo: (_team, week) => when(inWeeks(week, FIRST_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK)),
+    build: () => ({
+      title: 'A College Job Offer',
+      scenario: `A college program offered you an assistant job, starting right after the season. Your family wants to stay in town, but the job could transform your career.`,
+      choices: [
+        { id: 'opt_truth', label: 'Tell the Team and the School, and Decide With Your Family', description: "You keep everyone's trust. The uncertainty unsettles the team this week.", tier: 'GOOD',
+          impact: impact(8, -2, -2, 4, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_wait', label: 'Ask the College to Wait Until the Season Ends', description: "You keep coaching with a clear head. You pass on the college's camp partnership money.", tier: 'COMPROMISE',
+          impact: impact(4, 0, 2, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_accept_private', label: 'Accept Privately and Keep Coaching Through the Playoffs', description: 'A signing bonus lands in your account. Your staff and players may feel misled.', tier: 'RISKY',
+          impact: impact(-6, 0, -6, -2, { coachPointsDelta: 30 }) },
+        { id: 'opt_leverage', label: 'Use the Offer to Demand a Raise From the School', description: 'You get the raise. The town sees its team as a bargaining chip.', tier: 'CORRUPT',
+          impact: impact(-12, 4, -6, -4, { coachPointsDelta: 60 }) }
+      ]
+    })
+  },
+  {
+    id: 'SISTER_HARASSMENT',
+    appliesTo: (team, week) => whenPlayer(week >= 3, pickStarter(team)),
+    build: (_team, _week, player) => ({
+      title: 'His Sister Is Being Harassed',
+      scenario: `${name(player!)}'s sister tells you students are harassing her over something he did at school. He asks you not to get involved.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_school', label: 'Work With the School to Stop It, Respecting His Privacy', description: 'His family is protected. It takes real time with counselors and administrators.', tier: 'GOOD',
+          impact: impact(8, 0, 4, 2, { coachPointsDelta: -10 }) },
+        { id: 'opt_ask', label: 'Ask Him What Support He Wants and Check In Later', description: 'He keeps control. The harassment may continue, and it weighs on him Friday.', tier: 'COMPROMISE',
+          impact: impact(2, 0, 2, 0, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_move_seats', label: 'Move His Sister to a Different Section at Games', description: "Quick, and no security costs. She pays for other people's behavior.", tier: 'RISKY',
+          impact: impact(-4, 0, -2, 0, { coachPointsDelta: 10 }) },
+        { id: 'opt_silence', label: 'Tell Him to Make His Sister Stay Quiet Until the Season Ends', description: 'No distractions and no costs. Both of them may stop trusting the team.', tier: 'CORRUPT',
+          impact: impact(-12, 2, -10, -6, { fridayEdgeDelta: 1, coachPointsDelta: 10 }) }
+      ]
+    })
+  },
+  {
+    id: 'ALUMNUS_ACCUSED',
+    appliesTo: (_team, week) => when(week >= 3),
+    build: () => ({
+      title: 'Beloved Booster Accused',
+      scenario: `A former star who now owns a local business is accused of assaulting a student. He is a beloved alumnus and one of the program's biggest boosters.`,
+      choices: [
+        { id: 'opt_refer', label: 'Report It to School Officials and Keep Him Away From Players', description: 'Students come first. His donations stop.', tier: 'GOOD',
+          impact: impact(10, -14, 6, 8, { coachPointsDelta: -25 }) },
+        { id: 'opt_ask_away', label: 'Ask Him to Stay Away From the Team Voluntarily', description: "No public fight. The boundary isn't enforced, and his donations pause.", tier: 'COMPROMISE',
+          impact: impact(4, -2, 0, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_let_attend', label: 'Let Him Keep Coming to Games While the School Looks Into It', description: 'Community ties and donations hold. Students may feel unsafe.', tier: 'RISKY',
+          impact: impact(-8, 6, -4, -6, { coachPointsDelta: 20 }) },
+        { id: 'opt_settle', label: "Ask the Student's Family to Settle It Privately", description: "He funds a new scoreboard. Pressuring a victim's family is the kind of thing that ends careers.", tier: 'CORRUPT',
+          impact: impact(-16, 10, -8, -22, { coachPointsDelta: 50 }) }
+      ]
+    })
+  },
+  {
+    id: 'TRIP_FEE',
+    appliesTo: (team, week) => whenPlayer(isPlayoffs(week), pickStarter(team)),
+    build: (_team, _week, player) => ({
+      title: "Can't Afford the Playoff Trip",
+      scenario: `${name(player!)}'s family can't pay the playoff travel fee. He says he'll just stay home so nobody finds out.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_fund', label: 'Cover It Through the School Assistance Fund', description: 'He travels with dignity. You add to the fund so the next student is covered.', tier: 'GOOD',
+          impact: impact(8, 0, 4, 2, { coachPointsDelta: -10 }) },
+        { id: 'opt_waive', label: 'Quietly Waive His Fee Yourself', description: 'He travels. Your budget absorbs it, and inconsistent rules breed resentment.', tier: 'COMPROMISE',
+          impact: impact(4, 0, -2, 0, { coachPointsDelta: -15 }) },
+        { id: 'opt_booster', label: 'Ask the Booster Club to Pay', description: 'Covered in an hour, and the booster club tops up the trip fund. He may feel he owes a donor.', tier: 'RISKY',
+          impact: impact(-2, 4, 0, -10, { coachPointsDelta: 10 }) },
+        { id: 'opt_fake_paid', label: 'Mark the Fee Paid and Cover It From Another Team Account', description: 'He travels and your budget is untouched. Moving money between accounts invites an audit.', tier: 'CORRUPT',
+          impact: impact(-10, 2, -4, -18, { coachPointsDelta: 20 }) }
+      ]
+    })
+  },
+  {
+    id: 'OLD_INJURY_COACH',
+    appliesTo: (_team, week) => when(isPreseasonOrCamp(week)),
+    build: () => ({
+      title: 'An Injured Former Star Wants to Coach',
+      scenario: `A former star whose career ended with a serious injury wants to help coach your younger players. His family says being back on the field is too painful.`,
+      choices: [
+        { id: 'opt_non_contact', label: 'Offer a Non-Contact Role and Let Him Set the Boundaries', description: 'He stays connected to the game. You pay him a small stipend.', tier: 'GOOD',
+          impact: impact(6, 2, 4, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_trainer', label: 'Let Him Help at Practice With the Trainer Checking In', description: "Some connection, with unclear limits. The trainer's time isn't free.", tier: 'COMPROMISE',
+          impact: impact(2, 0, 2, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_full_gear', label: 'Invite Him to Demonstrate Plays in Full Gear', description: 'Your players learn from the best. The activity could worsen his injury.', tier: 'RISKY',
+          impact: impact(-6, 2, 2, -4, { fridayEdgeDelta: 1 }) },
+        { id: 'opt_use_story', label: 'Use His Story to Fire Up the Team Without Asking Him', description: 'An inspired, emotional team. He may feel his hardship was turned into a tool.', tier: 'CORRUPT',
+          impact: impact(-10, 4, -4, 0, { fridayEdgeDelta: 2 }) }
+      ]
+    })
+  },
+  {
+    id: 'PARENT_TRUTH',
+    appliesTo: (team, week) => whenPlayer(week >= 3, pick(starters(team).filter((p) => p.academics.gpa < 2.6 && (p.classYear === 'Junior' || p.classYear === 'Senior')))),
+    build: (_team, _week, player) => ({
+      title: 'A Parent Wants the Truth',
+      scenario: `${name(player!)}'s mother asks whether he will play college football. He has talent, but his grades are poor and he shows little interest in schoolwork.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_honest', label: 'Give an Honest Assessment and Offer an Academic Plan', description: 'The family can act early. You pay for the tutoring plan.', tier: 'GOOD',
+          impact: impact(6, -2, 2, 0, { gpaChanges: [{ playerId: player!.id, amount: 0.3 }], coachPointsDelta: -10 }) },
+        { id: 'opt_strengths', label: 'Focus on His Strengths and Suggest Several Options', description: 'Hope stays alive. The family underestimates the academic work, and his grades slip.', tier: 'COMPROMISE',
+          impact: impact(2, 2, 0, 0, { gpaChanges: [{ playerId: player!.id, amount: -0.1 }] }) },
+        { id: 'opt_after_season', label: 'Tell Her to Wait Until After the Season', description: 'He stays focused on football. Valuable time to fix his grades is lost.', tier: 'RISKY',
+          impact: impact(-2, 2, 0, 0, { gpaChanges: [{ playerId: player!.id, amount: -0.2 }], fridayEdgeDelta: 1 }) },
+        { id: 'opt_promise', label: 'Promise He Will Get Recruited if He Keeps Starting', description: 'He plays harder than ever and his family joins the booster club. The promise may wreck his plans.', tier: 'CORRUPT',
+          impact: impact(-8, 6, -2, -6, { gpaChanges: [{ playerId: player!.id, amount: -0.2 }], fridayEdgeDelta: 1, coachPointsDelta: 20 }) }
+      ]
+    })
+  },
+  {
+    id: 'TOWN_WANTS_WINNER',
+    appliesTo: (team, week) => when(isRegularSeason(week) && team.record.losses >= 3 && team.record.losses > team.record.wins),
+    build: () => ({
+      title: 'The Town Wants a Winner',
+      scenario: `The losing streak has the town restless. Local businesses say they will stop sponsoring the program unless results improve.`,
+      choices: [
+        { id: 'opt_rebuild', label: 'Tell the Town the Team Is Rebuilding', description: 'Realistic expectations and protected player development. Some sponsors leave.', tier: 'GOOD',
+          impact: impact(6, -10, 6, 0, { coachPointsDelta: -20 }) },
+        { id: 'opt_winnable', label: 'Focus on a Few Winnable Games', description: 'Support steadies. A couple of sponsors still walk.', tier: 'COMPROMISE',
+          impact: impact(2, 2, -2, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_overload', label: 'Load the Starters With Extra Practice', description: 'The urgency shows on Friday. Fatigue and resentment build.', tier: 'RISKY',
+          impact: impact(-2, 4, -6, 0, { fridayEdgeDelta: 1, injuryRisk: { chance: 0.15, weeks: 1 } }) },
+        { id: 'opt_guarantee', label: 'Guarantee a Winning Season to Keep the Sponsors', description: 'The sponsors sign on for more. Every loss now becomes a broken promise.', tier: 'CORRUPT',
+          impact: impact(-14, 12, -10, 0, { coachPointsDelta: 40 }) }
+      ]
+    })
+  },
+  {
+    id: 'LEAKED_PLAYBOOK',
+    appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team)),
+    build: (_team, _week, player) => ({
+      title: 'Leaked Playbook',
+      scenario: `${name(player!)} texted a photo of your playbook to a friend at this week's opponent. Kickoff is in three days.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_rebuild', label: 'Rebuild the Game Plan', description: "Nothing they saw will work. Three days isn't much time to learn a new plan.", tier: 'GOOD',
+          impact: impact(6, 0, 4, 2, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_signals', label: 'Change Only the Key Signals', description: "Most of the week's preparation survives. Your staff works late all week.", tier: 'COMPROMISE',
+          impact: impact(2, 0, 2, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_unchanged', label: 'Keep the Playbook Unchanged', description: 'Your players stay confident in a plan they know. The opponent is ready for your best calls.', tier: 'RISKY',
+          impact: impact(2, 0, 2, 0, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_fake', label: 'Send Them a Fake Playbook Through the Same Friend', description: "They prepare for plays you'll never run. Deception like this gets talked about.", tier: 'CORRUPT',
+          impact: impact(-10, 6, -4, -12, { fridayEdgeDelta: 2 }) }
+      ]
+    })
+  },
+  {
+    id: 'WRONG_JERSEY',
+    appliesTo: (team, week) => whenPlayer(week >= 2 && week <= 15, pick(team.roster.filter((p) => p.classYear === 'Senior' && p.depthChartTier === 1))),
+    build: (_team, _week, player) => ({
+      title: 'The Wrong Jersey Number',
+      scenario: `A freshman was issued the number of ${name(player!)}, who is hurt but hopes to return before the playoffs.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_senior', label: 'Give the Senior Priority', description: 'You honor his history. You order the freshman a new jersey.', tier: 'GOOD',
+          impact: impact(4, 0, 4, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_share', label: 'Let the Freshman Wear It Until the Senior Returns', description: 'No new jersey to buy. Both players feel their place is uncertain.', tier: 'COMPROMISE',
+          impact: impact(-2, 0, -2, 0, { coachPointsDelta: 10 }) },
+        { id: 'opt_freshman', label: 'Give the Number to the Freshman Permanently', description: "His family joins the booster club. The senior's friends see it as disrespect.", tier: 'RISKY',
+          impact: impact(-4, 2, -4, 0, { coachPointsDelta: 10 }) },
+        { id: 'opt_donation', label: 'Give It to the Player Whose Family Donates More', description: 'A generous donation. The players conclude money decides status.', tier: 'CORRUPT',
+          impact: impact(-10, 12, -10, -4, { coachPointsDelta: 40 }) }
+      ]
+    })
+  },
+  {
+    id: 'BUS_BREAKDOWN',
+    appliesTo: (_team, week) => when(isGameWeek(week)),
+    build: () => ({
+      title: 'Team Bus Breaks Down',
+      scenario: `Your team bus broke down on the way to Friday's road game, and kickoff is approaching.`,
+      choices: [
+        { id: 'opt_notify', label: 'Notify the Officials and Accept a Delay', description: 'Everyone travels safely. Warm-ups are cut short.', tier: 'GOOD',
+          impact: impact(6, 0, 2, 4, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_cars', label: 'Send the Starters Ahead in Approved Rental Cars', description: "Your key players arrive on time. The rentals aren't cheap.", tier: 'COMPROMISE',
+          impact: impact(2, 0, -2, 2, { coachPointsDelta: -15 }) },
+        { id: 'opt_parents', label: 'Use Any Available Parent Rides', description: "Most of the team gets there, free. Some rides don't meet school rules.", tier: 'RISKY',
+          impact: impact(-4, 2, 0, -10, { coachPointsDelta: 10 }) },
+        { id: 'opt_misstate', label: 'Misstate When the Breakdown Happened to Buy More Time', description: 'A full warm-up and no rental bill. Lying to the league is a violation.', tier: 'CORRUPT',
+          impact: impact(-10, 4, -2, -16, { fridayEdgeDelta: 1, coachPointsDelta: 10 }) }
+      ]
+    })
+  },
+  {
+    id: 'ANONYMOUS_TIP',
+    appliesTo: (_team, week) => when(isDistrictPlay(week) || isPlayoffs(week)),
+    build: () => ({
+      title: 'Anonymous Age Tip',
+      scenario: `An anonymous message claims this week's opponent's best player is over the age limit.`,
+      choices: [
+        { id: 'opt_league', label: 'Send the Tip to the League', description: 'The right process. The paperwork eats your week, and the review may not finish in time.', tier: 'GOOD',
+          impact: impact(6, 0, 2, 6, { coachPointsDelta: -10 }) },
+        { id: 'opt_private', label: 'Ask Their Athletic Director to Check Privately', description: 'Maybe a quick answer. You spend a favor, and they may see it as intimidation.', tier: 'COMPROMISE',
+          impact: impact(2, 0, 0, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_rumor', label: 'Spread the Rumor Among Coaches and Scouts', description: 'Their team is distracted all week. You may be hurting an innocent player.', tier: 'RISKY',
+          impact: impact(-8, 4, -2, -6, { fridayEdgeDelta: 1 }) },
+        { id: 'opt_evidence', label: 'Create Evidence to Get the Player Suspended', description: 'He sits Friday. Fabricating evidence is a major integrity violation.', tier: 'CORRUPT',
+          impact: impact(-16, 6, -6, -24, { fridayEdgeDelta: 2 }) }
+      ]
+    })
+  },
+  {
+    id: 'MISSING_EQUIPMENT',
+    appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team, ['QB', 'RB', 'WR', 'TE', 'LB', 'CB', 'S', 'DE', 'DT', 'OT', 'OG', 'C'])),
+    build: (_team, _week, player) => ({
+      title: 'Damaged Helmets',
+      scenario: `The day before the game, you find damaged padding in several helmets, including ${name(player!)}'s. Replacements won't arrive until next week.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_hold_out', label: 'Hold the Affected Players Out', description: 'Nobody plays in an unsafe helmet. You lose a starter for the game.', tier: 'GOOD',
+          impact: impact(6, -2, 2, 6, { sidelinePlayer: { playerId: player!.id, weeks: 1 } }) },
+        { id: 'opt_borrow', label: 'Borrow Certified Helmets From Another School', description: 'Everyone plays. You pay a rental fee, and the fit is not quite right.', tier: 'COMPROMISE',
+          impact: impact(2, 0, 0, 2, { coachPointsDelta: -15 }) },
+        { id: 'opt_players_decide', label: 'Let the Players Decide Whether to Wear Them', description: 'He plays. Teenagers underestimate the risk.', tier: 'RISKY',
+          impact: impact(-6, 2, 0, -8, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true }, injuryRisk: { chance: 0.15, weeks: 2 } }) },
+        { id: 'opt_hide', label: 'Hide the Damage During Inspection', description: 'Your lineup stays intact. You put players, and the school, at risk.', tier: 'CORRUPT',
+          impact: impact(-14, 4, -4, -20, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true }, injuryRisk: { chance: 0.25, weeks: 3 } }) }
+      ]
+    })
+  },
+  {
+    id: 'ASSISTANTS_SON',
+    appliesTo: (team, week) => whenPlayer(week >= 2 && week <= 15, pick(backups(team).filter((p) => p.position !== 'K' && p.position !== 'P'))),
+    build: (_team, _week, player) => ({
+      title: "The Assistant Coach's Son",
+      scenario: `Your offensive line coach wants more playing time for his son, ${name(player!)}. The starter ahead of him is clearly better.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_same_standard', label: 'Apply the Same Standard to Both', description: 'The fair call. The assistant starts looking at other jobs, and you start a quiet search.', tier: 'GOOD',
+          impact: impact(6, 0, 6, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_evaluation', label: 'Give Both Players Evaluation Snaps Friday', description: 'A clear comparison. It disrupts your game plan.', tier: 'COMPROMISE',
+          impact: impact(2, 0, 2, 0, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_let_assistant', label: 'Let the Assistant Make the Call', description: 'No staff conflict today. His son starts, and favoritism is on display.', tier: 'RISKY',
+          impact: impact(-4, 2, -6, 0, { promoteToStarterPlayerId: player!.id }) },
+        { id: 'opt_start_son', label: 'Start His Son to Keep the Coach', description: 'Your experienced assistant stays, saving you a search. The better player loses trust in you.', tier: 'CORRUPT',
+          impact: impact(-10, 4, -12, -4, { promoteToStarterPlayerId: player!.id, coachPointsDelta: 20 }) }
+      ]
+    })
+  },
+  {
+    id: 'SIDELINE_VIDEO',
+    appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team)),
+    build: (_team, _week, player) => ({
+      title: 'Sideline Video Goes Viral',
+      scenario: `A parent posted a short clip of a private sideline conversation between you and ${name(player!)}. Without context, it makes you look cruel.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_full_context', label: 'Work With the Family and School on the Full Context', description: 'You protect the player. The review takes your week and may expose something you need to own.', tier: 'GOOD',
+          impact: impact(8, -2, 6, 2, { coachPointsDelta: -10 }) },
+        { id: 'opt_remove', label: 'Ask the Parent to Remove It and Meet With Administrators', description: 'The spread slows. You pay for a mediator, and the parent feels pressured.', tier: 'COMPROMISE',
+          impact: impact(2, 0, 0, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_own_recording', label: 'Post Your Own Recording', description: "Your supporters rally behind you. It may expose the player's private information.", tier: 'RISKY',
+          impact: impact(-6, 6, -6, -4, { coachPointsDelta: 15 }) },
+        { id: 'opt_pressure_deny', label: 'Pressure the Player to Deny It Happened', description: 'The story dies and the boosters stand by you. The player may not stay quiet.', tier: 'CORRUPT',
+          impact: impact(-14, 6, -12, -10, { coachPointsDelta: 25 }) }
+      ]
+    })
+  },
+  {
+    id: 'INJURED_RIVAL',
+    appliesTo: (_team, week) => when(isGameWeek(week) && week > FIRST_NON_DISTRICT_WEEK),
+    build: () => ({
+      title: 'Injured Rival Left Alone',
+      scenario: `After last week's game, an injured opposing player was left alone on the bench while his team boarded their bus.`,
+      choices: [
+        { id: 'opt_stay', label: 'Stay Until His Family or Medical Staff Arrive', description: 'He is cared for. Your bus driver bills the overtime.', tier: 'GOOD',
+          impact: impact(8, 2, 4, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_trainer', label: 'Ask Your Trainer to Check on Him', description: 'He gets help. Your trainer stays late.', tier: 'COMPROMISE',
+          impact: impact(4, 0, 2, 0, { coachPointsDelta: -5 }) },
+        { id: 'opt_assume', label: 'Assume Their Staff Will Handle It', description: 'You leave on schedule and skip the overtime. You may be wrong.', tier: 'RISKY',
+          impact: impact(-4, 0, 0, 0, { coachPointsDelta: 10 }) },
+        { id: 'opt_leave', label: 'Leave Immediately', description: 'Home early and rested. It looks like indifference if he was left without help.', tier: 'CORRUPT',
+          impact: impact(-12, 0, -4, 0, { fridayEdgeDelta: 1, coachPointsDelta: 15 }) }
+      ]
+    })
+  },
+  {
+    id: 'WRONGFUL_EJECTION',
+    appliesTo: (team, week) => whenPlayer(isGameWeek(week) && week > FIRST_NON_DISTRICT_WEEK, bestStarter(team)),
+    build: (_team, _week, player) => ({
+      title: 'Captain Wrongly Ejected',
+      scenario: `An official ejected your captain, ${name(player!)}, last Friday after a disputed call, which means a one-game suspension. Video suggests he was trying to separate players.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_appeal', label: 'Submit the Video Through the Appeal Process', description: 'The right way. He sits while the appeal runs.', tier: 'GOOD',
+          impact: impact(6, 0, 4, 4, { sidelinePlayer: { playerId: player!.id, weeks: 1 } }) },
+        { id: 'opt_clarify', label: 'Ask the League for Clarification After the Season', description: 'No escalation. The suspension stands.', tier: 'COMPROMISE',
+          impact: impact(2, 0, 0, 2, { sidelinePlayer: { playerId: player!.id, weeks: 1 } }) },
+        { id: 'opt_play_him', label: 'Play Him Anyway and Dare the League to Act', description: 'Your leader plays Friday. Ignoring a suspension risks a forfeit.', tier: 'RISKY',
+          impact: impact(-8, 4, -4, -12, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true } }) },
+        { id: 'opt_edit_video', label: 'Edit the Video Before Submitting It', description: 'The appeal is a sure thing and he plays. Doctored evidence is exactly what gets programs sanctioned.', tier: 'CORRUPT',
+          impact: impact(-12, 4, -4, -20, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true }, fridayEdgeDelta: 1 }) }
+      ]
+    })
+  },
+  {
+    id: 'RIVALRY_BANNER',
+    appliesTo: (_team, week) => when(isDistrictPlay(week)),
+    build: () => ({
+      title: 'Rivalry Banner Goes Too Far',
+      scenario: `Students made a banner mocking a rival player's family hardship for Friday's game. The crowd loves it.`,
+      choices: [
+        { id: 'opt_remove', label: 'Take It Down and Explain Why', description: 'You protect the targeted player. The student section goes quiet on Friday.', tier: 'GOOD',
+          impact: impact(8, -4, 4, 2, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_replace', label: 'Replace It With a General Rivalry Message', description: 'The energy stays. You pay for the new banner.', tier: 'COMPROMISE',
+          impact: impact(4, 0, 0, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_leave_up', label: 'Leave It Up but Discourage Photos', description: 'The crowd is electric. The banner spreads anyway.', tier: 'RISKY',
+          impact: impact(-6, 2, 0, -4, { fridayEdgeDelta: 1 }) },
+        { id: 'opt_share', label: 'Share It From the Team Account', description: 'A rocking stadium and a merch spike. It invites harassment and a sportsmanship review.', tier: 'CORRUPT',
+          impact: impact(-14, 6, -4, -12, { fridayEdgeDelta: 1, coachPointsDelta: 20 }) }
+      ]
+    })
+  },
+  {
+    id: 'LATE_HIT',
+    appliesTo: (team, week) => whenPlayer(isGameWeek(week) && week > FIRST_NON_DISTRICT_WEEK, pickStarter(team, ['DE', 'DT', 'LB', 'CB', 'S'])),
+    build: (_team, _week, player) => ({
+      title: 'Late Hit on Film',
+      scenario: `Film from last Friday shows ${name(player!)} hitting an opponent well after the whistle and injuring him. The officials missed it.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_self_report', label: 'Report It and Suspend Him for a Game', description: 'You act responsibly. You lose a key defender.', tier: 'GOOD',
+          impact: impact(8, -2, 6, 6, { sidelinePlayer: { playerId: player!.id, weeks: 1 } }) },
+        { id: 'opt_internal', label: 'Discipline Him Internally and Sit Him the First Quarter', description: "A message without losing him for the game. The opponent's family feels it was minimized.", tier: 'COMPROMISE',
+          impact: impact(2, 0, 2, 0, { fridayEdgeDelta: -1 }) },
+        { id: 'opt_no_call', label: 'Do Nothing: There Was No Call', description: 'He plays. A league review could still come.', tier: 'RISKY',
+          impact: impact(-6, 2, -6, -4, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true } }) },
+        { id: 'opt_praise', label: 'Praise the Hit in Film Session', description: '"That\'s how we play." An aggressive defense, and a culture that injures people.', tier: 'CORRUPT',
+          impact: impact(-14, 4, -10, -12, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true }, fridayEdgeDelta: 1 }) }
+      ]
+    })
+  },
+  {
+    id: 'EMPTY_CLASSROOM',
+    appliesTo: (_team, week) => when(isRegularSeason(week)),
+    build: () => ({
+      title: 'Players Pulled From Class',
+      scenario: `A teacher complains that players are pulled from class too often for team events. A pep assembly sponsored by a local business is scheduled during school hours.`,
+      choices: [
+        { id: 'opt_cancel', label: 'Cancel the Team Appearance', description: 'Class time is protected. The sponsor pulls its check.', tier: 'GOOD',
+          impact: impact(6, -4, 2, 2, { coachPointsDelta: -10 }) },
+        { id: 'opt_caught_up', label: 'Send Only Players Who Are Caught Up', description: 'Responsibility is rewarded. You fund a make-up study session for the rest.', tier: 'COMPROMISE',
+          impact: impact(4, 0, 0, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_excuse_later', label: 'Ask Teachers to Excuse the Missed Work Until After the Season', description: 'The assembly goes ahead and the sponsor pays. Assignments pile up.', tier: 'RISKY',
+          impact: impact(-6, 4, -2, -2, { coachPointsDelta: 15 }) },
+        { id: 'opt_alter', label: 'Alter the Attendance Records', description: 'No complaints and a bigger sponsorship. Falsified records are an investigation.', tier: 'CORRUPT',
+          impact: impact(-12, 6, -4, -18, { coachPointsDelta: 25 }) }
+      ]
+    })
+  },
+  {
+    id: 'MISPRINTED_PROGRAM',
+    appliesTo: (_team, week) => when(isRegularSeason(week)),
+    build: () => ({
+      title: 'Misprinted Game Program',
+      scenario: `This week's game program lists a student manager as a player. The manager asks you to leave it, hoping college coaches see it.`,
+      choices: [
+        { id: 'opt_correct', label: "Correct It and Highlight the Manager's Real Work", description: 'Honest, and the manager is celebrated for what he does. Reprints cost money.', tier: 'GOOD',
+          impact: impact(6, 0, 2, 2, { coachPointsDelta: -10 }) },
+        { id: 'opt_digital', label: 'Correct the Digital Version Only', description: 'Future records are fixed. You pay the web designer, and printed copies still say it.', tier: 'COMPROMISE',
+          impact: impact(2, 0, 0, 0, { coachPointsDelta: -5 }) },
+        { id: 'opt_say_nothing', label: 'Say Nothing Unless Asked', description: 'No reprint bill. The false detail spreads.', tier: 'RISKY',
+          impact: impact(-2, 0, 0, -4, { coachPointsDelta: 10 }) },
+        { id: 'opt_claim', label: 'Tell the Student to Claim He Dressed for Games', description: 'No reprint and a grateful family in the booster club. A false roster claim is a records problem.', tier: 'CORRUPT',
+          impact: impact(-8, 2, -2, -12, { coachPointsDelta: 15 }) }
+      ]
+    })
+  },
+  {
+    id: 'PARENT_ON_FIELD',
+    appliesTo: (team, week) => whenPlayer(isGameWeek(week) && week > FIRST_NON_DISTRICT_WEEK, pickStarter(team)),
+    build: (_team, _week, player) => ({
+      title: 'A Parent Rushes the Field',
+      scenario: `After last week's close loss, a parent ran onto the field and confronted ${name(player!)} in front of the crowd. He asks what you're going to do about it.`,
+      involvedPlayerId: player!.id,
+      choices: [
+        { id: 'opt_report_ban', label: 'Report the Incident and Ban the Parent From Games', description: 'Your player is protected. The family pulls its booster dues.', tier: 'GOOD',
+          impact: impact(8, -4, 6, 2, { coachPointsDelta: -10 }) },
+        { id: 'opt_ground_rules', label: 'Meet the Parent With Security and Set Ground Rules', description: 'Order restored, with a clear line. You pay for extra security at home games.', tier: 'COMPROMISE',
+          impact: impact(4, 0, 2, 0, { coachPointsDelta: -10 }) },
+        { id: 'opt_let_go', label: 'Let It Go to Avoid a Bigger Scene', description: 'The family stays in the booster club. Your player feels dismissed.', tier: 'RISKY',
+          impact: impact(-4, 2, -4, 0, { coachPointsDelta: 10 }) },
+        { id: 'opt_apologize', label: 'Tell the Player to Apologize So the Parent Stays Happy', description: "The parent's business sponsors the team. Your player learns adults won't protect him.", tier: 'CORRUPT',
+          impact: impact(-10, 6, -10, 0, { coachPointsDelta: 25 }) }
+      ]
+    })
   }
 ];
