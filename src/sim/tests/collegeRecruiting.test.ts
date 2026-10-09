@@ -7,6 +7,8 @@ import {
   classCounts,
   classLimit,
   alumniPrestigeChanges,
+  collegeBoard,
+  offerValue,
   collegeActionBlocker,
   performCollegeAction,
   positionValue,
@@ -17,7 +19,8 @@ import {
   stateStarQuota,
   updateStarRatings
 } from '../collegeRecruitingEngine';
-import { COLLEGES, COLLEGES_BY_ID } from '../../data/colleges';
+import { COLLEGES, COLLEGES_BY_ID, CONFERENCES_BY_ID } from '../../data/colleges';
+import { SCENARIOS } from '../../data/scenarios';
 import { generateProceduralPlayer } from '../../generators/rosterGenerator';
 import { Player, Team } from '../../types/game';
 
@@ -136,6 +139,58 @@ describe('Evaluations and offers', () => {
       return total;
     };
     expect(offersAt(95)).toBeGreaterThan(offersAt(5));
+  });
+});
+
+describe('The college world', () => {
+  it('every college has a unique id and plays in a conference of its division', () => {
+    expect(new Set(COLLEGES.map((c) => c.id)).size).toBe(COLLEGES.length);
+    const division = { POWER_4: 'FBS', GROUP_OF_5: 'FBS', FCS: 'FCS', DIVISION_2: 'DIVISION_2', DIVISION_3: 'DIVISION_3' } as const;
+    COLLEGES.forEach((c) => expect(CONFERENCES_BY_ID.get(c.conference)?.division).toBe(division[c.tier]));
+  });
+
+  it('every scenario state has home colleges at the Division I and lower levels', () => {
+    new Set(SCENARIOS.flatMap((s) => s.programs.map((p) => p.state))).forEach((state) => {
+      const home = COLLEGES.filter((c) => c.state === state);
+      expect(home.some((c) => c.tier === 'POWER_4' || c.tier === 'GROUP_OF_5')).toBe(true);
+      expect(home.some((c) => c.tier === 'FCS' || c.tier === 'DIVISION_2' || c.tier === 'DIVISION_3')).toBe(true);
+    });
+  });
+
+  it('players value staying in their home state', () => {
+    const p = testPlayer(85);
+    const ohio = COLLEGES.find((c) => c.state === 'Ohio' && c.tier === 'POWER_4')!;
+    const offer = { collegeName: ohio.name, collegeId: ohio.id, tier: ohio.tier, offerDateWeek: 5 };
+    expect(offerValue(p, offer, YEAR, 'Ohio') - offerValue(p, offer, YEAR, 'Texas')).toBe(4);
+  });
+
+  it('home-state colleges offer more of the players in their state', () => {
+    const ohioTeam = { prestige: 80, state: 'Ohio' } as Team;
+    let home = 0;
+    let total = 0;
+    for (let i = 0; i < 300; i++) {
+      const p = testPlayer(70, 'WR');
+      for (let w = 2; w <= 16; w++) rollOffer(p, ohioTeam, w, YEAR);
+      p.recruiting.offers.forEach((o) => {
+        total++;
+        if (COLLEGES_BY_ID.get(o.collegeId!)?.state === 'Ohio') home++;
+      });
+    }
+    // A 70-rated senior hears from FCS and Division II programs (Ohio has about 1 in 25); the home pull lifts that share
+    const ohioShare = COLLEGES.filter((c) => c.state === 'Ohio' && (c.tier === 'FCS' || c.tier === 'DIVISION_2')).length / COLLEGES.filter((c) => c.tier === 'FCS' || c.tier === 'DIVISION_2').length;
+    expect(home / total).toBeGreaterThan(ohioShare * 1.3);
+  });
+
+  it('the college board lists the offers and commitments of each college', () => {
+    const { teams, seniors } = season();
+    const board = collegeBoard(teams);
+    const committed = seniors.find((p) => p.recruiting.committedCollegeId)!;
+    const entry = board.get(committed.recruiting.committedCollegeId!)!;
+    expect(entry.commits.map((r) => r.player.id)).toContain(committed.id);
+    expect(entry.offers.map((r) => r.player.id)).toContain(committed.id);
+    const offers = [...board.values()].reduce((n, e) => n + e.offers.length, 0);
+    const recruited = teams.flatMap((t) => t.roster).filter((p) => p.classYear === 'Senior' || p.classYear === 'Junior');
+    expect(offers).toBe(recruited.reduce((n, p) => n + p.recruiting.offers.length, 0));
   });
 });
 

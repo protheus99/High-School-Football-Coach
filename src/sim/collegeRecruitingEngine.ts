@@ -64,9 +64,14 @@ export const CAMP_WEEKS = 7; // the summer camp circuit runs through pre season 
 
 export const COLLEGE_ACTION_COSTS = { FILM: 5, CALL: 10, CAMP: 20 };
 
-/** Texas scholarships each college hands out per class; a full class stops offering. */
-const CLASS_LIMITS: Record<Exclude<CollegeTier, 'PWO'>, number> = { POWER_4: 10, GROUP_OF_5: 14, FCS: 18, DIVISION_2: 24, DIVISION_3: 40 };
-const NATIONAL_CLASS_LIMIT = 8;
+/** Scholarships each college hands out to the state's class; a full class stops offering. */
+const CLASS_LIMITS: Record<Exclude<CollegeTier, 'PWO'>, number> = { POWER_4: 6, GROUP_OF_5: 8, FCS: 10, DIVISION_2: 14, DIVISION_3: 20 };
+const NATIONAL_CLASS_LIMIT = 5;
+/** Colleges look harder at players in their own state. */
+const HOME_STATE_OFFER_WEIGHT = 2;
+
+/** The state a team plays in (the original world is Texas). */
+export const homeStateOf = (team: Team) => team.state ?? 'Texas';
 
 export const classLimit = (college: College) => (college.national ? NATIONAL_CLASS_LIMIT : CLASS_LIMITS[college.tier]);
 
@@ -284,7 +289,10 @@ export function rollOffer(player: Player, team: Team, week: number, year: number
           col.tier === tier && (lane === 'P4_NATIONAL' ? col.national : !col.national || score >= 89) && !offered.has(col.id) && !isFull(col, counts)
       ).map((col) => ({
         item: col,
-        weight: (collegeNeeds(col, year).includes(player.position) ? 1.6 : 1) * academicFit(col, player.academics.gpa)
+        weight:
+          (collegeNeeds(col, year).includes(player.position) ? 1.6 : 1) *
+          academicFit(col, player.academics.gpa) *
+          (col.state === homeStateOf(team) ? HOME_STATE_OFFER_WEIGHT : 1)
       }))
     );
     if (!college) continue;
@@ -334,18 +342,18 @@ export function personalFit(playerId: string, collegeId: string): number {
   return (h % 17) - 8;
 }
 
-/** How much a player values an offer: level, program prestige, staying in Texas, a clear need, personal fit. */
-export function offerValue(player: Player, offer: CollegeOffer, year?: number): number {
+/** How much a player values an offer: level, program prestige, staying in his home state, a clear need, personal fit. */
+export function offerValue(player: Player, offer: CollegeOffer, year?: number, homeState?: string): number {
   const college = collegeOf(offer);
   const tierBase = TIER_RANK[offer.tier] * 10;
   if (!college) return tierBase;
   const scholarship = offer.tier === 'PWO' ? -25 : 0;
   const need = year !== undefined && collegeNeeds(college, year).includes(player.position) ? 3 : 0;
-  return tierBase + college.prestige * 0.5 + (college.inState ? 4 : 0) + need + scholarship + personalFit(player.id, college.id);
+  return tierBase + college.prestige * 0.5 + (homeState !== undefined && college.state === homeState ? 4 : 0) + need + scholarship + personalFit(player.id, college.id);
 }
 
-export function bestOffer(player: Player, year?: number): CollegeOffer | undefined {
-  return [...player.recruiting.offers].sort((a, b) => offerValue(player, b, year) - offerValue(player, a, year))[0];
+export function bestOffer(player: Player, year?: number, homeState?: string): CollegeOffer | undefined {
+  return sortedOffers(player, year, homeState)[0];
 }
 
 export function committedOffer(player: Player): CollegeOffer | undefined {
@@ -408,6 +416,7 @@ export function advanceCollegeRecruiting(teams: Team[], week: number, year: numb
       if (player.classYear !== 'Senior' && player.classYear !== 'Junior') return;
       const r = player.recruiting;
       if (r.isNationalLetterOfIntentSigned) return;
+      const home = homeStateOf(team);
       const offer = rollOffer(player, team, week, year, 1, counts);
       if (offer)
         events.push({
@@ -421,7 +430,7 @@ export function advanceCollegeRecruiting(teams: Team[], week: number, year: numb
       const current = committedOffer(player);
       if (current) {
         // A clearly better new offer can flip a commitment
-        if (offer && offerValue(player, offer, year) - offerValue(player, current, year) >= FLIP_MARGIN) {
+        if (offer && offerValue(player, offer, year, home) - offerValue(player, current, year, home) >= FLIP_MARGIN) {
           const chance = FLIP_CHANCE * ((r.decommitCount ?? 0) > 0 ? 0.5 : 1);
           if (Math.random() < chance) {
             r.decommitCount = (r.decommitCount ?? 0) + 1;
@@ -442,7 +451,7 @@ export function advanceCollegeRecruiting(teams: Team[], week: number, year: numb
       // Schools whose class has filled pull their offers off the table
       const open = r.offers.filter((o) => !isFull(collegeOf(o), counts));
       if (open.length > 0 && Math.random() < commitChance(player, week)) {
-        const choice = open.sort((a, b) => offerValue(player, b, year) + randomInt(-4, 4) - (offerValue(player, a, year) + randomInt(-4, 4)))[0];
+        const choice = open.sort((a, b) => offerValue(player, b, year, home) + randomInt(-4, 4) - (offerValue(player, a, year, home) + randomInt(-4, 4)))[0];
         track(player, undefined, choice);
         commitTo(player, choice, week);
         events.push({
@@ -503,7 +512,7 @@ export function runSigningDay(teams: Team[], year: number): { signings: Signing[
       // has filled its class, he still signs with his best offer (classes can run over on signing day)
       let offer = committedOffer(player);
       if (!offer) {
-        const offers = sortedOffers(player, year);
+        const offers = sortedOffers(player, year, homeStateOf(team));
         offer = offers.find((o) => !isFull(collegeOf(o), counts)) ?? offers[0];
         const col = collegeOf(offer);
         if (col) counts.set(col.id, (counts.get(col.id) ?? 0) + 1);
@@ -627,7 +636,32 @@ export function recruitingStatus(player: Player): {
   return { label: 'No offers', color: '#64748B' };
 }
 
-/** Offers ordered from most to least attractive to the player. */
-export function sortedOffers(player: Player, year?: number): CollegeOffer[] {
-  return [...player.recruiting.offers].sort((a, b) => offerValue(player, b, year) - offerValue(player, a, year));
+/** Offers ordered from most to least attractive to the player (pass his home state to count the pull of staying close). */
+export function sortedOffers(player: Player, year?: number, homeState?: string): CollegeOffer[] {
+  return [...player.recruiting.offers].sort((a, b) => offerValue(player, b, year, homeState) - offerValue(player, a, year, homeState));
+}
+
+export interface CollegeRecruit {
+  player: Player;
+  team: Team;
+  offer: CollegeOffer;
+}
+
+/** Every college's recruiting in the state this cycle: the juniors and seniors it offered and the ones committed to it. */
+export function collegeBoard(teams: Team[]): Map<string, { offers: CollegeRecruit[]; commits: CollegeRecruit[] }> {
+  const board = new Map<string, { offers: CollegeRecruit[]; commits: CollegeRecruit[] }>();
+  teams.forEach((team) =>
+    team.roster.forEach((player) => {
+      if (player.classYear !== 'Senior' && player.classYear !== 'Junior') return;
+      player.recruiting.offers.forEach((offer) => {
+        const college = collegeOf(offer);
+        if (!college) return;
+        if (!board.has(college.id)) board.set(college.id, { offers: [], commits: [] });
+        const entry = board.get(college.id)!;
+        entry.offers.push({ player, team, offer });
+        if (player.recruiting.committedCollege === offer.collegeName) entry.commits.push({ player, team, offer });
+      });
+    })
+  );
+  return board;
 }

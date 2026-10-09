@@ -3,6 +3,8 @@ import { useGameStore } from '../store/gameStore';
 import { collegeActionCost } from '../sim/coachPoints';
 import { Player, Team } from '../types/game';
 import { DataList } from './ui/DataList';
+import { CollegeDirectory } from './CollegeDirectory';
+import { collegeWithConference } from '../data/colleges';
 import {
   CAMP_WEEKS,
   COLLEGE_ACTION_COSTS,
@@ -10,6 +12,7 @@ import {
   TIER_LABELS,
   baselineVisibility,
   collegeActionBlocker,
+  homeStateOf,
   isDivisionOne,
   recruitScore,
   recruitingStatus,
@@ -55,6 +58,8 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
     good: boolean;
   } | null>(null);
   const [expanded, setExpanded] = useState<string | null>(focusPlayerId ?? null);
+  // Recruiting (your players and the state's top seniors) or the college directory
+  const [mode, setMode] = useState<'RECRUITING' | 'COLLEGES'>('RECRUITING');
   // Arriving from a player card: show his row, open
   useEffect(() => {
     if (!focusPlayerId) return;
@@ -83,6 +88,12 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
 
   const committed = recruits.filter((p) => p.recruiting.committedCollege).length;
   const d1Offers = recruits.filter((p) => p.recruiting.offers.some((o) => isDivisionOne(o.tier))).length;
+
+  // The recruiting sections scroll into view (switching back from the college directory first)
+  const goTo = (id: string) => {
+    setMode('RECRUITING');
+    setTimeout(() => document.getElementById(id)?.scrollIntoView(), 0);
+  };
 
   const act = (player: Player, action: CollegeAction) => {
     const result = collegeRecruitAction(player.id, action);
@@ -149,15 +160,22 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
       )}
 
       <div className="ui-sticky-nav" style={{ margin: '0 -16px 10px', padding: '8px 16px' }}>
-        <div className="ui-chip-row ui-chip-row-3" role="navigation" aria-label="College sections" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
-          <button className="ui-chip" onClick={() => document.getElementById('college-mine')?.scrollIntoView()}>
+        <div className="ui-chip-row ui-chip-row-3" role="navigation" aria-label="College sections">
+          <button className="ui-chip" aria-pressed={mode === 'RECRUITING'} onClick={() => goTo('college-mine')}>
             Your players ({recruits.length})
           </button>
-          <button className="ui-chip" onClick={() => document.getElementById('college-state')?.scrollIntoView()}>
-            State top seniors
+          <button className="ui-chip" onClick={() => goTo('college-state')}>
+            State seniors
+          </button>
+          <button className="ui-chip" aria-pressed={mode === 'COLLEGES'} onClick={() => setMode('COLLEGES')}>
+            Colleges
           </button>
         </div>
       </div>
+      {mode === 'COLLEGES' ? (
+        <CollegeDirectory />
+      ) : (
+        <>
       <div id="college-mine" style={{ display: 'flex', flexDirection: 'column', gap: '8px', scrollMarginTop: 'calc(var(--topbar-h) + 64px)' }}>
         {recruits.map((p) => (
           <RecruitRow
@@ -204,6 +222,8 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
           }
         ]}
       />
+        </>
+      )}
     </div>
   );
 };
@@ -222,7 +242,7 @@ const RecruitRow: React.FC<{
   const r = p.recruiting;
   const status = recruitingStatus(p);
   const exposure = Math.round(r.visibility ?? baselineVisibility(team));
-  const offers = sortedOffers(p, year);
+  const offers = sortedOffers(p, year, homeStateOf(team));
   const top = offers[0];
   return (
     <div
@@ -327,7 +347,7 @@ const RecruitRow: React.FC<{
                 }}
               >
                 {isCommit ? '✅ ' : ''}
-                {o.collegeName} · {TIER_LABELS[o.tier]} · wk {o.offerDateWeek}
+                {collegeWithConference(o.collegeName, o.collegeId)} · {TIER_LABELS[o.tier]} · wk {o.offerDateWeek}
               </span>
             );
           })}
