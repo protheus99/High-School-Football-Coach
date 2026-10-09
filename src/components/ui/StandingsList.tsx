@@ -8,8 +8,8 @@ const diff = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 const diffColor = (n: number) => (n >= 0 ? '#047857' : '#B91C1C');
 
 /**
- * District standings, mobile-first: one compact row per team on phones (seed, school, district record,
- * overall record and capped point differential); a full table on desktop. Playoff spots are shaded.
+ * District standings, mobile-first: one compact row per team on phones (seed, school, then "W-L (W-L) +XX":
+ * overall record, district record and capped point differential); a full table on desktop. Playoff spots are shaded.
  */
 export const StandingsList: React.FC<{ rows: DistrictStandingRow[]; highlightTeamId?: string; dense?: boolean }> = ({ rows, highlightTeamId, dense }) => {
   const openTeamProfile = useGameStore((s) => s.openTeamProfile);
@@ -32,11 +32,13 @@ export const StandingsList: React.FC<{ rows: DistrictStandingRow[]; highlightTea
               {row.rank}
             </span>
             <span className="ui-standings-name">{teamLink(row)}</span>
-            <span className="ui-standings-record">
-              <strong>{row.districtRecord}</strong>
-              <small>
-                {row.overallRecord} · <span style={{ color: diffColor(row.pointDifferential) }}>{diff(row.pointDifferential)}</span>
-              </small>
+            {/* One line, the standard way: overall record, district record in parentheses, point differential */}
+            <span className="ui-standings-line">
+              <strong>{row.overallRecord}</strong>
+              <small>({row.districtRecord})</small>
+              <span className="ui-standings-diff" style={{ color: diffColor(row.pointDifferential) }}>
+                {diff(row.pointDifferential)}
+              </span>
             </span>
           </div>
         ))}

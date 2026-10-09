@@ -99,7 +99,7 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackB
   );
 };
 
-/** Dense standings rows (all screen sizes): seed, school, district and overall record, differential. */
+/** Dense standings rows (all screen sizes): seed, school, then overall record, district record and differential on one line. */
 const CompactStandings: React.FC<{ rows: ReturnType<typeof calculateDistrictStandings>; userTeamId: string; query: string }> = ({ rows, userTeamId, query }) => (
   <div className="ui-standings" style={{ display: 'flex' }}>
     {rows.map((row) => {
@@ -122,14 +122,12 @@ const CompactStandings: React.FC<{ rows: ReturnType<typeof calculateDistrictStan
               {row.name}
             </button>
           </span>
-          <span className="ui-standings-record">
-            <strong>{row.districtRecord}</strong>
-            <small>
-              {row.overallRecord} ·{' '}
-              <span style={{ color: row.pointDifferential >= 0 ? '#047857' : '#DC2626' }}>
-                {row.pointDifferential > 0 ? `+${row.pointDifferential}` : row.pointDifferential}
-              </span>
-            </small>
+          <span className="ui-standings-line">
+            <strong>{row.overallRecord}</strong>
+            <small>({row.districtRecord})</small>
+            <span className="ui-standings-diff" style={{ color: row.pointDifferential >= 0 ? '#047857' : '#DC2626' }}>
+              {row.pointDifferential > 0 ? `+${row.pointDifferential}` : row.pointDifferential}
+            </span>
           </span>
         </div>
       );
