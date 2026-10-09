@@ -62,7 +62,7 @@ export interface PlayerAttributes {
 
 export interface PlayerCondition {
   inGameStamina: number;
-  seasonWear: number;
+  seasonWear: number; // fatigue, 0-100% (sim/training)
   injuryStatus: InjurySeverity;
   injuryWeeksRemaining: number;
   injuredInWeek?: number; // hurt in this week's game: the week's healing skips him
@@ -154,6 +154,7 @@ export interface Player {
   gameBalls?: number; // Player of the Game awards, career
   gameBallsThisSeason?: number;
   gameBallYear?: number; // the season gameBallsThisSeason counts
+  training?: { progress: number; points: number }; // weekly practice: progress to the next skill point, points earned (sim/training)
 }
 
 export interface ProgramMeters {

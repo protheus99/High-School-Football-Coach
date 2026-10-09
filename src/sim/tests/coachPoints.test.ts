@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   STARTING_COACH_POINTS,
   collegeActionCost,
-  drillsPerWeek,
   feederEventCost,
   formatCP,
   talentBlocker,
@@ -23,11 +22,10 @@ describe('Coach Points', () => {
     expect(formatCP(12000)).toBe('₡12,000');
   });
 
-  it('applies talent effects to costs and drills', () => {
+  it('applies talent effects to costs', () => {
     expect(feederEventCost(50, [])).toBe(50);
     expect(feederEventCost(50, ['RECRUITING_NETWORK'])).toBe(40);
     expect(collegeActionCost(20, ['RECRUITING_NETWORK', 'COLLEGE_CONNECTIONS'])).toBe(12);
-    expect(drillsPerWeek(6, ['ASSISTANT_UPGRADE'])).toBe(8);
   });
 
   it('gates second-tier talents behind the first and the price', () => {

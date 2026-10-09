@@ -12,7 +12,7 @@ export type TeamSection = 'ROSTER' | 'INJURIES' | 'PRACTICE' | 'COLLEGE' | 'STAF
 
 const SECTIONS: { id: TeamSection; label: string; short: string }[] = [
   { id: 'ROSTER', label: '📋 Roster', short: 'Roster' },
-  { id: 'INJURIES', label: '🩹 Injuries', short: 'Injuries' },
+  { id: 'INJURIES', label: '🩹 Health', short: 'Health' },
   { id: 'PRACTICE', label: '🏋️ Practice', short: 'Practice' },
   { id: 'COLLEGE', label: '🎓 College', short: 'College' },
   { id: 'STAFF', label: '🧑‍🏫 Staff', short: 'Staff' },
@@ -22,15 +22,15 @@ const SECTIONS: { id: TeamSection; label: string; short: string }[] = [
 
 const SUBTITLES: Record<TeamSection, string> = {
   ROSTER: 'Roster and depth chart',
-  INJURIES: "Injury report: who's out, for how long, and who's wearing down",
-  PRACTICE: 'Practice plan: development focus and intensity',
+  INJURIES: "Health: the team's fatigue, who needs rest, and who's out",
+  PRACTICE: 'Practice: how hard the team trains this week',
   COLLEGE: 'College recruiting for your juniors and seniors',
   STAFF: 'Your coaching staff: assistants who give the program an edge',
   SCHEDULE: 'The season week by week',
   HALL_OF_FAME: 'Trophies, titles and your career on the leaderboard'
 };
 
-/** Team: roster and depth chart, the injury report, practice plan, college recruiting, the coaching staff, the schedule and the Hall of Fame. */
+/** Team: roster and depth chart, health (fatigue and injuries), practice, college recruiting, the coaching staff, the schedule and the Hall of Fame. */
 export const TeamView: React.FC<{ section: TeamSection; onSection: (section: TeamSection) => void; collegeFocusId?: string | null }> = ({
   section,
   onSection,

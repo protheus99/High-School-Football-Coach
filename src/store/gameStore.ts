@@ -92,7 +92,6 @@ import { simulateMacroMatch, rollGameInjuries, teamStarterRating } from '../sim/
 import {
   evaluateAcademicReport,
   isAcademicallyAtRisk,
-  processPostGameSeasonWear,
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
 import { buildPlayoffBracket, advancePlayoffRound, bracketRoundForWeek, compactBracket, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
@@ -127,20 +126,19 @@ import { NOTABLE_CLASS_WAVE, rollClassWave } from '../generators/rosterGenerator
 import { randomSurname } from '../generators/names';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { moveInDepthChart, normalizeDepthChart, setDepthTier } from '../sim/depthChart';
-import { ASSISTANT_DRILLS_PER_WEEK, DrillFocus, runAssistantDrills } from '../sim/drillEngine';
+import { NO_BOOSTS, PHASE_TRAINING, PracticeIntensity, TrainingBoosts, TrainingReport, aiIntensity, migrateIntensity, runTrainingWeek, trainingBoosts } from '../sim/training';
 import {
   COACH_TALENTS,
   STARTING_COACH_POINTS,
   TalentId,
   collegeActionCost,
-  drillsPerWeek,
   feederEventCost,
   offseasonConditioningBonus,
   talentBlocker,
   weeklyCpIncome,
   winBonus
 } from '../sim/coachPoints';
-import { BOARD_RESULT_DELTA, PRACTICE_DISCIPLINE, boardReview, pickSuspension, prestigeReversion } from '../sim/programMeters';
+import { BOARD_RESULT_DELTA, boardReview, pickSuspension, prestigeReversion } from '../sim/programMeters';
 import { rulesForState } from '../sim/stateRules';
 
 const COMPLIANCE_SANCTION_THRESHOLD = 40;
@@ -148,9 +146,6 @@ const INDUCEMENT_CP_COST = 20;
 const BAN_HEAT_THRESHOLD = 50; // getting caught with this much evidence brings a postseason ban
 
 const MID_SEASON_STAR_UPDATE_WEEK = 11;
-
-/** Training camp schedule: more practices develop more players but wear the team down. */
-export type CampSchedule = 'TWO_A_DAY' | 'THREE_A_DAY';
 
 /** Last season in brief (shown on the Hub in week 1). */
 export interface SeasonRecap {
@@ -161,8 +156,19 @@ export interface SeasonRecap {
   graduated: number;
   returningStarters: number;
 }
-const CAMP_DRILL_MULTIPLIER: Record<CampSchedule, number> = { TWO_A_DAY: 2, THREE_A_DAY: 3 };
-const CAMP_MORALE: Record<CampSchedule, number> = { TWO_A_DAY: 2, THREE_A_DAY: 1 }; // the team comes together
+const CAMP_MORALE = 2; // training camp brings the team together: morale a week
+
+/** The coach's training boosts (talents and paid staff), for the week's practice and its preview. */
+export const userTrainingBoosts = (state: Pick<GameStoreState, 'coachTalents' | 'coachingStaff'>, team: Team): TrainingBoosts =>
+  trainingBoosts(team, state.coachTalents.includes('ASSISTANT_UPGRADE'), staffBonuses(state.coachingStaff));
+
+/** Whether a team has a game this week (regular season, out of state or a playoff round). */
+export function playsThisWeek(state: Pick<GameStoreState, 'currentWeek' | 'seasonSchedule' | 'interstateGames' | 'playoffBracket'>, teamId: string): boolean {
+  const week = state.currentWeek;
+  if ([...state.seasonSchedule, ...state.interstateGames].some((g) => g.week === week && (g.homeTeamId === teamId || g.awayTeamId === teamId))) return true;
+  const bracket = state.playoffBracket;
+  return !!bracket?.isPlayoffsActive && bracketRoundForWeek(bracket, week) >= 0 && !!findUserNode(bracket, teamId);
+}
 const STATEWIDE_RECRUITING_HEADLINES = 2; // five-star commitments elsewhere in the state, per week
 
 /** Headlines from a week of college recruiting: the user's players, plus five-star news statewide. */
@@ -275,8 +281,6 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     coachPoints: state.coachPoints,
     coachTalents: state.coachTalents,
     practiceIntensity: state.practiceIntensity,
-    drillFocus: state.drillFocus,
-    campSchedule: state.campSchedule,
     feederClassYear: state.feederClassYear,
     seasonRecap: state.seasonRecap,
     districtTeams: state.districtTeams,
@@ -403,16 +407,14 @@ interface GameStoreState {
   nationalLeagues: LightLeague[]; // every other playable state, on the same calendar (national polls and leaders)
   coachPoints: number; // Coach Points: the one currency (see sim/coachPoints)
   coachTalents: TalentId[]; // skill-tree talents bought with CP
-  practiceIntensity: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT';
-  drillFocus: DrillFocus; // assistants run position drills each week with this focus
-  campSchedule: CampSchedule; // training camp: two-a-days or three-a-days
+  practiceIntensity: PracticeIntensity; // how hard the team practices: the coach's one training decision (sim/training)
   feederClassYear: number; // the season the current pipeline's class arrives (signing day is week 2 of that season)
   seasonRecap: SeasonRecap | null; // last season in brief, for the Hub's new-season headline
   viewedTeamId: string | null; // the team page that is open (not saved)
   openTeamProfile: (teamId: string | null) => void;
   viewedPlayerId: string | null; // the player card that is open (not saved): the same card from every screen
   openPlayerCard: (playerId: string | null) => void;
-  lastDrillReport: string[]; // who the assistants worked with last week
+  lastTrainingReport: TrainingReport | null; // what last week's practice did
 
   // Postseason & Offseason state
   playoffBracket: PlayoffBracketState | null;
@@ -434,7 +436,7 @@ interface GameStoreState {
   resolveDilemma: (choice: DilemmaChoice) => void;
   awardGameBall: (playerId: string, summary: { opponentName: string; won: boolean; score: string; line: string }) => void;
   answerPress: (question: PressQuestion, choice: DilemmaChoice) => void;
-  setPracticeIntensity: (mode: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT') => void;
+  setPracticeIntensity: (mode: PracticeIntensity) => void;
   setActiveGame: (game: GameSimulationState | null) => void;
   recordUserGame: (finalState: GameSimulationState) => void;
   unlockTalent: (id: TalentId) => string | null; // null on success, otherwise why not
@@ -448,8 +450,6 @@ interface GameStoreState {
   collegeRecruitAction: (playerId: string, action: CollegeAction) => CollegeActionResult; // promote a player to colleges
   updatePlayerTier: (playerId: string, tier: DepthChartTier) => void;
   moveDepthChartPlayer: (playerId: string, direction: -1 | 1) => void; // up/down one string in his slot
-  setDrillFocus: (focus: DrillFocus) => void;
-  setCampSchedule: (schedule: CampSchedule) => void;
   runFeederSigningDay: () => void; // end of pre season week 2: prospects pick a school, newcomers join every roster
   startPostseason: () => void;
   advancePlayoffGame: (userScore?: { homeScore: number; awayScore: number }) => void;
@@ -498,16 +498,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   nationalLeagues: [],
   coachPoints: STARTING_COACH_POINTS,
   coachTalents: [],
-  practiceIntensity: 'STANDARD',
-  drillFocus: 'BALANCED',
-  campSchedule: 'TWO_A_DAY',
+  practiceIntensity: 'LIMITED',
   feederClassYear: 2027,
   seasonRecap: null,
   viewedTeamId: null,
   openTeamProfile: (teamId) => set({ viewedTeamId: teamId }),
   viewedPlayerId: null,
   openPlayerCard: (playerId) => set({ viewedPlayerId: playerId }),
-  lastDrillReport: [],
+  lastTrainingReport: null,
   playoffBracket: null,
   graduatingSeniors: [],
   isBanquetActive: false,
@@ -650,13 +648,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       userTeamId: userTeam.id,
       coachPoints: save.coachPoints ?? save.coachingAP ?? STARTING_COACH_POINTS,
       coachTalents: save.coachTalents ?? [],
-      practiceIntensity: save.practiceIntensity,
-      drillFocus: save.drillFocus ?? 'BALANCED',
-      campSchedule: save.campSchedule ?? 'TWO_A_DAY',
+      practiceIntensity: migrateIntensity(save.practiceIntensity),
       // Older saves: the pipeline was always next season's class
       feederClassYear: save.feederClassYear ?? year + 1,
       seasonRecap: save.seasonRecap ?? null,
-      lastDrillReport: [],
+      lastTrainingReport: null,
       activeDilemma: save.activeDilemma,
       activeGame: null,
       isBanquetActive: false,
@@ -817,6 +813,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // Playoff weeks: finish the current round (simulating the user's game if skipped) and seed the next
     const { playoffBracket } = get();
+    // Who played this week: game fatigue for the week's practice
+    const played = new Set<string>();
+    [...seasonSchedule, ...get().interstateGames]
+      .filter((g) => g.week === currentWeek && g.homeScore !== undefined)
+      .forEach((g) => [g.homeTeamId, g.awayTeamId].forEach((id) => played.add(id)));
     if (playoffBracket?.isPlayoffsActive && bracketRoundForWeek(playoffBracket, currentWeek) >= 0) {
       const userNode = findUserNode(playoffBracket, userTeamId)?.node;
       const linked = relinkBracketTeams(playoffBracket, leagueTeams);
@@ -827,6 +828,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         .flatMap((d) => d.rounds[linked.currentRoundIndex] ?? [])
         .filter((n) => n.winnerTeamId && !n.isBye && !before.has(n.matchupId))
         .forEach((n) => [n.team1, n.team2].forEach((t) => rollGameInjuries(t, currentWeek)));
+      linked.divisions
+        .flatMap((d) => d.rounds[linked.currentRoundIndex] ?? [])
+        .filter((n) => !n.isBye)
+        .forEach((n) => [n.team1, n.team2].forEach((t) => played.add(t.id)));
       set({ playoffBracket: advancePlayoffRound(linked) });
       if (userNode?.winnerTeamId === userTeamId) {
         userTeam.programMeters.schoolBoardTrust = Math.min(100, userTeam.programMeters.schoolBoardTrust + BOARD_RESULT_DELTA.playoffWin);
@@ -906,6 +911,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // Season opener: measure the league against a rolled one (next season's light leagues are mapped with it)
     if (nextWeek === FIRST_NON_DISTRICT_WEEK && league) set({ lightCalibration: measureLightCalibration(league.state ?? 'Texas', leagueTeams) });
 
+    // Practice: every program trains (and its players tire and recover). The coach picks the intensity;
+    // computer programs push in weeks without a game and ease off in game weeks.
+    const userBoosts = userTrainingBoosts(get(), userTeam);
+    leagueTeams.forEach((team) => {
+      const isUser = team.id === userTeamId;
+      const intensity = isUser ? practiceIntensity : aiIntensity(played.has(team.id));
+      const report = runTrainingWeek(team, intensity, phase, currentWeek, played.has(team.id), isUser ? userBoosts : NO_BOOSTS);
+      if (isUser && PHASE_TRAINING[phase] > 0) set({ lastTrainingReport: report });
+    });
+
     // Postseason starts the week after the regular season
     if (nextWeek === LAST_REGULAR_SEASON_WEEK + 1) {
       get().startPostseason();
@@ -936,38 +951,21 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return;
     }
 
-    // 1. Weekly triage for every program: injuries heal, season wear builds, and every third week brings
+    // 1. Weekly triage for every program: injuries heal, and every third week brings
     // report cards ("No Pass, No Play"). AI programs keep their struggling students in study hall; the
     // user handles grades through dilemmas.
-    const isGameWeek = phase === 'NON_DISTRICT' || phase === 'DISTRICT_PLAY' || phase === 'STATE_PLAYOFFS';
     const stateRules = rulesForState(league?.state);
     const inCamp = phase === 'SUMMER_CAMP';
-    const { campSchedule } = get();
     leagueTeams.forEach((team) => {
       const isUser = team.id === userTeamId;
       team.roster.forEach((p) => {
         processWeeklyInjuryHealing(p, currentWeek);
-        if (isGameWeek) processPostGameSeasonWear(p, p.depthChartTier === 1 ? 52 : 12, isUser ? practiceIntensity : 'STANDARD');
         // Report cards every third week once the school year and season are under way
         if (nextWeek % 3 === 0 && nextWeek >= FIRST_NON_DISTRICT_WEEK) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p, stateRules) ? 0.1 : 0, stateRules);
       });
     });
-    // Morale: training camp brings the team together; in season, full-contact practices build it and
-    // walkthroughs let it slip. Below 50, starters get suspended.
-    const moraleChange = inCamp ? CAMP_MORALE[campSchedule] : isGameWeek ? PRACTICE_DISCIPLINE[practiceIntensity] : 0;
-    meters.lockerRoomDiscipline = Math.max(0, Math.min(100, meters.lockerRoomDiscipline + moraleChange));
-    // Three-a-days grind: extra wear and the odd practice injury
-    const campReport: string[] = [];
-    if (inCamp && campSchedule === 'THREE_A_DAY') {
-      let banged = 0;
-      userTeam.roster.forEach((p) => {
-        processPostGameSeasonWear(p, 20, 'CONTACT');
-        if (p.condition.injuryStatus !== 'HEALTHY' || Math.random() > 0.015) return;
-        Object.assign(p.condition, { injuryStatus: 'DINGED', injuryWeeksRemaining: 1, injuredInWeek: currentWeek });
-        banged++;
-      });
-      if (banged > 0) campReport.push(`Three-a-days: ${banged} player${banged === 1 ? '' : 's'} banged up in practice.`);
-    }
+    // Morale: training camp brings the team together. Below 50, starters get suspended.
+    if (inCamp) meters.lockerRoomDiscipline = Math.min(100, meters.lockerRoomDiscipline + CAMP_MORALE);
     const suspended = currentWeek < LAST_REGULAR_SEASON_WEEK + 6 ? pickSuspension(userTeam) : undefined;
     if (suspended) {
       Object.assign(suspended.condition, { injuryStatus: 'DINGED', injuryWeeksRemaining: 1, injuredInWeek: currentWeek, isSuspended: true });
@@ -986,10 +984,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         ]
       });
     }
-    // Assistants run this week's position drills with the coach's focus
-    // (training camp multiplies the reps: two-a-days double them, three-a-days triple them)
-    const drillCount = drillsPerWeek(ASSISTANT_DRILLS_PER_WEEK, get().coachTalents) * (inCamp ? CAMP_DRILL_MULTIPLIER[campSchedule] : 1);
-    const lastDrillReport = [...campReport, ...runAssistantDrills(userTeam.roster, get().drillFocus, drillCount)];
 
     // 2. Recalculate National & State Team Polls
     const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
@@ -1018,7 +1012,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       activeDilemma: dilemma,
       polls: updatedPolls,
       playerRankings: updatedPlayerRankings,
-      lastDrillReport,
       newsArticles: [...collegeNews, ...newArticles, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams] // sanctions/forfeits above can change records too
@@ -1428,8 +1421,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ districtTeams: [...districtTeams], leagueTeams: [...leagueTeams] });
   },
 
-  setDrillFocus: (focus) => set({ drillFocus: focus }),
-  setCampSchedule: (schedule) => set({ campSchedule: schedule }),
 
   // Feeder signing day: the user's pipeline and the statewide elite pick their schools, every program's
   // incoming class joins (open spots filled with freshmen), and the next cycle's pipeline opens

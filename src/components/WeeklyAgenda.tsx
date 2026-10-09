@@ -14,7 +14,7 @@ import {
 import { CONTACT_ACTIONS, FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
 import { COACH_TALENTS, collegeActionCost, feederEventCost, formatCP, talentBlocker, weeklyCpIncome } from '../sim/coachPoints';
 import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
-import { DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
+import { PracticePicker } from './PracticePicker';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { dilemmaChoiceEffects } from '../sim/dilemmaEngine';
 import { ChoiceEffects } from './ui/ChoiceEffects';
@@ -80,11 +80,7 @@ const TONES: Record<AgendaItem['tone'], { border: string; background: string }> 
 
 const MAX_OPEN_CARDS = 4;
 const TOP_PROSPECTS = 3;
-const INTENSITY: { id: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT'; label: string }[] = [
-  { id: 'WALKTHROUGH', label: 'Walkthrough' },
-  { id: 'STANDARD', label: 'Standard' },
-  { id: 'CONTACT', label: 'Full Contact' }
-];
+const TIRED = 55; // fatigue at which a starter is flagged (Tired and Exhausted, sim/training)
 
 const shortName = (p: Player) => `${p.firstName.charAt(0)}. ${p.lastName}`;
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
@@ -118,18 +114,12 @@ export const WeeklyAgenda: React.FC<{
     feederEventsThisWeek,
     runFeederEvent,
     collegeRecruitAction,
-    drillFocus,
-    setDrillFocus,
-    practiceIntensity,
-    setPracticeIntensity,
-    lastDrillReport,
+    lastTrainingReport,
     league,
     scoutingPool,
     feederClassYear,
     contactFeederProspect,
     lastFeederResults,
-    campSchedule,
-    setCampSchedule,
     seasonSchedule,
     playoffBracket,
     onHotSeat,
@@ -268,56 +258,16 @@ export const WeeklyAgenda: React.FC<{
     };
   };
 
-  const chipRow = (label: string, chips: { id: string; label: string; active: boolean; onClick: () => void }[]) => (
-    <div style={{ marginTop: '8px' }}>
-      <div style={{ fontSize: '12px', color: '#475569', fontWeight: 'bold', marginBottom: '4px' }}>{label}</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-        {chips.map((c) => (
-          <button key={c.id} onClick={c.onClick} aria-pressed={c.active} style={actionBtn(c.active, false)}>
-            {c.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const drillChips = () =>
-    chipRow(
-      'Drill focus',
-      DRILL_FOCUS_OPTIONS.map((o) => ({ id: o.id, label: o.label, active: o.id === drillFocus, onClick: () => setDrillFocus(o.id) }))
-    );
-
-  const practiceCard = (): AgendaItem => ({
-    id: 'practice',
-    icon: '🏋️',
-    title: 'Practice plan',
-    detail: 'Full Contact builds morale but wears players down; Walkthrough keeps legs fresh but morale slips.',
-    tone: 'todo',
-    content: (
-      <>
-        {chipRow(
-          'Intensity',
-          INTENSITY.map((o) => ({ id: o.id, label: o.label, active: o.id === practiceIntensity, onClick: () => setPracticeIntensity(o.id) }))
-        )}
-        {drillChips()}
-      </>
-    ),
-    link: { label: 'Practice', onClick: () => onNavigate('PRACTICE') }
-  });
-
-  const campCard = (title: string, id = 'camp'): AgendaItem => ({
+  // Practice: one decision (intensity), with what it does this week; tired starters are called out
+  const tiredStarters = (team?.roster ?? []).filter((p) => p.depthChartTier === 1 && p.condition.injuryStatus === 'HEALTHY' && p.condition.seasonWear >= TIRED).length;
+  const practiceCard = (title = 'Practice plan', id = 'practice'): AgendaItem => ({
     id,
-    icon: '⛺',
+    icon: '🏋️',
     title,
-    detail:
-      campSchedule === 'THREE_A_DAY'
-        ? 'Three-a-days: triple the drill reps, but more wear and practice injuries.'
-        : 'Two-a-days: double the drill reps, and the team comes together.',
+    detail: `Harder practice builds more skill but tires players and risks injuries.${tiredStarters > 0 ? ` ${plural(tiredStarters, 'starter')} ${tiredStarters === 1 ? 'is' : 'are'} Tired or worse.` : ''}`,
     tone: 'todo',
-    content: chipRow('Camp schedule', [
-      { id: 'two', label: 'Two-a-days', active: campSchedule === 'TWO_A_DAY', onClick: () => setCampSchedule('TWO_A_DAY') },
-      { id: 'three', label: 'Three-a-days', active: campSchedule === 'THREE_A_DAY', onClick: () => setCampSchedule('THREE_A_DAY') }
-    ])
+    content: <PracticePicker compact />,
+    link: tiredStarters > 0 ? { label: 'Health', onClick: () => onNavigate('INJURIES') } : { label: 'Practice', onClick: () => onNavigate('PRACTICE') }
   });
 
   const visitsCard = (title: string, tone: AgendaItem['tone'], id = 'visits'): AgendaItem => {
@@ -462,7 +412,7 @@ export const WeeklyAgenda: React.FC<{
           tone: 'todo',
           link: { label: 'Staff', onClick: () => onNavigate('STAFF') }
         });
-      extras.push({ ...practiceCard(), id: 'practice-focus', title: 'Set your practice focus' });
+      extras.push(practiceCard('Set your practice intensity', 'practice-focus'));
     } else if (currentWeek === FEEDER_SIGNING_WEEK && signingThisSeason) {
       headline = visitsCard('Feeder signing day: last chance to win prospects over', 'urgent', 'signing');
       task = collegeCard();
@@ -480,26 +430,24 @@ export const WeeklyAgenda: React.FC<{
         : { id: 'enrollment', icon: '🏫', title: 'New student enrollment and college camps', detail: 'Summer camps get your juniors and seniors in front of college coaches.', tone: 'info' };
       task = collegeCard();
     } else {
-      headline = { id: 'camp-next', icon: '⛺', title: 'Training camp starts next week', detail: 'Pick your camp schedule and drill focus now.', tone: 'info' };
-      task = campCard('Choose your camp schedule');
+      headline = { id: 'camp-next', icon: '⛺', title: 'Training camp starts next week', detail: 'Camp weeks count double: skills build twice as fast, and so does practice fatigue.', tone: 'info' };
+      task = practiceCard('Set your practice intensity');
     }
   } else if (phase === 'SUMMER_CAMP') {
     const campWeek = currentWeek - FIRST_TRAINING_CAMP_WEEK + 1;
     if (currentWeek === FIRST_TRAINING_CAMP_WEEK) {
-      headline = campCard(`Camp opens (week ${campWeek} of 3): your practice schedule`, 'camp-open');
-      task = { id: 'drills', icon: '🏋️', title: 'Drill focus for camp', tone: 'todo', content: drillChips(), link: { label: 'Practice', onClick: () => onNavigate('PRACTICE') } };
+      headline = { ...practiceCard(`Camp opens (week ${campWeek} of 3): 2× training`, 'camp-open'), icon: '⛺' };
     } else if (currentWeek < LAST_TRAINING_CAMP_WEEK) {
-      const banged = lastDrillReport.find((l) => l.startsWith('Three-a-days'));
-      const drilled = lastDrillReport.filter((l) => !l.startsWith('Three-a-days'));
+      const report = lastTrainingReport;
       headline = {
         id: 'camp-report',
         icon: '📈',
-        title: `Camp report: ${plural(drilled.length, 'player')} improved${banged ? ', some banged up' : ''}`,
-        detail: [drilled.slice(0, 3).join(' · '), banged].filter(Boolean).join(' · '),
+        title: `Camp report: +${report?.skillPoints ?? 0} skill points${report?.injured.length ? `, ${report.injured.length} hurt in practice` : ''}`,
+        detail: [report?.improved.slice(0, 3).join(' · '), report?.injured.length ? `Hurt: ${report.injured.join(', ')}` : ''].filter(Boolean).join(' · ') || 'Practice results come in each week.',
         tone: 'info',
-        link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
+        link: { label: 'Practice', onClick: () => onNavigate('PRACTICE') }
       };
-      task = campCard('Adjust your camp schedule');
+      task = practiceCard('Adjust your camp practice');
     } else {
       headline = {
         id: 'depth-chart',
@@ -658,9 +606,7 @@ export const WeeklyAgenda: React.FC<{
     const college = collegeCard();
     if (college) more.push(college);
   }
-  if (task?.id !== 'practice' && (isGamePhase || phase === 'OFF_SEASON')) {
-    more.push({ id: 'drills', icon: '🏋️', title: 'Drill focus', tone: 'info', content: drillChips(), link: { label: 'Practice', onClick: () => onNavigate('PRACTICE') } });
-  }
+  if (task?.id !== 'practice' && (isGamePhase || phase === 'OFF_SEASON')) more.push({ ...practiceCard('Practice', 'practice-more'), tone: 'info' });
   if (COACH_TALENTS.some((t) => !talentBlocker(t.id, coachTalents, coachPoints))) {
     more.push({ id: 'talents', icon: '🎖️', title: 'You can afford a coach talent', detail: 'Spend Coach Points on a permanent upgrade.', tone: 'info', link: { label: 'Talents', onClick: () => onNavigate('TALENTS') } });
   }

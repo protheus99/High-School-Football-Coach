@@ -3,6 +3,7 @@ import { DEPTH_TEMPLATE, rebuildDepthChart } from './depthChart';
 import { generateIncomingFreshman, programTalent, rollClassWave, starterChance } from '../generators/rosterGenerator';
 import { STAFF_DEVELOPMENT_CAP } from './coachingStaff';
 import { processOffSeasonProgression } from './playerEngine';
+import { defaultSeasonGrowth } from './training';
 import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 
 // Freshmen carry the program's talent (prestige and state), as a rebuilt program would: dynasties reload
@@ -40,7 +41,7 @@ export function graduateAndProgress(
   team.roster = team.roster.filter((p) => p.classYear !== 'Senior');
 
   team.roster.forEach((p) => {
-    processOffSeasonProgression(p, team.staff.strengthCoach.conditioningRating + conditioningBonus);
+    processOffSeasonProgression(p, team.staff.strengthCoach.conditioningRating + conditioningBonus, defaultSeasonGrowth(p.potential));
     if (staffDevelopment) {
       // Position coaches, the strength program and the JV staff add growth (fractions round up by chance),
       // at most +0.5 a season per player: about +2 over a four-year roster cycle, matching the game-day cap

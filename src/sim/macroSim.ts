@@ -3,6 +3,7 @@ import { randomInt, clamp } from './math/variance';
 import { getPositionGroup } from './matchEngine';
 import { addPlayerStats } from './playerStats';
 import { disciplineTurnoverPoints } from './programMeters';
+import { fatigueInjuryMultiplier } from './training';
 
 // Calibration constants (tuned against src/sim/tests/macroSim.test.ts targets)
 const HOME_FIELD_RATING = 1;
@@ -126,14 +127,14 @@ export function gameDayLineup(team: Team): (Player | undefined)[] {
 const GAME_INJURY_ODDS = { seasonEnding: 0.0015, moderate: 0.01, dinged: 0.03 };
 
 /**
- * Injuries from one game (live or simulated) for everyone who played. Tired players (heavy season wear)
+ * Injuries from one game (live or simulated) for everyone who played. Tired players (high fatigue)
  * get hurt more; kickers rarely. Returns who was hurt and how badly.
  */
 export function rollGameInjuries(team: Team, week: number): { player: Player; severity: InjurySeverity }[] {
   const hurt: { player: Player; severity: InjurySeverity }[] = [];
   gameDayLineup(team).forEach((p) => {
     if (!p || p.condition.injuryStatus !== 'HEALTHY') return;
-    const risk = (p.condition.inGameStamina < 75 ? 1.5 : 1) * (p.position === 'K' || p.position === 'P' ? 0.3 : 1) * (1 - (team.injuryResistance ?? 0));
+    const risk = fatigueInjuryMultiplier(p.condition.seasonWear) * (p.position === 'K' || p.position === 'P' ? 0.3 : 1) * (1 - (team.injuryResistance ?? 0));
     const roll = Math.random();
     let severity: InjurySeverity = 'HEALTHY';
     let weeks = 0;

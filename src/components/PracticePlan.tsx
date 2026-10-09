@@ -1,70 +1,69 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
-import { ASSISTANT_DRILLS_PER_WEEK, DRILL_FOCUS_OPTIONS } from '../sim/drillEngine';
+import { PRACTICE_OPTIONS } from '../sim/training';
+import { PracticePicker } from './PracticePicker';
 
-const INTENSITY: { id: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT'; label: string; help: string }[] = [
-  { id: 'WALKTHROUGH', label: 'Walkthrough', help: 'Fresh legs, less wear.' },
-  { id: 'STANDARD', label: 'Standard', help: 'Balanced reps and fatigue.' },
-  { id: 'CONTACT', label: 'Full Contact', help: 'Tougher team, more wear and injury risk.' }
+const PHASES: [string, string][] = [
+  ['Pre Season, Training Camp, Off Season', '2×'],
+  ['Regular season (non district and district)', '1×'],
+  ['Playoffs', '0.5×'],
+  ['Post Season', 'No training']
 ];
 
 /**
- * Practice plan (Team › Practice): the head coach sets the week's development focus and intensity; the
- * assistant coaches pick the players and run the position drills automatically when the week advances.
+ * Practice plan (Team › Practice): the week's intensity, what each option would do, and last week's results.
+ * Every healthy player trains the same way; the time of year multiplies both the gains and the practice load.
  */
 export const PracticePlan: React.FC = () => {
-  const { drillFocus, setDrillFocus, practiceIntensity, setPracticeIntensity, lastDrillReport } = useGameStore();
+  const { lastTrainingReport: report } = useGameStore();
 
   return (
     <div>
       <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
-        Your assistants run position drills with {ASSISTANT_DRILLS_PER_WEEK} players every week. You set the focus.
+        Practice builds your players' key skills, one point at a time (+1 to each of a player's key skills adds +1 overall). Harder practice builds
+        more, but players tire and can get hurt.
       </p>
 
-      <h3 style={sectionTitle}>Development focus</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px' }}>
-        {DRILL_FOCUS_OPTIONS.map((o) => (
-          <button key={o.id} onClick={() => setDrillFocus(o.id)} aria-pressed={drillFocus === o.id} style={choiceBtn(drillFocus === o.id)}>
-            <div style={{ fontWeight: 'bold' }}>{o.label}</div>
-            <div style={{ fontSize: '12px', opacity: 0.85 }}>{o.help}</div>
-          </button>
-        ))}
-      </div>
+      <h3 style={sectionTitle}>This week</h3>
+      <PracticePicker />
 
-      <h3 style={sectionTitle}>Practice intensity</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px' }}>
-        {INTENSITY.map((o) => (
-          <button key={o.id} onClick={() => setPracticeIntensity(o.id)} aria-pressed={practiceIntensity === o.id} style={choiceBtn(practiceIntensity === o.id)}>
-            <div style={{ fontWeight: 'bold' }}>{o.label}</div>
-            <div style={{ fontSize: '12px', opacity: 0.85 }}>{o.help}</div>
-          </button>
-        ))}
-      </div>
-
-      <h3 style={sectionTitle}>Last week&apos;s drill report</h3>
-      {lastDrillReport.length > 0 ? (
-        <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '14px', color: '#334155' }}>
-          {lastDrillReport.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
+      <h3 style={sectionTitle}>Last week&apos;s practice</h3>
+      {report ? (
+        <div style={{ fontSize: '14px', color: '#334155' }}>
+          <div>
+            {PRACTICE_OPTIONS.find((o) => o.id === report.intensity)?.label} ({report.multiplier}×): <b>+{report.skillPoints}</b> skill points
+            {report.overallGains > 0 ? `, ${report.overallGains} overall` : ''}
+            {report.injured.length > 0 ? ` · ${report.injured.length} hurt in practice` : ''}
+          </div>
+          {report.improved.length > 0 && (
+            <ul style={{ margin: '6px 0 0', paddingLeft: '18px' }}>
+              {report.improved.slice(0, 8).map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          )}
+          {report.injured.length > 0 && <div style={{ marginTop: '6px', color: '#B91C1C' }}>Hurt in practice: {report.injured.join(', ')}</div>}
+        </div>
       ) : (
-        <div className="ui-muted">No drills yet. Your assistants report after the week advances.</div>
+        <div className="ui-muted">No practice report yet. It comes in when the week advances.</div>
       )}
+
+      <h3 style={sectionTitle}>Time of year</h3>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', color: '#334155' }}>
+        <tbody>
+          {PHASES.map(([label, mult]) => (
+            <tr key={label}>
+              <td style={{ padding: '5px 0', borderTop: '1px solid #E2E8F0' }}>{label}</td>
+              <td style={{ padding: '5px 0', borderTop: '1px solid #E2E8F0', textAlign: 'right', fontWeight: 700 }}>{mult}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="ui-muted" style={{ fontSize: '12px', margin: '6px 0 0' }}>
+        The multiplier applies to skill gain and practice fatigue alike.
+      </p>
     </div>
   );
 };
 
 const sectionTitle: React.CSSProperties = { margin: '18px 0 8px 0', color: '#334155', fontSize: '15px' };
-
-const choiceBtn = (active: boolean): React.CSSProperties => ({
-  textAlign: 'left',
-  minHeight: '56px',
-  padding: '10px 12px',
-  borderRadius: '10px',
-  border: active ? '2px solid #2563EB' : '1px solid #CBD5E1',
-  background: active ? '#EFF6FF' : '#fff',
-  color: '#0F172A',
-  cursor: 'pointer',
-  fontSize: '13px'
-});

@@ -1,7 +1,8 @@
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { simulateSnap } from '../matchEngine';
 import { simulateMacroMatch, teamStarterRating } from '../macroSim';
-import { processPostGameSeasonWear, processWeeklyInjuryHealing, evaluateAcademicReport } from '../playerEngine';
+import { processWeeklyInjuryHealing, evaluateAcademicReport } from '../playerEngine';
+import { runTrainingWeek } from '../training';
 import { buildPlayoffBracket, advancePlayoffRound } from '../playoffEngine';
 import { buildCustomLeague, leagueRegionTeams } from '../league';
 import { calculateSeasonAwards } from '../awardsEngine';
@@ -30,9 +31,9 @@ export function runDynastySimulation(numYears = 3): void {
       // Triage and fatigue
       userTeam.roster.forEach((p) => {
         processWeeklyInjuryHealing(p);
-        processPostGameSeasonWear(p, p.depthChartTier === 1 ? 50 : 10, 'STANDARD');
         if (week % 3 === 0) evaluateAcademicReport(p);
       });
+      runTrainingWeek(userTeam, 'LIMITED', 'DISTRICT_PLAY', week, week > 1);
 
       // User game vs opponent
       const opponent = districtTeams[week % (districtTeams.length - 1) + 1];

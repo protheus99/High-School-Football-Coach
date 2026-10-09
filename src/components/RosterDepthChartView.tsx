@@ -4,6 +4,7 @@ import { useGameStore } from '../store/gameStore';
 import { DepthChartBoard } from './DepthChartBoard';
 import { DataList } from './ui/DataList';
 import { DEFENSE_POSITIONS, OFFENSE_POSITIONS, starterRatings } from '../sim/depthChart';
+import { FatigueChip } from './ui/FatigueChip';
 
 export const RosterDepthChartView: React.FC = () => {
   const { districtTeams, userTeamId, moveDepthChartPlayer, openPlayerCard } = useGameStore();
@@ -92,7 +93,7 @@ export const RosterDepthChartView: React.FC = () => {
                   p.condition.injuryStatus !== 'HEALTHY' ? (
                     <span style={{ color: '#DC2626' }}>Injured ({p.condition.injuryWeeksRemaining} wk)</span>
                   ) : (
-                    `Wear ${formatPercent(p.condition.seasonWear)}`
+                    <FatigueChip fatigue={p.condition.seasonWear} />
                   )
               },
               { key: 'gpa', label: 'GPA', render: (p) => <span style={{ color: p.academics.isEligible ? '#059669' : '#DC2626' }}>{p.academics.gpa.toFixed(2)}</span> },

@@ -29,24 +29,8 @@ export function updateInGameStamina(player: Player, snapsPlayed: number, positio
  */
 export function restPlayerOnSideline(player: Player, seriesRested: number): void {
   const recovery = seriesRested * 8.5;
-  const maxCap = 100 - player.condition.seasonWear * 0.5;
+  const maxCap = 100 - player.condition.seasonWear * 0.45; // fatigue caps how far a player bounces back
   player.condition.inGameStamina = clamp(player.condition.inGameStamina + recovery, 0, maxCap);
-}
-
-/**
- * Updates cumulative season wear at the end of each game week.
- */
-export function processPostGameSeasonWear(player: Player, snapsPlayed: number, practiceIntensity: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT'): void {
-  let wearIncrement = 0;
-  if (snapsPlayed > 50) wearIncrement += 1.2;
-  else if (snapsPlayed > 35) wearIncrement += 0.8;
-  else if (snapsPlayed > 15) wearIncrement += 0.3;
-
-  if (practiceIntensity === 'CONTACT') wearIncrement += 0.6;
-  else if (practiceIntensity === 'WALKTHROUGH') wearIncrement -= 0.4;
-
-  player.condition.seasonWear = clamp(player.condition.seasonWear + wearIncrement, 0, 45);
-  player.condition.inGameStamina = clamp(100 - player.condition.seasonWear * 0.5, 55, 100);
 }
 
 /**
@@ -146,7 +130,7 @@ const BREAKOUTS: Partial<Record<PlayerClass, { chance: number; min: number; max:
 };
 const STRENGTH_COACH_BONUS_RATING = 80; // a strength coach this good adds a point a year
 
-export function processOffSeasonProgression(player: Player, strengthCoachRating: number): void {
+export function processOffSeasonProgression(player: Player, strengthCoachRating: number, trainedGrowth = 0): void {
   let growth = POTENTIAL_GROWTH[player.potential];
 
   const breakout = BREAKOUTS[player.classYear];
@@ -155,13 +139,18 @@ export function processOffSeasonProgression(player: Player, strengthCoachRating:
   if (strengthCoachRating >= STRENGTH_COACH_BONUS_RATING) growth += 1;
   if (player.classYear === 'Senior') growth = Math.min(2, growth);
 
-  player.overallRating = clamp(player.overallRating + growth, 35, 99);
+  // Weekly practice already delivered part of the year's skill growth (sim/training): leave a typical year's
+  // share out of the overall and key skills (a fraction rounds up by chance)
+  const cut = Math.floor(trainedGrowth) + (Math.random() < trainedGrowth - Math.floor(trainedGrowth) ? 1 : 0);
+  const skillGrowth = Math.max(0, growth - cut);
+
+  player.overallRating = clamp(player.overallRating + skillGrowth, 35, 99);
   player.attributes.strength = clamp(player.attributes.strength + growth, 35, 99);
   player.attributes.speed = clamp(player.attributes.speed + Math.floor(growth * 0.75), 35, 99);
   player.attributes.agility = clamp(player.attributes.agility + Math.floor(growth * 0.7), 35, 99);
   player.attributes.footballIQ = clamp(player.attributes.footballIQ + 3, 30, 99);
   POSITION_KEY_SKILLS[player.position].forEach((skill) => {
-    player.attributes[skill] = clamp((player.attributes[skill] as number) + growth, 20, 99);
+    player.attributes[skill] = clamp((player.attributes[skill] as number) + skillGrowth, 20, 99);
   });
 
   // Reset conditions for new year

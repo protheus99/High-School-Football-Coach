@@ -12,6 +12,7 @@ import { DEPTH_TEMPLATE, rebuildDepthChart } from '../sim/depthChart';
 import { NameProfile, randomPlayerName, randomSurname } from './names';
 import { stateTalent } from '../sim/stateRules';
 import { processOffSeasonProgression } from '../sim/playerEngine';
+import { applySeasonOfTraining, defaultSeasonGrowth } from '../sim/training';
 
 // Player and coach names come from ./names (realistic, region-aware pools)
 
@@ -292,7 +293,7 @@ const NEXT_CLASS = { Freshman: 'Sophomore', Sophomore: 'Junior', Junior: 'Senior
 
 /**
  * A full roster built the way the game builds every roster after it: each class arrived as a freshman class (with
- * its own talent wave) and has been through its years of offseason progression since, and the best players start.
+ * its own talent wave) and has been through its years of training and offseason progression since, and the best players start.
  * A starting roster is then just a typical year, so ratings don't drift as seasons go by.
  */
 export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: NameProfile = 'DEFAULT'): Player[] {
@@ -305,7 +306,8 @@ export function generateCompleteTeamRoster(talentAdjustment = 0, nameProfile: Na
       const years = randomInt(0, 3);
       const player = generateIncomingFreshman(pos, talentAdjustment + waves[years], { nameProfile, takenNames });
       for (let y = 0; y < years; y++) {
-        processOffSeasonProgression(player, strengthCoach);
+        applySeasonOfTraining(player);
+        processOffSeasonProgression(player, strengthCoach, defaultSeasonGrowth(player.potential));
         player.classYear = NEXT_CLASS[player.classYear as keyof typeof NEXT_CLASS];
         player.age += 1;
       }

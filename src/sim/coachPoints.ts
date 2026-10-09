@@ -52,7 +52,7 @@ export const COACH_TALENTS: CoachTalent[] = [
     cost: 12000,
     requires: 'RECRUITING_NETWORK'
   },
-  { id: 'ASSISTANT_UPGRADE', branch: 'DEVELOPER', name: 'Assistant Upgrade', description: 'Assistants drill 8 players a week instead of 6.', cost: 6000 },
+  { id: 'ASSISTANT_UPGRADE', branch: 'DEVELOPER', name: 'Assistant Upgrade', description: 'Sharper assistants: +20% skill gain from every practice.', cost: 6000 },
   {
     id: 'WEIGHT_ROOM_FANATIC',
     branch: 'DEVELOPER',
@@ -101,7 +101,6 @@ export const weeklyCpIncome = (week: number, owned: TalentId[], boardTrust = 70)
   Math.max(0, weeklyCoachPoints(week) + (owned.includes('BIGGER_BUDGET') ? 10 : 0) + boardCpModifier(boardTrust));
 export const feederEventCost = (base: number, owned: TalentId[]) => Math.round(base * (owned.includes('RECRUITING_NETWORK') ? 0.8 : 1));
 export const collegeActionCost = (base: number, owned: TalentId[]) => Math.max(1, Math.round(base * (owned.includes('COLLEGE_CONNECTIONS') ? 0.6 : 1)));
-export const drillsPerWeek = (base: number, owned: TalentId[]) => base + (owned.includes('ASSISTANT_UPGRADE') ? 2 : 0);
 /** Strength-and-conditioning boost applied to the user's off-season progression. */
 export const offseasonConditioningBonus = (owned: TalentId[]) => (owned.includes('WEIGHT_ROOM_FANATIC') ? 15 : 0);
 

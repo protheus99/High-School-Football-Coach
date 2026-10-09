@@ -6,6 +6,7 @@ import { teamStarterRating } from '../macroSim';
 import { Position, Team } from '../../types/game';
 import { buildTexasLeague } from '../league';
 import texas6A from '../../data/texas-6a.json';
+import { applySeasonOfTraining } from '../training';
 
 const positions = Object.keys(DEPTH_TEMPLATE) as Position[];
 
@@ -47,7 +48,8 @@ describe('Off-season rollover', () => {
 
   it('grows position skills along with overall rating', () => {
     const [team] = generateDistrictTeams();
-    const qb = team.roster.find((p) => p.position === 'QB' && p.classYear !== 'Senior');
+    // Room under the 99 cap for a breakout year's growth
+    const qb = team.roster.find((p) => p.position === 'QB' && p.classYear !== 'Senior' && p.attributes.passingAccuracy <= 85 && p.overallRating <= 85);
     if (!qb) return;
     const before = { ovr: qb.overallRating, acc: qb.attributes.passingAccuracy };
     advanceTeamToNextSeason(team);
@@ -65,6 +67,8 @@ describe('Off-season rollover', () => {
     const average = () => teams.reduce((s, t) => s + teamStarterRating(t), 0) / teams.length;
     const yearly = [average()];
     for (let year = 0; year < 8; year++) {
+      // A season of practice (as computer programs train), then the rollover
+      teams.forEach((t) => t.roster.forEach(applySeasonOfTraining));
       teams.forEach((t) => advanceTeamToNextSeason(t));
       teams.forEach(expectFullDepthChart);
       yearly.push(average());

@@ -1,6 +1,5 @@
 import Dexie, { Table } from 'dexie';
 import type { Difficulty, LeagueStructure } from '../sim/league';
-import type { DrillFocus } from '../sim/drillEngine';
 import type { TalentId } from '../sim/coachPoints';
 import { SAVE_FORMAT_GZIP, canCompressSaves, compressText, decompressText } from './saveCodec';
 import type { PlayoffBracketState } from '../sim/playoffEngine';
@@ -15,7 +14,7 @@ export interface GameSaveRecord {
   coachPoints?: number; // Coach Points (older saves: coachingAP)
   coachingAP?: number; // legacy action points
   coachTalents?: TalentId[];
-  practiceIntensity: 'WALKTHROUGH' | 'STANDARD' | 'CONTACT';
+  practiceIntensity: string; // sim/training PracticeIntensity (older saves: WALKTHROUGH / STANDARD / CONTACT)
   districtTeams: Team[];
   activeDilemma: NarrativeDilemma | null;
   scoutingPool: FeederProspect[];
@@ -43,8 +42,6 @@ export interface GameSaveRecord {
   dilemmaLog?: DilemmaRecord[];
   pressLog?: { questionId: string; year: number; week: number; phrasing?: number }[];
   difficulty?: Difficulty;
-  drillFocus?: DrillFocus;
-  campSchedule?: 'TWO_A_DAY' | 'THREE_A_DAY';
   feederClassYear?: number;
   seasonRecap?: import('../store/gameStore').SeasonRecap | null;
 }

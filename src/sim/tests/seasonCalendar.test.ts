@@ -4,7 +4,6 @@ import { seasonLength } from '../league';
 import { useGameStore } from '../../store/gameStore';
 import { TEMPLATES } from '../dilemmaTemplates';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
-import { ASSISTANT_DRILLS_PER_WEEK } from '../drillEngine';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
 
@@ -59,19 +58,20 @@ describe('Season calendar', () => {
     expect(store.getState().leagueTeams).not.toBe(before);
   });
 
-  it('runs training camp: two-a-days double the drill reps, three-a-days triple them', () => {
+  it('trains every week with the chosen intensity: camp counts double, the post season not at all', () => {
     const store = useGameStore;
     store.getState().startNewSeason();
     while (store.getState().currentWeek < 5) store.getState().advanceWeek();
-    store.getState().setCampSchedule('TWO_A_DAY');
+    store.getState().setPracticeIntensity('FULL');
     store.getState().advanceWeek(); // camp week 1
-    expect(store.getState().lastDrillReport.filter((l) => !l.startsWith('Three-a-days')).length).toBe(ASSISTANT_DRILLS_PER_WEEK * 2);
-    store.getState().setCampSchedule('THREE_A_DAY');
-    store.getState().advanceWeek(); // camp week 2
-    expect(store.getState().lastDrillReport.filter((l) => !l.startsWith('Three-a-days')).length).toBe(ASSISTANT_DRILLS_PER_WEEK * 3);
-    store.getState().advanceWeek(); // camp week 3 (depth chart week)
-    store.getState().advanceWeek(); // first game week: normal reps
-    expect(store.getState().lastDrillReport.length).toBe(ASSISTANT_DRILLS_PER_WEEK);
+    const camp = store.getState().lastTrainingReport!;
+    expect(camp).toMatchObject({ week: 5, intensity: 'FULL', multiplier: 2 });
+    expect(camp.skillPoints).toBeGreaterThan(0);
+    store.getState().setPracticeIntensity('WEEK_OFF');
+    store.getState().advanceWeek(); // camp week 2: rest, no gains
+    expect(store.getState().lastTrainingReport).toMatchObject({ week: 6, intensity: 'WEEK_OFF', skillPoints: 0, injured: [] });
+    while (store.getState().currentWeek < 9) store.getState().advanceWeek();
+    expect(store.getState().lastTrainingReport).toMatchObject({ week: 8, multiplier: 1 });
   });
 
   it('holds feeder signing day at the end of pre season week 2 from the second season on', () => {

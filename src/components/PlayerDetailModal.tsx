@@ -4,6 +4,7 @@ import { Sheet } from './ui/Sheet';
 import { formatPercent } from '../utils/format';
 import { TIER_LABELS, recruitingStatus, sortedOffers } from '../sim/collegeRecruitingEngine';
 import { careerTotals, positionStatLines } from '../sim/playerStats';
+import { FatigueChip } from './ui/FatigueChip';
 
 interface PlayerDetailModalProps {
   player: Player;
@@ -19,7 +20,7 @@ const stars = (n: number) => (n > 0 ? '★'.repeat(n) + '☆'.repeat(5 - n) : 'U
 
 /**
  * The player card, the same from every screen (depth chart, roster, leaders, other teams' pages, feeders): who he
- * is, his stars and potential, how he is holding up (stamina, wear, grades, eligibility), his stats for his position
+ * is, his stars and potential, how he is holding up (stamina, fatigue, grades, eligibility), his stats for his position
  * this season and over his career, and his college recruiting. Your own players add their ratings, the depth chart
  * controls and their family; other teams' players show only what's public.
  */
@@ -56,8 +57,10 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
               <dd>{formatPercent(p.condition.inGameStamina)}</dd>
             </div>
             <div>
-              <dt>Season wear</dt>
-              <dd style={{ color: p.condition.seasonWear >= 60 ? '#B45309' : undefined }}>{formatPercent(p.condition.seasonWear)}</dd>
+              <dt>Fatigue</dt>
+              <dd>
+                <FatigueChip fatigue={p.condition.seasonWear} />
+              </dd>
             </div>
             <div>
               <dt>GPA</dt>
