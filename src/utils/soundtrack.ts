@@ -14,14 +14,21 @@ const MUSIC_DIR = `${import.meta.env.BASE_URL}music/`;
 export const songUrl = (song: Song) => `${MUSIC_DIR}${encodeURIComponent(song.file)}`;
 export const coverUrl = (song: Song) => (song.cover ? `${MUSIC_DIR}covers/${encodeURIComponent(song.cover)}` : null);
 
-/** The song list, skipping any entry without a file, title and artist. */
+/**
+ * The songs in soundtrack.json: its "songs" list (the file also holds instructions and examples, which don't play),
+ * or a bare list. Entries without a file, title and artist are skipped.
+ */
+export function parseSoundtrack(json: unknown): Song[] {
+  const list = Array.isArray(json) ? json : json && typeof json === 'object' ? (json as { songs?: unknown }).songs : undefined;
+  if (!Array.isArray(list)) return [];
+  return list.filter((s): s is Song => !!s && typeof s.file === 'string' && typeof s.title === 'string' && typeof s.artist === 'string');
+}
+
+/** The song list (empty when the file is missing or isn't valid JSON). */
 export async function loadSoundtrack(): Promise<Song[]> {
   try {
     const response = await fetch(`${MUSIC_DIR}soundtrack.json`);
-    if (!response.ok) return [];
-    const list: unknown = await response.json();
-    if (!Array.isArray(list)) return [];
-    return list.filter((s): s is Song => !!s && typeof s.file === 'string' && typeof s.title === 'string' && typeof s.artist === 'string');
+    return response.ok ? parseSoundtrack(await response.json()) : [];
   } catch {
     return [];
   }

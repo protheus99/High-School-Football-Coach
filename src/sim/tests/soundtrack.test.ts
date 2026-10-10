@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Song, introSong, shuffledRound, songColor, songInitials } from '../../utils/soundtrack';
+import { Song, introSong, parseSoundtrack, shuffledRound, songColor, songInitials } from '../../utils/soundtrack';
+import soundtrackFile from '../../../public/music/soundtrack.json';
 import { DEFAULT_MUSIC_SETTINGS, getMusicSettings, setMusicSettings } from '../../utils/musicSettings';
 
 const song = (file: string, title = file): Song => ({ file, title, artist: 'Artist' });
@@ -22,6 +23,15 @@ describe('The soundtrack', () => {
       expect(shuffledRound(songs, last)[0].file).not.toBe(last.file);
     }
     expect(shuffledRound([songs[0]], songs[0])).toEqual([songs[0]]); // one song just plays again
+  });
+
+  it('plays only the songs list: the instructions and examples in the file never play', () => {
+    expect(parseSoundtrack(soundtrackFile)).toEqual([]); // the file as shipped: instructions, examples, no songs yet
+    expect(soundtrackFile.examples.length).toBeGreaterThan(0);
+    const file = { instructions: ['…'], examples: [song('x.mp3')], songs: [song('a.mp3'), { file: 'b.mp3', title: 'No artist' }] };
+    expect(parseSoundtrack(file).map((s) => s.file)).toEqual(['a.mp3']);
+    expect(parseSoundtrack([song('c.mp3')]).map((s) => s.file)).toEqual(['c.mp3']); // a bare list works too
+    expect(parseSoundtrack('nonsense')).toEqual([]);
   });
 
   it('opens with the song flagged as the intro, then shuffles it in with the rest', () => {

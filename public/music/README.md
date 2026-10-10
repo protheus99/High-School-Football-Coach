@@ -16,16 +16,11 @@ Use lowercase file names without spaces (`friday-lights.mp3`, not `Friday Lights
 
 ## The song list
 
-`soundtrack.json` (in this folder) links each file to what the pop-up shows:
+`soundtrack.json` (in this folder) has the steps and examples at the top; add songs to its `songs` list:
 
 ```json
-[
-  {
-    "file": "friday-lights.mp3",
-    "title": "Friday Lights",
-    "artist": "The Sidelines",
-    "cover": "friday-lights.jpg"
-  }
+"songs": [
+  { "file": "friday-lights.mp3", "title": "Friday Lights", "artist": "The Sidelines", "cover": "friday-lights.jpg" }
 ]
 ```
 

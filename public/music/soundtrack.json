@@ -1,1 +1,19 @@
-[]
+{
+  "instructions": [
+    "MENU MUSIC: every song in the songs list below plays on the menus (every screen except live games), in a random order.",
+    "STEP 1: put the MP3 in the public/music folder. Use lowercase file names without spaces, like friday-lights.mp3.",
+    "STEP 2 (optional): put a square cover image (about 300 x 300, JPG, PNG or WebP) in public/music/covers, like friday-lights.jpg.",
+    "STEP 3: copy one of the examples below into the songs list and change file, title, artist and cover to match.",
+    "NO COVER: leave out the cover line and the Now Playing pop-up shows the song's initials instead.",
+    "INTRO SONG: add \"intro\": true to ONE song. It plays first on the title screen when the game loads (once per visit), then joins the random rotation.",
+    "FORMAT: each song sits in { }, songs are separated by commas, and the last song has no comma after it. Text goes in double quotes.",
+    "RIGHTS: everything here is published on the live site and in the public GitHub repository. Only add music you have the right to share.",
+    "Only the songs list is played: the instructions and examples are ignored by the game."
+  ],
+  "examples": [
+    { "file": "friday-lights.mp3", "title": "Friday Lights", "artist": "The Sidelines", "cover": "friday-lights.jpg" },
+    { "file": "fourth-and-long.mp3", "title": "Fourth and Long", "artist": "Kilo Static" },
+    { "file": "main-theme.mp3", "title": "Main Theme", "artist": "The Sidelines", "cover": "main-theme.jpg", "intro": true }
+  ],
+  "songs": []
+}
