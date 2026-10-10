@@ -8,6 +8,7 @@ import { CAREER_LENGTHS, CareerLength } from '../sim/careerScore';
 // The classic game (a random school at a difficulty, unranked) is hidden for now; flip this to bring it back
 const SHOW_CLASSIC_GAME = false;
 import { deleteSaveGame, listSaveSummaries, loadSaveGame, SaveSummary } from '../services/db';
+import { version } from '../../package.json';
 
 const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; color: string }[] = [
   { id: 'EASY', label: 'Easy', blurb: 'Take over a powerhouse: deep talent, rich boosters, title expectations.', color: '#15803D' },
@@ -288,6 +289,8 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             <BackButton onClick={() => setView('MENU')} />
           </div>
         )}
+        {/* The build the coach is playing (package.json), for bug reports */}
+        <div style={{ textAlign: 'center', marginTop: '28px', color: '#64748B', fontSize: '12px' }}>Version {version}</div>
       </div>
     </div>
   );

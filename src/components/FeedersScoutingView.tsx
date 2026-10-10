@@ -87,7 +87,7 @@ const SECTIONS: { id: FeederSection; label: string; short: string }[] = [
   { id: 'NEEDS', label: '📋 Team Needs', short: '📋 Needs' }
 ];
 
-/** Feeders: next year's students, the off-season programs that find and win them, and the roster's needs. */
+/** Prospects (the feeder pipeline): next year's students, the off-season programs that find and win them, and the roster's needs. */
 export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: (section: FeederSection) => void; onOpenPlayer: (player: Player) => void }> = ({
   section,
   onSection,
@@ -217,11 +217,11 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
 
   return (
     <>
-    <PageHeader title="Feeders" subtitle={FEEDER_SUBTITLES[section]} />
+    <PageHeader title="Prospects" subtitle={FEEDER_SUBTITLES[section]} />
     {/* Sticky navigation: the page is long, so its sections and the Students list controls stay on screen */}
     <div ref={navRef} className="ui-sticky-nav">
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 16px', display: 'grid', gap: '6px' }}>
-        <div className="ui-chip-row ui-chip-row-3" role="tablist" aria-label="Feeders sections">
+        <div className="ui-chip-row ui-chip-row-3" role="tablist" aria-label="Prospects sections">
           {SECTIONS.map((t) => (
             <button key={t.id} role="tab" className="ui-chip" aria-selected={section === t.id} aria-pressed={section === t.id} onClick={() => onSection(t.id)}>
               <span className="hide-sm">{t.label}</span>

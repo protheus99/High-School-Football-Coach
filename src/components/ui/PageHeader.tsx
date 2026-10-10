@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * The top of every main section (Team, Rankings, Leaders, Feeders), the same everywhere: the section title,
+ * The top of every main section (Team, Rankings, Leaders, Prospects), the same everywhere: the section title,
  * a sub header for the current view, then the sub-navigation buttons, with an optional detail on the right.
  */
 export function PageHeader<T extends string>({

@@ -336,7 +336,7 @@ export const WeeklyAgenda: React.FC<{
             }
           ]
         : undefined,
-      link: { label: 'Feeders', onClick: () => onNavigate('FEEDERS') }
+      link: { label: 'Prospects', onClick: () => onNavigate('FEEDERS') }
     };
   };
 
@@ -556,7 +556,7 @@ export const WeeklyAgenda: React.FC<{
         title: currentWeek === firstOffSeasonWeek ? `Feeder program opens: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pipeline` : `Grow the pipeline: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')}`,
         detail: `Off season week ${currentWeek - firstOffSeasonWeek + 1} of 4. Signing day is pre season week ${FEEDER_SIGNING_WEEK}.`,
         tone: 'info',
-        link: { label: 'Feeders', onClick: () => onNavigate('FEEDERS') }
+        link: { label: 'Prospects', onClick: () => onNavigate('FEEDERS') }
       };
     }
     task = feederEventsCard(currentWeek === totalWeeks ? 'Last chance for feeder events' : 'Run feeder events');

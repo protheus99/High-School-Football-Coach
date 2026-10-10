@@ -31,7 +31,7 @@ const NAV_TABS: { id: AppTab; icon: string; label: string }[] = [
   { id: 'TEAM', icon: '🧢', label: 'Team' },
   { id: 'RANKINGS', icon: '🏆', label: 'Rankings' },
   { id: 'LEADERS', icon: '🌟', label: 'Leaders' },
-  { id: 'FEEDERS', icon: '🔍', label: 'Feeders' }
+  { id: 'FEEDERS', icon: '🔍', label: 'Prospects' }
 ];
 
 export const App: React.FC = () => {
