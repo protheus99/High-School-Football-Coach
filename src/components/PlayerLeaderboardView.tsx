@@ -69,9 +69,9 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
     <>
     <PageHeader
       title="Leaders"
-      subtitle={`${isProspects ? 'Prospect rankings' : 'Stat leaders'} · week ${rankingsState.week} · tap a player for his profile`}
+      subtitle={`${isProspects ? 'Recruit rankings' : 'Stat leaders'} · week ${rankingsState.week} · tap a player for his profile`}
       tabs={[
-        { id: 'PROSPECT_RANKINGS' as const, label: '🎓 Prospects' },
+        { id: 'PROSPECT_RANKINGS' as const, label: '🎓 Recruits' },
         { id: 'STAT_LEADERS' as const, label: '📊 Stat Leaders' }
       ]}
       active={activeTab}

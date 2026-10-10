@@ -331,7 +331,7 @@ export const WeeklyAgenda: React.FC<{
               disabled: coachPoints < cost,
               onClick: () => {
                 onTheFence.forEach((p) => contactFeederProspect(p.id, 'VISIT'));
-                setFlash(`Visited ${plural(onTheFence.length, 'prospect')} before signing day.`);
+                setFlash(`Visited ${plural(onTheFence.length, 'prospect')} before Prospect signing day.`);
               }
             }
           ]
@@ -356,7 +356,7 @@ export const WeeklyAgenda: React.FC<{
       title,
       detail: scoutingPool.filter((p) => !p.homeTeamId).length >= MAX_POOL_SIZE
         ? `Your pipeline is full (${MAX_POOL_SIZE}): programs warm up your prospects but won't find new ones until you remove some.`
-        : `Clinics and events find and win over next year's players. They pick their school on signing day (pre season week ${FEEDER_SIGNING_WEEK}).`,
+        : `Clinics and events find and win over next year's players. They pick their school on Prospect signing day (pre season week ${FEEDER_SIGNING_WEEK}).`,
       tone: 'todo',
       actions: events.map((e) => {
         const cost = feederEventCost(FEEDER_EVENTS[e].cost, coachTalents);
@@ -439,11 +439,11 @@ export const WeeklyAgenda: React.FC<{
               id: 'season',
               icon: '📅',
               title: `Welcome to ${team.name}, Coach`,
-              detail: `Prestige ${team.prestige}, Rating ${programRating(team)}. Your first feeder signing day is next season.`,
+              detail: `Prestige ${team.prestige}, Rating ${programRating(team)}. Your first Prospect signing day is next season.`,
               tone: 'info',
               link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
             };
-      task = signingThisSeason ? visitsCard('Signing day is next week: final visits', 'todo') : collegeCard();
+      task = signingThisSeason ? visitsCard('Prospect signing day is next week: final visits', 'todo') : collegeCard();
       // Week 1: set the program up (a new program has no assistants)
       if (coachingStaff.length === 0)
         extras.push({
@@ -456,7 +456,7 @@ export const WeeklyAgenda: React.FC<{
         });
       extras.push(practiceCard('Set your practice intensity', 'practice-focus'));
     } else if (currentWeek === FEEDER_SIGNING_WEEK && signingThisSeason) {
-      headline = visitsCard('Feeder signing day: last chance to win prospects over', 'urgent', 'signing');
+      headline = visitsCard('Prospect signing day: last chance to win prospects over', 'urgent', 'signing');
       task = collegeCard();
     } else if (currentWeek <= PRESEASON_WEEKS && currentWeek < PRESEASON_WEEKS) {
       const joined = lastFeederResults && feederClassYear === currentYear + 1 && currentYear > (seasonRecap?.year ?? 0) ? lastFeederResults : null;
@@ -464,7 +464,7 @@ export const WeeklyAgenda: React.FC<{
         ? {
             id: 'signing-results',
             icon: '🆕',
-            title: `Signing day: ${plural(joined.filter((o) => o.outcome === 'JOINED').length, 'newcomer')} joined`,
+            title: `Prospect signing day: ${plural(joined.filter((o) => o.outcome === 'JOINED').length, 'newcomer')} joined`,
             detail: `${joined.filter((o) => o.outcome === 'OTHER_SCHOOL').length} chose another school and ${joined.filter((o) => o.outcome === 'LEFT_AREA').length} moved away. New student enrollment is done: meet them on the roster.`,
             tone: 'info',
             link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
@@ -553,13 +553,13 @@ export const WeeklyAgenda: React.FC<{
       headline = {
         id: 'pipeline',
         icon: '🔍',
-        title: currentWeek === firstOffSeasonWeek ? `Feeder program opens: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pipeline` : `Grow the pipeline: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')}`,
-        detail: `Off season week ${currentWeek - firstOffSeasonWeek + 1} of 4. Signing day is pre season week ${FEEDER_SIGNING_WEEK}.`,
+        title: currentWeek === firstOffSeasonWeek ? `Prospect season opens: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pipeline` : `Grow the pipeline: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')}`,
+        detail: `Off season week ${currentWeek - firstOffSeasonWeek + 1} of 4. Prospect signing day is pre season week ${FEEDER_SIGNING_WEEK}.`,
         tone: 'info',
         link: { label: 'Prospects', onClick: () => onNavigate('FEEDERS') }
       };
     }
-    task = feederEventsCard(currentWeek === totalWeeks ? 'Last chance for feeder events' : 'Run feeder events');
+    task = feederEventsCard(currentWeek === totalWeeks ? 'Last chance for prospect events' : 'Run prospect events');
   } else {
     headline = { id: 'bye', icon: '😴', title: 'Bye week: rest and prepare', detail: 'No game this week. Injured players get a week to heal.', tone: 'info' };
   }

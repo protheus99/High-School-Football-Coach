@@ -281,7 +281,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
 
       {/* Signing day */}
       <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', marginBottom: '14px' }}>
-        ✍️ <strong>Signing day:</strong>{' '}
+        ✍️ <strong>Prospect signing day:</strong>{' '}
         {currentYear >= feederClassYear && currentWeek <= FEEDER_SIGNING_WEEK
           ? currentWeek === FEEDER_SIGNING_WEEK
             ? 'this week is the last chance. Prospects pick their school when the week ends.'
@@ -396,7 +396,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
           <p className="ui-muted" style={{ margin: '0 0 10px 0', fontSize: '12px' }}>
             {scope === 'NATIONAL' || (scope === 'STATE' && multiRegion)
               ? `Faraway prospects are long shots: contacts earn ${scope === 'NATIONAL' ? 'half' : 'three quarters of'} the usual interest, and even with his commitment his family has to agree to move. His zoned school is working him too.`
-              : `Every program in the ${(scope === 'DISTRICT' ? regionWord : scopeName).toLowerCase()} recruits this pool. At ${COMMIT_THRESHOLD}+ interest a prospect commits; on signing day the school with the highest interest signs him, and a tie at the top is a coin flip.`}
+              : `Every program in the ${(scope === 'DISTRICT' ? regionWord : scopeName).toLowerCase()} recruits this pool. At ${COMMIT_THRESHOLD}+ interest a prospect commits; on Prospect signing day the school with the highest interest signs him, and a tie at the top is a coin flip.`}
           </p>
 
           {/* Prospects */}
@@ -522,7 +522,7 @@ const ProspectCard: React.FC<{
           }}
         >
           {commitment.isYou ? '✅ Committed to you' : `🔒 Committed to ${commitment.name}`} ({commitment.interest})
-          {commitment.tied ? ' · tied at the top: a coin flip on signing day' : !commitment.isYou ? ` · pass ${commitment.interest} to win him` : ''}
+          {commitment.tied ? ' · tied at the top: a coin flip on Prospect signing day' : !commitment.isYou ? ` · pass ${commitment.interest} to win him` : ''}
         </div>
       )}
       <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>

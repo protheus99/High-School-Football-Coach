@@ -43,7 +43,7 @@ export interface CoachTalent {
 
 /** Every talent changes something real in the game (the effect helpers below are read by the systems). */
 export const COACH_TALENTS: CoachTalent[] = [
-  { id: 'RECRUITING_NETWORK', branch: 'RECRUITER', name: 'Recruiting Network', description: 'Feeder events cost 20% less.', cost: 6000 },
+  { id: 'RECRUITING_NETWORK', branch: 'RECRUITER', name: 'Recruiting Network', description: 'Prospect events cost 20% less.', cost: 6000 },
   {
     id: 'COLLEGE_CONNECTIONS',
     branch: 'RECRUITER',
@@ -66,7 +66,7 @@ export const COACH_TALENTS: CoachTalent[] = [
     id: 'BOOSTER_BREAKFASTS',
     branch: 'POLITICIAN',
     name: 'Booster Breakfasts',
-    description: 'Win over the boosters: Rating up right away, and feeder recruiting gets a lift.',
+    description: 'Win over the boosters: Rating up right away, and prospect recruiting gets a lift.',
     cost: 12000,
     requires: 'BOARD_ROOM_SHIELD'
   },

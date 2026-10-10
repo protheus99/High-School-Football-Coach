@@ -222,7 +222,7 @@ export const PRESS_QUESTIONS: QuestionTemplate[] = [
       ['PREP_GRIDIRON_TALK', `College coaches are calling about ${name(c.prospect!)}. Where does he fit?`],
       ['TOWN_JOURNAL', `Is ${name(c.prospect!)} the best player you've coached here?`]
     ],
-    reason: () => 'A college prospect starred.',
+    reason: () => 'A college recruit starred.',
     answers: (c) => [
       answer('film', `"${name(c.prospect!)} has Division I talent. We'll send his film everywhere."`, EVEN, { exposurePlayerIds: [c.prospect!.id], coachPointsDelta: -10 }),
       answer('winners', '"We win games. College coaches find winners."', UP, { coachPointsDelta: -5 }, 'COMPROMISE'),

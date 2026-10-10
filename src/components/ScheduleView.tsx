@@ -8,8 +8,8 @@ function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signing
   switch (phase) {
     case 'SPRING_EVALUATION':
       // A new game's first season has no signing day: its rosters already hold this year's freshmen
-      if (signingThisSeason && week < FEEDER_SIGNING_WEEK) return 'Final feeder visits before signing day';
-      if (signingThisSeason && week === FEEDER_SIGNING_WEEK) return '✍️ Feeder signing day: prospects pick their school';
+      if (signingThisSeason && week < FEEDER_SIGNING_WEEK) return 'Final prospect visits before Prospect signing day';
+      if (signingThisSeason && week === FEEDER_SIGNING_WEEK) return '✍️ Prospect signing day: prospects pick their school';
       return 'New student enrollment · College recruiting';
     case 'SUMMER_CAMP':
       return week === LAST_TRAINING_CAMP_WEEK ? '📋 Depth chart set for the season' : 'High intensity training';
@@ -18,7 +18,7 @@ function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signing
     case 'POST_SEASON':
       return '🎓 Seniors graduation and signing';
     case 'OFF_SEASON':
-      return isLastWeek ? 'The new school year begins as the week ends' : '🔍 Feeder clinics, 7-on-7 nights and tryouts';
+      return isLastWeek ? 'The new school year begins as the week ends' : '🔍 Prospect clinics, 7-on-7 nights and tryouts';
     default:
       return 'Bye week';
   }
@@ -92,7 +92,7 @@ export const ScheduleView: React.FC = () => {
     <div style={{ maxWidth: '850px', margin: '0 auto' }}>
       <h3 style={{ margin: '0 0 4px 0', fontSize: '17px' }}>{totalWeeks}-week schedule</h3>
       <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
-        Pre season and feeder signing day, training camp, non-{rulesForState(league?.state).districtLabel.toLowerCase()} tune-ups, the {districtName ?? rulesForState(league?.state).districtLabel.toLowerCase()} race, the state playoffs and
+        Pre season and Prospect signing day, training camp, non-{rulesForState(league?.state).districtLabel.toLowerCase()} tune-ups, the {districtName ?? rulesForState(league?.state).districtLabel.toLowerCase()} race, the state playoffs and
         the off season.
       </p>
 

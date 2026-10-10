@@ -216,7 +216,7 @@ function signingDayNews(signings: Signing[], prestigeChange: number, userTeam: T
       id: `news_signing_day_${year}`,
       week,
       outlet: 'TOWN_JOURNAL',
-      headline: `Signing Day: ${mine.length} ${userTeam.name} Seniors Sign With Colleges${d1.length ? ` (${d1.length} Division I)` : ''}`,
+      headline: `College Signing Day: ${mine.length} ${userTeam.name} Seniors Sign With Colleges${d1.length ? ` (${d1.length} Division I)` : ''}`,
       content: `${mine.map((s) => `${s.player.firstName} ${s.player.lastName} (${s.offer.collegeName})`).join(', ')}.${
         prestigeChange > 0 ? ' The class gives the program a boost in prestige.' : prestigeChange < 0 ? ' Program prestige slips after a thin class.' : ''
       }`,
@@ -233,7 +233,7 @@ function signingDayNews(signings: Signing[], prestigeChange: number, userTeam: T
         week,
         outlet: 'PREP_GRIDIRON_TALK',
         headline: `Five-Star ${s.player.position} ${s.player.firstName} ${s.player.lastName} Signs With ${s.offer.collegeName}`,
-        content: `${s.team.name}'s standout makes it official on signing day.`,
+        content: `${s.team.name}'s standout makes it official on College signing day.`,
         impactSentiment: 'NEUTRAL',
         featuredTeamName: s.team.name
       })
@@ -1497,7 +1497,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       id: `news_feeder_class_${currentYear}`,
       week,
       outlet: 'TOWN_JOURNAL',
-      headline: `Signing Day: ${userTeam.name} Welcomes ${joinedCount} Newcomers to the Program`,
+      headline: `Prospect Signing Day: ${userTeam.name} Welcomes ${joinedCount} Newcomers to the Program`,
       content: `${joinedCount} of ${outcomes.length} prospects in your pipeline chose ${userTeam.name}. ${
         outcomes.filter((o) => o.outcome === 'OTHER_SCHOOL').length
       } enrolled elsewhere and ${outcomes.filter((o) => o.outcome === 'LEFT_AREA').length} moved away.${

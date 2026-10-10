@@ -27,7 +27,7 @@ export function ratingAlerts(team: Team, onHotSeat: boolean): string[] {
   else if (m.schoolBoardTrust < HOT_SEAT_TRUST) alerts.push('The school board is losing patience. Win games to win it back.');
   if (m.lockerRoomDiscipline < SUSPENSION_DISCIPLINE) alerts.push('Locker-room morale is low: expect sloppy play and suspensions.');
   if (m.complianceScore < 40) alerts.push('The state association is watching the program closely.');
-  if (m.boosterApproval < 50) alerts.push('Boosters are unhappy, which hurts feeder recruiting.');
+  if (m.boosterApproval < 50) alerts.push('Boosters are unhappy, which hurts prospect recruiting.');
   return alerts;
 }
 

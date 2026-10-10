@@ -36,7 +36,7 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
 
       {/* National Signing Day (NLI) Showcase */}
       <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
-        <h3 style={{ margin: '0 0 4px 0', color: '#1E293B' }}>✍️ National Signing Day (NLI)</h3>
+        <h3 style={{ margin: '0 0 4px 0', color: '#1E293B' }}>✍️ College Signing Day (NLI)</h3>
         <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#64748B' }}>
           {signees.length} senior{signees.length === 1 ? '' : 's'} signed to play in college ({d1Count} Division I). Every Division I signee builds the
           program&apos;s alumni prestige.

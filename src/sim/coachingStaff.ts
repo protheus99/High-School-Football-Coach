@@ -201,7 +201,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
     title: 'JV Head Coach',
     edgeCap: 0,
     effects: [
-      { id: 'feeder_pipeline', name: 'Feeder Pipeline', description: 'Every recruiting contact with a feeder prospect earns more interest', kind: 'RECRUITING', amount: 0.1 },
+      { id: 'feeder_pipeline', name: 'Prospect Pipeline', description: 'Every contact with a middle school prospect earns more interest', kind: 'RECRUITING', amount: 0.1 },
       { id: 'youth_development', name: 'Youth Development', description: 'Freshmen grow +1 a season', kind: 'DEVELOPMENT', amount: 1 }
     ]
   },
