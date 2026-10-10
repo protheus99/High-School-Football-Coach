@@ -12,9 +12,13 @@ import {
   getTeamGameForWeek
 } from '../sim/scheduleEngine';
 import { CONTACT_ACTIONS, FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
-import { COACH_TALENTS, collegeActionCost, feederEventCost, formatCP, talentBlocker, weeklyCpIncome } from '../sim/coachPoints';
-import { CAMP_WEEKS, COLLEGE_ACTION_COSTS, CollegeAction, collegeActionBlocker, recruitScore } from '../sim/collegeRecruitingEngine';
+import { feederEventCost } from '../sim/coachPoints';
+import { isDivisionOne, recruitScore } from '../sim/collegeRecruitingEngine';
+import { rankedName } from '../sim/newsEngine';
+import { HubHeadlines } from './HubHeadlines';
+import { SeasonCard } from './SeasonCard';
 import { PracticePicker } from './PracticePicker';
+import { PRACTICE_OPTIONS } from '../sim/training';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { dilemmaChoiceEffects } from '../sim/dilemmaEngine';
 import { ChoiceEffects } from './ui/ChoiceEffects';
@@ -41,6 +45,9 @@ export type AgendaTab =
   | 'FEEDER_PROGRAMS'
   | 'FEEDER_NEEDS'
   | 'DISTRICT'
+  | 'POLLS'
+  | 'PLAYOFFS'
+  | 'NEWS'
   | 'SCOREBOARD';
 
 /** This week's game, as the Hub needs it. */
@@ -63,22 +70,46 @@ interface AgendaAction {
 interface AgendaItem {
   id: string;
   icon: string;
-  title: string;
+  title: React.ReactNode;
   detail?: string;
   tone: 'urgent' | 'todo' | 'info' | 'done';
   actions?: AgendaAction[];
-  link?: { label: string; onClick: () => void };
+  link?: { label: string; onClick: () => void }; // shown as a button after the actions
   content?: React.ReactNode; // custom body (the dilemma, the practice plan)
+  kicker?: string; // a small label over the title ("NEEDS YOUR REVIEW")
+  note?: string; // a line under the buttons
+  accent?: string; // the card's color (defaults by tone)
+  counted?: boolean; // a task for the "to do" count: done when `tone` is 'done'
 }
 
-const TONES: Record<AgendaItem['tone'], { border: string; background: string }> = {
-  urgent: { border: '#F59E0B', background: '#FFFBEB' },
-  todo: { border: '#3B82F6', background: '#EFF6FF' },
-  info: { border: '#CBD5E1', background: '#fff' },
-  done: { border: '#86EFAC', background: '#F0FDF4' }
+/** Each card's color: the left edge, and a tint behind its icon. */
+const ACCENTS: Record<string, [string, string]> = {
+  dilemma: ['#F59E0B', '#FEF3C7'],
+  game: ['#2563EB', '#DBEAFE'],
+  starters: ['#DC2626', '#FEE2E2'],
+  warnings: ['#DC2626', '#FEE2E2'],
+  practice: ['#7C3AED', '#EDE9FE'],
+  college: ['#0891B2', '#CFFAFE'],
+  feeder: ['#0D9488', '#CCFBF1'],
+  race: ['#4F46E5', '#E0E7FF'],
+  school: ['#EA580C', '#FFEDD5'],
+  info: ['#64748B', '#F1F5F9']
+};
+const accentFor = (item: AgendaItem): [string, string] => {
+  if (item.accent) return ACCENTS[item.accent] ?? ACCENTS.info;
+  const id = item.id;
+  if (id === 'dilemma') return ACCENTS.dilemma;
+  if (id === 'game' || id === 'open-week' || id === 'preview' || id === 'depth-chart') return ACCENTS.game;
+  if (id === 'starters' || id === 'warnings') return ACCENTS.starters;
+  if (id.startsWith('practice') || id.startsWith('camp')) return ACCENTS.practice;
+  if (id === 'college') return ACCENTS.college;
+  if (id === 'visits' || id === 'signing' || id === 'feeder-events' || id === 'team-needs' || id === 'pipeline' || id === 'signing-results') return ACCENTS.feeder;
+  if (id === 'race') return ACCENTS.race;
+  if (id === 'report-cards' || id === 'board-review') return ACCENTS.school;
+  if (item.tone === 'urgent') return ACCENTS.dilemma;
+  return ACCENTS.info;
 };
 
-const MAX_OPEN_CARDS = 4;
 const TOP_PROSPECTS = 3;
 const TIRED = 55; // fatigue at which a starter is flagged (Tired and Exhausted, sim/training)
 
@@ -111,10 +142,12 @@ export const WeeklyAgenda: React.FC<{
     coachTalents,
     activeDilemma,
     resolveDilemma,
+    dilemmaLog,
     feederEventsThisWeek,
     runFeederEvent,
-    collegeRecruitAction,
     lastTrainingReport,
+    practiceIntensity,
+    polls,
     league,
     scoutingPool,
     feederClassYear,
@@ -129,6 +162,8 @@ export const WeeklyAgenda: React.FC<{
   } = store;
   // Confirmation for the last quick action; it belongs to the week it happened in
   const [flashState, setFlashState] = useState<{ text: string; week: number } | null>(null);
+  // The dilemma opens to its options on Review; one tap on an option decides
+  const [reviewing, setReviewing] = useState(false);
   const flash = flashState?.week === currentWeek ? flashState.text : null;
   const setFlash = (text: string) => setFlashState({ text, week: currentWeek });
   const team = leagueTeams.find((t) => t.id === userTeamId);
@@ -157,22 +192,38 @@ export const WeeklyAgenda: React.FC<{
   const myRow = standings.find((r) => r.teamId === userTeamId);
 
   // ---------------------------------------------------------------- reusable cards
-  const dilemmaCard = (): AgendaItem | null =>
-    activeDilemma && {
+  // This week's decision, once made: it stays on the list as done
+  const decided = dilemmaLog.find((r) => r.year === currentYear && r.week === currentWeek);
+  const dilemmaCard = (): AgendaItem | null => {
+    if (!activeDilemma)
+      return decided
+        ? { id: 'dilemma', icon: '📣', title: decided.title, detail: decided.choiceLabel ? `You chose: ${decided.choiceLabel}` : undefined, tone: 'done', counted: true }
+        : null;
+    return {
       id: 'dilemma',
-      icon: '⚠️',
+      icon: '📣',
+      kicker: 'NEEDS YOUR REVIEW',
       title: activeDilemma.title,
+      detail: activeDilemma.scenario,
       tone: 'urgent',
-      content: (
+      counted: true,
+      actions: reviewing ? undefined : [{ label: 'Review', primary: true, onClick: () => setReviewing(true) }],
+      content: reviewing && (
         <div>
-          <p style={{ margin: '4px 0 8px 0', fontSize: '13px', color: '#334155' }}>{activeDilemma.scenario}</p>
-          <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>What do you do?</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
             {activeDilemma.choices.map((c) => {
               const fx = dilemmaChoiceEffects(c, team);
               const cannotAfford = fx.coachPoints < 0 && coachPoints < -fx.coachPoints;
               return (
-                <button key={c.id} onClick={() => resolveDilemma(c)} disabled={cannotAfford} style={{ ...choiceBtn, ...(cannotAfford && { opacity: 0.6, cursor: 'not-allowed' }) }}>
+                <button
+                  key={c.id}
+                  onClick={() => {
+                    setReviewing(false);
+                    resolveDilemma(c);
+                  }}
+                  disabled={cannotAfford}
+                  style={{ ...choiceBtn, ...(cannotAfford && { opacity: 0.6, cursor: 'not-allowed' }) }}
+                >
                   <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.label}</div>
                   <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>{c.description}</div>
                   {/* What it does: the combined Rating change, Coach Points, the Friday edge, then gains and losses */}
@@ -182,9 +233,11 @@ export const WeeklyAgenda: React.FC<{
               );
             })}
           </div>
+          <div style={{ fontSize: '12px', color: '#64748B', marginTop: '6px' }}>Tap an option to decide.</div>
         </div>
       )
     };
+  };
 
   const unavailableCard = (): AgendaItem | null => {
     const out = team.roster.filter((p) => p.depthChartTier === 1 && (p.condition.injuryStatus !== 'HEALTHY' || !p.academics.isEligible));
@@ -192,13 +245,17 @@ export const WeeklyAgenda: React.FC<{
     return {
       id: 'starters',
       icon: '🩹',
-      title: `${plural(out.length, 'starter')} unavailable`,
+      title: `${plural(out.length, 'starter')} out`,
       detail: `${out
         .slice(0, 4)
         .map((p) => `${p.position} ${shortName(p)} (${p.condition.isSuspended ? 'suspended' : p.condition.injuryStatus !== 'HEALTHY' ? 'injured' : 'ineligible'})`)
-        .join(', ')}${out.length > 4 ? '…' : ''}. The next man up plays unless you change the depth chart.`,
+        .join(', ')}${out.length > 4 ? '…' : ''}. Backups are in unless you change the depth chart.`,
       tone: 'urgent',
-      link: out.some((p) => p.condition.injuryStatus !== 'HEALTHY') ? { label: 'Injury report', onClick: () => onNavigate('INJURIES') } : { label: 'Depth chart', onClick: () => onNavigate('ROSTER') }
+      accent: 'starters',
+      actions: [
+        ...(out.some((p) => p.condition.injuryStatus !== 'HEALTHY') ? [{ label: 'Injuries', onClick: () => onNavigate('INJURIES') }] : []),
+        { label: 'Depth chart', onClick: () => onNavigate('ROSTER') }
+      ]
     };
   };
 
@@ -220,52 +277,34 @@ export const WeeklyAgenda: React.FC<{
     return { id: 'concerns', icon: '📉', title: 'Program concerns', detail: concerns.join(' '), tone: 'info' };
   };
 
+  // College recruiting lives on its own screen (film, calls, camps): the Hub points the way
   const collegeCard = (seniorsOnly = false): AgendaItem | null => {
-    const prospects = team.roster
+    const recruits = team.roster
       .filter((p) => (p.classYear === 'Senior' || (!seniorsOnly && p.classYear === 'Junior')) && !p.recruiting.isNationalLetterOfIntentSigned)
-      .sort((a, b) => recruitScore(b) - recruitScore(a))
-      .slice(0, TOP_PROSPECTS);
-    const batch = (action: CollegeAction) => {
-      const ready = prospects.filter((p) => !collegeActionBlocker(p, action, currentWeek, currentYear));
-      return { ready, cost: ready.length * collegeActionCost(COLLEGE_ACTION_COSTS[action], coachTalents) };
-    };
-    const runBatch = (action: CollegeAction, verb: string) => {
-      let offers = 0;
-      let done = 0;
-      batch(action).ready.forEach((p) => {
-        const result = collegeRecruitAction(p.id, action);
-        if (result.ok) done++;
-        if (result.offer) offers++;
-      });
-      setFlash(`${verb} ${plural(done, 'prospect')}${offers ? `: ${plural(offers, 'new offer')}!` : '.'}`);
-    };
-    const camp = batch('CAMP');
-    const film = batch('FILM');
-    const actions: AgendaAction[] = [];
-    if (currentWeek <= CAMP_WEEKS && camp.ready.length > 0)
-      actions.push({ label: `Camp for top ${camp.ready.length} (₡${camp.cost})`, disabled: coachPoints < camp.cost, onClick: () => runBatch('CAMP', 'Took') });
-    if (film.ready.length > 0)
-      actions.push({ label: `Send film for top ${film.ready.length} (₡${film.cost})`, disabled: coachPoints < film.cost, onClick: () => runBatch('FILM', 'Sent film for') });
-    if (actions.length === 0) return null;
+      .sort((a, b) => recruitScore(b) - recruitScore(a));
+    if (recruits.length === 0) return null;
+    const seniorsWithoutD1 = recruits.filter((p) => p.classYear === 'Senior' && !p.recruiting.committedCollege && !p.recruiting.offers.some((o) => isDivisionOne(o.tier)));
+    const shown = (seniorsWithoutD1.length > 0 ? seniorsWithoutD1 : recruits).slice(0, TOP_PROSPECTS);
     return {
       id: 'college',
       icon: '🎓',
-      title: seniorsOnly ? "Push your seniors' college recruiting" : 'Help your players with College recruiting',
-      detail: prospects.map((p) => `${p.position} ${shortName(p)} (${p.recruiting.starRating}★)`).join(', '),
+      title: seniorsWithoutD1.length > 0 ? `${plural(seniorsWithoutD1.length, 'senior')} without a D-I offer` : 'Help your players get recruited',
+      detail: shown.map((p) => `${p.position} ${shortName(p)}${p.recruiting.starRating ? ` (${p.recruiting.starRating}★)` : ''}`).join(', '),
       tone: 'todo',
-      actions,
-      link: { label: 'College', onClick: () => onNavigate('COLLEGE') }
+      actions: [{ label: '🎓 College recruiting ›', onClick: () => onNavigate('COLLEGE') }]
     };
   };
 
   // Practice: one decision (intensity), with what it does this week; tired starters are called out
   const tiredStarters = (team?.roster ?? []).filter((p) => p.depthChartTier === 1 && p.condition.injuryStatus === 'HEALTHY' && p.condition.seasonWear >= TIRED).length;
-  const practiceCard = (title = 'Practice plan', id = 'practice'): AgendaItem => ({
+  const practiceCard = (title = `Practice: ${PRACTICE_OPTIONS.find((o) => o.id === practiceIntensity)?.label ?? 'Limited'}`, id = 'practice'): AgendaItem => ({
     id,
     icon: '🏋️',
     title,
     detail: `Harder practice builds more skill but tires players and risks injuries.${tiredStarters > 0 ? ` ${plural(tiredStarters, 'starter')} ${tiredStarters === 1 ? 'is' : 'are'} Tired or worse.` : ''}`,
-    tone: 'todo',
+    tone: 'done',
+    counted: true,
+    accent: 'practice',
     content: <PracticePicker compact />,
     link: tiredStarters > 0 ? { label: 'Health', onClick: () => onNavigate('INJURIES') } : { label: 'Practice', onClick: () => onNavigate('PRACTICE') }
   });
@@ -369,18 +408,21 @@ export const WeeklyAgenda: React.FC<{
     headline = {
       id: 'game',
       icon: game.isPlayoff ? '🏆' : '🏈',
-      title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${opp.name} (${opp.record.wins}-${opp.record.losses})`,
+      // A nationally ranked opponent carries its rank: "vs #18 Midland Legacy"
+      title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${rankedName(opp, polls)} (${opp.record.wins}-${opp.record.losses})`,
       detail: note,
       tone: 'todo',
+      counted: true,
       // The film study, right here: no extra tap before choosing to play or sim
       content: <ScoutingReport opponent={opp} />,
       actions: [
-        { label: '🏈 Play the game', primary: true, onClick: onPlayGame },
-        { label: '⏩ Sim game', onClick: onAutoSim }
-      ]
+        { label: '🏈 Play Game', primary: true, onClick: onPlayGame },
+        { label: '⏩ Sim Game', onClick: onAutoSim }
+      ],
+      note: 'Play: you set the game plan next. Sim: your staff picks it.'
     };
   } else if (game?.isPlayed && game.result) {
-    headline = { id: 'game', icon: '✅', title: game.result, detail: "The final is in. Advance when you're ready.", tone: 'done' };
+    headline = { id: 'game', icon: game.isPlayoff ? '🏆' : '🏈', title: game.result, detail: "The final is in. Advance when you're ready.", tone: 'done', counted: true };
   } else if (phase === 'SPRING_EVALUATION') {
     if (currentWeek === 1) {
       headline =
@@ -479,18 +521,18 @@ export const WeeklyAgenda: React.FC<{
         ? mine.isBye
           ? `You have a first-round bye. Rest up: injuries heal and the ${ROUND_LABELS[playoffBracket.roundNames[1]] ?? 'next round'} is in two weeks.`
           : `${ROUND_LABELS[playoffBracket.roundNames[0]]} next week ${mine.team1.id === userTeamId ? 'vs' : 'at'} ${opponent!.name} (${opponent!.record.wins}-${opponent!.record.losses}). No game this week: rest, heal and study film.`
-        : "You didn't make the field. The season ends at the banquet: use the time for college recruiting and coach talents.",
+        : "You didn't make the field. The season ends at the banquet: use the time for college recruiting.",
       tone: 'info',
-      link: { label: 'Bracket', onClick: () => onNavigate('SCOREBOARD') }
+      link: { label: 'Playoffs', onClick: () => onNavigate('PLAYOFFS') }
     };
   } else if (phase === 'STATE_PLAYOFFS') {
     headline = {
       id: 'season-over',
       icon: '🏁',
       title: `Season over: ${team.record.wins}-${team.record.losses}${myRow ? `, ${ordinal(myRow.rank)} in ${districtName}` : ''}`,
-      detail: 'The playoffs go on without you. The season ends at the banquet: use the time for college recruiting and coach talents.',
+      detail: 'The playoffs go on without you. The season ends at the banquet: use the time for college recruiting.',
       tone: 'info',
-      link: { label: 'Scoreboard', onClick: () => onNavigate('SCOREBOARD') }
+      link: { label: 'Playoffs', onClick: () => onNavigate('PLAYOFFS') }
     };
     task = collegeCard(true);
   } else if (phase === 'OFF_SEASON') {
@@ -598,80 +640,90 @@ export const WeeklyAgenda: React.FC<{
     (c): c is AgendaItem => c !== null
   );
 
-  // ---------------------------------------------------------------- more this week (folded)
-  const more: AgendaItem[] = [];
+  // ---------------------------------------------------------------- the list
+  // The decision first, then this week's headline (usually the game), anything else that needs the coach,
+  // the week's task (usually practice), then the rest; background notes fold under "More this week"
+  const [decision, ...otherNeeds] = needs[0]?.id === 'dilemma' ? needs : [dilemmaCard(), ...needs];
+  const college = task?.id === 'college' ? null : collegeCard();
+  const visible = [decision, headline, ...otherNeeds, ...(task ? [task] : []), ...extras, college].filter((c): c is AgendaItem => !!c);
+  const folded: AgendaItem[] = [];
   const concerns = concernsCard();
-  if (concerns) more.push(concerns);
-  if (task?.id !== 'college') {
-    const college = collegeCard();
-    if (college) more.push(college);
-  }
-  if (task?.id !== 'practice' && (isGamePhase || phase === 'OFF_SEASON')) more.push({ ...practiceCard('Practice', 'practice-more'), tone: 'info' });
-  if (COACH_TALENTS.some((t) => !talentBlocker(t.id, coachTalents, coachPoints))) {
-    more.push({ id: 'talents', icon: '🎖️', title: 'You can afford a coach talent', detail: 'Spend Coach Points on a permanent upgrade.', tone: 'info', link: { label: 'Talents', onClick: () => onNavigate('TALENTS') } });
-  }
-  if (isGamePhase) {
-    more.push({ id: 'scores', icon: '📋', title: 'Scores around the league', tone: 'info', link: { label: 'Scoreboard', onClick: () => onNavigate('SCOREBOARD') } });
-  }
+  if (concerns) folded.push(concerns);
+  if (task?.id !== 'practice' && (isGamePhase || phase === 'OFF_SEASON')) folded.push({ ...practiceCard('Practice', 'practice-more'), counted: false });
+  if (isGamePhase) folded.push({ id: 'scores', icon: '📋', title: 'Scores around the league', tone: 'info', link: { label: 'Scoreboard', onClick: () => onNavigate('SCOREBOARD') } });
 
-  // At most four cards open; the rest fold into "More this week" (urgent cards always stay open)
-  const open = [headline, ...needs, ...extras, ...(task ? [task] : [])];
-  const visible = open.slice(0, Math.max(MAX_OPEN_CARDS, 1 + needs.length));
-  const folded = [...open.slice(visible.length), ...more];
+  // The week's tasks: done ones keep their card with a check
+  const tasks = visible.filter((c) => c.counted);
+  const doneCount = tasks.filter((c) => c.tone === 'done').length;
+  const left = tasks.length - doneCount;
 
-  const renderCard = (item: AgendaItem, big = false) => (
-    <div
-      key={item.id}
-      id={`agenda-${item.id}`}
-      style={{
-        scrollMarginTop: 'calc(var(--topbar-h) + 12px)',
-        border: `1px solid ${TONES[item.tone].border}`,
-        borderLeft: `4px solid ${TONES[item.tone].border}`,
-        background: TONES[item.tone].background,
-        borderRadius: '6px',
-        padding: big ? '12px 14px' : '10px 12px'
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-        <div style={{ fontWeight: 'bold', fontSize: big ? '16px' : '14px' }}>
-          {item.icon} {item.title}
+  const renderCard = (item: AgendaItem) => {
+    const [accent, tint] = accentFor(item);
+    const urgent = item.tone === 'urgent' && item.id === 'dilemma';
+    const done = item.tone === 'done';
+    const buttons = [...(item.actions ?? []), ...(item.link ? [{ label: item.link.label, onClick: item.link.onClick }] : [])];
+    return (
+      <div
+        key={item.id}
+        id={`agenda-${item.id}`}
+        style={{
+          ...cardStyle,
+          scrollMarginTop: 'calc(var(--topbar-h) + 12px)',
+          borderLeft: `5px solid ${accent}`,
+          ...(urgent && { background: '#FFFBEB', outline: '2px solid #F59E0B' })
+        }}
+      >
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+          <div aria-hidden="true" style={{ ...iconTile, background: tint }}>
+            {item.icon}
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            {item.kicker && <div style={{ fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.03em', color: '#B45309' }}>{item.kicker}</div>}
+            <div style={{ fontWeight: 800, fontSize: '14.5px', color: done && item.counted ? '#334155' : '#0F172A' }}>{item.title}</div>
+            {item.detail && <div style={{ fontSize: '12.5px', color: '#475569', marginTop: '2px' }}>{item.detail}</div>}
+          </div>
+          {done && item.counted && <span style={donePill}>✓ Done</span>}
         </div>
-        {item.link && (
-          <button onClick={item.link.onClick} style={linkBtn}>
-            {item.link.label} →
-          </button>
+        {item.content}
+        {buttons.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+            {buttons.map((a) => (
+              <button
+                key={a.label}
+                onClick={a.onClick}
+                disabled={'disabled' in a ? a.disabled : false}
+                style={actionBtn('primary' in a ? !!a.primary : false, 'disabled' in a ? !!a.disabled : false, item.id === 'dilemma')}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
         )}
+        {item.note && <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '5px' }}>{item.note}</div>}
       </div>
-      {item.detail && <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>{item.detail}</div>}
-      {item.content}
-      {item.actions && item.actions.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-          {item.actions.map((a) => (
-            <button key={a.label} onClick={a.onClick} disabled={a.disabled} style={actionBtn(!!a.primary, !!a.disabled)}>
-              {a.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <section aria-labelledby="this-week-title" style={{ marginBottom: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px 12px' }}>
-        <h2 id="this-week-title" className="ui-section-title">
-          Week {currentWeek} <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
-        </h2>
-        <span style={{ fontSize: '13px', color: '#64748B' }}>
-          {formatCP(coachPoints)} <span style={{ color: '#64748B' }}>· +{formatCP(weeklyCpIncome(currentWeek + 1, coachTalents, team.programMeters.schoolBoardTrust))} next week</span>
-        </span>
+      <h2 id="this-week-title" className="ui-section-title">
+        Week {currentWeek} <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
+      </h2>
+      <SeasonCard team={team} standingRank={myRow?.rank} districtName={districtName} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '14px 2px 8px' }}>
+        <h3 style={{ margin: 0, fontSize: '16px' }}>To do this week</h3>
+        {tasks.length > 0 && (
+          <span style={progressPill}>
+            {doneCount} of {tasks.length} done
+          </span>
+        )}
       </div>
       {flash && (
         <div role="status" style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', margin: '6px 0' }}>
           {flash}
         </div>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>{visible.map((item, i) => renderCard(item, i === 0))}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{visible.map((item) => renderCard(item))}</div>
       {folded.length > 0 && (
         <details style={{ marginTop: '8px' }}>
           <summary style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', color: '#334155', padding: '8px 0', minHeight: '32px' }}>
@@ -680,9 +732,31 @@ export const WeeklyAgenda: React.FC<{
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{folded.map((item) => renderCard(item))}</div>
         </details>
       )}
-      {/* A decision must be made before the week can move on: the button takes the coach to it */}
-      <button onClick={onAdvanceWeek} style={activeDilemma ? { ...advanceBtn, background: '#FEF3C7', color: '#92400E', border: '2px solid #F59E0B' } : advanceBtn}>
-        {activeDilemma ? '⚠️ Decision needed before you advance ↑' : 'All set: Advance Week ⏭️'}
+      <HubHeadlines onNavigate={onNavigate} />
+      {/* A decision must be reviewed before the week can move on: the button takes the coach to it. Otherwise it
+          shows what's still open, without stopping him */}
+      <button
+        onClick={onAdvanceWeek}
+        style={
+          activeDilemma
+            ? { ...advanceBtn, background: '#FEF3C7', color: '#92400E', border: '2px solid #F59E0B' }
+            : left > 0
+              ? advanceBtn
+              : { ...advanceBtn, background: '#16A34A' }
+        }
+      >
+        {activeDilemma ? (
+          '⚠️ Review needed before you advance ↑'
+        ) : left > 0 ? (
+          <>
+            ⏭️ Advance Week{' '}
+            <span style={{ fontWeight: 600, fontSize: '12px', opacity: 0.85 }}>
+              · {plural(left, 'thing')} left
+            </span>
+          </>
+        ) : (
+          '✓ All set: Advance Week ⏭️'
+        )}
       </button>
     </section>
   );
@@ -700,42 +774,60 @@ const choiceBtn: React.CSSProperties = {
   color: '#0F172A'
 };
 
-const linkBtn: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: '#1D4ED8',
-  fontWeight: 'bold',
-  fontSize: '14px',
-  cursor: 'pointer',
-  padding: '0 4px',
-  whiteSpace: 'nowrap',
-  // A finger-sized tap area around the text
-  minHeight: '40px',
-  display: 'inline-flex',
-  alignItems: 'center'
+const cardStyle: React.CSSProperties = {
+  background: '#fff',
+  borderRadius: '12px',
+  padding: '10px 12px',
+  boxShadow: '0 1px 2px rgba(15,23,42,.08), 0 2px 8px rgba(15,23,42,.06)'
 };
 
-const actionBtn = (primary: boolean, disabled: boolean): React.CSSProperties => ({
+const iconTile: React.CSSProperties = {
+  flex: '0 0 28px',
+  width: '28px',
+  height: '28px',
+  borderRadius: '8px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '17px'
+};
+
+const donePill: React.CSSProperties = {
+  marginLeft: 'auto',
+  flex: '0 0 auto',
+  background: '#DCFCE7',
+  color: '#166534',
+  fontSize: '11px',
+  fontWeight: 800,
+  borderRadius: '999px',
+  padding: '3px 8px'
+};
+
+const progressPill: React.CSSProperties = { fontSize: '12px', fontWeight: 700, color: '#1D4ED8', background: '#DBEAFE', borderRadius: '999px', padding: '2px 8px' };
+
+const actionBtn = (primary: boolean, disabled: boolean, amber = false): React.CSSProperties => ({
   minHeight: '40px', // comfortable tap target
-  padding: '8px 12px',
-  borderRadius: '5px',
-  border: primary ? '1px solid #2563EB' : '1px solid #CBD5E1',
-  background: disabled ? '#E2E8F0' : primary ? '#2563EB' : '#fff',
-  color: disabled ? '#94A3B8' : primary ? '#fff' : '#1E293B',
-  fontWeight: 'bold',
-  fontSize: '12px',
+  padding: '8px 14px',
+  borderRadius: '8px',
+  border: amber && primary ? '1px solid #F59E0B' : primary ? '1px solid #2563EB' : '1px solid #CBD5E1',
+  background: disabled ? '#E2E8F0' : amber && primary ? '#F59E0B' : primary ? '#2563EB' : '#fff',
+  color: disabled ? '#94A3B8' : amber && primary ? '#0F172A' : primary ? '#fff' : '#1E293B',
+  fontWeight: 800,
+  fontSize: '13px',
   cursor: disabled ? 'default' : 'pointer'
 });
 
 const advanceBtn: React.CSSProperties = {
   width: '100%',
-  marginTop: '10px',
+  marginTop: '14px',
+  minHeight: '48px',
   padding: '12px',
   background: '#0F172A',
   color: '#fff',
   border: 'none',
-  borderRadius: '6px',
-  fontWeight: 'bold',
+  borderRadius: '12px',
+  fontWeight: 800,
   fontSize: '14px',
-  cursor: 'pointer'
+  cursor: 'pointer',
+  boxShadow: '0 2px 6px rgba(15,23,42,.18)'
 };

@@ -102,12 +102,12 @@ export const DashboardView: React.FC<{
           </h1>
           <div style={{ color: '#6B7280', marginTop: '2px' }}>
             {district?.name ?? 'Class 6A'}
-            {region ? ` · ${region.name}` : ''} · {userTeam.record.wins}-{userTeam.record.losses} ({userTeam.record.districtWins}-{userTeam.record.districtLosses})
+            {region ? ` · ${region.name}` : ''}
           </div>
         </div>
         {activeDilemma ? (
-          <button className="ui-btn" style={{ flex: '0 0 auto', whiteSpace: 'nowrap', borderColor: '#F59E0B', color: '#92400E' }} onClick={goToDecision} aria-label="Decision needed before advancing">
-            ⚠️ Decide first
+          <button className="ui-btn" style={{ flex: '0 0 auto', whiteSpace: 'nowrap', borderColor: '#F59E0B', color: '#92400E' }} onClick={goToDecision} aria-label="Review needed before advancing">
+            ⚠️ Review first
           </button>
         ) : (
           <button className="ui-btn ui-btn-dark" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} onClick={handleAdvanceWeek} aria-label="Advance Week">

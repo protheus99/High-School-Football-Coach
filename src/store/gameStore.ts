@@ -94,8 +94,8 @@ import {
   isAcademicallyAtRisk,
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
-import { buildPlayoffBracket, advancePlayoffRound, bracketRoundForWeek, compactBracket, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
-import { generateWeeklyNewsStream, NewsArticle } from '../sim/newsEngine';
+import { buildPlayoffBracket, advancePlayoffRound, BracketNode, bracketRoundForWeek, compactBracket, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
+import { gameResultNews, generateWeeklyNewsStream, NewsArticle, rankingNews } from '../sim/newsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { collectResults } from '../sim/computerRankings';
@@ -402,6 +402,9 @@ interface GameStoreState {
   userViolationHeat: number; // hidden evidence of the user's recruiting violations
   pendingUserBan: boolean; // caught at year end: banned from next season's playoffs
   newsArticles: NewsArticle[];
+  newsMark: number; // newsArticles.length when the week last advanced: everything after it is this week's news (the Hub's headlines)
+  newsSeen: number; // newsArticles.length when the coach last opened News: the rest are unread
+  markNewsSeen: () => void;
   polls: StateAndNationalPolls | null;
   playerRankings: PlayerRankingsAndStatsState | null;
   nationalLeagues: LightLeague[]; // every other playable state, on the same calendar (national polls and leaders)
@@ -493,6 +496,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   userProbationUntil: null,
   lightCalibration: null,
   newsArticles: [],
+  newsMark: 0,
+  newsSeen: 0,
   polls: null,
   playerRankings: null,
   nationalLeagues: [],
@@ -556,7 +561,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       lastFeederResults: null,
       newsArticles: generateWeeklyNewsStream(1, userTeam),
       nationalLeagues,
-      polls: generateNationalAndStatePolls(everyone, null, 1),
+      polls: generateNationalAndStatePolls(everyone, null, 1, [], league.state ?? 'Texas'),
       playerRankings: generatePlayerRankingsAndLeaderboards(everyone, 1),
       coachPoints: STARTING_COACH_POINTS,
       coachTalents: [],
@@ -659,8 +664,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       graduatingSeniors: [],
       feederEventsThisWeek: [],
       newsArticles: [],
+      newsMark: 0,
+      newsSeen: 0,
       nationalLeagues,
-      polls: generateNationalAndStatePolls(everyone, null, save.currentWeek, collectResults({ seasonSchedule: save.seasonSchedule ?? [], nationalLeagues, interstateGames: save.interstateGames, playoffBracket: save.playoffBracket ?? null })),
+      polls: generateNationalAndStatePolls(everyone, null, save.currentWeek, collectResults({ seasonSchedule: save.seasonSchedule ?? [], nationalLeagues, interstateGames: save.interstateGames, playoffBracket: save.playoffBracket ?? null }), save.league?.state ?? 'Texas'),
       playerRankings: generatePlayerRankingsAndLeaderboards(everyone, save.currentWeek),
       // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
       scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p) ? save.scoutingPool : generateFeederPool(userTeam)
@@ -678,6 +685,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   advanceWeek: () => {
     const { currentWeek, districtTeams, leagueTeams, seasonSchedule, userTeamId, practiceIntensity, polls, league } = get();
+    // Everything reported from here on is next week's news (the Hub's headlines)
+    set({ newsMark: get().newsArticles.length });
     // Advancing out of the off-season week starts next year
     if (league && currentWeek >= seasonLength(league)) {
       get().transitionToNextYear();
@@ -818,6 +827,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     [...seasonSchedule, ...get().interstateGames]
       .filter((g) => g.week === currentWeek && g.homeScore !== undefined)
       .forEach((g) => [g.homeTeamId, g.awayTeamId].forEach((id) => played.add(id)));
+    let playoffResult: { node: BracketNode; label: string } | null = null; // the coach's playoff game this week, for the news
     if (playoffBracket?.isPlayoffsActive && bracketRoundForWeek(playoffBracket, currentWeek) >= 0) {
       const userNode = findUserNode(playoffBracket, userTeamId)?.node;
       const linked = relinkBracketTeams(playoffBracket, leagueTeams);
@@ -832,6 +842,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         .flatMap((d) => d.rounds[linked.currentRoundIndex] ?? [])
         .filter((n) => !n.isBye)
         .forEach((n) => [n.team1, n.team2].forEach((t) => played.add(t.id)));
+      const mine = linked.divisions.flatMap((d) => d.rounds[linked.currentRoundIndex] ?? []).find((n) => !n.isBye && (n.team1.id === userTeamId || n.team2.id === userTeamId));
+      if (mine?.team1Score !== undefined) playoffResult = { node: mine, label: rulesForState(league?.state).playoffs.roundLabels[linked.roundNames[linked.currentRoundIndex]] };
       set({ playoffBracket: advancePlayoffRound(linked) });
       if (userNode?.winnerTeamId === userTeamId) {
         userTeam.programMeters.schoolBoardTrust = Math.min(100, userTeam.programMeters.schoolBoardTrust + BOARD_RESULT_DELTA.playoffWin);
@@ -944,7 +956,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         graduatingSeniors: seniors,
         isBanquetActive: true,
         newsArticles: [...news, ...get().newsArticles],
-        polls: generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get())),
+        polls: generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get()), league?.state ?? 'Texas'),
         playerRankings: generatePlayerRankingsAndLeaderboards(everyone, nextWeek),
         leagueTeams: [...leagueTeams]
       });
@@ -987,7 +999,20 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // 2. Recalculate National & State Team Polls
     const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
-    const updatedPolls = generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get()));
+    const updatedPolls = generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get()), league?.state ?? 'Texas');
+    // The coach's result and any real move in the polls lead next week's headlines
+    const headlineNews: NewsArticle[] = [];
+    if (userGame?.homeScore !== undefined && userGame.awayScore !== undefined) {
+      const home = userGame.homeTeamId === userTeamId;
+      const opponent = everyone.find((t) => t.id === (home ? userGame.awayTeamId : userGame.homeTeamId));
+      if (opponent) headlineNews.push(gameResultNews(nextWeek, userTeam, opponent, home ? userGame.homeScore : userGame.awayScore, home ? userGame.awayScore : userGame.homeScore, polls));
+    } else if (playoffResult) {
+      const { node, label } = playoffResult;
+      const first = node.team1.id === userTeamId;
+      headlineNews.push(gameResultNews(nextWeek, userTeam, first ? node.team2 : node.team1, (first ? node.team1Score : node.team2Score) ?? 0, (first ? node.team2Score : node.team1Score) ?? 0, polls, label));
+    }
+    const pollStory = rankingNews(polls, updatedPolls, userTeam, league?.state ?? 'Texas', nextWeek);
+    if (pollStory) headlineNews.push(pollStory);
 
     // 3. Recalculate Player Stats Leaderboards & Positional Prospect Rankings
     const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, nextWeek);
@@ -1012,7 +1037,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       activeDilemma: dilemma,
       polls: updatedPolls,
       playerRankings: updatedPlayerRankings,
-      newsArticles: [...collegeNews, ...newArticles, ...get().newsArticles],
+      newsArticles: [...headlineNews, ...collegeNews, ...newArticles, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams] // sanctions/forfeits above can change records too
     };
@@ -1189,7 +1214,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const interstateGames = league
       ? planInterstate(league.state ?? 'Texas', leagueTeams, nextSchedule, nationalLeagues, currentYear + 1, userTeamId, get().lightCalibration?.teamRatings)
       : [];
-    const newPolls = generateNationalAndStatePolls(everyone, null, 1);
+    const newPolls = generateNationalAndStatePolls(everyone, null, 1, [], get().league?.state ?? 'Texas');
     const newPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, 1);
 
     set({
@@ -1288,6 +1313,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   setPracticeIntensity: (mode) => set({ practiceIntensity: mode }),
+  markNewsSeen: () => set({ newsSeen: get().newsArticles.length }),
   setActiveGame: (game) => set({ activeGame: game }),
 
   // Applies a finished live game: the scheduled result and team records (regular season only) and player season stats

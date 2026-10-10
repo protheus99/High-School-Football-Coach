@@ -165,20 +165,23 @@ describe('The college world', () => {
   });
 
   it('home-state colleges offer more of the players in their state', () => {
-    const ohioTeam = { prestige: 80, state: 'Ohio' } as Team;
-    let home = 0;
-    let total = 0;
-    for (let i = 0; i < 300; i++) {
-      const p = testPlayer(70, 'WR');
-      for (let w = 2; w <= 16; w++) rollOffer(p, ohioTeam, w, YEAR);
-      p.recruiting.offers.forEach((o) => {
-        total++;
-        if (COLLEGES_BY_ID.get(o.collegeId!)?.state === 'Ohio') home++;
-      });
-    }
-    // A 70-rated senior hears from FCS and Division II programs (Ohio has about 1 in 25); the home pull lifts that share
-    const ohioShare = COLLEGES.filter((c) => c.state === 'Ohio' && (c.tier === 'FCS' || c.tier === 'DIVISION_2')).length / COLLEGES.filter((c) => c.tier === 'FCS' || c.tier === 'DIVISION_2').length;
-    expect(home / total).toBeGreaterThan(ohioShare * 1.3);
+    // The share of offers from Ohio colleges, for players at an Ohio school and at a Texas school
+    const ohioShare = (state: string) => {
+      const school = { prestige: 80, state } as Team;
+      let ohio = 0;
+      let total = 0;
+      for (let i = 0; i < 600; i++) {
+        const p = testPlayer(78, 'WR');
+        for (let w = 2; w <= 16; w++) rollOffer(p, school, w, YEAR);
+        p.recruiting.offers.forEach((o) => {
+          total++;
+          if (COLLEGES_BY_ID.get(o.collegeId!)?.state === 'Ohio') ohio++;
+        });
+      }
+      return ohio / total;
+    };
+    // Twice the weight in their own state: well above what the same colleges offer elsewhere
+    expect(ohioShare('Ohio')).toBeGreaterThan(ohioShare('Texas') * 1.4);
   });
 
   it('the college board lists the offers and commitments of each college', () => {

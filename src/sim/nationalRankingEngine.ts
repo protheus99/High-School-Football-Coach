@@ -9,7 +9,8 @@ export function generateNationalAndStatePolls(
   allTeams: Team[],
   previousPolls: StateAndNationalPolls | null,
   currentWeek: number,
-  results: GameResult[] = []
+  results: GameResult[] = [],
+  trackState?: string // also rank every team in this state (nationally and in the state), polled or not
 ): StateAndNationalPolls {
   // 1. Rate every team from this season's results (strength of schedule and margins), best first
   const ratings = computeRatings(allTeams, results, currentWeek);
@@ -126,11 +127,23 @@ export function generateNationalAndStatePolls(
     });
   });
 
+  // 6. Every team in the tracked state, ranked or not
+  let teamRanks: StateAndNationalPolls['teamRanks'];
+  if (trackState) {
+    teamRanks = {};
+    const inState = (stateGroups[trackState] ?? []).map((e) => e.team.id);
+    evaluatedTeams.forEach((entry, index) => {
+      const state = inState.indexOf(entry.team.id);
+      if (state >= 0) teamRanks![entry.team.id] = { national: index + 1, state: state + 1 };
+    });
+  }
+
   return {
     week: currentWeek,
     nationalTop25,
     stateRankings,
-    bubbleTeams
+    bubbleTeams,
+    ...(teamRanks && { teamRanks, previousTeamRanks: previousPolls?.teamRanks })
   };
 }
 

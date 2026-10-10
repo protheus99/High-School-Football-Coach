@@ -523,6 +523,8 @@ export interface StateAndNationalPolls {
   nationalTop25: RankedTeamEntry[];
   stateRankings: Record<string, RankedTeamEntry[]>; // StateName -> Top 10/25
   bubbleTeams: RankedTeamEntry[]; // "Others Receiving Votes"
+  teamRanks?: Record<string, { national: number; state: number }>; // every team in the coach's state, ranked or not (the Hub's season card)
+  previousTeamRanks?: Record<string, { national: number; state: number }>; // last week's, for movement
 }
 
 // ============================================================================

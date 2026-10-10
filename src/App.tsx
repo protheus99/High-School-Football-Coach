@@ -18,7 +18,6 @@ import { CoachRPGSkillTreeModal } from './components/CoachRPGSkillTreeModal';
 import { formatCP } from './sim/coachPoints';
 import { programRating } from './sim/programMeters';
 import { SplashScreen } from './components/SplashScreen';
-import { StatePlayoffBracketModal } from './components/StatePlayoffBracketModal';
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
 import { AllStateAwardsModal } from './components/AllStateAwardsModal';
 import { calculateSeasonAwards, SeasonAwardsRecord } from './sim/awardsEngine';
@@ -42,7 +41,6 @@ export const App: React.FC = () => {
   const [rankingsSection, setRankingsSection] = useState<RankingsSection>('DISTRICT');
   const [activeMatch, setActiveMatch] = useState<GameSimulationState | null>(null);
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
-  const [showBracketModal, setShowBracketModal] = useState(false);
   const [showTalents, setShowTalents] = useState(false);
   const [collegeFocusId, setCollegeFocusId] = useState<string | null>(null); // the College page opens on this player
   const [awardsRecord, setAwardsRecord] = useState<SeasonAwardsRecord | null>(null);
@@ -74,8 +72,15 @@ export const App: React.FC = () => {
     graduatingSeniors,
     finishBanquet,
     advancePlayoffGame,
-    recordUserGame
+    recordUserGame,
+    newsSeen,
+    markNewsSeen
   } = useGameStore();
+  const unreadNews = Math.max(0, newsArticles.length - newsSeen);
+  const openNews = () => {
+    markNewsSeen();
+    setTab('NEWS');
+  };
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   // The open player card: a player in the league or another state's (stat leaders)
@@ -184,17 +189,6 @@ export const App: React.FC = () => {
     );
   }
 
-  // Render Postseason Tournament Modal
-  if (playoffBracket && showBracketModal) {
-    return (
-      <StatePlayoffBracketModal
-        bracketState={playoffBracket}
-        userTeamId={userTeamId}
-        onClose={() => setShowBracketModal(false)}
-      />
-    );
-  }
-
   // Render All-State Awards Modal
   if (awardsRecord) {
     return (
@@ -265,17 +259,16 @@ export const App: React.FC = () => {
       {/* Top Navigation Bar */}
       <div className="app-topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-          {/* Coach Points: the one currency. Tap to spend it on coach talents. */}
-          <button
-            onClick={() => setShowTalents(true)}
-            aria-label={`Coach Points: ${coachPoints}. Open coach talents`}
+          {/* Coach Points: the one currency */}
+          <span
+            aria-label={`Coach Points: ${coachPoints}`}
             title={`Coach Points: ${formatCP(coachPoints)}`}
-            style={{ ...topBtn('#FACC15'), ...statStack, color: '#0F172A', padding: '2px 5px' }}
+            style={{ ...topBtn('#FACC15'), ...statStack, color: '#0F172A', padding: '2px 5px', cursor: 'default' }}
           >
             {/* Five figures shorten (₡12.3k) so the bar stays one line on the narrowest phones */}
             {coachPoints >= 10000 ? `₡${(coachPoints / 1000).toFixed(1)}k` : formatCP(coachPoints)}
             <span style={statLabel}>Coach PTS</span>
-          </button>
+          </span>
           {userTeam && (
             <span title="Program prestige" aria-label={`Prestige ${userTeam.prestige}`} style={{ ...topPill, ...statStack }}>
               ⭐ {userTeam.prestige}
@@ -291,14 +284,16 @@ export const App: React.FC = () => {
         </div>
         {/* Narrow icon buttons (full height for thumbs) keep the bar to one line, even with the playoff bracket */}
         <div style={{ display: 'flex', gap: '3px', flexWrap: 'nowrap', flex: '0 0 auto' }}>
-          <button onClick={() => setTab('NEWS')} aria-label="News" title="News" style={iconBtn(tab === 'NEWS' ? '#2563EB' : '#334155')}>
+          {/* News, with a count of the stories the coach hasn't seen */}
+          <button
+            onClick={openNews}
+            aria-label={unreadNews > 0 ? `News: ${unreadNews} unread` : 'News'}
+            title="News"
+            style={{ ...iconBtn(tab === 'NEWS' ? '#2563EB' : '#334155'), position: 'relative' }}
+          >
             📰 <span className="hide-sm">News</span>
+            {unreadNews > 0 && tab !== 'NEWS' && <span style={unreadBadge}>{unreadNews > 9 ? '9+' : unreadNews}</span>}
           </button>
-          {playoffBracket && (
-            <button onClick={() => setShowBracketModal(true)} aria-label="Bracket" title="Bracket" style={{ ...iconBtn('#F59E0B'), color: '#000' }}>
-              🗓️ <span className="hide-sm">Bracket</span>
-            </button>
-          )}
           <button onClick={() => setShowSaveLoadModal(true)} aria-label="Save / Load" title="Save / Load" style={iconBtn('#334155')}>
             ⚙️ <span className="hide-sm">Save / Load</span>
           </button>
@@ -320,9 +315,11 @@ export const App: React.FC = () => {
               } else if (target === 'SCOREBOARD') {
                 setRankingsSection('SCORES');
                 setTab('RANKINGS');
-              } else if (target === 'DISTRICT') {
-                setRankingsSection('DISTRICT');
+              } else if (target === 'DISTRICT' || target === 'POLLS' || target === 'PLAYOFFS') {
+                setRankingsSection(target);
                 setTab('RANKINGS');
+              } else if (target === 'NEWS') {
+                openNews();
               } else if (target === 'TALENTS') {
                 setShowTalents(true);
               } else {
@@ -340,7 +337,7 @@ export const App: React.FC = () => {
             }}
             collegeFocusId={collegeFocusId}
           />}
-        {tab === 'RANKINGS' && <RankingsHub section={rankingsSection} onSection={setRankingsSection} />}
+        {tab === 'RANKINGS' && <RankingsHub section={rankingsSection} onSection={setRankingsSection} onGoToGame={() => setTab('DASHBOARD')} />}
         {tab === 'LEADERS' && playerRankings && (
           <PlayerLeaderboardView rankingsState={playerRankings} userTeamId={userTeamId} onSelectPlayer={(entry) => openPlayerCard(entry.player.id)} />
         )}
@@ -424,3 +421,20 @@ const navBtnStyle = (active: boolean): React.CSSProperties => ({
   color: active ? '#1D4ED8' : '#334155',
   cursor: 'pointer'
 });
+
+const unreadBadge: React.CSSProperties = {
+  position: 'absolute',
+  top: '-4px',
+  right: '-5px',
+  minWidth: '16px',
+  height: '16px',
+  borderRadius: '999px',
+  background: '#DC2626',
+  color: '#fff',
+  fontSize: '10px',
+  fontWeight: 'bold',
+  lineHeight: '16px',
+  textAlign: 'center',
+  padding: '0 4px',
+  boxSizing: 'border-box'
+};
