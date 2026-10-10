@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { DIFFICULTY_PRESTIGE, Difficulty, stateSchool } from '../sim/league';
 import { SCENARIOS, ScenarioId } from '../data/scenarios';
+import { SchoolSearch } from './SchoolSearch';
 import { CAREER_LENGTHS, CareerLength } from '../sim/careerScore';
 
 // The classic game (a random school at a difficulty, unranked) is hidden for now; flip this to bring it back
@@ -49,15 +50,25 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   const [state, setState] = useState('Texas');
   const [pick, setPick] = useState<{ scenario: ScenarioId; school: string } | null>(null);
   const [coachName, setCoachName] = useState('');
+  const [nameMissing, setNameMissing] = useState(false); // Start was tapped without a coach name
   const [length, setLength] = useState<CareerLength>(5);
   const [showClassic, setShowClassic] = useState(false);
+  // Pick any program: search every school in the state instead of the featured programs
+  const [anyProgram, setAnyProgram] = useState(false);
   const chooseState = (st: string) => {
     setState(st);
     setPick(null);
   };
   const pickedProgram = pick && SCENARIOS.flatMap((s) => s.programs).find((p) => p.state === state && p.school === pick.school);
+  const pickedName = pick ? (pickedProgram?.displayName ?? pick.school) : null;
   const startCareer = () => {
     if (!pick) return;
+    // The coach's name is required: it goes on the team, the awards and the leaderboard
+    if (!coachName.trim()) {
+      setNameMissing(true);
+      document.getElementById('coach-name')?.focus();
+      return;
+    }
     setBusy(true);
     setTimeout(() => {
       newScenarioGame(pick.scenario, state, pick.school, coachName, length);
@@ -142,44 +153,83 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
               {rulesForState(state).governingBody} {/^\d+A$/.test(rulesForState(state).classification) ? 'Class ' : ''}{rulesForState(state).classification} · title game at {rulesForState(state).playoffs.championshipVenue}
             </p>
-            <h2 style={sectionTitle}>Choose Your Program</h2>
-            {SCENARIOS.map((scenario) => (
-              <section key={scenario.id} aria-label={scenario.title} style={{ marginBottom: '18px' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                  <h3 style={{ margin: 0, color: scenario.id === 'RECLAIM' ? '#FCA5A5' : '#FCD34D', fontSize: '17px' }}>{scenario.title}</h3>
-                  <span style={{ color: '#94A3B8', fontSize: '13px' }}>{scenario.tagline}</span>
+            <button
+              onClick={() => {
+                setAnyProgram(!anyProgram);
+                setPick(null);
+              }}
+              aria-expanded={anyProgram}
+              disabled={busy}
+              style={anyProgramBtn(anyProgram)}
+            >
+              <span aria-hidden="true" style={{ fontSize: '22px' }}>
+                🔍
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <b style={{ display: 'block', fontSize: '15px' }}>Pick any program</b>
+                <span style={{ fontSize: '12px', color: '#CBD5E1' }}>Search every {state} school and choose your own</span>
+              </span>
+              <span aria-hidden="true" style={{ marginLeft: 'auto', color: '#93C5FD', fontWeight: 800 }}>
+                {anyProgram ? '▾' : '›'}
+              </span>
+            </button>
+            {anyProgram ? (
+              <div style={{ marginBottom: '18px' }}>
+                <SchoolSearch state={state} selected={pick?.scenario === 'OPEN' ? pick.school : null} onSelect={(s) => setPick({ scenario: 'OPEN', school: s.name })} disabled={busy} />
+                <div style={{ textAlign: 'center' }}>
+                  <button
+                    onClick={() => {
+                      setAnyProgram(false);
+                      setPick(null);
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#93C5FD', fontWeight: 700, fontSize: '13px', cursor: 'pointer', padding: '8px 0', minHeight: '40px' }}
+                  >
+                    ← Back to featured programs
+                  </button>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
-                  {scenario.programs
-                    .filter((p) => p.state === state)
-                    .map((program) => {
-                      const school = stateSchool(state, program.school);
-                      const selected = pick?.scenario === scenario.id && pick.school === program.school;
-                      return (
-                        <button
-                          key={program.school}
-                          aria-pressed={selected}
-                          onClick={() => setPick({ scenario: scenario.id, school: program.school })}
-                          disabled={busy}
-                          style={{ ...cardBtn(school?.primaryColor ?? '#334155', busy), outline: selected ? '3px solid #F59E0B' : 'none', outlineOffset: '2px' }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline' }}>
-                            <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#0F172A' }}>{program.displayName}</span>
-                            <span style={{ ...badge(scenario.id === 'RECLAIM' ? '#FEE2E2' : '#FEF3C7', scenario.id === 'RECLAIM' ? '#991B1B' : '#92400E'), whiteSpace: 'nowrap' }}>
-                              Prestige {scenario.startingPrestige(school?.prestige ?? 0)}
-                            </span>
-                          </div>
-                          <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 8px 0' }}>
-                            {school?.mascot}
-                            {school && ` · ${school.district}`}
-                          </div>
-                          <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.45 }}>{program.legacy}</div>
-                        </button>
-                      );
-                    })}
-                </div>
-              </section>
-            ))}
+              </div>
+            ) : (
+              <>
+              <h2 style={{ ...sectionTitle, marginTop: '16px' }}>Choose Your Program</h2>
+              {SCENARIOS.map((scenario) => (
+                <section key={scenario.id} aria-label={scenario.title} style={{ marginBottom: '18px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                    <h3 style={{ margin: 0, color: scenario.id === 'RECLAIM' ? '#FCA5A5' : '#FCD34D', fontSize: '17px' }}>{scenario.title}</h3>
+                    <span style={{ color: '#94A3B8', fontSize: '13px' }}>{scenario.tagline}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+                    {scenario.programs
+                      .filter((p) => p.state === state)
+                      .map((program) => {
+                        const school = stateSchool(state, program.school);
+                        const selected = pick?.scenario === scenario.id && pick.school === program.school;
+                        return (
+                          <button
+                            key={program.school}
+                            aria-pressed={selected}
+                            onClick={() => setPick({ scenario: scenario.id, school: program.school })}
+                            disabled={busy}
+                            style={{ ...cardBtn(school?.primaryColor ?? '#334155', busy), outline: selected ? '3px solid #F59E0B' : 'none', outlineOffset: '2px' }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline' }}>
+                              <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#0F172A' }}>{program.displayName}</span>
+                              <span style={{ ...badge(scenario.id === 'RECLAIM' ? '#FEE2E2' : '#FEF3C7', scenario.id === 'RECLAIM' ? '#991B1B' : '#92400E'), whiteSpace: 'nowrap' }}>
+                                Prestige {scenario.startingPrestige(school?.prestige ?? 0)}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 8px 0' }}>
+                              {school?.mascot}
+                              {school && ` · ${school.district}`}
+                            </div>
+                            <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.45 }}>{program.legacy}</div>
+                          </button>
+                        );
+                      })}
+                  </div>
+                </section>
+              ))}
+              </>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '420px', margin: '0 auto' }}>
               <div style={{ color: '#CBD5E1', fontSize: '13px' }}>
                 Game length
@@ -192,20 +242,44 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
                 </div>
               </div>
               <label style={{ color: '#CBD5E1', fontSize: '13px' }}>
-                Coach name
+                Coach name{' '}
+                <span aria-hidden="true" style={{ color: '#FCA5A5' }}>
+                  *
+                </span>
                 <input
+                  id="coach-name"
                   value={coachName}
-                  onChange={(e) => setCoachName(e.target.value.slice(0, 24))}
-                  placeholder="Coach"
-                  style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: '4px', padding: '12px', borderRadius: '8px', border: '1px solid #475569', fontSize: '16px' }}
+                  onChange={(e) => {
+                    setCoachName(e.target.value.slice(0, 24));
+                    if (e.target.value.trim()) setNameMissing(false);
+                  }}
+                  placeholder="Your name (required)"
+                  required
+                  aria-invalid={nameMissing}
+                  aria-describedby={nameMissing ? 'coach-name-error' : undefined}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    marginTop: '4px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: nameMissing ? '2px solid #F87171' : '1px solid #475569',
+                    fontSize: '16px'
+                  }}
                 />
               </label>
+              {nameMissing && (
+                <div id="coach-name-error" role="alert" style={{ color: '#FCA5A5', fontSize: '13px', marginTop: '-4px' }}>
+                  Enter your coach name to start.
+                </div>
+              )}
               <button
                 onClick={startCareer}
                 disabled={!pick || busy}
                 style={{ ...menuBtn('#15803D', '#fff'), opacity: !pick || busy ? 0.5 : 1, cursor: !pick ? 'not-allowed' : busy ? 'wait' : 'pointer' }}
               >
-                {pickedProgram ? `Start at ${pickedProgram.displayName}` : 'Pick a program'}
+                {pickedName ? `Start at ${pickedName}` : 'Pick a program'}
               </button>
             </div>
             {busy && <p style={{ textAlign: 'center', color: '#CBD5E1', marginTop: '16px' }}>Building the league…</p>}
@@ -314,6 +388,22 @@ const pageStyle: React.CSSProperties = {
   padding: '32px 16px',
   fontFamily: 'sans-serif'
 };
+
+const anyProgramBtn = (open: boolean): React.CSSProperties => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  width: '100%',
+  minHeight: '56px',
+  borderRadius: '12px',
+  border: `2px ${open ? 'solid' : 'dashed'} #60A5FA`,
+  background: open ? 'rgba(37,99,235,.25)' : 'rgba(37,99,235,.12)',
+  color: '#F8FAFC',
+  padding: '8px 12px',
+  textAlign: 'left',
+  font: 'inherit',
+  cursor: 'pointer'
+});
 
 const sectionTitle: React.CSSProperties = { textAlign: 'center', color: '#F8FAFC', margin: '0 0 8px 0', fontSize: '20px' };
 

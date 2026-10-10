@@ -13,12 +13,7 @@ import {
   DilemmaRecord,
   FeederOutcome
 } from '../types/game';
-import {
-  buildCustomLeague,
-  buildTexasLeague,
-  Difficulty,
-  findDistrict,
-  GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, seasonLength, buildStateWorld, stateSchool } from '../sim/league';
+import { buildCustomLeague, buildTexasLeague, Difficulty, findDistrict, GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, seasonLength, buildStateWorld, stateSchool, difficultyForPrestige } from '../sim/league';
 import {
   applyGameResult,
   FEEDER_SIGNING_WEEK,
@@ -168,6 +163,11 @@ export function playsThisWeek(state: Pick<GameStoreState, 'currentWeek' | 'seaso
   if ([...state.seasonSchedule, ...state.interstateGames].some((g) => g.week === week && (g.homeTeamId === teamId || g.awayTeamId === teamId))) return true;
   const bracket = state.playoffBracket;
   return !!bracket?.isPlayoffsActive && bracketRoundForWeek(bracket, week) >= 0 && !!findUserNode(bracket, teamId);
+}
+/** How the coach's name reads on his team: "Coach Mike Smith" (a name typed with "Coach" keeps it as is). */
+export function coachTitle(name: string): string {
+  const n = name.trim();
+  return !n ? 'Coach' : /^coach\b/i.test(n) ? n : `Coach ${n}`;
 }
 const STATEWIDE_RECRUITING_HEADLINES = 2; // five-star commitments elsewhere in the state, per week
 
@@ -598,8 +598,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       token: crypto.randomUUID(),
       seasons: []
     };
-    set({ currentYear: 2026, difficulty: scenario.difficulty, career });
+    set({ currentYear: 2026, difficulty: scenarioId === 'OPEN' ? difficultyForPrestige(stateSchool(state, school)?.prestige ?? 75) : scenario.difficulty, career });
     get().startNewSeason(buildStateWorld(state, school, false, scenario.startingPrestige));
+    // The coach's own name, on his team (profile, awards, news)
+    const team = get().leagueTeams.find((t) => t.id === get().userTeamId);
+    if (team) team.staff.headCoachName = coachTitle(career.coachName);
   },
 
   // League saves restore the whole world; older saves get a world built around their district
@@ -607,6 +610,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const year = save.currentYear ?? 2026;
     const world = save.league && save.leagueTeams ? { league: save.league, teams: save.leagueTeams } : buildCustomLeague(save.districtTeams, 'Saved District');
     const userTeam = world.teams.find((t) => t.id === save.userTeamId) ?? world.teams[0];
+    // A career's coach goes by his own name (saves from before it carry a generated one)
+    if (save.career) userTeam.staff.headCoachName = coachTitle(save.career.coachName);
     // The other states: from the save, or (older saves) built and played up to this week
     const loadedWeek = save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK);
     let nationalLeagues = save.nationalLeagues ? relinkNationalWorld(save.nationalLeagues) : null;

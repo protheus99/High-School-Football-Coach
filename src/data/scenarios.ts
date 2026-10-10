@@ -4,7 +4,7 @@
 // The leaderboards are grouped by the program a career started with.
 // ---------------------------------------------------------------------------
 
-export type ScenarioId = 'RECLAIM' | 'POWERHOUSE';
+export type ScenarioId = 'RECLAIM' | 'POWERHOUSE' | 'OPEN';
 
 export interface ScenarioProgram {
   state: string;
@@ -17,7 +17,7 @@ export interface Scenario {
   id: ScenarioId;
   title: string;
   tagline: string;
-  difficulty: 'EASY' | 'HARD';
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   /** The program's starting prestige (its roster is generated to match). */
   startingPrestige: (dataPrestige: number) => number;
   programs: ScenarioProgram[];
@@ -95,4 +95,17 @@ export const SCENARIOS: Scenario[] = [
   }
 ];
 
-export const scenarioById = (id: ScenarioId) => SCENARIOS.find((s) => s.id === id)!;
+/**
+ * "Your Pick": any school in the state, chosen from the New Game search. It starts at its own prestige (from the
+ * state's data) and its career is ranked against careers that started at a similar prestige.
+ */
+export const OPEN_SCENARIO: Scenario = {
+  id: 'OPEN',
+  title: 'Your Pick',
+  tagline: 'Any program in the state, at its own prestige.',
+  difficulty: 'MEDIUM',
+  startingPrestige: (p) => p,
+  programs: []
+};
+
+export const scenarioById = (id: ScenarioId) => (id === 'OPEN' ? OPEN_SCENARIO : SCENARIOS.find((s) => s.id === id)!);

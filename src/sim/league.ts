@@ -57,7 +57,7 @@ interface StateWorldData {
       number: number;
       name: string;
       area: string;
-      schools: { name: string; mascot: string; primaryColor: string; secondaryColor: string; prestige: number; offenseScheme: string; defenseScheme: string }[];
+      schools: { name: string; city?: string; mascot: string; primaryColor: string; secondaryColor: string; prestige: number; offenseScheme: string; defenseScheme: string }[];
     }[];
   }[];
 }
@@ -87,6 +87,41 @@ export function stateSchool(state: string, name: string): { mascot: string; prim
     }
   }
   return undefined;
+}
+
+/** A school in a playable state's top class, as the New Game search lists it. */
+export interface StateSchoolEntry {
+  name: string;
+  mascot: string;
+  city?: string;
+  district: string;
+  prestige: number;
+  primaryColor: string;
+  offenseScheme: string;
+  defenseScheme: string;
+}
+
+/** Every school in a playable state's top class. */
+export function stateSchools(state: string): StateSchoolEntry[] {
+  return (STATE_WORLDS[state]?.data.regions ?? []).flatMap((region) =>
+    region.districts.flatMap((district) =>
+      district.schools.map((s) => ({
+        name: s.name,
+        mascot: s.mascot,
+        city: s.city,
+        district: district.name,
+        prestige: s.prestige,
+        primaryColor: s.primaryColor,
+        offenseScheme: s.offenseScheme,
+        defenseScheme: s.defenseScheme
+      }))
+    )
+  );
+}
+
+/** The New Game difficulty a school's prestige corresponds to (for a career at a school the coach picked). */
+export function difficultyForPrestige(prestige: number): Difficulty {
+  return prestige >= DIFFICULTY_PRESTIGE.EASY.min ? 'EASY' : prestige >= DIFFICULTY_PRESTIGE.MEDIUM.min ? 'MEDIUM' : 'HARD';
 }
 
 /** A random school in the state's top class whose prestige fits the difficulty. */
