@@ -3,6 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { leagueRegionTeams } from '../sim/league';
 import { districtPlayoffSpots, playoffQualifyText, rulesForState } from '../sim/stateRules';
+import { scrollPageTo } from '../utils/pageScroll';
 
 /** Standings for every district in the league, grouped by region. */
 export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackButton?: boolean }> = ({ onBack, hideBackButton }) => {
@@ -11,7 +12,7 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackB
   // Picking a region from far down the list starts it from the top
   const pickRegion = (i: number | 'ALL') => {
     setRegionIndex(i);
-    window.scrollTo({ top: 0 });
+    scrollPageTo(0);
   };
   const [search, setSearch] = useState('');
 

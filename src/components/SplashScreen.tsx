@@ -305,7 +305,7 @@ const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
 );
 
 const pageStyle: React.CSSProperties = {
-  minHeight: '100vh',
+  minHeight: '100%',
   boxSizing: 'border-box',
   background: 'radial-gradient(circle at top, #1E3A5F 0%, #0F172A 60%)',
   display: 'flex',

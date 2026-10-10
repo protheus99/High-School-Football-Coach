@@ -29,6 +29,7 @@ import {
 import { FACTOR_LABELS, buildRecruitingContext, onProbation, restrictedOnProbation, topPriority } from '../sim/feederCompetition';
 import { wideJoinProbability } from '../sim/widePool';
 import { staffBonuses } from '../sim/coachingStaff';
+import { pageScrollTop, scrollPageTo } from '../utils/pageScroll';
 
 const SOURCE_COLORS: Record<ProspectSource, string> = {
   FEEDER_MIDDLE_SCHOOL: '#2563EB',
@@ -133,8 +134,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
       if (!list) return;
       // The sticky bars above the list: the app's top bar and this page's navigation
       const navHeight = (navRef.current?.offsetHeight ?? 0) + ((document.querySelector('.app-topbar') as HTMLElement | null)?.offsetHeight ?? 0);
-      const top = list.getBoundingClientRect().top + window.scrollY - navHeight - 8;
-      if (window.scrollY > top) window.scrollTo({ top });
+      const top = list.getBoundingClientRect().top + pageScrollTop() - navHeight - 8;
+      if (pageScrollTop() > top) scrollPageTo(top);
     });
   const setScope = (s: PoolScope) => {
     setScopeState(s);

@@ -231,7 +231,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
+    <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
       {showSaveLoadModal && <SaveLoadManagerModal onClose={() => setShowSaveLoadModal(false)} />}
       {viewedTeamId && <TeamProfileSheet teamId={viewedTeamId} onClose={() => openTeamProfile(null)} onOpenPlayer={(p) => openPlayerCard(p.id)} />}
       {viewedPlayer && (
