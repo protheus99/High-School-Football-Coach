@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Song, shuffledRound, songColor, songInitials } from '../../utils/soundtrack';
+import { Song, introSong, shuffledRound, songColor, songInitials } from '../../utils/soundtrack';
 import { DEFAULT_MUSIC_SETTINGS, getMusicSettings, setMusicSettings } from '../../utils/musicSettings';
 
 const song = (file: string, title = file): Song => ({ file, title, artist: 'Artist' });
@@ -22,6 +22,14 @@ describe('The soundtrack', () => {
       expect(shuffledRound(songs, last)[0].file).not.toBe(last.file);
     }
     expect(shuffledRound([songs[0]], songs[0])).toEqual([songs[0]]); // one song just plays again
+  });
+
+  it('opens with the song flagged as the intro, then shuffles it in with the rest', () => {
+    expect(introSong(songs)).toBeNull();
+    const withIntro = [...songs, { ...song('theme.mp3', 'Main Theme'), intro: true }];
+    expect(introSong(withIntro)?.file).toBe('theme.mp3');
+    // After the intro, the first shuffled round never starts with it again
+    for (let i = 0; i < 30; i++) expect(shuffledRound(withIntro, introSong(withIntro))[0].file).not.toBe('theme.mp3');
   });
 
   it('gives a cover-less song its initials and a color of its own', () => {

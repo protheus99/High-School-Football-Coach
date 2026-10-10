@@ -7,6 +7,7 @@ export interface Song {
   title: string;
   artist: string;
   cover?: string; // an image in public/music/covers (optional)
+  intro?: boolean; // the song that opens the game on the title screen (then it joins the shuffle)
 }
 
 const MUSIC_DIR = `${import.meta.env.BASE_URL}music/`;
@@ -25,6 +26,9 @@ export async function loadSoundtrack(): Promise<Song[]> {
     return [];
   }
 }
+
+/** The song that opens the game: the first one flagged as the intro, if any. */
+export const introSong = (songs: Song[]): Song | null => songs.find((s) => s.intro === true) ?? null;
 
 /**
  * The next round of songs: every song once, shuffled, and never the song that just played first (so a reshuffle

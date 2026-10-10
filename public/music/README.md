@@ -31,7 +31,13 @@ Use lowercase file names without spaces (`friday-lights.mp3`, not `Friday Lights
 
 - `file`: the MP3's name in this folder
 - `title` and `artist`: shown in the Now Playing pop-up
-- `cover`: the image's name in `covers/` (optional: without one, the pop-up shows a music note)
+- `cover`: the image's name in `covers/` (optional: without one, the pop-up shows the song's initials)
+- `intro`: `true` on the song that opens the game, playing on the title screen when the game loads (optional; one
+  song). After it, it joins the shuffle with the rest.
+
+```json
+{ "file": "main-theme.mp3", "title": "Main Theme", "artist": "The Sidelines", "cover": "main-theme.jpg", "intro": true }
+```
 
 ## Rights
 

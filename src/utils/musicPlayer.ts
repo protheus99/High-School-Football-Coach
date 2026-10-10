@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { Song, loadSoundtrack, shuffledRound, songUrl } from './soundtrack';
+import { Song, introSong, loadSoundtrack, shuffledRound, songUrl } from './soundtrack';
 import { getMusicSettings, subscribeMusicSettings } from './musicSettings';
 
 // ---------------------------------------------------------------------------
@@ -135,8 +135,10 @@ class MusicPlayer {
 
   private playNext() {
     if (!this.audio || this.songs.length === 0) return;
-    if (this.round.length === 0) this.round = shuffledRound(this.songs, this.state.song);
-    const song = this.round.shift()!;
+    // The game opens with the intro song (on the title screen); after it, everything shuffles
+    const intro = this.state.playId === 0 ? introSong(this.songs) : null;
+    if (!intro && this.round.length === 0) this.round = shuffledRound(this.songs, this.state.song);
+    const song = intro ?? this.round.shift()!;
     this.setGain(0, 0);
     this.audio.src = songUrl(song);
     void this.ctx?.resume();
