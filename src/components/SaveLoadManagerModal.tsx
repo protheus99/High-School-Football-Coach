@@ -5,6 +5,7 @@ import { exportDistrictToJSON, importCustomDistrictJSON } from '../utils/leagueI
 import { AUTOSAVE_ID, loadSaveGame } from '../services/db';
 import { buildCustomLeague, buildStateLeague, buildStateWorld, GameWorld, nearestDistrictIndexes, StateDistrictFile } from '../sim/league';
 import { PLAYABLE_STATES } from '../sim/stateRules';
+import { MusicSettingsPanel } from './MusicSettingsPanel';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { districtTeams, saveGame, loadGame } = useGameStore();
@@ -93,13 +94,18 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   };
 
   return (
-    <Sheet title="Save / Load" subtitle="Save your game, or start in another district" onClose={onClose}>
+    <Sheet title="Settings" subtitle="Music, saves and districts" onClose={onClose}>
+      <MusicSettingsPanel />
+
       {feedback && (
         <div role="status" style={{ background: '#EEF2FF', color: '#4338CA', padding: '10px 12px', borderRadius: '8px', marginBottom: '12px', fontSize: '14px' }}>
           {feedback}
         </div>
       )}
 
+      <div className="ui-label" style={{ borderTop: '1px solid #E2E8F0', paddingTop: '14px', marginBottom: '8px' }}>
+        Saves
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', marginBottom: '18px' }}>
         <button className="ui-btn ui-btn-primary" onClick={handleSaveToBrowser}>
           💾 Save game

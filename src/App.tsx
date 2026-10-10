@@ -9,6 +9,7 @@ import { TeamView, TeamSection } from './components/TeamView';
 import { RankingsHub, RankingsSection } from './components/RankingsHub';
 import { LeaderboardView } from './components/LeaderboardView';
 import { BackToTop } from './components/ui/BackToTop';
+import { musicPlayer } from './utils/musicPlayer';
 import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { TeamProfileSheet } from './components/TeamProfileSheet';
@@ -126,6 +127,9 @@ export const App: React.FC = () => {
 
     setActiveMatch(newGame);
   };
+
+  // The soundtrack plays everywhere but a live game, which has its own sound effects
+  useEffect(() => musicPlayer.setInGame(!!activeMatch), [activeMatch]);
 
   useEffect(() => {
     // Show the season's awards once at the banquet; closing the modal must not re-trigger it
@@ -294,8 +298,8 @@ export const App: React.FC = () => {
             📰 <span className="hide-sm">News</span>
             {unreadNews > 0 && tab !== 'NEWS' && <span style={unreadBadge}>{unreadNews > 9 ? '9+' : unreadNews}</span>}
           </button>
-          <button onClick={() => setShowSaveLoadModal(true)} aria-label="Save / Load" title="Save / Load" style={iconBtn('#334155')}>
-            ⚙️ <span className="hide-sm">Save / Load</span>
+          <button onClick={() => setShowSaveLoadModal(true)} aria-label="Settings" title="Settings: music, saves" style={iconBtn('#334155')}>
+            ⚙️ <span className="hide-sm">Settings</span>
           </button>
           <button onClick={() => setShowMenu(true)} aria-label="Main Menu" title="Main Menu" style={{ ...iconBtn('#1E293B'), border: '1px solid #475569' }}>
             🏠 <span className="hide-sm">Menu</span>

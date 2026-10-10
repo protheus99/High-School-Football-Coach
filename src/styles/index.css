@@ -898,3 +898,80 @@ h3 {
     animation: none;
   }
 }
+
+/* Now Playing: slides in at the bottom right, above the tab bar (and left of Back to top when it shows) */
+.ui-now-playing {
+  position: fixed;
+  right: 12px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 95;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  transform: translateX(calc(100% + 24px));
+  transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  will-change: transform;
+}
+
+.ui-now-playing-in {
+  transform: translateX(0);
+}
+
+body:has(.app-tabbar) .ui-now-playing {
+  bottom: calc(92px + env(safe-area-inset-bottom));
+}
+
+body:has(.ui-back-to-top) .ui-now-playing {
+  right: 76px;
+}
+
+.ui-eq {
+  display: inline-flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 10px;
+  margin-right: 5px;
+}
+
+.ui-eq i {
+  display: block;
+  width: 3px;
+  background: #f59e0b;
+  animation: ui-eq 0.9s infinite ease-in-out;
+}
+
+.ui-eq i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ui-eq i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes ui-eq {
+  0%,
+  100% {
+    height: 3px;
+  }
+  50% {
+    height: 10px;
+  }
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-now-playing {
+    transition: none;
+  }
+  .ui-eq i {
+    animation: none;
+    height: 8px;
+  }
+}
