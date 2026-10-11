@@ -42,7 +42,9 @@ describe('Penalties', () => {
       flags += pens.length;
       yards += pens.reduce((s, e) => s + e.penalty!.yards, 0);
       pens.forEach((e) => {
-        expect(e.textCommentary.startsWith('FLAG!')).toBe(true);
+        expect(e.textCommentary).toContain('FLAG!');
+        // A live-ball foul says what the play was; a pre-snap foul has no play
+        expect(!!e.penalty!.play).toBe(e.penalty!.timing === 'LIVE');
         expect(e.yardsGained).toBe(0);
         expect([g.homeTeam.id, g.awayTeam.id]).toContain(e.penalty!.teamId);
       });

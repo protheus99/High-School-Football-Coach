@@ -268,6 +268,7 @@ export interface PenaltyCall {
   player: string; // "OT #Garza"
   yards: number; // walked off (half the distance near the goal)
   firstDown?: boolean; // the defense's foul moved the chains
+  play?: string; // a live-ball foul: the play the flag came on ("QB #Rogers complete to WR #Hill for 18 yds.")
 }
 
 export interface CompactPlayerLeader {

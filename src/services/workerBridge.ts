@@ -41,6 +41,10 @@ class WorkerBridge {
     this.worker?.postMessage({ type: 'SET_GAME_PLAN', payload: { teamId, offense, defensiveCall } });
   }
 
+  public simQuarter(): void {
+    this.worker?.postMessage({ type: 'SIMULATE_QUARTER' });
+  }
+
   public simToHalftime(): void {
     this.worker?.postMessage({ type: 'SIMULATE_TO_HALFTIME' });
   }

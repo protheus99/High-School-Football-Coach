@@ -18,6 +18,9 @@ import { PressQuestion, buildPressContext, pickPressQuestion } from '../sim/pres
 import { DilemmaChoice } from '../types/game';
 import { DefensiveFocus, FOCUS_CALL, focusFromCall } from '../sim/gamePlan';
 import { OffensiveScheme } from '../types/game';
+import { FlagCall } from './FlagCall';
+import { FLAG_STAGE_MS, FlagStage, flagStages } from '../sim/flagSequence';
+import { PenaltyFlag } from './ui/PenaltyFlag';
 
 interface LiveMatchProps {
   initialState: GameSimulationState;
@@ -43,8 +46,22 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   const [gameState, setGameState] = useState<GameSimulationState>(initialState);
   const [leveragePrompt, setLeveragePrompt] = useState<LeverageType | null>(null);
   const [autoPlay, setAutoPlay] = useState(false);
-  // Calling plays one at a time: the play-calling panel only shows once the coach presses Next Snap
-  const [manualMode, setManualMode] = useState(false);
+  // Sim to End asks twice: the first tap arms it for a few seconds
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  useEffect(() => {
+    if (!confirmEnd) return;
+    const timer = setTimeout(() => setConfirmEnd(false), CONFIRM_END_MS);
+    return () => clearTimeout(timer);
+  }, [confirmEnd]);
+  // A flag: the game holds while it plays out (the play, FLAG, the call, the new spot)
+  const [flag, setFlag] = useState<{ event: PlayEvent; stage: FlagStage } | null>(null);
+  const flagTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const clearFlag = () => {
+    flagTimersRef.current.forEach(clearTimeout);
+    flagTimersRef.current = [];
+    setFlag(null);
+  };
+  useEffect(() => () => flagTimersRef.current.forEach(clearTimeout), []);
   // Auto-sim pauses for a decision (4th down, a try, halftime) and picks back up once it's made
   const autoPlayRef = useRef(false);
   const resumeAutoRef = useRef(false);
@@ -97,10 +114,26 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     simWorkerBridge.initialize();
     simWorkerBridge.initGame(initialState, userTeamId);
 
-    // Shared by both play callbacks: update the screen, queue banners, and open the halftime locker room
+    // A flag plays out stage by stage, then the game carries on
+    const runFlag = (event: PlayEvent) => {
+      flagTimersRef.current.forEach(clearTimeout);
+      let at = 0;
+      flagTimersRef.current = flagStages(event).map((stage) => {
+        const timer = setTimeout(() => setFlag({ event, stage }), at);
+        at += FLAG_STAGE_MS[stage];
+        return timer;
+      });
+      flagTimersRef.current.push(setTimeout(() => setFlag(null), at));
+    };
+
+    // Shared by both play callbacks: update the screen, queue banners (or play out a flag), and open the halftime locker room
     const afterSnap = (state: GameSimulationState, event?: PlayEvent) => {
       setGameState({ ...state });
-      const alerts = event && !simmingToEndRef.current ? alertsForPlay(event, preSnapRef.current, state) : [];
+      if (event?.penalty && !simmingToEndRef.current) {
+        setAlertQueue([]);
+        runFlag(event);
+      }
+      const alerts = event && !event.penalty && !simmingToEndRef.current ? alertsForPlay(event, preSnapRef.current, state) : [];
       if (alerts.length > 0) setAlertQueue(alerts);
       preSnapRef.current = {
         possessionTeamId: state.possessionTeamId,
@@ -124,7 +157,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         afterSnap(state, event);
         simmingToEndRef.current = false; // a sim to halftime has landed: banners are back on
         if (event?.isScore && event.scoreType === 'TOUCHDOWN') soundFx.playTouchdownHorn();
-        else if (event?.isTurnover) soundFx.playWhistle();
+        else if (event?.isTurnover || event?.penalty) soundFx.playWhistle();
         else soundFx.playTackleThud();
       },
       // The play that sets up a decision (your touchdown's try, a red-zone or 4th-down call) arrives here instead
@@ -153,13 +186,13 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (autoPlay && !leveragePrompt && !showHalftimeModal && !gameState.isGameOver) {
+    if (autoPlay && !leveragePrompt && !showHalftimeModal && !flag && !gameState.isGameOver) {
       interval = setInterval(() => {
         simWorkerBridge.stepPlay();
       }, 1100);
     }
     return () => clearInterval(interval);
-  }, [autoPlay, leveragePrompt, showHalftimeModal, gameState.isGameOver]);
+  }, [autoPlay, leveragePrompt, showHalftimeModal, flag, gameState.isGameOver]);
 
   const handleDefensiveCall = (call: DefensiveCall) => {
     simWorkerBridge.stepPlay(undefined, call);
@@ -178,18 +211,26 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     resumeAutoSim();
   };
 
-  // Sim ahead: to the locker room in the first half, to the final whistle after it
+  // Sim ahead (the staff calls every play): the rest of the quarter, the half, or the game
   const firstHalf = gameState.currentQuarter === 1 || gameState.currentQuarter === 2;
-  const simAhead = () => {
-    setManualMode(false);
+  const started = gameState.eventLog.length > 0;
+  const simAhead = (to: 'QUARTER' | 'HALF' | 'END') => {
     setAutoPlay(false);
     setLeveragePrompt(null);
+    setConfirmEnd(false);
     resumeAutoRef.current = false;
     simmingToEndRef.current = true;
     setAlertQueue([]);
-    if (firstHalf) simWorkerBridge.simToHalftime();
+    clearFlag();
+    if (to === 'QUARTER') simWorkerBridge.simQuarter();
+    else if (to === 'HALF') simWorkerBridge.simToHalftime();
     else simWorkerBridge.simToEnd();
   };
+  // During a flag the field and scoreboard show the snap's spot until the penalty is walked off
+  const beforeSpot = flag && flag.stage !== 'SPOT' && flag.event.snapDown !== undefined;
+  const shownDown = beforeSpot ? flag.event.snapDown! : gameState.down;
+  const shownDistance = beforeSpot ? flag.event.snapDistance! : gameState.distance;
+  const shownYardLine = beforeSpot ? flag.event.snapYardLine! : gameState.yardLine;
 
   // The game plan the coach's team is running (from the strategy room, or changed mid-game)
   const userTeam = gameState.homeTeam.id === userTeamId ? gameState.homeTeam : gameState.awayTeam;
@@ -333,11 +374,11 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
                     ? `OT ${gameState.overtime?.period ?? 1}`
                     : `Q${gameState.currentQuarter} ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}`}
                 </div>
-                <div style={{ fontSize: '13px', color: '#334155', fontWeight: 'bold' }}>
-                  {gameState.down}
-                  {ORDINAL[gameState.down] ?? 'th'} &amp; {gameState.distance}
+                <div className={flag?.stage === 'SPOT' ? 'down-flash' : undefined} style={{ fontSize: '13px', color: '#334155', fontWeight: 'bold', padding: '0 4px' }}>
+                  {shownDown}
+                  {ORDINAL[shownDown] ?? 'th'} &amp; {shownDistance}
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748B' }}>{gameState.yardLine > 50 ? `Opp ${100 - gameState.yardLine}` : `Own ${gameState.yardLine}`}</div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>{shownYardLine > 50 ? `Opp ${100 - shownYardLine}` : `Own ${shownYardLine}`}</div>
               </div>
             )
           )}
@@ -346,11 +387,14 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
 
       {/* 2D SVG Interactive Field Visualizer */}
       <FieldVisualizer
-        yardLine={gameState.yardLine}
-        distance={gameState.distance}
+        yardLine={shownYardLine}
+        distance={shownDistance}
         possessionColor={currentPossTeam.primaryColor}
+        flagYardLine={flag && flag.stage !== 'PLAY' ? flag.event.snapYardLine : undefined}
         caption={
-          playAlert ? (
+          flag ? (
+            <FlagCall event={flag.event} stage={flag.stage} teams={[gameState.homeTeam, gameState.awayTeam]} />
+          ) : playAlert ? (
             <PlayAlert alert={playAlert} userTeamId={userTeamId} onDone={clearPlayAlert} />
           ) : (
             <div className="play-latest" aria-live="polite">
@@ -402,14 +446,19 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         </div>
       )}
 
-      {/* Calling plays one at a time: only after the coach presses Next Snap (most coaches let the game run) */}
-      {manualMode && !autoPlay && !gameState.isGameOver && (
-        <PlayCallingPanel
-          side={gameState.possessionTeamId === userTeamId ? 'OFFENSE' : 'DEFENSE'}
-          onCallPlay={(concept) => handleDecision(concept)}
-          onCallDefense={handleDefensiveCall}
-          disabled={autoPlay || gameState.isGameOver || leveragePrompt !== null}
-        />
+      {/* While the game is paused (or before it begins) the coach calls each play himself: one snap per call */}
+      {!autoPlay && !gameState.isGameOver && leveragePrompt === null && !showHalftimeModal && (
+        <>
+          <PlayCallingPanel
+            side={gameState.possessionTeamId === userTeamId ? 'OFFENSE' : 'DEFENSE'}
+            onCallPlay={(concept) => handleDecision(concept)}
+            onCallDefense={handleDefensiveCall}
+            disabled={flag !== null}
+          />
+          <p style={{ margin: '-4px 2px 12px', fontSize: '12.5px', color: '#64748B' }}>
+            {started ? 'Paused: call plays yourself, or tap Resume to let your staff call them.' : 'Call the first play yourself, or tap Begin to let your staff call them.'}
+          </p>
+        </>
       )}
 
       {/* The game plan: below the boxes that pop up, above the scoreboard and the play-by-play */}
@@ -444,8 +493,17 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         }}
       >
         {gameState.eventLog.map((ev, i) => (
-          <div key={i} style={{ marginBottom: '8px', fontSize: '13px', lineHeight: '1.4' }}>
-            <span style={{ fontWeight: 'bold', color: '#4B5563' }}>
+          <div
+            key={i}
+            style={{
+              marginBottom: '8px',
+              fontSize: '13px',
+              lineHeight: '1.4',
+              ...(ev.penalty ? { background: '#FEF9C3', borderLeft: '4px solid #EAB308', borderRadius: '4px', padding: '3px 6px' } : {})
+            }}
+          >
+            {ev.penalty && <PenaltyFlag size={14} />}{' '}
+            <span style={{ fontWeight: 'bold', color: ev.penalty ? '#854D0E' : '#4B5563' }}>
               [{ev.quarter === 'OT'
                 ? 'OT'
                 : `Q${ev.quarter} - ${Math.floor(ev.clockTimeRemainingSeconds / 60)}:${(ev.clockTimeRemainingSeconds % 60).toString().padStart(2, '0')}`}]
@@ -470,29 +528,37 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         <div style={{ display: 'flex', gap: '8px' }}>
           {!gameState.isGameOver ? (
             <>
-              <button
-                onClick={() => {
-                  setManualMode(true);
-                  simWorkerBridge.stepPlay();
-                }}
-                disabled={autoPlay}
-                style={controlBtnStyle}
-              >
-                Next Snap
+              {flag ? (
+                <button disabled style={{ ...controlBtnStyle, background: '#FDE68A', color: '#713F12', border: '1px solid #EAB308', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                  <PenaltyFlag size={20} /> Flag…
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    resumeAutoRef.current = false;
+                    setAutoPlay(!autoPlay);
+                  }}
+                  style={{ ...controlBtnStyle, ...(autoPlay ? { background: '#F59E0B', color: '#0F172A' } : { background: '#16A34A' }) }}
+                >
+                  {autoPlay ? '⏸ Pause' : started ? '▶ Resume' : '▶ Begin'}
+                </button>
+              )}
+              <button onClick={() => simAhead('QUARTER')} disabled={!!flag} style={{ ...controlBtnStyle, ...(flag ? dimmed : {}) }}>
+                {gameState.currentQuarter === 'OT' ? '⏩ Sim OT' : '⏩ Sim Quarter'}
               </button>
-              <button
-                onClick={() => {
-                  if (!autoPlay) setManualMode(false);
-                  resumeAutoRef.current = false;
-                  setAutoPlay(!autoPlay);
-                }}
-                style={controlBtnStyle}
-              >
-                {autoPlay ? 'Pause' : 'Auto-Sim'}
-              </button>
-              <button onClick={simAhead} style={controlBtnStyle}>
-                {firstHalf ? 'Sim to Half' : 'Sim to Final'}
-              </button>
+              {firstHalf ? (
+                <button onClick={() => simAhead('HALF')} disabled={!!flag} style={{ ...controlBtnStyle, ...(flag ? dimmed : {}) }}>
+                  ⏭ Sim Half
+                </button>
+              ) : confirmEnd ? (
+                <button onClick={() => simAhead('END')} style={{ ...controlBtnStyle, background: '#DC2626' }}>
+                  Tap again to sim
+                </button>
+              ) : (
+                <button onClick={() => setConfirmEnd(true)} disabled={!!flag} style={{ ...controlBtnStyle, ...(flag ? dimmed : {}) }}>
+                  🏁 Sim to End
+                </button>
+              )}
             </>
           ) : (
             <button onClick={() => setShowBoxScore(true)} style={{ ...controlBtnStyle, background: '#047857', color: '#fff' }}>
@@ -520,6 +586,9 @@ const btnStyle: React.CSSProperties = {
 };
 
 const ORDINAL: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
+// Sim to End's second tap has this long to land
+const CONFIRM_END_MS = 3000;
+const dimmed: React.CSSProperties = { opacity: 0.5, cursor: 'default' };
 const LOG_OPEN_KEY = 'hsfhc.playByPlayOpen';
 
 /** "1st & 10", "3rd & Goal", or "Try" for a PAT / two-point attempt (blank for events saved before this was recorded). */
@@ -544,9 +613,9 @@ const controlBtnStyle: React.CSSProperties = {
   minHeight: '48px',
   flex: '1 1 0', // share the row evenly so labels fit on phones
   minWidth: 0,
-  padding: '10px 4px',
-  whiteSpace: 'nowrap', // one line: "Sim to Final" fits a third of a phone screen, down to 320px wide
-  fontSize: 'clamp(13px, 4vw, 15px)',
+  padding: '10px 2px',
+  whiteSpace: 'nowrap', // one line: "⏩ Sim Quarter" fits a third of a phone screen, down to 320px wide
+  fontSize: 'clamp(11px, 3.4vw, 15px)',
   background: '#2563EB',
   color: '#fff',
   border: 'none',

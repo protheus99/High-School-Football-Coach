@@ -462,6 +462,21 @@ function startOvertimePeriod(state: GameSimulationState, period: number, firstOf
 }
 
 /**
+ * What happened on a snap a live-ball foul was called on, for the flag's play-by-play. The offense's foul wipes
+ * out any gain; a defensive foul is only enforced when it beats the play, so that play gained less.
+ */
+function flaggedPlayText(offense: Team, concept: PlayConcept, byOffense: boolean, penaltyYards: number): string {
+  const qb = getActivePlayer(offense, 'QB');
+  const label = (p: Player | undefined) => `${p?.position ?? ''} #${p?.lastName ?? '?'}`;
+  const gain = byOffense ? randomInt(3, 22) : randomInt(0, Math.max(0, penaltyYards - 5));
+  if (concept === 'DEEP_PASS' && !byOffense) return `QB #${qb.lastName} goes deep for ${label(pickReceiver(offense))}... incomplete.`;
+  if (isPassConcept(concept)) {
+    return gain === 0 ? `QB #${qb.lastName}'s pass falls incomplete.` : `QB #${qb.lastName} complete to ${label(pickReceiver(offense))} for ${gain} yds.`;
+  }
+  return `${label(pickRusher(offense))} runs for ${gain} yds.`;
+}
+
+/**
  * Resolves a single play of football and updates state
  */
 export function simulateSnap(
@@ -629,7 +644,20 @@ export function simulateSnap(
     timeElapsed = rule.timing === 'PRE_SNAP' ? 0 : randomInt(5, 9);
     const ordinal = ['', '1st', '2nd', '3rd', '4th'][state.down];
     commentary = `FLAG! ${rule.name}, ${who} (${team.name}). ${rule.timing === 'LIVE' && byOffense ? 'The play comes back: ' : ''}${yards} yards${firstDown ? ', FIRST DOWN' : `, replay ${ordinal} down`}.`;
-    penalty = { id: rule.id, name: rule.name, teamId: team.id, side: rule.side, timing: rule.timing, ...(player && { playerId: player.id }), player: who, yards, ...(firstDown && { firstDown }) };
+    const play = rule.timing === 'LIVE' ? flaggedPlayText(offense, concept, byOffense, yards) : undefined;
+    if (play) commentary = `${play} ${commentary}`;
+    penalty = {
+      id: rule.id,
+      name: rule.name,
+      teamId: team.id,
+      side: rule.side,
+      timing: rule.timing,
+      ...(player && { playerId: player.id }),
+      player: who,
+      yards,
+      ...(firstDown && { firstDown }),
+      ...(play && { play })
+    };
   }
   // Standard Scrimmage Plays
   else {

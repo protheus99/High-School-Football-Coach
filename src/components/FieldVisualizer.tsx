@@ -1,5 +1,6 @@
 import React from 'react';
 import { luminance } from '../utils/color';
+import { PenaltyFlagShape } from './ui/PenaltyFlag';
 
 interface FieldVisualizerProps {
   yardLine: number; // 1 to 99 relative to offensive goal line
@@ -11,6 +12,8 @@ interface FieldVisualizerProps {
   homeTeamName: string;
   homeColor: string;
   homeSecondaryColor?: string;
+  /** A penalty flag on the field at this yard line (from the offense's goal line), while a flag is being called. */
+  flagYardLine?: number;
 }
 
 export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
@@ -21,7 +24,8 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
   possessionIsHome,
   homeTeamName,
   homeColor,
-  homeSecondaryColor
+  homeSecondaryColor,
+  flagYardLine
 }) => {
   // SVG coordinates: 0 to 120 (10-yard end zones on each side, goal lines at x = 10 and x = 110).
   // yardLine is measured from the offense's own goal line: the visitors' own goal is on the left,
@@ -109,6 +113,13 @@ export const FieldVisualizer: React.FC<FieldVisualizerProps> = ({
 
         {/* Football Marker (Brown Ellipse) */}
         <ellipse cx={ballX} cy="20" rx="2" ry="1.2" fill="#78350F" stroke="#FFFFFF" strokeWidth="0.3" />
+
+        {/* A penalty flag where it landed */}
+        {flagYardLine !== undefined && (
+          <g className="field-flag" transform={`translate(${ownGoalX + dir * flagYardLine - 6} 5) scale(0.19)`}>
+            <PenaltyFlagShape />
+          </g>
+        )}
 
         {/* Drive Direction Arrow */}
         <polygon

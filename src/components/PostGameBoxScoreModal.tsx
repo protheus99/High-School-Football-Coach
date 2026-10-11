@@ -28,13 +28,19 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
   const home = teamTotals(homeTeam);
   const away = teamTotals(awayTeam);
   const turnovers = (t: PlayerStats) => t.interceptionsThrown + t.fumblesLost;
+  // Flags against each team: count-yards
+  const penalties = (team: Team) => {
+    const flags = gameState.eventLog.filter((e) => e.penalty?.teamId === team.id);
+    return `${flags.length}-${flags.reduce((n, e) => n + e.penalty!.yards, 0)}`;
+  };
 
   // Away on the left, home on the right, like the score above
   const metrics: [string, string, string, boolean?][] = [
     ['Total yards', `${away.passYards + away.rushYards}`, `${home.passYards + home.rushYards}`],
     ['Passing', `${away.passYards} (${away.passCompletions}/${away.passAttempts})`, `${home.passYards} (${home.passCompletions}/${home.passAttempts})`],
     ['Rushing', `${away.rushYards} (${away.rushAttempts} car)`, `${home.rushYards} (${home.rushAttempts} car)`],
-    ['Turnovers', `${turnovers(away)}`, `${turnovers(home)}`, true]
+    ['Turnovers', `${turnovers(away)}`, `${turnovers(home)}`, true],
+    ['Penalties', penalties(awayTeam), penalties(homeTeam)]
   ];
 
   return (

@@ -899,6 +899,103 @@ h3 {
   }
 }
 
+/* A penalty flag: a flashing yellow FLAG banner, then the call */
+.flag-bar {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #facc15;
+  color: #422006;
+  font-weight: 900;
+  font-size: 24px;
+  letter-spacing: 0.22em;
+  border: 3px solid #ca8a04;
+  border-radius: 6px;
+  animation: play-alert-pop 0.3s cubic-bezier(0.2, 1.4, 0.4, 1) both, flag-flash 0.45s ease-in-out 0.3s infinite alternate;
+}
+
+.flag-toss {
+  animation: flag-toss 0.5s ease-out both;
+}
+
+/* The flag stands out on the yellow banner */
+.flag-bar svg {
+  filter: drop-shadow(0 0 1.5px #713f12);
+}
+
+.flag-call {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: #fef9c3;
+  border: 3px solid #ca8a04;
+  border-left-width: 8px;
+  border-radius: 6px;
+  padding: 8px 10px;
+  animation: play-alert-pop 0.3s ease-out both;
+}
+
+/* The flag lands on the field */
+.field-flag {
+  animation: field-flag-drop 0.4s ease-out both;
+}
+
+/* The new down and distance once the penalty is walked off */
+.down-flash {
+  border-radius: 6px;
+  animation: down-flash 0.5s ease-in-out 3 alternate;
+}
+
+@keyframes flag-flash {
+  to {
+    background: #fef08a;
+  }
+}
+
+@keyframes flag-toss {
+  from {
+    transform: translate(-14px, -18px) rotate(-60deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes field-flag-drop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes down-flash {
+  from {
+    background: #fde047;
+  }
+  to {
+    background: #fef9c3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flag-bar,
+  .flag-toss,
+  .flag-call,
+  .field-flag,
+  .down-flash {
+    animation: none;
+  }
+  .down-flash {
+    background: #fde047;
+  }
+}
+
 /* Now Playing: slides in at the bottom right, above the tab bar (and left of Back to top when it shows) */
 .ui-now-playing {
   position: fixed;
