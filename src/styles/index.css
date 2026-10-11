@@ -996,6 +996,34 @@ h3 {
   }
 }
 
+/* The game's name on the title screen: FRIDAY NIGHT over a big gold DYNASTIES */
+.game-title {
+  margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Impact, 'Arial Black', 'Arial Narrow Bold', sans-serif;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.game-title-kicker {
+  font-size: clamp(15px, 3.6vw, 20px);
+  letter-spacing: 0.32em;
+  color: #cbd5e1;
+  padding-left: 0.32em; /* letter spacing adds space after the last letter: keep the word centered */
+}
+
+.game-title-main {
+  font-size: clamp(46px, 11vw, 68px);
+  letter-spacing: 0.04em;
+  background: linear-gradient(180deg, #fef3c7, #fbbf24 55%, #b45309);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.35));
+}
+
 /* The title screen's nudge when the browser blocked sound: a soft yellow pill that breathes */
 .music-tap-hint {
   display: inline-flex;
