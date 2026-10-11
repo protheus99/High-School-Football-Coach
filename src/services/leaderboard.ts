@@ -2,8 +2,8 @@ import { Career, careerNationalTitles, careerPoints, careerTitles } from '../sim
 
 // ---------------------------------------------------------------------------
 // The Hall of Fame: one board per career length (3, 5 and 10 years), every program on it. Every career on this
-// device is kept locally; when a server is configured (VITE_LEADERBOARD_URL), each completed season is also
-// submitted there and its boards are shown alongside, so coaches on different devices compete together.
+// device is kept locally; on the live game (or with VITE_LEADERBOARD_URL set), each completed season is also
+// submitted to the server and its boards are shown alongside, so coaches on different devices compete together.
 // ---------------------------------------------------------------------------
 
 const STORAGE_KEY = 'hsfhc_careers_v1';
@@ -87,7 +87,9 @@ export function localLeaderboard(length?: Career['length']): LeaderboardEntry[] 
   );
 }
 
-const REMOTE_URL: string | undefined = import.meta.env.VITE_LEADERBOARD_URL;
+// The live game ranks careers on the Hall of Fame server (leaderboard-worker/); the dev server keeps them on the
+// device unless VITE_LEADERBOARD_URL points somewhere
+const REMOTE_URL: string | undefined = import.meta.env.VITE_LEADERBOARD_URL ?? (import.meta.env.PROD ? 'https://hsfhc-leaderboard.protheus99.workers.dev' : undefined);
 export const hasRemoteLeaderboard = () => !!REMOTE_URL;
 
 async function submitRemote(career: Career): Promise<void> {
