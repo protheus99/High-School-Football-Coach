@@ -6,3 +6,6 @@ coverage/
 .vite/
 .wrangler/
 *.tsbuildinfo
+
+# Licensed music: the MP3s live in Cloudflare R2 behind music-worker/ and must never be in this public repo
+public/music/*.mp3
