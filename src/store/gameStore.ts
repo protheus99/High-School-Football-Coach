@@ -99,6 +99,7 @@ import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/wideP
 import { HiredCoach, staffBonuses, staffGameDayEdge } from '../sim/coachingStaff';
 import { Career, CareerLength, isCareerComplete, scoreSeason } from '../sim/careerScore';
 import { JobOffer, jobOffers, newContract } from '../sim/jobMarket';
+import { amountDue, coachPrice, contractTerms, ContractYears, FIRST_OFF_SEASON_WEEK, needsSettling, settled, settleKind, staffWindowOpen, withContract } from '../sim/staffContracts';
 import { ScenarioId, scenarioById } from '../data/scenarios';
 import { recordCareer } from '../services/leaderboard';
 import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
@@ -130,6 +131,7 @@ import {
   TalentId,
   collegeActionCost,
   feederEventCost,
+  formatCP,
   offseasonConditioningBonus,
   talentBlocker,
   weeklyCpIncome,
@@ -406,6 +408,9 @@ interface GameStoreState {
   interstateGames: ScheduledGame[]; // the season's out-of-state games, every state (the league's are also in its schedule)
   coachingStaff: HiredCoach[]; // the coach's paid assistants (game-day edge, development, injuries, Coach Points)
   setCoachingStaff: (staff: HiredCoach[]) => void;
+  hireCoach: (coach: HiredCoach, years: ContractYears) => string | null; // null when hired, else why not
+  releaseCoach: (role: HiredCoach['role']) => void;
+  settleStaff: (keep: HiredCoach['role'][], letGo: HiredCoach['role'][]) => string | null; // the off-season: pay or renew, and let go
   runAhead: () => WeekResults; // simulates this week's other games now if they haven't been (idempotent)
   userViolationHeat: number; // hidden evidence of the user's recruiting violations
   pendingUserBan: boolean; // caught at year end: banned from next season's playoffs
@@ -656,7 +661,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       // The league's out-of-state games are the same objects as the national list's
       seasonSchedule: save.league && save.seasonSchedule ? relinkInterstate(save.seasonSchedule, save.interstateGames ?? []) : generateSeasonSchedule(leagueRegionTeams(world.league, world.teams), year),
       interstateGames: save.interstateGames ?? [],
-      coachingStaff: save.coachingStaff ?? [],
+      coachingStaff: (save.coachingStaff ?? []).map((c) => withContract(c, year)),
       career: save.career ?? null,
       careerHistory: save.careerHistory ?? [],
       playoffBracket: save.league && save.playoffBracket ? relinkBracketTeams(save.playoffBracket, world.teams) : null,
@@ -1094,6 +1099,34 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ coachingStaff: staff, weekResults: null });
   },
 
+  // Hiring: only while the staff window is open; the first season is paid now (Coach Point coaches only until ducats go on sale)
+  hireCoach: (coach, years) => {
+    const { currentWeek, currentYear, coachPoints, coachingStaff } = get();
+    if (!staffWindowOpen(currentWeek)) return 'The staff is locked until the off-season.';
+    const price = coachPrice(coach.rating);
+    if (price.currency === 'DUCATS') return 'Coaches paid in ducats are coming soon.';
+    if (coachPoints < price.amount) return `Needs ${formatCP(price.amount)}`;
+    set({ coachPoints: coachPoints - price.amount });
+    get().setCoachingStaff([...coachingStaff.filter((c) => c.role !== coach.role), { ...coach, ...contractTerms(currentWeek, currentYear, years) }]);
+    return null;
+  },
+
+  releaseCoach: (role) => {
+    if (!staffWindowOpen(get().currentWeek)) return;
+    get().setCoachingStaff(get().coachingStaff.filter((c) => c.role !== role));
+  },
+
+  // The off-season: pay next season for the coaches kept (renewals add a season at the same price) and let the rest go
+  settleStaff: (keep, letGo) => {
+    const { coachingStaff, currentWeek, currentYear, coachPoints } = get();
+    const kept = coachingStaff.filter((c) => keep.includes(c.role) && needsSettling(c, currentWeek, currentYear));
+    const cost = kept.reduce((n, c) => n + amountDue(coachPrice(c.rating)), 0);
+    if (cost > coachPoints) return `Needs ${formatCP(cost)}`;
+    set({ coachPoints: coachPoints - cost });
+    get().setCoachingStaff(coachingStaff.filter((c) => !letGo.includes(c.role)).map((c) => (kept.includes(c) ? settled(c, currentYear) : c)));
+    return null;
+  },
+
   runAhead: () => {
     const { weekResults, currentWeek } = get();
     if (weekResults?.week === currentWeek) return weekResults;
@@ -1132,6 +1165,20 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   finishBanquet: () => {
     const { currentWeek, coachPoints, coachTalents } = get();
     set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents, get().districtTeams.find((t) => t.id === get().userTeamId)?.programMeters.schoolBoardTrust) });
+    // The off-season opens: coaches still under contract are paid for next season when there's enough; the rest wait for the coach
+    if (get().currentWeek === FIRST_OFF_SEASON_WEEK) {
+      const year = get().currentYear;
+      let cp = get().coachPoints;
+      const staff = get().coachingStaff.map((c) => {
+        if (!needsSettling(c, FIRST_OFF_SEASON_WEEK, year) || settleKind(c, year) !== 'PAYMENT') return c;
+        const due = amountDue(coachPrice(c.rating));
+        if (due > cp) return c;
+        cp -= due;
+        return settled(c, year);
+      });
+      set({ coachPoints: cp });
+      get().setCoachingStaff(staff);
+    }
   },
 
   // The contract is done and the board will keep him: a new contract at the same school, then next season
@@ -1211,6 +1258,22 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       set({ firedFrom: userTeam.name });
       return;
     }
+    // Assistants nobody paid for next season leave the staff
+    const leaving = get().coachingStaff.filter((c) => (c.paidThroughSeason ?? currentYear) <= currentYear);
+    if (leaving.length > 0) get().setCoachingStaff(get().coachingStaff.filter((c) => !leaving.includes(c)));
+    const staffNews: NewsArticle[] = leaving.length
+      ? [
+          {
+            id: `news_staff_leave_${currentYear}`,
+            week: 1,
+            outlet: 'TOWN_JOURNAL',
+            headline: `${leaving.length === 1 ? 'An Assistant Leaves' : `${leaving.length} Assistants Leave`} the ${userTeam.name} Staff`,
+            content: `${leaving.map((c) => c.name).join(', ')} ${leaving.length === 1 ? 'was' : 'were'} not signed for next season and ${leaving.length === 1 ? 'has' : 'have'} moved on.`,
+            impactSentiment: 'NEGATIVE',
+            featuredTeamName: userTeam.name
+          }
+        ]
+      : [];
     const boardNews: NewsArticle[] =
       review === 'HOT_SEAT'
         ? [
@@ -1329,7 +1392,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       coachPoints: get().coachPoints + weeklyCpIncome(1, get().coachTalents, userTeam.programMeters.schoolBoardTrust),
       onHotSeat: review === 'HOT_SEAT',
       seasonRecap,
-      newsArticles: [...boardNews, ...investigationNews, ...get().newsArticles],
+      newsArticles: [...staffNews, ...boardNews, ...investigationNews, ...get().newsArticles],
       districtTeams: [...districtTeams],
       leagueTeams: [...leagueTeams],
       seasonSchedule: nextSchedule,

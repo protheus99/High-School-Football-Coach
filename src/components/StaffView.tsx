@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getSeasonPhase } from '../sim/scheduleEngine';
 import { useGameStore } from '../store/gameStore';
 import {
   COACH_ROLES,
@@ -13,6 +14,21 @@ import {
   staffGrade
 } from '../sim/coachingStaff';
 import { randomPlayerName } from '../generators/names';
+import { formatCP } from '../sim/coachPoints';
+import {
+  amountDue,
+  coachPrice,
+  CONTRACT_YEARS,
+  ContractYears,
+  DUCATS_LIVE,
+  FIRST_OFF_SEASON_WEEK,
+  firstContractSeason,
+  formatPrice,
+  needsSettling,
+  settleKind,
+  STAFF_LOCK_WEEK,
+  staffWindowOpen
+} from '../sim/staffContracts';
 
 const GRADE_COLORS: Record<CoachGrade, string> = {
   'S+': '#7C3AED',
@@ -28,16 +44,20 @@ const GRADE_COLORS: Record<CoachGrade, string> = {
 };
 
 /**
- * The coaching staff, in the players' terms: each coach's letter grade (S+ down to D) and what their effects do,
- * the staff's overall grade and the benefits it brings. The numbers behind them (the game-day edge out of its
- * +2.0 cap, every multiplier) show only in development builds. Hiring is a placeholder until purchases exist.
+ * The coaching staff, in the players' terms: each coach's letter grade (S+ down to D), what their effects do, what
+ * they cost a season and how long their contract runs. Hiring and releasing are open in the off-season and
+ * pre-season only; in the off-season every coach needs next season paid (renew, pay or let go). The numbers behind
+ * the grades show only in development builds.
  */
 export const StaffView: React.FC = () => {
-  const { coachingStaff, setCoachingStaff } = useGameStore();
+  const { coachingStaff, currentWeek, currentYear, coachPoints, hireCoach, releaseCoach } = useGameStore();
   const [openRole, setOpenRole] = useState<CoachRole | null>(null);
   const [candidates, setCandidates] = useState<Partial<Record<CoachRole, HiredCoach[]>>>({});
+  const [picked, setPicked] = useState<{ name: string; years: ContractYears } | null>(null);
   const bonus = staffBonuses(coachingStaff);
   const grade = staffGrade(coachingStaff);
+  const open = staffWindowOpen(currentWeek);
+  const due = coachingStaff.filter((c) => needsSettling(c, currentWeek, currentYear));
   const name = () => {
     const n = randomPlayerName();
     return `${n.firstName} ${n.lastName}`;
@@ -46,14 +66,15 @@ export const StaffView: React.FC = () => {
   const browse = (role: CoachRole) => {
     if (openRole === role) return setOpenRole(null);
     if (!candidates[role]) setCandidates({ ...candidates, [role]: generateCandidates(role, name) });
+    setPicked(null);
     setOpenRole(role);
   };
-  const hire = (coach: HiredCoach) => {
-    setCoachingStaff([...coachingStaff.filter((c) => c.role !== coach.role), coach]);
+  const hire = (coach: HiredCoach, years: ContractYears) => {
+    if (hireCoach(coach, years)) return;
     setCandidates({ ...candidates, [coach.role]: undefined });
     setOpenRole(null);
+    setPicked(null);
   };
-  const release = (role: CoachRole) => setCoachingStaff(coachingStaff.filter((c) => c.role !== role));
 
   // What the staff brings, in words
   const benefits = [
@@ -78,13 +99,15 @@ export const StaffView: React.FC = () => {
           <div style={{ color: '#475569', marginTop: '2px' }}>{benefits.length > 0 ? benefits.join(' · ') : 'Hire assistants to give the program an edge.'}</div>
         </div>
       </div>
+      <StaffWindowBanner week={currentWeek} />
+      {due.length > 0 && <SettlePanel due={due} />}
       {import.meta.env.DEV && <DebugPanel staff={coachingStaff} />}
 
       {/* Every role */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '10px' }}>
         {COACH_ROLES.map((info) => {
           const coach = coachingStaff.find((c) => c.role === info.role);
-          const open = openRole === info.role;
+          const browsing = open && openRole === info.role;
           return (
             <div key={info.role} style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '12px', fontSize: '13px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'nowrap' }}>
@@ -93,34 +116,41 @@ export const StaffView: React.FC = () => {
               </div>
               {coach && (
                 <>
-                  <div style={{ color: '#475569', margin: '2px 0 6px' }}>{coach.name}</div>
+                  <div style={{ color: '#475569', margin: '2px 0 2px' }}>{coach.name}</div>
+                  <div style={{ color: '#64748B', fontSize: '12px', marginBottom: '6px' }}>
+                    {formatPrice(coachPrice(coach.rating))} a season{coach.contractEndSeason !== undefined ? ` · signed through ${coach.contractEndSeason}` : ''}
+                  </div>
                   <EffectList coach={coach} />
                 </>
               )}
-              <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
-                <button className="ui-btn" style={{ flex: '1 1 120px' }} aria-expanded={open} onClick={() => browse(info.role)}>
-                  {open ? 'Close' : coach ? 'Find a replacement' : 'Find candidates'}
-                </button>
-                {coach && (
-                  <button className="ui-btn" style={{ flex: '0 0 auto' }} onClick={() => release(info.role)}>
-                    Release
+              {open ? (
+                <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+                  <button className="ui-btn" style={{ flex: '1 1 120px' }} aria-expanded={browsing} onClick={() => browse(info.role)}>
+                    {browsing ? 'Close' : coach ? 'Find a replacement' : 'Find candidates'}
                   </button>
-                )}
-              </div>
-              {open && (
+                  {coach && (
+                    <button className="ui-btn" style={{ flex: '0 0 auto' }} onClick={() => releaseCoach(info.role)}>
+                      Release
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={{ marginTop: '8px', fontSize: '12px', color: '#64748B' }}>🔒 Locked until the off-season</div>
+              )}
+              {browsing && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
                   {(candidates[info.role] ?? []).map((c) => (
-                    <div key={c.name} style={{ background: '#fff', border: `1px solid ${GRADE_COLORS[coachGrade(c.rating)]}`, borderRadius: '8px', padding: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 'bold', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
-                        <GradeBadge grade={coachGrade(c.rating)} />
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 6px' }}>Grade {coachGrade(c.rating)} · price to be set</div>
-                      <EffectList coach={c} />
-                      <button className="ui-btn ui-btn-block" style={{ marginTop: '8px', background: '#4F46E5', borderColor: '#4F46E5', color: '#fff' }} onClick={() => hire(c)}>
-                        Hire {c.name.split(' ')[1] ?? c.name} (purchases coming soon)
-                      </button>
-                    </div>
+                    <CandidateCard
+                      key={c.name}
+                      coach={c}
+                      selected={picked?.name === c.name}
+                      years={picked?.name === c.name ? picked.years : 1}
+                      coachPoints={coachPoints}
+                      startSeason={firstContractSeason(currentWeek, currentYear)}
+                      onSelect={() => setPicked({ name: c.name, years: picked?.name === c.name ? picked.years : 1 })}
+                      onYears={(years) => setPicked({ name: c.name, years })}
+                      onHire={(years) => hire(c, years)}
+                    />
                   ))}
                 </div>
               )}
@@ -163,6 +193,206 @@ const EffectList: React.FC<{ coach: HiredCoach }> = ({ coach }) => {
           </li>
         ))}
     </ul>
+  );
+};
+
+/** One candidate: grade, price a season, effects; tap to pick a contract length and hire. */
+const CandidateCard: React.FC<{
+  coach: HiredCoach;
+  selected: boolean;
+  years: ContractYears;
+  coachPoints: number;
+  startSeason: number;
+  onSelect: () => void;
+  onYears: (years: ContractYears) => void;
+  onHire: (years: ContractYears) => void;
+}> = ({ coach, selected, years, coachPoints, startSeason, onSelect, onYears, onHire }) => {
+  const price = coachPrice(coach.rating);
+  const g = coachGrade(coach.rating);
+  const ducats = price.currency === 'DUCATS';
+  return (
+    <div
+      onClick={onSelect}
+      style={{ background: '#fff', border: selected ? '2px solid #4F46E5' : `1px solid ${GRADE_COLORS[g]}`, borderRadius: '8px', padding: '10px', cursor: 'pointer' }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontWeight: 'bold', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{coach.name}</span>
+        <GradeBadge grade={g} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', margin: '2px 0 6px' }}>
+        <span style={{ color: '#64748B' }}>A season</span>
+        <strong style={{ color: ducats ? '#B45309' : '#1D4ED8' }}>{formatPrice(price)}</strong>
+      </div>
+      <EffectList coach={coach} />
+      {selected &&
+        (ducats && !DUCATS_LIVE ? (
+          <button className="ui-btn ui-btn-block" disabled style={{ marginTop: '8px' }}>
+            Coming soon: coaches paid in ducats
+          </button>
+        ) : (
+          <>
+            <div role="group" aria-label="Contract length" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginTop: '8px' }}>
+              {CONTRACT_YEARS.map((n) => (
+                <button
+                  key={n}
+                  aria-pressed={years === n}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onYears(n);
+                  }}
+                  style={{
+                    minHeight: '40px',
+                    borderRadius: '10px',
+                    fontWeight: 800,
+                    fontSize: '12.5px',
+                    cursor: 'pointer',
+                    border: `2px solid ${years === n ? '#4F46E5' : '#CBD5E1'}`,
+                    background: years === n ? '#EEF2FF' : '#fff',
+                    color: years === n ? '#3730A3' : '#0F172A'
+                  }}
+                >
+                  {n} {n === 1 ? 'season' : 'seasons'}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginTop: '6px' }}>
+              <span style={{ color: '#64748B' }}>
+                {startSeason}
+                {years > 1 ? `–${startSeason + years - 1}` : ''} · {formatPrice({ ...price, amount: price.amount * years })} in all
+              </span>
+            </div>
+            {coachPoints < price.amount ? (
+              <button className="ui-btn ui-btn-block" disabled style={{ marginTop: '8px' }}>
+                Needs {formatCP(price.amount - coachPoints)} more
+              </button>
+            ) : (
+              <button
+                className="ui-btn ui-btn-block"
+                style={{ marginTop: '8px', background: '#4F46E5', borderColor: '#4F46E5', color: '#fff' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHire(years);
+                }}
+              >
+                Hire {coach.name.split(' ')[1] ?? coach.name} · pay {formatPrice(price)} now
+              </button>
+            )}
+          </>
+        ))}
+    </div>
+  );
+};
+
+/** When the staff can change: open in the off-season and pre-season, locked from the season opener. */
+const StaffWindowBanner: React.FC<{ week: number }> = ({ week }) => {
+  const open = staffWindowOpen(week);
+  const offSeason = getSeasonPhase(week) === 'OFF_SEASON';
+  const weeksLeft = STAFF_LOCK_WEEK - week;
+  return (
+    <div
+      style={{
+        borderRadius: '10px',
+        padding: '10px 12px',
+        marginBottom: '12px',
+        fontSize: '13px',
+        ...(open ? { background: '#F0FDF4', border: '1px solid #86EFAC', borderLeft: '6px solid #16A34A' } : { background: '#F1F5F9', border: '1px dashed #94A3B8' })
+      }}
+    >
+      <strong>{open ? '🧑‍🏫 Staff hiring is open' : '🔒 The staff is locked for the season'}</strong>
+      <div style={{ color: '#475569', marginTop: '2px' }}>
+        {open
+          ? offSeason
+            ? `Hire and release through the off-season and pre-season. The staff locks at the season opener (Week ${STAFF_LOCK_WEEK}).`
+            : `The staff locks at the season opener (Week ${STAFF_LOCK_WEEK}): ${weeksLeft} ${weeksLeft === 1 ? 'week' : 'weeks'} left.`
+          : `No hires or releases until the off-season (Week ${FIRST_OFF_SEASON_WEEK}), when next season's contracts come up.`}
+      </div>
+    </div>
+  );
+};
+
+/** The off-season: coaches whose next season isn't paid yet. Renew or pay to keep them; the rest leave when the off-season ends. */
+const SettlePanel: React.FC<{ due: HiredCoach[] }> = ({ due }) => {
+  const { currentYear, coachPoints, settleStaff } = useGameStore();
+  const [letGo, setLetGo] = useState<Set<string>>(new Set());
+  const keep = due.filter((c) => !letGo.has(c.role));
+  const cost = keep.reduce((n, c) => n + amountDue(coachPrice(c.rating)), 0);
+  const short = cost - coachPoints;
+  const toggle = (role: string, go: boolean) => setLetGo((s) => {
+    const next = new Set(s);
+    if (go) next.add(role);
+    else next.delete(role);
+    return next;
+  });
+  return (
+    <section aria-label="Contracts due" style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderLeft: '6px solid #F59E0B', borderRadius: '10px', padding: '12px', marginBottom: '12px' }}>
+      <div style={{ fontWeight: 900, fontSize: '15px' }}>⏳ Next season: {due.length} {due.length === 1 ? 'coach needs' : 'coaches need'} signing</div>
+      <div style={{ fontSize: '12.5px', color: '#475569', margin: '2px 0 8px' }}>
+        Renew or pay to keep them, or let them go. Anyone not signed when the off-season ends (after Week {FIRST_OFF_SEASON_WEEK + 3}) leaves.
+      </div>
+      {due.map((c) => {
+        const price = coachPrice(c.rating);
+        const going = letGo.has(c.role);
+        const renewal = settleKind(c, currentYear) === 'RENEWAL';
+        return (
+          <div key={c.role} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '8px 10px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+              <div style={{ minWidth: 0 }}>
+                <strong>{c.name}</strong> <GradeBadge grade={coachGrade(c.rating)} />
+                <div style={{ fontSize: '12px', color: '#64748B' }}>
+                  {COACH_ROLES.find((r) => r.role === c.role)?.title} · {renewal ? 'contract is up' : `signed through ${c.contractEndSeason}`}
+                </div>
+              </div>
+              <strong style={{ color: price.currency === 'DUCATS' ? '#B45309' : '#1D4ED8', whiteSpace: 'nowrap' }}>
+                {amountDue(price) === 0 ? 'Free' : formatPrice(price)}
+              </strong>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '6px' }}>
+              {[false, true].map((go) => (
+                <button
+                  key={String(go)}
+                  aria-pressed={going === go}
+                  onClick={() => toggle(c.role, go)}
+                  style={{
+                    minHeight: '38px',
+                    borderRadius: '8px',
+                    fontWeight: 800,
+                    fontSize: '12.5px',
+                    cursor: 'pointer',
+                    border: `2px solid ${going === go ? (go ? '#DC2626' : '#16A34A') : '#CBD5E1'}`,
+                    background: going === go ? (go ? '#FEF2F2' : '#F0FDF4') : '#fff',
+                    color: '#0F172A'
+                  }}
+                >
+                  {go ? 'Let go' : renewal ? 'Renew 1 season' : 'Pay next season'}
+                </button>
+              ))}
+            </div>
+            {price.currency === 'DUCATS' && !DUCATS_LIVE && <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>Free to keep until ducats go on sale.</div>}
+          </div>
+        );
+      })}
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginTop: '6px' }}>
+        <span>Total</span>
+        <strong>{formatCP(cost)}</strong>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+        <span>Your Coach Points</span>
+        <strong>{formatCP(coachPoints)}</strong>
+      </div>
+      {short > 0 ? (
+        <p style={{ color: '#B91C1C', fontSize: '12.5px', margin: '6px 0 0' }}>
+          {formatCP(short)} short. You earn Coach Points every week: sign them before the off-season ends, or let some go.
+        </p>
+      ) : (
+        <button
+          className="ui-btn ui-btn-block"
+          style={{ marginTop: '8px', background: '#16A34A', borderColor: '#16A34A', color: '#fff' }}
+          onClick={() => settleStaff(keep.map((c) => c.role), [...letGo] as CoachRole[])}
+        >
+          {keep.length === 0 ? 'Let them go' : cost === 0 ? 'Confirm' : `Confirm · pay ${formatCP(cost)}`}
+        </button>
+      )}
+    </section>
   );
 };
 

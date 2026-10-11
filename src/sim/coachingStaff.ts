@@ -225,6 +225,8 @@ export interface HiredCoach {
   name: string;
   rating: number; // 50-99
   effectIds: string[];
+  contractEndSeason?: number; // the last season the contract covers (see sim/staffContracts)
+  paidThroughSeason?: number; // seasons are paid one at a time: the last one paid for
 }
 
 /** How much of an effect a coach delivers: nothing at 50, all of it at 99. */
@@ -313,11 +315,11 @@ export function coachGameDayEdge(coach: HiredCoach): number {
   return Math.min(info.edgeCap, edge * effectStrength(coach.rating));
 }
 
-/** Candidates for a role: a good, a strong and an elite coach, each with effects drawn from the role's list. */
+/** Candidates for a role: two Coach Point coaches (D to C+), a strong one and an elite one, with effects drawn from the role's list. */
 export function generateCandidates(role: CoachRole, randomName: () => string): HiredCoach[] {
   const info = COACH_ROLES.find((r) => r.role === role)!;
   const roll = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
-  return [roll(60, 69), roll(76, 86), roll(93, 99)].map((rating) => {
+  return [roll(93, 99), roll(76, 86), roll(61, 69), roll(50, 60)].map((rating) => {
     const shuffled = [...info.effects].sort(() => Math.random() - 0.5);
     return { role, name: randomName(), rating, effectIds: shuffled.slice(0, effectSlots(rating)).map((e) => e.id) };
   });

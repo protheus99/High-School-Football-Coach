@@ -5,6 +5,8 @@ import { OffensiveScheme } from '../types/game';
 import { PreGameStrategyModal } from './PreGameStrategyModal';
 import { Sheet } from './ui/Sheet';
 import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
+import { StaffWindowCard } from './StaffWindowCard';
+import { needsSettling } from '../sim/staffContracts';
 import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
 import { getUserMatchup } from '../sim/userMatchup';
 import { findDistrict, findRegion } from '../sim/league';
@@ -15,7 +17,7 @@ export const DashboardView: React.FC<{
   onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
   onNavigate: (tab: AgendaTab) => void;
 }> = ({ onLaunchGame, onNavigate }) => {
-  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, nationalLeagues, activeDilemma } = useGameStore();
+  const { currentWeek, currentYear, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, nationalLeagues, activeDilemma, coachingStaff } = useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showSimWarning, setShowSimWarning] = useState(false);
 
@@ -30,6 +32,7 @@ export const DashboardView: React.FC<{
   const region = league ? findRegion(league, userTeamId) : undefined;
 
   if (!userTeam) return <div>Loading Program Dashboard...</div>;
+  const staffDue = coachingStaff.some((c) => needsSettling(c, currentWeek, currentYear));
 
   // No moving on with a decision open: every way forward takes the coach to the dilemma instead
   const goToDecision = () => document.getElementById('agenda-dilemma')?.scrollIntoView({ block: 'start' });
@@ -117,6 +120,9 @@ export const DashboardView: React.FC<{
         )}
       </div>
 
+      {/* Staff contracts waiting on the coach come first; otherwise the staff's status follows the week's to-do list */}
+      {staffDue && <StaffWindowCard onOpenStaff={() => onNavigate('STAFF')} />}
+
       {/* This week's to-do list: quick decisions and links */}
       <WeeklyAgenda
         game={
@@ -137,6 +143,7 @@ export const DashboardView: React.FC<{
         onNavigate={onNavigate}
         phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek)].replace('District', rulesForState(league?.state).districtLabel)}
       />
+      {!staffDue && <StaffWindowCard onOpenStaff={() => onNavigate('STAFF')} />}
 
     </div>
   );

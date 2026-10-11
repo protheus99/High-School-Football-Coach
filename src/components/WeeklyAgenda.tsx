@@ -450,7 +450,7 @@ export const WeeklyAgenda: React.FC<{
           id: 'hire-staff',
           icon: '🧑‍🏫',
           title: 'Hire your coaching staff',
-          detail: 'The program has no assistant coaches. Coordinators and position coaches give an edge on game day, develop players and earn Coach Points.',
+          detail: 'The program has no assistant coaches. Hire them before the season opener (Week 8), when the staff locks. Coordinators and position coaches give an edge on game day and develop players.',
           tone: 'todo',
           link: { label: 'Staff', onClick: () => onNavigate('STAFF') }
         });
