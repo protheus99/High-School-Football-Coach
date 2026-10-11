@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useScrollTopOnScreenChange } from '../utils/pageScroll';
 import { PageHeader } from './ui/PageHeader';
 import { DataList } from './ui/DataList';
 import {
@@ -20,6 +21,7 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
   onSelectPlayer
 }) => {
   const [activeTab, setActiveTab] = useState<'PROSPECT_RANKINGS' | 'STAT_LEADERS'>('PROSPECT_RANKINGS');
+  useScrollTopOnScreenChange(activeTab);
   const [scope, setScope] = useState<'NATIONAL' | string>('NATIONAL');
   const [selectedPosition, setSelectedPosition] = useState<Position | 'OVERALL_TOP_100'>('QB');
   const [selectedStatCat, setSelectedStatCat] = useState<StatCategory>('PASS_YARDS');

@@ -5,6 +5,7 @@ import { DIFFICULTY_PRESTIGE, Difficulty, stateSchool } from '../sim/league';
 import { SCENARIOS, ScenarioId } from '../data/scenarios';
 import { SchoolSearch } from './SchoolSearch';
 import { MusicTapHint } from './MusicTapHint';
+import { useScrollTopOnScreenChange } from '../utils/pageScroll';
 import { CAREER_LENGTHS, CareerLength } from '../sim/careerScore';
 
 // The classic game (a random school at a difficulty, unranked) is hidden for now; flip this to bring it back
@@ -27,6 +28,7 @@ const prestigeRange = (d: Difficulty) => {
 export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: boolean }> = ({ onEnterGame, canContinue }) => {
   const { newGame, newScenarioGame, loadGame } = useGameStore();
   const [view, setView] = useState<'MENU' | 'NEW' | 'LOAD'>('MENU');
+  useScrollTopOnScreenChange(view);
   const [saves, setSaves] = useState<SaveSummary[] | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

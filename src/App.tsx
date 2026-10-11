@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useScrollTopOnScreenChange } from './utils/pageScroll';
 import { useGameStore } from './store/gameStore';
 import { DashboardView } from './components/DashboardView';
 import { DefensiveFocus, FOCUS_CALL } from './sim/gamePlan';
@@ -78,6 +79,10 @@ export const App: React.FC = () => {
     newsSeen,
     markNewsSeen
   } = useGameStore();
+  // Every new screen opens at the top (a tab, a section, the menu, a game, the wrap-up pages)
+  useScrollTopOnScreenChange(
+    [showMenu, tab, teamSection, rankingsSection, feederSection, !!activeMatch, isBanquetActive, !!awardsRecord, careerComplete, firedFrom].join('|')
+  );
   const unreadNews = Math.max(0, newsArticles.length - newsSeen);
   const openNews = () => {
     markNewsSeen();

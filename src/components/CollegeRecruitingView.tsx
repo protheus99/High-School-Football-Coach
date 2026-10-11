@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useScrollTopOnScreenChange } from '../utils/pageScroll';
 import { useGameStore } from '../store/gameStore';
 import { collegeActionCost } from '../sim/coachPoints';
 import { Player, Team } from '../types/game';
@@ -60,6 +61,7 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
   const [expanded, setExpanded] = useState<string | null>(focusPlayerId ?? null);
   // Recruiting (your players and the state's top seniors) or the college directory
   const [mode, setMode] = useState<'RECRUITING' | 'COLLEGES'>('RECRUITING');
+  useScrollTopOnScreenChange(mode);
   // Arriving from a player card: show his row, open
   useEffect(() => {
     if (!focusPlayerId) return;

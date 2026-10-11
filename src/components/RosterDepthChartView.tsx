@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useScrollTopOnScreenChange } from '../utils/pageScroll';
 import { formatPercent } from '../utils/format';
 import { useGameStore } from '../store/gameStore';
 import { DepthChartBoard } from './DepthChartBoard';
@@ -9,6 +10,7 @@ import { FatigueChip } from './ui/FatigueChip';
 export const RosterDepthChartView: React.FC = () => {
   const { districtTeams, userTeamId, moveDepthChartPlayer, openPlayerCard } = useGameStore();
   const [view, setView] = useState<'CHART' | 'ROSTER'>('CHART');
+  useScrollTopOnScreenChange(view);
   const [filter, setFilter] = useState<'ALL' | 'OFF' | 'DEF'>('ALL');
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);

@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+
 // The app scrolls inside #root, not the page itself: a page that never moves can't rubber-band past its end on
 // iPhones (lifting the tab bar off the bottom of the screen) or pull-to-refresh back to the title screen.
 
@@ -9,3 +11,16 @@ export const pageScrollTop = () => scroller().scrollTop;
 
 /** Scrolls the app to a position. */
 export const scrollPageTo = (top: number) => scroller().scrollTo({ top });
+
+/**
+ * A new screen starts at the top: whenever `screen` changes (a tab, a section, a page), the app scrolls back up.
+ * In-page buttons that don't change the screen leave the scroll where it is.
+ */
+export function useScrollTopOnScreenChange(screen: string): void {
+  const last = useRef(screen);
+  useEffect(() => {
+    if (last.current === screen) return;
+    last.current = screen;
+    scrollPageTo(0);
+  }, [screen]);
+}
