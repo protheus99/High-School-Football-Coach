@@ -11,6 +11,8 @@ vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefin
 describe('Discipline', () => {
   it('undisciplined teams turn the ball over more in simulated games', () => {
     const [a, b] = generateDistrictTeams();
+    // Equal teams: a lopsided random pair pins the favorite's turnover odds at the floor and hides the discipline effect
+    b.roster = a.roster;
     const turnovers = (discipline: number) => {
       a.programMeters.lockerRoomDiscipline = discipline;
       b.programMeters.lockerRoomDiscipline = discipline;

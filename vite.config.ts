@@ -26,9 +26,31 @@ function dropLicensedMusic(): Plugin {
   };
 }
 
+// Google Analytics (gtag.js), right after <head> as Google asks. Only in the site build, so the dev server and local
+// testing never show up in the statistics.
+const GOOGLE_TAG_ID = 'G-FE5ZDP3K2T';
+const GOOGLE_TAG = `<!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', '${GOOGLE_TAG_ID}');
+    </script>`;
+
+function googleTag(): Plugin {
+  return {
+    name: 'google-tag',
+    apply: 'build',
+    transformIndexHtml: (html) => html.replace('<head>', `<head>
+    ${GOOGLE_TAG}`)
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), dropLicensedMusic()],
+  plugins: [react(), dropLicensedMusic(), googleTag()],
   worker: {
     format: 'es'
   },
