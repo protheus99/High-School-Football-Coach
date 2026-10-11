@@ -627,6 +627,8 @@ export function simulateSnap(
   // A flag: blown dead before the snap, or the play is called back and the penalty walked off
   else if ((foul = !isTryDown ? rollFoul(offense, defense, isPassConcept(concept), !isHomeOffense, getPositionGroup) : null)) {
     const { rule, team, player } = foul;
+    // The defense was lined up in its call when the flag came out
+    defensiveCall = chosenDefensiveCall ?? state.defensiveGamePlan?.[defense.id] ?? selectAIDefensiveCall(state);
     const byOffense = rule.side === 'OFFENSE';
     const yards = enforcedYards(rule.yards, byOffense ? state.yardLine : 100 - state.yardLine);
     const who = player ? `${player.position} #${player.lastName}` : team.name;
@@ -865,7 +867,7 @@ export function simulateSnap(
     state.isMercyRuleActive = true;
   }
 
-  if (defensiveCall && defensiveCall !== 'BASE') {
+  if (defensiveCall && defensiveCall !== 'BASE' && !penalty) {
     commentary += ` [vs. ${defensiveCall.replace('_', ' ')}]`;
   }
 

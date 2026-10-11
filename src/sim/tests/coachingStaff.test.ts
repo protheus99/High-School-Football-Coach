@@ -28,6 +28,9 @@ describe('Coaching staff', () => {
     const [a, b] = buildStateWorld('Alabama', undefined, true).teams;
     a.lightRating = 70;
     b.lightRating = 70;
+    // Truly equal teams: the same players and morale, so both draw the same flags (penalty habits differ by roster)
+    b.roster = a.roster;
+    b.programMeters = { ...a.programMeters };
     a.gameDayEdge = staffGameDayEdge(eliteStaff());
     let wins = 0;
     const games = 3000;
