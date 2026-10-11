@@ -3,6 +3,8 @@ import { Player, Team } from '../types/game';
 import { TIER_LABELS, isDivisionOne, tierRank } from '../sim/collegeRecruitingEngine';
 import { PlayerDetailModal } from './PlayerDetailModal';
 import { BackToTop } from './ui/BackToTop';
+import { SeasonScorecard } from './SeasonScorecard';
+import { Steps } from './AllStateHonorsPage';
 
 interface BanquetProps {
   userTeam: Team;
@@ -32,6 +34,7 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
         <p style={{ margin: '8px 0 0 0', color: '#94A3B8' }}>
           Celebrating the graduating senior class of {userTeam.name} and looking ahead to next season
         </p>
+        <Steps step={2} />
       </div>
 
       {/* National Signing Day (NLI) Showcase */}
@@ -85,6 +88,9 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
           ))}
         </div>
       </div>
+
+      {/* How the year went and what it scored, at the end of the night */}
+      <SeasonScorecard team={userTeam} />
 
       {/* Next season: pinned to the bottom of the screen on phones */}
       <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', background: '#fff', borderTop: '1px solid #E2E8F0', zIndex: 50 }}>

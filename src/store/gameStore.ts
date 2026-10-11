@@ -91,6 +91,7 @@ import {
 } from '../sim/playerEngine';
 import { buildPlayoffBracket, advancePlayoffRound, BracketNode, bracketRoundForWeek, compactBracket, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
 import { gameResultNews, generateWeeklyNewsStream, NewsArticle, rankingNews } from '../sim/newsEngine';
+import { calculateSeasonAwards, honoredPlayers, SeasonAwardsRecord } from '../sim/awardsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { collectResults } from '../sim/computerRankings';
@@ -422,6 +423,7 @@ interface GameStoreState {
   // Postseason & Offseason state
   playoffBracket: PlayoffBracketState | null;
   graduatingSeniors: Player[];
+  seasonAwards: SeasonAwardsRecord | null; // the state's honors, decided when the banquet opens
   isBanquetActive: boolean;
   onHotSeat: boolean; // the board's warning: another season under 35 Board Trust ends the job
   firedFrom: string | null; // set when the board fires the coach (game over for this save)
@@ -513,6 +515,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   lastTrainingReport: null,
   playoffBracket: null,
   graduatingSeniors: [],
+  seasonAwards: null,
   isBanquetActive: false,
 
   startNewSeason: (world) => {
@@ -572,6 +575,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       sanctionLevel: 0,
       playoffBracket: null,
       graduatingSeniors: [],
+      seasonAwards: null,
       isBanquetActive: false
     });
   },
@@ -667,6 +671,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       activeGame: null,
       isBanquetActive: false,
       graduatingSeniors: [],
+      seasonAwards: null,
       feederEventsThisWeek: [],
       newsArticles: [],
       newsMark: 0,
@@ -955,8 +960,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const career = get().career;
       const scored = career && !isCareerComplete(career) && !career.seasons.some((s) => s.year === get().currentYear) ? { ...career, seasons: [...career.seasons, scoreSeason(userTeam, get().playoffBracket, get().currentYear)] } : career;
       if (scored && scored !== career) recordCareer(scored);
+      // The state's honors: every All-State player and award winner gets a little more college exposure
+      const seasonAwards = calculateSeasonAwards(get().currentYear, leagueTeams, get().playoffBracket);
+      honoredPlayers(seasonAwards).forEach((p) => (p.recruiting.exposure = (p.recruiting.exposure ?? 0) + 1));
       set({
         career: scored,
+        seasonAwards,
         currentWeek: nextWeek,
         graduatingSeniors: seniors,
         isBanquetActive: true,
@@ -1229,6 +1238,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       playoffBracket: null,
       sanctionLevel: pendingUserBan ? 3 : 0,
       graduatingSeniors: [],
+      seasonAwards: null,
       nationalLeagues,
       polls: newPolls,
       playerRankings: newPlayerRankings,

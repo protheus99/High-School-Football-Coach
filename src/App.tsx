@@ -20,9 +20,10 @@ import { formatCP } from './sim/coachPoints';
 import { programRating } from './sim/programMeters';
 import { SplashScreen } from './components/SplashScreen';
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
-import { AllStateAwardsModal } from './components/AllStateAwardsModal';
-import { calculateSeasonAwards, SeasonAwardsRecord } from './sim/awardsEngine';
+import { AllStateHonorsPage } from './components/AllStateHonorsPage';
+import { calculateSeasonAwards, SeasonAwardsRecord, topPerformers } from './sim/awardsEngine';
 import { GameSimulationState, OffensiveScheme } from './types/game';
+import { rulesForState } from './sim/stateRules';
 
 type AppTab = 'DASHBOARD' | 'TEAM' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS';
 
@@ -134,11 +135,11 @@ export const App: React.FC = () => {
   useEffect(() => {
     // Show the season's awards once at the banquet; closing the modal must not re-trigger it
     if (isBanquetActive && awardsShownForYear !== currentYear && leagueTeams.length > 0) {
-      const calculated = calculateSeasonAwards(currentYear, leagueTeams);
-      setAwardsRecord(calculated);
+      // Decided when the banquet opened (a save loaded at the banquet works them out again)
+      setAwardsRecord(useGameStore.getState().seasonAwards ?? calculateSeasonAwards(currentYear, leagueTeams, playoffBracket));
       setAwardsShownForYear(currentYear);
     }
-  }, [isBanquetActive, awardsShownForYear, leagueTeams, currentYear]);
+  }, [isBanquetActive, awardsShownForYear, leagueTeams, currentYear, playoffBracket]);
 
   // Title screen: new game, continue, or load a save
   if (showMenu) {
@@ -193,12 +194,18 @@ export const App: React.FC = () => {
     );
   }
 
-  // Render All-State Awards Modal
-  if (awardsRecord) {
+  // The season wrap-up, step 1: the state's All-State honors
+  if (awardsRecord && userTeam) {
     return (
-      <AllStateAwardsModal
+      <AllStateHonorsPage
         awards={awardsRecord}
-        onClose={() => setAwardsRecord(null)}
+        userTeam={userTeam}
+        stateName={league ? `${league.state ?? 'Texas'} ${rulesForState(league.state).classification}` : 'The state'}
+        performers={topPerformers(userTeam, leagueTeams, awardsRecord)}
+        onContinue={() => {
+          setAwardsRecord(null);
+          document.getElementById('root')?.scrollTo({ top: 0 });
+        }}
       />
     );
   }
