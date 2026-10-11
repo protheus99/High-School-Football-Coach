@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { COACH_ROLES, coachGrade, eliteStaff, HiredCoach, staffBonuses, staffGameDayEdge, staffGrade } from '../coachingStaff';
+import { COACH_ROLES, COACH_WEEKLY_CP, coachGrade, eliteStaff, HiredCoach, staffBonuses, staffGameDayEdge, staffGrade } from '../coachingStaff';
 import { contactGain } from '../feederEngine';
 import { buildStateWorld } from '../league';
 import { simulateMacroMatch } from '../macroSim';
@@ -40,10 +40,10 @@ describe('Coaching staff', () => {
     expect(wins / games).toBeLessThan(0.8); // about 73%: still loses about a quarter of the time
   });
 
-  it('a full staff roughly doubles weekly Coach Points and speeds development', () => {
+  it('a full staff adds Coach Points every week and speeds development', () => {
     const bonus = staffBonuses(eliteStaff());
     expect(bonus.coachPointMultiplier).toBeCloseTo(1.3, 5);
-    expect(bonus.weeklyCoachPoints).toBe(17 * 5);
+    expect(bonus.weeklyCoachPoints).toBe(17 * COACH_WEEKLY_CP);
     expect(bonus.developmentByPosition.QB).toBeCloseTo(1, 5);
     expect(bonus.injuryReduction).toBeCloseTo(0.2, 5);
   });

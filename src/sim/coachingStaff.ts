@@ -237,7 +237,7 @@ export const effectSlots = (rating: number) => (rating >= 95 ? 3 : rating >= 70 
 export const STAFF_DEVELOPMENT_CAP = 0.5;
 
 /** Coach Points every hired assistant adds each week, whatever their effects. */
-export const COACH_WEEKLY_CP = 5;
+export const COACH_WEEKLY_CP = 2;
 
 const MAX_GAME_DAY_EDGE = 2;
 // Past +1.0 each point counts for 1/2.2: a perfect staff (every coach 99, raw +3.2 within the per-coach caps)

@@ -1,22 +1,23 @@
 import { boardCpModifier } from './programMeters';
-import { getSeasonPhase } from './scheduleEngine';
 
 // ---------------------------------------------------------------------------
 // Coach Points (CP): the single currency for the head coach's time and influence.
 //
-// Earn:  a weekly allowance (bigger in spring/summer, when there are no games), +10 for a win and
-//        +20 for a playoff win. Unspent CP carries over: talents are expensive and take saving for.
+// Earn:  a weekly allowance of 100 all year, +10 for a win and +20 for a playoff win. Unspent CP carries over:
+//        a season brings about 2,800 + wins, so a talent takes most of a season of saving (balance review 2026-10-11).
 // Spend: feeder events and prospect visits, college exposure (film, calls, camps), and permanent
 //        coach talents in the skill tree.
 // ---------------------------------------------------------------------------
 
-/** Weekly allowance before talents: full time in pre season, training camp and the off season; less once games start. */
-export function weeklyCoachPoints(week: number): number {
-  const phase = getSeasonPhase(week);
-  return phase === 'SPRING_EVALUATION' || phase === 'SUMMER_CAMP' || phase === 'OFF_SEASON' ? 100 : 40;
+export const WEEKLY_COACH_POINTS = 100;
+
+/** Weekly allowance before talents: the same every week of the year. */
+export function weeklyCoachPoints(_week: number): number {
+  return WEEKLY_COACH_POINTS;
 }
 
-export const STARTING_COACH_POINTS = 100;
+// Enough for a first spring of recruiting with a few assistants hired
+export const STARTING_COACH_POINTS = 600;
 export const WIN_CP_BONUS = 10;
 export const PLAYOFF_WIN_CP_BONUS = 20;
 
@@ -37,41 +38,41 @@ export interface CoachTalent {
   branch: TalentBranch;
   name: string;
   description: string;
-  cost: number; // CP: talents change core gameplay, so they cost seasons of saving
+  cost: number; // CP: talents change core gameplay, so they take most of a season of saving
   requires?: TalentId; // the first talent in the branch
 }
 
 /** Every talent changes something real in the game (the effect helpers below are read by the systems). */
 export const COACH_TALENTS: CoachTalent[] = [
-  { id: 'RECRUITING_NETWORK', branch: 'RECRUITER', name: 'Recruiting Network', description: 'Prospect events cost 20% less.', cost: 6000 },
+  { id: 'RECRUITING_NETWORK', branch: 'RECRUITER', name: 'Recruiting Network', description: 'Prospect events cost 20% less.', cost: 2000 },
   {
     id: 'COLLEGE_CONNECTIONS',
     branch: 'RECRUITER',
     name: 'College Connections',
     description: 'Film, calls and camps for college prospects cost 40% less.',
-    cost: 12000,
+    cost: 4000,
     requires: 'RECRUITING_NETWORK'
   },
-  { id: 'ASSISTANT_UPGRADE', branch: 'DEVELOPER', name: 'Assistant Upgrade', description: 'Sharper assistants: +20% skill gain from every practice.', cost: 6000 },
+  { id: 'ASSISTANT_UPGRADE', branch: 'DEVELOPER', name: 'Assistant Upgrade', description: 'Sharper assistants: +20% skill gain from every practice.', cost: 2000 },
   {
     id: 'WEIGHT_ROOM_FANATIC',
     branch: 'DEVELOPER',
     name: 'Weight Room Fanatic',
     description: 'Bigger off-season growth for every returning player.',
-    cost: 12000,
+    cost: 4000,
     requires: 'ASSISTANT_UPGRADE'
   },
-  { id: 'BOARD_ROOM_SHIELD', branch: 'POLITICIAN', name: 'Board Room Shield', description: 'Win over the school board: Rating up right away, and the board is more patient.', cost: 6000 },
+  { id: 'BOARD_ROOM_SHIELD', branch: 'POLITICIAN', name: 'Board Room Shield', description: 'Win over the school board: Rating up right away, and the board is more patient.', cost: 2000 },
   {
     id: 'BOOSTER_BREAKFASTS',
     branch: 'POLITICIAN',
     name: 'Booster Breakfasts',
     description: 'Win over the boosters: Rating up right away, and prospect recruiting gets a lift.',
-    cost: 12000,
+    cost: 4000,
     requires: 'BOARD_ROOM_SHIELD'
   },
-  { id: 'BIGGER_BUDGET', branch: 'MANAGER', name: 'Bigger Budget', description: '+₡10 every week.', cost: 6000 },
-  { id: 'DEEP_POCKETS', branch: 'MANAGER', name: 'Deep Pockets', description: 'Win bonuses are doubled.', cost: 12000, requires: 'BIGGER_BUDGET' }
+  { id: 'BIGGER_BUDGET', branch: 'MANAGER', name: 'Bigger Budget', description: '+₡10 every week.', cost: 2000 },
+  { id: 'DEEP_POCKETS', branch: 'MANAGER', name: 'Deep Pockets', description: 'Win bonuses are doubled.', cost: 4000, requires: 'BIGGER_BUDGET' }
 ];
 
 export const TALENT_BRANCH_LABELS: Record<TalentBranch, string> = {

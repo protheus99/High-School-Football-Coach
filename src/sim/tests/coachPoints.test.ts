@@ -15,8 +15,8 @@ vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefin
 describe('Coach Points', () => {
   it('earns a weekly allowance and win bonuses', () => {
     expect(weeklyCpIncome(1, [])).toBe(100);
-    expect(weeklyCpIncome(9, [])).toBe(40); // game week
-    expect(weeklyCpIncome(9, ['BIGGER_BUDGET'])).toBe(50);
+    expect(weeklyCpIncome(9, [])).toBe(100); // game weeks earn the same
+    expect(weeklyCpIncome(9, ['BIGGER_BUDGET'])).toBe(110);
     expect(winBonus(false, [])).toBe(10);
     expect(winBonus(true, ['BIGGER_BUDGET', 'DEEP_POCKETS'])).toBe(40);
     expect(formatCP(12000)).toBe('₡12,000');
@@ -30,9 +30,9 @@ describe('Coach Points', () => {
 
   it('gates second-tier talents behind the first and the price', () => {
     expect(talentBlocker('DEEP_POCKETS', [], 500)).toMatch(/Bigger Budget/);
-    expect(talentBlocker('BIGGER_BUDGET', [], 5999)).toMatch(/₡6,000/);
-    expect(talentBlocker('BIGGER_BUDGET', [], 6000)).toBeNull();
-    expect(talentBlocker('BIGGER_BUDGET', ['BIGGER_BUDGET'], 6000)).not.toBeNull();
+    expect(talentBlocker('BIGGER_BUDGET', [], 1999)).toMatch(/₡2,000/);
+    expect(talentBlocker('BIGGER_BUDGET', [], 2000)).toBeNull();
+    expect(talentBlocker('BIGGER_BUDGET', ['BIGGER_BUDGET'], 2000)).not.toBeNull();
   });
 
   it('unlocks talents through the store, spending CP and paying meter bonuses', () => {
@@ -43,13 +43,13 @@ describe('Coach Points', () => {
     const meters = districtTeams.find((t) => t.id === userTeamId)!.programMeters;
     const trust = meters.schoolBoardTrust;
 
-    expect(store.getState().unlockTalent('BOARD_ROOM_SHIELD')).toMatch(/₡6,000/); // a new coach can't afford one yet
-    store.setState({ coachPoints: 6040 });
+    expect(store.getState().unlockTalent('BOARD_ROOM_SHIELD')).toMatch(/₡2,000/); // a new coach can't afford one yet
+    store.setState({ coachPoints: 2040 });
     expect(store.getState().unlockTalent('BOARD_ROOM_SHIELD')).toBeNull();
     expect(store.getState().coachPoints).toBe(40);
     expect(store.getState().coachTalents).toEqual(['BOARD_ROOM_SHIELD']);
     expect(meters.schoolBoardTrust).toBe(Math.min(100, trust + 15));
-    expect(store.getState().unlockTalent('BOOSTER_BREAKFASTS')).toMatch(/₡12,000/); // only 40 left
+    expect(store.getState().unlockTalent('BOOSTER_BREAKFASTS')).toMatch(/₡4,000/); // only 40 left
 
     store.getState().unlockTalent('BIGGER_BUDGET'); // not enough: no change
     expect(store.getState().coachPoints).toBe(40);

@@ -24,7 +24,7 @@ export const CoachRPGSkillTreeModal: React.FC<{ onClose: () => void }> = ({ onCl
       onClose={onClose}
     >
       <p className="ui-muted" style={{ margin: '0 0 12px 0', fontSize: '13px' }}>
-        Talents are permanent and change how your program runs, so they take seasons of saving. Unlock the first talent in a branch to open the second.
+        Talents are permanent and change how your program runs, so they take most of a season of saving. Unlock the first talent in a branch to open the second.
       </p>
       {flash && (
         <div role="status" style={{ background: '#EEF2FF', color: '#3730A3', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', marginBottom: '12px' }}>
