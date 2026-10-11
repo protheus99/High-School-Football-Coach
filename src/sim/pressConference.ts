@@ -352,7 +352,7 @@ export function buildPressContext(args: {
   const playoff = game.gameId.startsWith('po_');
 
   // The coach's last 4th-down attempt (not a punt or field goal)
-  const attempts = game.eventLog.filter((e) => e.snapTeamId === userTeamId && e.snapDown === 4 && !e.isTry && e.playConcept !== 'PUNT' && e.playConcept !== 'FIELD_GOAL');
+  const attempts = game.eventLog.filter((e) => e.snapTeamId === userTeamId && e.snapDown === 4 && !e.isTry && !e.penalty && e.playConcept !== 'PUNT' && e.playConcept !== 'FIELD_GOAL');
   const last = attempts[attempts.length - 1];
   const fourthDown = last
     ? { converted: last.turnoverType !== 'DOWNS' && !last.isTurnover && (last.isScore || last.down === 1), spot: spotLabel(last.snapDistance, last.snapYardLine) }

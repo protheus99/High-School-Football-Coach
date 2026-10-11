@@ -78,7 +78,7 @@ export function runStatisticalCalibrationTest(iterations = 1000): {
       simulateSnap(gameState);
     }
 
-    const scrimmage = gameState.eventLog.filter((e) => SCRIMMAGE_CONCEPTS.includes(e.playConcept));
+    const scrimmage = gameState.eventLog.filter((e) => SCRIMMAGE_CONCEPTS.includes(e.playConcept) && !e.penalty);
     const passes = scrimmage.filter((e) => e.playConcept === 'SHORT_PASS' || e.playConcept === 'DEEP_PASS');
 
     totalYardsAccum += scrimmage.reduce((sum, e) => sum + e.yardsGained, 0);

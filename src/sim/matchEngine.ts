@@ -16,6 +16,7 @@ import { calculateGaussianVariance, clamp, randomInt } from './math/variance';
 import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 import { compareDepth } from './depthChart';
 import { disciplinePlayQualityPenalty } from './programMeters';
+import { enforcedYards, rollFoul } from './penalties';
 import { rulesForState } from './stateRules';
 
 // Teams resting their starters on the current snap (set at the start of each simulateSnap call)
@@ -520,6 +521,8 @@ export function simulateSnap(
   let scoreType: PlayEvent['scoreType'];
   let commentary = '';
   let defensiveCall: DefensiveCall | undefined;
+  let foul: ReturnType<typeof rollFoul> = null;
+  let penalty: PlayEvent['penalty'];
   let timeElapsed = state.isMercyRuleActive ? MERCY_RULE_RUNOFF : randomInt(PLAY_CLOCK_RUNOFF.min, PLAY_CLOCK_RUNOFF.max);
 
   // No kickoffs in overtime; possession is reset by the overtime rules below
@@ -605,6 +608,28 @@ export function simulateSnap(
         commentary = `P #${punter.lastName} punts ${gross} yds to the opponent ${state.yardLine} yd line.`;
       }
     }
+  }
+  // A flag: blown dead before the snap, or the play is called back and the penalty walked off
+  else if ((foul = !isTryDown ? rollFoul(offense, defense, isPassConcept(concept), !isHomeOffense, getPositionGroup) : null)) {
+    const { rule, team, player } = foul;
+    const byOffense = rule.side === 'OFFENSE';
+    const yards = enforcedYards(rule.yards, byOffense ? state.yardLine : 100 - state.yardLine);
+    const who = player ? `${player.position} #${player.lastName}` : team.name;
+    let firstDown = false;
+    if (byOffense) {
+      state.yardLine -= yards;
+      state.distance += yards;
+    } else {
+      state.yardLine += yards;
+      firstDown = !!rule.autoFirstDown || yards >= state.distance;
+      if (firstDown) setFirstDown(state, offense.id, state.yardLine);
+      else state.distance -= yards;
+    }
+    state.distance = Math.min(state.distance, 100 - state.yardLine);
+    timeElapsed = rule.timing === 'PRE_SNAP' ? 0 : randomInt(5, 9);
+    const ordinal = ['', '1st', '2nd', '3rd', '4th'][state.down];
+    commentary = `FLAG! ${rule.name}, ${who} (${team.name}). ${rule.timing === 'LIVE' && byOffense ? 'The play comes back: ' : ''}${yards} yards${firstDown ? ', FIRST DOWN' : `, replay ${ordinal} down`}.`;
+    penalty = { id: rule.id, name: rule.name, teamId: team.id, side: rule.side, timing: rule.timing, ...(player && { playerId: player.id }), player: who, yards, ...(firstDown && { firstDown }) };
   }
   // Standard Scrimmage Plays
   else {
@@ -839,6 +864,7 @@ export function simulateSnap(
     textCommentary: commentary,
     isLeverageMoment: false,
     ...(defensiveCall && { defensiveCall }),
+    ...(penalty && { penalty }),
     homeScoreAfter: state.homeScore,
     awayScoreAfter: state.awayScore
   };

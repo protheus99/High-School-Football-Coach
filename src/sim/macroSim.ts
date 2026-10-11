@@ -4,11 +4,14 @@ import { getPositionGroup } from './matchEngine';
 import { addPlayerStats } from './playerStats';
 import { disciplineTurnoverPoints } from './programMeters';
 import { fatigueInjuryMultiplier } from './training';
+import { simulateTeamPenalties } from './penalties';
 
 // Calibration constants (tuned against src/sim/tests/macroSim.test.ts targets)
 const HOME_FIELD_RATING = 1;
 const DRIVE_DELTA_SCALE = { td: 2.6, fg: 0.7, turnover: 0.8 };
 const BASE_DRIVE_ODDS = { td: 25, fg: 12, turnover: 15 };
+// A penalty yard is worth about 0.07 points; a rating point about 4.5 points of margin
+const PENALTY_YARD_RATING = 0.016;
 
 /** One Kansas Plan overtime possession from the opponent's 10: points scored (7, 3 or 0). */
 function resolveOvertimePossession(delta: number): number {
@@ -172,7 +175,10 @@ export function simulateMacroMatch(
 ): CompactBoxScore {
   const homeOvr = teamStarterRating(homeTeam);
   const awayOvr = teamStarterRating(awayTeam);
-  const delta = (homeOvr + HOME_FIELD_RATING) - awayOvr;
+  // Flags: each side's penalty yards push the game toward the other
+  const homeFlags = simulateTeamPenalties(homeTeam, false);
+  const awayFlags = simulateTeamPenalties(awayTeam, true);
+  const delta = (homeOvr + HOME_FIELD_RATING) - awayOvr + (awayFlags.yards - homeFlags.yards) * PENALTY_YARD_RATING;
 
   // Undisciplined teams turn it over more
   const homeSloppiness = disciplineTurnoverPoints(homeTeam);
@@ -309,7 +315,11 @@ export function simulateMacroMatch(
       awayTotalYards: awayPassYds + awayRushYds,
       awayPassYards: awayPassYds,
       awayRushYards: awayRushYds,
-      awayTurnovers: awayTO
+      awayTurnovers: awayTO,
+      homePenalties: homeFlags.count,
+      homePenaltyYards: homeFlags.yards,
+      awayPenalties: awayFlags.count,
+      awayPenaltyYards: awayFlags.yards
     }
   };
 }

@@ -255,6 +255,19 @@ export interface PlayEvent {
   isLeverageMoment: boolean;
   defensiveCall?: DefensiveCall;
   leverageType?: LeverageType;
+  penalty?: PenaltyCall; // a flag: the snap is blown dead or called back (sim/penalties)
+}
+
+export interface PenaltyCall {
+  id: string;
+  name: string; // "Holding"
+  teamId: string; // the team that committed it
+  side: 'OFFENSE' | 'DEFENSE';
+  timing: 'PRE_SNAP' | 'LIVE';
+  playerId?: string;
+  player: string; // "OT #Garza"
+  yards: number; // walked off (half the distance near the goal)
+  firstDown?: boolean; // the defense's foul moved the chains
 }
 
 export interface CompactPlayerLeader {
@@ -287,6 +300,10 @@ export interface CompactBoxScore {
     awayPassYards: number;
     awayRushYards: number;
     awayTurnovers: number;
+    homePenalties?: number; // flags and yards (games simulated since penalties were added)
+    homePenaltyYards?: number;
+    awayPenalties?: number;
+    awayPenaltyYards?: number;
   };
 }
 
