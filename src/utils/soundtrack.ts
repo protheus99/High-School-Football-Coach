@@ -11,7 +11,10 @@ export interface Song {
 }
 
 const MUSIC_DIR = `${import.meta.env.BASE_URL}music/`;
-export const songUrl = (song: Song) => `${MUSIC_DIR}${encodeURIComponent(song.file)}`;
+// The songs are licensed and never published with the site: the live game streams them from the music Worker
+// (Cloudflare R2, see music-worker/), and the dev server plays the local copies in public/music
+const MUSIC_HOST: string = import.meta.env.VITE_MUSIC_URL ?? (import.meta.env.PROD ? 'https://hsfhc-music.protheus99.workers.dev' : '');
+export const songUrl = (song: Song) => (MUSIC_HOST ? `${MUSIC_HOST}/music/` : MUSIC_DIR) + encodeURIComponent(song.file);
 export const coverUrl = (song: Song) => (song.cover ? `${MUSIC_DIR}covers/${encodeURIComponent(song.cover)}` : null);
 
 /**

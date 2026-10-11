@@ -26,8 +26,11 @@ describe('The soundtrack', () => {
   });
 
   it('plays only the songs list: the instructions and examples in the file never play', () => {
-    expect(parseSoundtrack(soundtrackFile)).toEqual([]); // the file as shipped: instructions, examples, no songs yet
+    // The file as shipped: every listed song plays, none of the examples does
+    const shipped = parseSoundtrack(soundtrackFile);
+    expect(shipped).toHaveLength(soundtrackFile.songs.length);
     expect(soundtrackFile.examples.length).toBeGreaterThan(0);
+    soundtrackFile.examples.forEach((e) => expect(shipped.map((s) => s.file)).not.toContain(e.file));
     const file = { instructions: ['…'], examples: [song('x.mp3')], songs: [song('a.mp3'), { file: 'b.mp3', title: 'No artist' }] };
     expect(parseSoundtrack(file).map((s) => s.file)).toEqual(['a.mp3']);
     expect(parseSoundtrack([song('c.mp3')]).map((s) => s.file)).toEqual(['c.mp3']); // a bare list works too

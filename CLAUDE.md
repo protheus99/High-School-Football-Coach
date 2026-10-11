@@ -43,4 +43,6 @@ Bug fixes, wording changes and behind-the-scenes work don't need a mockup, but s
 ## Music
 
 - Songs go in `public/music`, covers in `public/music/covers`; `public/music/soundtrack.json` explains the format.
-- Only music the owner has the right to share: everything there is published.
+- The MP3s are licensed: never commit them (they're git-ignored) and never ship them in the site build (the build
+  drops them). The live game streams them from the music Worker (`music-worker/`, R2 bucket `hsfhc-music`); adding
+  a song means uploading it there and redeploying that Worker.

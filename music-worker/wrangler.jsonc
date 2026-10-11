@@ -1,0 +1,17 @@
+{
+  // The game's music: the licensed MP3s live in a private R2 bucket (never in the public repo) and this Worker
+  // streams them to the game only. Deployed on its own (see README.md).
+  "name": "hsfhc-music",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "r2_buckets": [
+    {
+      "binding": "MUSIC",
+      "bucket_name": "hsfhc-music"
+    }
+  ],
+  "vars": {
+    // The game's site (comma-separated); localhost:4173 is `npm run preview`, which plays the live music
+    "ALLOWED_ORIGINS": "https://high-school-football-coach.protheus99.workers.dev,http://localhost:3000,http://localhost:4173"
+  }
+}

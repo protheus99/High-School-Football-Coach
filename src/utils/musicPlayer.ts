@@ -89,6 +89,8 @@ class MusicPlayer {
   private ensureAudio() {
     if (this.audio) return;
     this.audio = new Audio();
+    // Songs stream from the music Worker on another address: asked for with CORS so Web Audio can fade them
+    this.audio.crossOrigin = 'anonymous';
     this.audio.preload = 'auto';
     this.audio.addEventListener('ended', () => this.playNext());
     this.audio.addEventListener('error', () => {
@@ -125,7 +127,8 @@ class MusicPlayer {
       clearTimeout(this.pauseTimer);
       this.pauseTimer = null;
     }
-    if (!this.state.song || !this.audio.src) this.playNext();
+    // Nothing loaded yet, or the last song failed to load (e.g. while the page was hidden): move on to the next one
+    if (!this.state.song || !this.audio.src || this.audio.error) this.playNext();
     else if (this.audio.paused) {
       void this.ctx?.resume();
       void this.audio.play().catch(() => undefined);

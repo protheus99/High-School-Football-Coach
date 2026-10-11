@@ -4,10 +4,12 @@ Songs that play on the menus (not during games), with a "Now Playing" pop-up.
 
 ## Where files go
 
-- **Songs:** MP3 files in this folder, `public/music/` (for example `public/music/friday-lights.mp3`)
+- **Songs:** MP3 files in this folder, `public/music/` (for example `public/music/friday-lights.mp3`). They're for
+  the dev server only: git ignores them, builds drop them, and the live game streams them from the music server
+  (`music-worker/`, see its README for uploading)
 - **Cover images:** JPG, PNG or WebP files in `public/music/covers/` (square, about 300 x 300 px is plenty)
 
-Use lowercase file names without spaces (`friday-lights.mp3`, not `Friday Lights.mp3`): they become web addresses.
+Any file name works (the game encodes it). Keep the name you upload to the music server: the two must match.
 
 ## Size
 
@@ -36,6 +38,7 @@ Use lowercase file names without spaces (`friday-lights.mp3`, not `Friday Lights
 
 ## Rights
 
-Everything here is published with the game on the public site (and in the public GitHub repository). Only add music
-you have the right to share: your own, royalty-free or Creative Commons tracks (credit the artist when the license
-asks), or AI-generated tracks your plan allows for public use. Commercial songs from artists and labels can't go here.
+The MP3s are never published as files: they're kept out of git and the site, and streamed to the game only by the
+music server. The song list (`soundtrack.json`), the covers and this folder's notes are public. Only use music your
+license allows in a public game (for Uppbeat tracks, check that your plan covers games), and credit artists as the
+license asks: the Now Playing pop-up shows each song's title and artist.
