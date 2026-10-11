@@ -6,6 +6,7 @@ import {
   buildRecruitingContext,
   chooseFeederStrategy,
   choiceShares,
+  CLEAN_ETHICS,
   initialFeederProfile,
   programPull,
   rollPriorities,
@@ -152,8 +153,16 @@ describe('Competition through the store', () => {
 
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
     store.getState().transitionToNextYear();
-    // Prospects pick their schools as pre season week 2 ends
-    while (store.getState().currentWeek <= 2) store.getState().advanceWeek();
+    // Prospects pick their schools as pre season week 2 ends. That week's investigations run after signing, and a
+    // rival caught then loses the prospects its boosters paid for (ruled ineligible): keep every rival clean so
+    // each signing is still on the roster when it's checked
+    while (store.getState().currentWeek < 2) store.getState().advanceWeek();
+    store.getState().leagueTeams.forEach((t) => {
+      if (!t.feederProfile) return;
+      t.feederProfile.violationHeat = 0;
+      t.feederProfile.ethics = Math.max(t.feederProfile.ethics, CLEAN_ETHICS); // no new illegal offers this week either
+    });
+    store.getState().advanceWeek();
     const { lastFeederResults } = store.getState();
     lastFeederResults!
       .filter((o) => o.destinationTeamId)
