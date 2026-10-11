@@ -82,7 +82,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
   },
   {
     role: 'QUARTERBACKS',
-    title: 'Quarterbacks Coach',
+    title: 'Quarterbacks',
     edgeCap: 0.25,
     effects: [
       { id: 'pocket_presence', name: 'Pocket Presence', description: 'Fewer sacks and interceptions', kind: 'GAME_DAY', gameDayEdge: 0.15 },
@@ -92,7 +92,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
   },
   {
     role: 'RUNNING_BACKS',
-    title: 'Running Backs Coach',
+    title: 'Running Backs',
     edgeCap: 0.25,
     effects: [
       { id: 'ball_security', name: 'Ball Security', description: 'Fewer fumbles', kind: 'GAME_DAY', gameDayEdge: 0.1 },
@@ -102,7 +102,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
   },
   {
     role: 'WIDE_RECEIVERS',
-    title: 'Wide Receivers Coach',
+    title: 'Wide Receivers',
     edgeCap: 0.25,
     effects: [
       { id: 'route_technician', name: 'Route Technician', description: 'More completions', kind: 'GAME_DAY', gameDayEdge: 0.1 },
@@ -112,13 +112,13 @@ export const COACH_ROLES: CoachRoleInfo[] = [
   },
   {
     role: 'TIGHT_ENDS',
-    title: 'Tight Ends Coach',
+    title: 'Tight Ends',
     edgeCap: 0.25,
     effects: [{ id: 'seam_threat', name: 'Seam Threat', description: 'A better third-down target', kind: 'GAME_DAY', gameDayEdge: 0.05 }, dev('te_development', ['TE'])]
   },
   {
     role: 'OFFENSIVE_LINE',
-    title: 'Offensive Line Coach',
+    title: 'Offensive Line',
     edgeCap: 0.25,
     effects: [
       { id: 'pass_pro_wall', name: 'Pass Pro Wall', description: 'Fewer sacks', kind: 'GAME_DAY', gameDayEdge: 0.12 },
@@ -128,7 +128,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
   },
   {
     role: 'DEFENSIVE_LINE',
-    title: 'Defensive Line Coach',
+    title: 'Defensive Line',
     edgeCap: 0.25,
     effects: [
       { id: 'pass_rush_guru', name: 'Pass Rush Guru', description: 'More sacks', kind: 'GAME_DAY', gameDayEdge: 0.12 },
@@ -138,7 +138,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
   },
   {
     role: 'LINEBACKERS',
-    title: 'Linebackers Coach',
+    title: 'Linebackers',
     edgeCap: 0.25,
     effects: [
       { id: 'run_fits', name: 'Run Fits', description: 'Better run defense', kind: 'GAME_DAY', gameDayEdge: 0.1 },
@@ -148,7 +148,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
   },
   {
     role: 'CORNERBACKS',
-    title: 'Cornerbacks Coach',
+    title: 'Cornerbacks',
     edgeCap: 0.25,
     effects: [
       { id: 'lockdown', name: 'Lockdown', description: 'Fewer deep completions allowed', kind: 'GAME_DAY', gameDayEdge: 0.1 },
@@ -158,7 +158,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
   },
   {
     role: 'SAFETIES',
-    title: 'Safeties Coach',
+    title: 'Safeties',
     edgeCap: 0.25,
     effects: [
       { id: 'last_line', name: 'Last Line', description: 'Fewer big plays allowed', kind: 'GAME_DAY', gameDayEdge: 0.1 },
