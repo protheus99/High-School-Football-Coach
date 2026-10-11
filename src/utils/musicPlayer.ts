@@ -64,18 +64,20 @@ class MusicPlayer {
 
   /** Called on the coach's taps until a song has played: sound is allowed from here on. */
   unlock = () => {
-    // A tap while the load-time start is still pending: the tap starts it, and the pop-up shows now
-    const pending = this.autoplaying && this.state.song !== null;
     this.autoplaying = false;
     this.unlocked = true;
     this.ensureAudio();
     void this.ctx?.resume();
     this.update();
-    if (pending) this.listeners.forEach((l) => l());
+    // The pop-up for a pending intro, and the title screen's tap hint goes away
+    this.listeners.forEach((l) => l());
   };
 
   /** True once a song has started playing (the taps no longer need to unlock anything). */
   hasStarted = () => this.started;
+
+  /** The browser refused sound before a tap: music is on and lined up, waiting for the player to touch the page. */
+  waitingForTap = () => this.songs.length > 0 && !this.started && !this.unlocked && !this.inGame && getMusicSettings().enabled;
 
   /** A live game is on screen (true) or over (false): the music fades out, and comes back with the next song. */
   setInGame = (inGame: boolean) => {
@@ -182,6 +184,7 @@ class MusicPlayer {
         this.state = previous;
         if (!intro) this.round.unshift(song);
         this.audio?.removeAttribute('src');
+        notify(); // the title screen shows its tap hint
       });
     this.applyVolume(FADE_IN);
     if (!attempt) notify();
@@ -229,3 +232,6 @@ export const musicPlayer = new MusicPlayer();
 
 /** The song playing now, kept current in a component. */
 export const useNowPlaying = () => useSyncExternalStore(musicPlayer.subscribe, musicPlayer.getState);
+
+/** True while the music waits for the player's first tap (the browser blocked sound on load). */
+export const useMusicWaitingForTap = () => useSyncExternalStore(musicPlayer.subscribe, musicPlayer.waitingForTap);

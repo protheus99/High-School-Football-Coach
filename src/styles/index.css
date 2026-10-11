@@ -996,6 +996,37 @@ h3 {
   }
 }
 
+/* The title screen's nudge when the browser blocked sound: a soft yellow pill that breathes */
+.music-tap-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(250, 204, 21, 0.14);
+  border: 1px solid rgba(250, 204, 21, 0.55);
+  color: #fde68a;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 800;
+  animation: music-tap-breathe 1.8s ease-in-out infinite;
+}
+
+@keyframes music-tap-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(250, 204, 21, 0.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .music-tap-hint {
+    animation: none;
+  }
+}
+
 /* Now Playing: slides in at the bottom right, above the tab bar (and left of Back to top when it shows) */
 .ui-now-playing {
   position: fixed;

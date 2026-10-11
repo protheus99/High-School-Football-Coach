@@ -62,6 +62,7 @@ describe('The soundtrack starting on its own', () => {
     const player = await freshPlayer();
     expect(player.getState().song?.title).toBe('Main Theme');
     expect(player.hasStarted()).toBe(true);
+    expect(player.waitingForTap()).toBe(false); // no tap hint
   });
 
   it('waits for the first tap when the browser refuses, then plays the intro', async () => {
@@ -70,6 +71,7 @@ describe('The soundtrack starting on its own', () => {
     // Refused: nothing is playing and the intro is still lined up (no pop-up for a song that never played)
     expect(player.getState()).toEqual({ song: null, playId: 0 });
     expect(player.hasStarted()).toBe(false);
+    expect(player.waitingForTap()).toBe(true); // the title screen shows "Tap anywhere for music"
 
     const shown: (string | undefined)[] = [];
     player.subscribe(() => shown.push(player.getState().song?.title));
@@ -79,5 +81,13 @@ describe('The soundtrack starting on its own', () => {
     expect(player.getState().song?.title).toBe('Main Theme');
     expect(shown).toContain('Main Theme');
     expect(player.hasStarted()).toBe(true);
+    expect(player.waitingForTap()).toBe(false);
+  });
+
+  it('shows no tap hint when music is turned off', async () => {
+    allowSound = false;
+    localStorage.setItem('hsfhc.music', JSON.stringify({ enabled: false, volume: 0.6, popupStyle: 'CLASSIC' }));
+    const player = await freshPlayer();
+    expect(player.waitingForTap()).toBe(false);
   });
 });

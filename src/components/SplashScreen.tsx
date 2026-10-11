@@ -4,6 +4,7 @@ import { useGameStore } from '../store/gameStore';
 import { DIFFICULTY_PRESTIGE, Difficulty, stateSchool } from '../sim/league';
 import { SCENARIOS, ScenarioId } from '../data/scenarios';
 import { SchoolSearch } from './SchoolSearch';
+import { MusicTapHint } from './MusicTapHint';
 import { CAREER_LENGTHS, CareerLength } from '../sim/careerScore';
 
 // The classic game (a random school at a difficulty, unranked) is hidden for now; flip this to bring it back
@@ -137,6 +138,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             <button onClick={() => setView('LOAD')} style={menuBtn('#334155', '#fff')}>
               📂 Load Game
             </button>
+            <MusicTapHint />
           </div>
         )}
 
