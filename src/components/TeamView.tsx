@@ -7,8 +7,9 @@ import { StaffView } from './StaffView';
 import { ScheduleView } from './ScheduleView';
 import { HallOfFameView } from './HallOfFameView';
 import { InjuryReportView } from './InjuryReportView';
+import { CoachCareerView } from './CoachCareerView';
 
-export type TeamSection = 'ROSTER' | 'INJURIES' | 'PRACTICE' | 'COLLEGE' | 'STAFF' | 'SCHEDULE' | 'HALL_OF_FAME';
+export type TeamSection = 'ROSTER' | 'INJURIES' | 'PRACTICE' | 'COLLEGE' | 'STAFF' | 'SCHEDULE' | 'HALL_OF_FAME' | 'CAREER';
 
 const SECTIONS: { id: TeamSection; label: string; short: string }[] = [
   { id: 'ROSTER', label: '📋 Roster', short: 'Roster' },
@@ -17,7 +18,8 @@ const SECTIONS: { id: TeamSection; label: string; short: string }[] = [
   { id: 'COLLEGE', label: '🎓 College', short: 'College' },
   { id: 'STAFF', label: '🧑‍🏫 Staff', short: 'Staff' },
   { id: 'SCHEDULE', label: '🗓️ Schedule', short: 'Schedule' },
-  { id: 'HALL_OF_FAME', label: '🏆 Hall of Fame', short: 'Hall of Fame' }
+  { id: 'HALL_OF_FAME', label: '🏆 Hall of Fame', short: 'Hall of Fame' },
+  { id: 'CAREER', label: '📇 Career', short: 'Career' }
 ];
 
 const SUBTITLES: Record<TeamSection, string> = {
@@ -27,10 +29,11 @@ const SUBTITLES: Record<TeamSection, string> = {
   COLLEGE: 'College recruiting for your juniors and seniors',
   STAFF: 'Your coaching staff: assistants who give the program an edge',
   SCHEDULE: 'The season week by week',
-  HALL_OF_FAME: 'Trophies, titles and your career on the leaderboard'
+  HALL_OF_FAME: 'Trophies, titles and your career in the Hall of Fame',
+  CAREER: 'Every school you have coached'
 };
 
-/** Team: roster and depth chart, health (fatigue and injuries), practice, college recruiting, the coaching staff, the schedule and the Hall of Fame. */
+/** Team: roster and depth chart, health (fatigue and injuries), practice, college recruiting, the coaching staff, the schedule, the Hall of Fame and the coach's career. */
 export const TeamView: React.FC<{ section: TeamSection; onSection: (section: TeamSection) => void; collegeFocusId?: string | null }> = ({
   section,
   onSection,
@@ -53,5 +56,6 @@ export const TeamView: React.FC<{ section: TeamSection; onSection: (section: Tea
       </div>
     )}
     {section === 'HALL_OF_FAME' && <HallOfFameView />}
+    {section === 'CAREER' && <CoachCareerView />}
   </div>
 );

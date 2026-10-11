@@ -63,7 +63,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   const pickedName = pick ? (pickedProgram?.displayName ?? pick.school) : null;
   const startCareer = () => {
     if (!pick) return;
-    // The coach's name is required: it goes on the team, the awards and the leaderboard
+    // The coach's name is required: it goes on the team, the awards and the Hall of Fame
     if (!coachName.trim()) {
       setNameMissing(true);
       document.getElementById('coach-name')?.focus();

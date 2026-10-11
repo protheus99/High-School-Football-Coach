@@ -1,23 +1,8 @@
 import React from 'react';
+import { stateAbbreviation } from '../../utils/format';
 
 // Title marks, the same on every phone and computer (Windows draws no flag emoji): a state pennant for a state
 // title and a small drawn US flag for a national title.
-
-const ABBREVIATIONS: Record<string, string> = {
-  Texas: 'TX',
-  California: 'CA',
-  Georgia: 'GA',
-  Ohio: 'OH',
-  Alabama: 'AL',
-  Florida: 'FL',
-  Pennsylvania: 'PA',
-  'North Carolina': 'NC',
-  Tennessee: 'TN',
-  Louisiana: 'LA',
-  Maryland: 'MD',
-  'New Jersey': 'NJ'
-};
-const stateAbbreviation = (state: string) => ABBREVIATIONS[state] ?? state.slice(0, 2).toUpperCase();
 
 const STATE_COLORS: Record<string, [string, string]> = {
   Texas: ['#BF0A30', '#fff'],

@@ -3,8 +3,8 @@ import { validate } from './validate';
 // ---------------------------------------------------------------------------
 // The global leaderboard API (Cloudflare Worker + D1).
 //   POST /careers                               a career's latest totals (created, or updated by its owner)
-//   GET  /leaderboard?state=&school=&length=    the top careers for a starting program and length
-//   GET  /leaderboard?length=                   the top careers across every program (length optional)
+//   GET  /leaderboard?length=                   a Hall of Fame board: the top careers of one length, every program
+//   GET  /leaderboard?state=&school=&length=    the top careers for one starting program (games before 1.8)
 // Each career carries a secret token from the device that started it; only its SHA-256 hash is stored, and
 // an update must present the same token, so nobody can overwrite someone else's career.
 // ---------------------------------------------------------------------------
@@ -44,6 +44,8 @@ interface Row {
   losses: number;
   playoff_wins: number;
   titles: number;
+  national_titles: number;
+  starting_prestige: number;
   college_signees: number;
   points: number;
   updated_at: number;
@@ -62,6 +64,8 @@ const toEntry = (r: Row) => ({
   losses: r.losses,
   playoffWins: r.playoff_wins,
   titles: r.titles,
+  nationalTitles: r.national_titles,
+  startingPrestige: r.starting_prestige,
   collegeSignees: r.college_signees,
   points: r.points,
   updatedAt: r.updated_at
@@ -101,30 +105,37 @@ async function submit(request: Request, env: Env, cors: Record<string, string>):
   const c = result.value;
   const tokenHash = await sha256(c.token);
 
-  const existing = await env.DB.prepare('SELECT token_hash, scenario, state, starting_school, length, seasons FROM careers WHERE career_id = ?')
+  const existing = await env.DB.prepare('SELECT token_hash, scenario, state, starting_school, length, seasons, starting_prestige FROM careers WHERE career_id = ?')
     .bind(c.careerId)
-    .first<{ token_hash: string; scenario: string; state: string; starting_school: string; length: number; seasons: number }>();
+    .first<{ token_hash: string; scenario: string; state: string; starting_school: string; length: number; seasons: number; starting_prestige: number }>();
   const now = Date.now();
   if (existing) {
     if (existing.token_hash !== tokenHash) return json({ error: 'Not your career' }, 403, cors);
     // A career keeps its program and length, and only moves forward
-    if (existing.scenario !== c.scenario || existing.state !== c.state || existing.starting_school !== c.startingSchool || existing.length !== c.length)
-      return json({ error: 'A career cannot change program or length' }, 409, cors);
+    if (
+      existing.scenario !== c.scenario ||
+      existing.state !== c.state ||
+      existing.starting_school !== c.startingSchool ||
+      existing.length !== c.length ||
+      (existing.starting_prestige ?? 99) !== c.startingPrestige
+    )
+      return json({ error: 'A career cannot change program, length or starting prestige' }, 409, cors);
     if (c.seasons < existing.seasons) return json({ error: 'Older than the stored career' }, 409, cors);
     await env.DB.prepare(
-      `UPDATE careers SET coach_name = ?, seasons = ?, wins = ?, losses = ?, playoff_wins = ?, titles = ?, college_signees = ?, points = ?, updated_at = ?
+      `UPDATE careers SET coach_name = ?, seasons = ?, wins = ?, losses = ?, playoff_wins = ?, titles = ?, college_signees = ?, points = ?, updated_at = ?,
+         national_titles = ?
        WHERE career_id = ?`
     )
-      .bind(c.coachName, c.seasons, c.wins, c.losses, c.playoffWins, c.titles, c.collegeSignees, c.points, now, c.careerId)
+      .bind(c.coachName, c.seasons, c.wins, c.losses, c.playoffWins, c.titles, c.collegeSignees, c.points, now, c.nationalTitles, c.careerId)
       .run();
   } else {
     await env.DB.prepare(
       `INSERT INTO careers (career_id, token_hash, coach_name, scenario, state, starting_school, starting_program, length, seasons, wins, losses,
-         playoff_wins, titles, college_signees, points, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         playoff_wins, titles, college_signees, points, created_at, updated_at, national_titles, starting_prestige)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
       .bind(c.careerId, tokenHash, c.coachName, c.scenario, c.state, c.startingSchool, c.startingProgram, c.length, c.seasons, c.wins, c.losses,
-        c.playoffWins, c.titles, c.collegeSignees, c.points, now, now)
+        c.playoffWins, c.titles, c.collegeSignees, c.points, now, now, c.nationalTitles, c.startingPrestige)
       .run();
   }
   return json({ ok: true }, 200, cors);

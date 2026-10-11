@@ -98,6 +98,7 @@ import { collectResults } from '../sim/computerRankings';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
 import { HiredCoach, staffBonuses, staffGameDayEdge } from '../sim/coachingStaff';
 import { Career, CareerLength, isCareerComplete, scoreSeason } from '../sim/careerScore';
+import { JobOffer, jobOffers, newContract } from '../sim/jobMarket';
 import { ScenarioId, scenarioById } from '../data/scenarios';
 import { recordCareer } from '../services/leaderboard';
 import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
@@ -303,6 +304,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     interstateGames: state.interstateGames,
     coachingStaff: state.coachingStaff,
     career: state.career,
+    careerHistory: state.careerHistory,
     userProbationUntil: state.userProbationUntil,
     lightCalibration: state.lightCalibration,
     userViolationHeat: state.userViolationHeat,
@@ -313,6 +315,8 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
 }
 
 const AUTOSAVE_SLOT = 'current_save';
+// A new coach's board trust starts at least here: a new hire isn't put on the hot seat before his first game
+const NEW_JOB_BOARD_TRUST = 60;
 
 /**
  * The season's out-of-state games for every state. The league's own are added to its schedule (the same
@@ -377,7 +381,10 @@ const emptyRecord = () => ({
 
 interface GameStoreState {
   difficulty: Difficulty | null; // chosen at New Game
-  career: Career | null; // a scenario career: its seasons are scored for the starting program's leaderboard
+  career: Career | null; // the current contract: its seasons are scored for its Hall of Fame entry
+  careerHistory: Career[]; // the coach's finished contracts in this save (Team › Career)
+  jobOffers: JobOffer[]; // offers waiting when a contract ends
+  contractRenewable: boolean; // the board would extend the coach when his contract ends
   currentWeek: number;
   currentYear: number;
   userTeamId: string;
@@ -427,7 +434,9 @@ interface GameStoreState {
   isBanquetActive: boolean;
   onHotSeat: boolean; // the board's warning: another season under 35 Board Trust ends the job
   firedFrom: string | null; // set when the board fires the coach (game over for this save)
-  careerComplete: boolean; // the career's last season is done (game over for this save)
+  careerComplete: boolean; // the contract's last season is done: extend, take a job, or leave the world
+  extendContract: (length: CareerLength) => void; // a new contract at the same school (a new Hall of Fame entry)
+  acceptJob: (teamId: string, length: CareerLength) => void; // a new contract at another school in the world
   userProbationUntil: number | null; // last season of the coach's recruiting probation after getting caught
   lightCalibration: LightCalibration | null; // how the other states' rolled ratings map onto the coach's league (measured each opener)
 
@@ -470,6 +479,9 @@ export function feederEventsOpen(state: Pick<GameStoreState, 'currentWeek' | 'le
 export const useGameStore = create<GameStoreState>((set, get) => ({
   difficulty: null,
   career: null,
+  careerHistory: [],
+  jobOffers: [],
+  contractRenewable: true,
   currentWeek: 1,
   currentYear: 2026,
   userTeamId: 'team_austin_westlake',
@@ -582,7 +594,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   newGame: (difficulty, state = 'Texas') => {
     const school = pickSchoolForDifficulty(difficulty, state);
-    set({ currentYear: 2026, difficulty, career: null });
+    set({ currentYear: 2026, difficulty, career: null, careerHistory: [] });
     get().startNewSeason(buildStateWorld(state, school));
     return school;
   },
@@ -600,13 +612,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       startedYear: 2026,
       length,
       token: crypto.randomUUID(),
+      coachId: `coach_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       seasons: []
     };
-    set({ currentYear: 2026, difficulty: scenarioId === 'OPEN' ? difficultyForPrestige(stateSchool(state, school)?.prestige ?? 75) : scenario.difficulty, career });
+    set({ currentYear: 2026, difficulty: scenarioId === 'OPEN' ? difficultyForPrestige(stateSchool(state, school)?.prestige ?? 75) : scenario.difficulty, career, careerHistory: [] });
     get().startNewSeason(buildStateWorld(state, school, false, scenario.startingPrestige));
-    // The coach's own name, on his team (profile, awards, news)
+    // The coach's own name, on his team (profile, awards, news); the contract's starting prestige sets its Hall of Fame bonus
     const team = get().leagueTeams.find((t) => t.id === get().userTeamId);
     if (team) team.staff.headCoachName = coachTitle(career.coachName);
+    if (team) set({ career: { ...career, startingPrestige: team.prestige } });
   },
 
   // League saves restore the whole world; older saves get a world built around their district
@@ -644,6 +658,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       interstateGames: save.interstateGames ?? [],
       coachingStaff: save.coachingStaff ?? [],
       career: save.career ?? null,
+      careerHistory: save.careerHistory ?? [],
       playoffBracket: save.league && save.playoffBracket ? relinkBracketTeams(save.playoffBracket, world.teams) : null,
       sanctionLevel: save.sanctionLevel ?? 0,
       statewideRecruits: save.league ? save.statewideRecruits ?? [] : [],
@@ -956,9 +971,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const news = signingDayNews(signings, prestigeChanges.get(userTeamId) ?? 0, userTeam, get().currentYear, nextWeek);
       // The final polls and leaders, with every state's title game in
       const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
-      // The full year is in: score it for the career's leaderboard
+      const finalPolls = generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get()), league?.state ?? 'Texas');
+      // The full year is in: score it for the career's Hall of Fame entry (#1 in the final national poll is a national title)
       const career = get().career;
-      const scored = career && !isCareerComplete(career) && !career.seasons.some((s) => s.year === get().currentYear) ? { ...career, seasons: [...career.seasons, scoreSeason(userTeam, get().playoffBracket, get().currentYear)] } : career;
+      const nationalTitle = finalPolls.nationalTop25[0]?.teamId === userTeamId;
+      const scored =
+        career && !isCareerComplete(career) && !career.seasons.some((s) => s.year === get().currentYear)
+          ? { ...career, seasons: [...career.seasons, scoreSeason(userTeam, get().playoffBracket, get().currentYear, nationalTitle)] }
+          : career;
       if (scored && scored !== career) recordCareer(scored);
       // The state's honors: every All-State player and award winner gets a little more college exposure
       const seasonAwards = calculateSeasonAwards(get().currentYear, leagueTeams, get().playoffBracket);
@@ -970,7 +990,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         graduatingSeniors: seniors,
         isBanquetActive: true,
         newsArticles: [...news, ...get().newsArticles],
-        polls: generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get()), league?.state ?? 'Texas'),
+        polls: finalPolls,
         playerRankings: generatePlayerRankingsAndLeaderboards(everyone, nextWeek),
         leagueTeams: [...leagueTeams]
       });
@@ -1114,6 +1134,62 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents, get().districtTeams.find((t) => t.id === get().userTeamId)?.programMeters.schoolBoardTrust) });
   },
 
+  // The contract is done and the board will keep him: a new contract at the same school, then next season
+  extendContract: (length) => {
+    const { career, leagueTeams, userTeamId, currentYear } = get();
+    const team = leagueTeams.find((t) => t.id === userTeamId);
+    if (!career || !team) return;
+    set({ careerHistory: [...get().careerHistory, career], career: newContract(career, team, length, currentYear + 1, true), careerComplete: false, jobOffers: [] });
+    get().transitionToNextYear();
+  },
+
+  // A new job in the same world: the coach takes over another program (its roster, district and pipeline)
+  acceptJob: (teamId, length) => {
+    const { career, leagueTeams, league, userTeamId, currentYear, nationalLeagues } = get();
+    const oldTeam = leagueTeams.find((t) => t.id === userTeamId);
+    const team = leagueTeams.find((t) => t.id === teamId);
+    if (!career || !oldTeam || !team || !league) return;
+    // The old school hires a new coach and recruits like every other program
+    oldTeam.staff.headCoachName = `Coach ${randomSurname(oldTeam.nameProfile)}`;
+    oldTeam.feederProfile = initialFeederProfile();
+    oldTeam.feederProfile.strategy = chooseFeederStrategy(oldTeam);
+    delete oldTeam.gameDayEdge;
+    delete oldTeam.fridayEdge;
+    delete oldTeam.pendingFridayEdge;
+    // The new school: the coach's name, a board that gives him time, and any probation it is already serving
+    const probation = team.feederProfile?.probationUntil;
+    delete team.feederProfile;
+    team.staff.headCoachName = coachTitle(career.coachName);
+    team.programMeters.schoolBoardTrust = Math.max(team.programMeters.schoolBoardTrust, NEW_JOB_BOARD_TRUST);
+    const ctx = buildRecruitingContext(league, leagueTeams, team.id);
+    const article: NewsArticle = {
+      id: `news_new_job_${currentYear}`,
+      week: 1,
+      outlet: 'STATE_SPORTS_CENTRAL',
+      headline: `${coachTitle(career.coachName)} Takes Over at ${team.name}`,
+      content: `After ${career.length} seasons at ${oldTeam.name}, ${coachTitle(career.coachName)} signs a ${length}-year contract with ${team.name}.`,
+      impactSentiment: 'POSITIVE',
+      featuredTeamName: team.name
+    };
+    set({
+      userTeamId: team.id,
+      districtTeams: userDistrictTeams(league, leagueTeams, team.id),
+      scoutingPool: generateFeederPool(team, ctx),
+      statewideRecruits: generateStatewideElite(ctx),
+      widePool: generateWidePool(ctx, league.state ?? 'Texas', nationalLeagues),
+      userViolationHeat: 0,
+      pendingUserBan: false,
+      userProbationUntil: probation != null && probation > currentYear ? probation : null,
+      onHotSeat: false,
+      careerHistory: [...get().careerHistory, career],
+      career: newContract(career, team, length, currentYear + 1, false),
+      careerComplete: false,
+      jobOffers: [],
+      newsArticles: [article, ...get().newsArticles]
+    });
+    get().transitionToNextYear();
+  },
+
   transitionToNextYear: () => {
     const { districtTeams, leagueTeams, league, userTeamId, currentYear } = get();
     // Every program graduates seniors, moves classes up and progresses; newcomers arrive after feeder signing
@@ -1122,7 +1198,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // The career's last season is in the books
     const career = get().career;
     if (career && isCareerComplete(career)) {
-      set({ careerComplete: true });
+      set({
+        careerComplete: true,
+        jobOffers: jobOffers(career, leagueTeams, userTeamId),
+        contractRenewable: boardReview(userTeam.programMeters.schoolBoardTrust, get().onHotSeat) !== 'FIRED'
+      });
       return;
     }
     // The school board's season-end review

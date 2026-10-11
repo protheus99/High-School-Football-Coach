@@ -1,16 +1,5 @@
 import { OffensiveScheme, DefensiveScheme, Team } from '../types/game';
-import texas6A from '../data/texas-6a.json';
-import georgia7A from '../data/georgia-7a.json';
-import florida6A from '../data/florida-6a.json';
-import maryland4A from '../data/maryland-4a.json';
-import northCarolina8A from '../data/north-carolina-8a.json';
-import alabama6A from '../data/alabama-6a.json';
-import tennessee6A from '../data/tennessee-6a.json';
-import ohioD1 from '../data/ohio-d1.json';
-import pennsylvania6A from '../data/pennsylvania-6a.json';
-import newJerseyG5 from '../data/new-jersey-g5.json';
-import louisiana5A from '../data/louisiana-5a.json';
-import californiaOpen from '../data/california-open.json';
+import { STATE_DATA, StateWorldData } from '../data/stateWorlds';
 import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRICT_SCHOOLS } from '../generators/rosterGenerator';
 import { nameProfileForArea } from '../generators/names';
 import { OFF_SEASON_WEEKS, STATE_FINAL_WEEK } from './scheduleEngine';
@@ -48,34 +37,20 @@ export const DIFFICULTY_PRESTIGE: Record<Difficulty, { min: number; max: number 
   HARD: { min: 60, max: 79 }
 };
 
-/** A playable state's bundled top class: regions of districts of schools (built from the design spec / official alignments). */
-interface StateWorldData {
-  regions: {
-    name: string;
-    area: string;
-    districts: {
-      number: number;
-      name: string;
-      area: string;
-      schools: { name: string; city?: string; mascot: string; primaryColor: string; secondaryColor: string; prestige: number; offenseScheme: string; defenseScheme: string }[];
-    }[];
-  }[];
-}
-
 /** Every playable state's world: its data, league name, whether its brackets split by enrollment, and the default school. */
 const STATE_WORLDS: Record<string, { data: StateWorldData; leagueName: string; splitDivisions: boolean; idPrefix: string; defaultSchool: string }> = {
-  Texas: { data: texas6A, leagueName: 'UIL Class 6A', splitDivisions: true, idPrefix: 'tx_6a_d', defaultSchool: DEFAULT_USER_SCHOOL },
-  Georgia: { data: georgia7A, leagueName: 'GHSA Class 7A', splitDivisions: false, idPrefix: 'ga_7a_r', defaultSchool: 'Buford' },
-  Florida: { data: florida6A, leagueName: 'FHSAA Class 6A', splitDivisions: false, idPrefix: 'fl_6a_d', defaultSchool: 'Apopka' },
-  Maryland: { data: maryland4A, leagueName: 'MPSSAA Class 4A', splitDivisions: false, idPrefix: 'md_4a_r', defaultSchool: 'Quince Orchard' },
-  'North Carolina': { data: northCarolina8A, leagueName: 'NCHSAA Class 8A', splitDivisions: false, idPrefix: 'nc_8a_c', defaultSchool: 'Hough' },
-  Alabama: { data: alabama6A, leagueName: 'AHSAA Class 6A', splitDivisions: false, idPrefix: 'al_6a_r', defaultSchool: 'Thompson' },
-  Tennessee: { data: tennessee6A, leagueName: 'TSSAA Class 6A', splitDivisions: false, idPrefix: 'tn_6a_r', defaultSchool: 'Oakland' },
-  Ohio: { data: ohioD1, leagueName: 'OHSAA Division I', splitDivisions: false, idPrefix: 'oh_d1_l', defaultSchool: 'Lakewood St. Edward' },
-  Pennsylvania: { data: pennsylvania6A, leagueName: 'PIAA Class 6A', splitDivisions: false, idPrefix: 'pa_6a_l', defaultSchool: "St. Joseph's Prep" },
-  'New Jersey': { data: newJerseyG5, leagueName: 'NJSIAA Group 5 & Non-Public A', splitDivisions: false, idPrefix: 'nj_g5_l', defaultSchool: 'Bergen Catholic' },
-  Louisiana: { data: louisiana5A, leagueName: 'LHSAA Class 5A', splitDivisions: false, idPrefix: 'la_5a_d', defaultSchool: 'Edna Karr' },
-  California: { data: californiaOpen, leagueName: 'CIF Open Division', splitDivisions: false, idPrefix: 'ca_open_l', defaultSchool: 'Mater Dei' }
+  Texas: { data: STATE_DATA.Texas, leagueName: 'UIL Class 6A', splitDivisions: true, idPrefix: 'tx_6a_d', defaultSchool: DEFAULT_USER_SCHOOL },
+  Georgia: { data: STATE_DATA.Georgia, leagueName: 'GHSA Class 7A', splitDivisions: false, idPrefix: 'ga_7a_r', defaultSchool: 'Buford' },
+  Florida: { data: STATE_DATA.Florida, leagueName: 'FHSAA Class 6A', splitDivisions: false, idPrefix: 'fl_6a_d', defaultSchool: 'Apopka' },
+  Maryland: { data: STATE_DATA.Maryland, leagueName: 'MPSSAA Class 4A', splitDivisions: false, idPrefix: 'md_4a_r', defaultSchool: 'Quince Orchard' },
+  'North Carolina': { data: STATE_DATA['North Carolina'], leagueName: 'NCHSAA Class 8A', splitDivisions: false, idPrefix: 'nc_8a_c', defaultSchool: 'Hough' },
+  Alabama: { data: STATE_DATA.Alabama, leagueName: 'AHSAA Class 6A', splitDivisions: false, idPrefix: 'al_6a_r', defaultSchool: 'Thompson' },
+  Tennessee: { data: STATE_DATA.Tennessee, leagueName: 'TSSAA Class 6A', splitDivisions: false, idPrefix: 'tn_6a_r', defaultSchool: 'Oakland' },
+  Ohio: { data: STATE_DATA.Ohio, leagueName: 'OHSAA Division I', splitDivisions: false, idPrefix: 'oh_d1_l', defaultSchool: 'Lakewood St. Edward' },
+  Pennsylvania: { data: STATE_DATA.Pennsylvania, leagueName: 'PIAA Class 6A', splitDivisions: false, idPrefix: 'pa_6a_l', defaultSchool: "St. Joseph's Prep" },
+  'New Jersey': { data: STATE_DATA['New Jersey'], leagueName: 'NJSIAA Group 5 & Non-Public A', splitDivisions: false, idPrefix: 'nj_g5_l', defaultSchool: 'Bergen Catholic' },
+  Louisiana: { data: STATE_DATA.Louisiana, leagueName: 'LHSAA Class 5A', splitDivisions: false, idPrefix: 'la_5a_d', defaultSchool: 'Edna Karr' },
+  California: { data: STATE_DATA.California, leagueName: 'CIF Open Division', splitDivisions: false, idPrefix: 'ca_open_l', defaultSchool: 'Mater Dei' }
 };
 
 /** A school's entry in a playable state's world data (mascot, colors, prestige) and its district, if it plays there. */

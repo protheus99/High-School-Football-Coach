@@ -6,7 +6,7 @@ import { validate } from '../src/validate';
 // A D1 stand-in: just the statements the worker runs, over an in-memory table
 function fakeDb() {
   const rows = new Map<string, Record<string, unknown>>();
-  const cols = ['career_id', 'token_hash', 'coach_name', 'scenario', 'state', 'starting_school', 'starting_program', 'length', 'seasons', 'wins', 'losses', 'playoff_wins', 'titles', 'college_signees', 'points', 'created_at', 'updated_at'];
+  const cols = ['career_id', 'token_hash', 'coach_name', 'scenario', 'state', 'starting_school', 'starting_program', 'length', 'seasons', 'wins', 'losses', 'playoff_wins', 'titles', 'college_signees', 'points', 'created_at', 'updated_at', 'national_titles', 'starting_prestige'];
   const prepare = (sql: string) => {
     let args: unknown[] = [];
     const stmt = {
@@ -15,8 +15,8 @@ function fakeDb() {
       run: async () => {
         if (sql.startsWith('INSERT')) rows.set(args[0] as string, Object.fromEntries(cols.map((c, i) => [c, args[i]])));
         if (sql.startsWith('UPDATE')) {
-          const row = rows.get(args[9] as string)!;
-          ['coach_name', 'seasons', 'wins', 'losses', 'playoff_wins', 'titles', 'college_signees', 'points', 'updated_at'].forEach((c, i) => (row[c] = args[i]));
+          const row = rows.get(args[10] as string)!;
+          ['coach_name', 'seasons', 'wins', 'losses', 'playoff_wins', 'titles', 'college_signees', 'points', 'updated_at', 'national_titles'].forEach((c, i) => (row[c] = args[i]));
         }
         return {};
       },
@@ -59,8 +59,11 @@ describe('Leaderboard submissions', () => {
 
   it.each([
     ['points that do not match', { points: 999 }],
-    ['a program outside the scenarios', { startingSchool: 'Austin Westlake' }],
-    ['a program from the other scenario', { scenario: 'POWERHOUSE' }],
+    ['a school that is not in the state', { startingSchool: 'Springfield Atoms' }],
+    ['an unknown scenario', { scenario: 'CHEAT' }],
+    ['a starting prestige below 40', { startingPrestige: 12 }],
+    ['more national titles than seasons', { nationalTitles: 3, points: 9999 }],
+    ['points without the prestige bonus', { startingPrestige: 72 }],
     ['an unknown length', { length: 7 }],
     ['more seasons than the length', { seasons: 6 }],
     ['more games than the seasons allow', { wins: 40, playoffWins: 4, points: 36 * 5 + 3 + 32 + 10 + 6 }],
@@ -75,6 +78,22 @@ describe('Leaderboard submissions', () => {
     const result = validate(career({ coachName: '  Coach <b>Gaines</b>  ', scenario: 'POWERHOUSE', startingSchool: 'Dr. Henry A. Wise', state: 'Maryland' }));
     expect(result.ok && result.value.coachName).toBe('Coach bGainesb');
     expect(result.ok && result.value.startingProgram).toBe('Wise');
+  });
+
+  it('takes any school in the state (Your Pick, or a new job) under its own name', () => {
+    const result = validate(career({ scenario: 'OPEN', startingSchool: 'Austin Westlake', startingProgram: 'Whatever' }));
+    expect(result.ok && result.value.startingProgram).toBe('Austin Westlake');
+  });
+
+  it('scores national titles and the starting-prestige bonus', () => {
+    const base = 15 * 5 + 3 + 4 * 8 + 10 + 15 + 6; // a national title on top
+    const result = validate(career({ startingPrestige: 72, nationalTitles: 1, points: Math.round(base * 1.27) }));
+    expect(result.ok && result.value).toMatchObject({ startingPrestige: 72, nationalTitles: 1, points: Math.round(base * 1.27) });
+  });
+
+  it('games before 1.8 send neither field: no national titles, no bonus', () => {
+    const result = validate(career());
+    expect(result.ok && result.value).toMatchObject({ startingPrestige: 99, nationalTitles: 0 });
   });
 });
 
@@ -93,6 +112,20 @@ describe('Leaderboard worker', () => {
 
     expect((await worker.fetch(post({ ...later, token: 'ffffffff-ffff-ffff-ffff-ffffffffffff' }), env(db))).status).toBe(403);
     expect((await worker.fetch(post(career()), env(db))).status).toBe(409); // can't roll back to two seasons
+    expect((await worker.fetch(post({ ...later, seasons: 4, startingPrestige: 60, points: Math.round(later.points * 1.39) }), env(db))).status).toBe(409); // nor change its bonus
+  });
+
+  it('serves a Hall of Fame board: one length, every program', async () => {
+    const { db } = fakeDb();
+    await worker.fetch(post(career()), env(db));
+    await worker.fetch(post(career({ careerId: 'career_2_xyz789', token: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', coachName: 'Pick', scenario: 'OPEN', startingSchool: 'Austin Westlake', startingPrestige: 80, points: Math.round(126 * 1.19) })), env(db));
+    await worker.fetch(post(career({ careerId: 'career_3_xyz789', token: 'cccccccc-cccc-cccc-cccc-cccccccccccc', length: 3 })), env(db));
+    const res = await worker.fetch(new Request('https://api.example/leaderboard?length=5', { headers: { Origin: 'https://game.example' } }), env(db));
+    const board = (await res.json()) as { coachName: string; startingPrestige: number }[];
+    expect(board.map((e) => [e.coachName, e.startingPrestige])).toEqual([
+      ['Pick', 80],
+      ['Coach Gaines', 99]
+    ]);
   });
 
   it('serves a program board at one length, best first, with CORS for the game only', async () => {

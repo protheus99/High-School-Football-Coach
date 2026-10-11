@@ -1,9 +1,9 @@
-import { Career, careerPoints, careerTitles } from '../sim/careerScore';
+import { Career, careerNationalTitles, careerPoints, careerTitles } from '../sim/careerScore';
 
 // ---------------------------------------------------------------------------
-// Leaderboards: one per starting program. Every career on this device is kept locally; when a leaderboard
-// server is configured (VITE_LEADERBOARD_URL), each completed season is also submitted there and its boards
-// are shown alongside, so coaches on different devices compete on the same program.
+// The Hall of Fame: one board per career length (3, 5 and 10 years), every program on it. Every career on this
+// device is kept locally; when a server is configured (VITE_LEADERBOARD_URL), each completed season is also
+// submitted there and its boards are shown alongside, so coaches on different devices compete together.
 // ---------------------------------------------------------------------------
 
 const STORAGE_KEY = 'hsfhc_careers_v1';
@@ -21,6 +21,8 @@ export interface LeaderboardEntry {
   losses: number;
   playoffWins: number;
   titles: number;
+  nationalTitles?: number;
+  startingPrestige?: number; // the program's prestige when the contract began (sets the score's bonus)
   collegeSignees: number;
   points: number;
   updatedAt: number;
@@ -42,6 +44,8 @@ export function toEntry(career: Career): LeaderboardEntry {
     losses: sum('losses'),
     playoffWins: sum('playoffWins'),
     titles: careerTitles(career),
+    nationalTitles: careerNationalTitles(career),
+    ...(career.startingPrestige !== undefined && { startingPrestige: career.startingPrestige }),
     collegeSignees: sum('collegeSignees'),
     points: careerPoints(career),
     updatedAt: Date.now(),
@@ -74,11 +78,11 @@ export function recordCareer(career: Career): void {
 export const rankEntries = (entries: LeaderboardEntry[]) =>
   [...entries].sort((a, b) => b.points - a.points || b.titles - a.titles || a.seasons - b.seasons);
 
-/** This device's leaderboard for a starting program and career length (or every program and length). */
-export function localLeaderboard(startingSchool?: string, state?: string, length?: Career['length']): LeaderboardEntry[] {
+/** This device's Hall of Fame board for a career length (or every length). */
+export function localLeaderboard(length?: Career['length']): LeaderboardEntry[] {
   return rankEntries(
     loadLocalCareers()
-      .filter((c) => c.seasons.length > 0 && (!startingSchool || (c.startingSchool === startingSchool && c.state === state)) && (!length || c.length === length))
+      .filter((c) => c.seasons.length > 0 && (!length || c.length === length))
       .map(toEntry)
   );
 }
@@ -96,13 +100,10 @@ async function submitRemote(career: Career): Promise<void> {
   }
 }
 
-/**
- * The shared leaderboard from the server: one starting program at one career length, or (without a program)
- * the top careers across every program. Null without a server or when offline.
- */
-export async function fetchRemoteLeaderboard(program?: { startingSchool: string; state: string; length: Career['length'] }): Promise<LeaderboardEntry[] | null> {
+/** The shared Hall of Fame board for a career length from the server. Null without a server or when offline. */
+export async function fetchRemoteLeaderboard(length?: Career['length']): Promise<LeaderboardEntry[] | null> {
   if (!REMOTE_URL) return null;
-  const query = program ? `?state=${encodeURIComponent(program.state)}&school=${encodeURIComponent(program.startingSchool)}&length=${program.length}` : '';
+  const query = length ? `?length=${length}` : '';
   try {
     const res = await fetch(`${REMOTE_URL}/leaderboard${query}`);
     if (!res.ok) return null;

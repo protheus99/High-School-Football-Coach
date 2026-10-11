@@ -1,11 +1,11 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { TrophyCase, TrophyRecord } from './TrophyCase';
-import { LeaderboardView } from './LeaderboardView';
+import { HallOfFameBoard } from './HallOfFameBoard';
 
 /**
- * Hall of Fame (Team): the trophy case (prestige, college signees, the titles won) and the career leaderboards
- * (this career season by season, ranked against everyone who started at the same program).
+ * Hall of Fame (Team): the trophy case (prestige, college signees, the titles won) and the Hall of Fame boards
+ * (this contract season by season, ranked against every career of the same length).
  */
 export const HallOfFameView: React.FC = () => {
   const { districtTeams, userTeamId, career } = useGameStore();
@@ -25,10 +25,7 @@ export const HallOfFameView: React.FC = () => {
       <div className="ui-screen" style={{ paddingBottom: '8px' }}>
         <TrophyCase trophies={trophies} collegeSignees={signees} schoolPrestige={userTeam.prestige} />
       </div>
-      <h3 className="ui-subsection-title" style={{ margin: '8px 16px 10px' }}>
-        Leaderboard
-      </h3>
-      <LeaderboardView />
+      <HallOfFameBoard />
     </div>
   );
 };

@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useGameStore } from '../store/gameStore';
-import { CAREER_POINTS, careerPoints } from '../sim/careerScore';
+import { CAREER_POINTS, careerBasePoints, careerPoints, prestigeMultiplier } from '../sim/careerScore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict } from '../sim/league';
 import { rulesForState } from '../sim/stateRules';
-import { fetchRemoteLeaderboard, localLeaderboard, rankEntries, toEntry } from '../services/leaderboard';
 import { Team } from '../types/game';
 import { StatePennant, UsFlag } from './ui/TitleMarks';
-
-const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+import { ordinal } from '../utils/format';
+import { useHallOfFame } from '../utils/useHallOfFame';
 
 /**
  * The banquet's season scorecard: how the year went (record, finish, playoffs, rankings) and the points it earned,
- * line by line, with the career total and where it stands on the leaderboard.
+ * line by line, with the career total and where it stands in the Hall of Fame.
  */
 export const SeasonScorecard: React.FC<{ team: Team }> = ({ team }) => {
   const { career, currentYear, playoffBracket, polls, districtTeams, league, userTeamId } = useGameStore();
@@ -45,19 +44,8 @@ export const SeasonScorecard: React.FC<{ team: Team }> = ({ team }) => {
   const wins = team.record.wins + playoffWins;
   const losses = team.record.losses + (lastLoss ? 1 : 0);
 
-  // Where the career stands: this device's careers and, when there's a server, everyone's
-  const [remote, setRemote] = useState<ReturnType<typeof rankEntries> | null>(null);
-  useEffect(() => {
-    if (!career) return;
-    let live = true;
-    void fetchRemoteLeaderboard(career).then((entries) => live && setRemote(entries));
-    return () => {
-      live = false;
-    };
-  }, [career]);
-  const board = career
-    ? rankEntries([...new Map([...(remote ?? []), ...localLeaderboard(career.startingSchool, career.state, career.length), toEntry(career)].map((e) => [e.careerId, e])).values()])
-    : [];
+  // Where the career stands on its Hall of Fame board: this device's careers and, when there's a server, everyone's
+  const board = useHallOfFame(career?.length ?? 3, career);
   const place = career ? board.findIndex((e) => e.careerId === career.id) + 1 : 0;
 
   const lines: [string, string, number][] = season
@@ -66,6 +54,7 @@ export const SeasonScorecard: React.FC<{ team: Team }> = ({ team }) => {
         ['Losses', `${season.losses} × ${CAREER_POINTS.loss}`, season.losses * CAREER_POINTS.loss],
         ['Playoff wins', `${season.playoffWins} × ${CAREER_POINTS.playoffWin}`, season.playoffWins * CAREER_POINTS.playoffWin],
         ['State title', season.stateTitle ? `1 × ${CAREER_POINTS.stateTitle}` : '—', season.stateTitle ? CAREER_POINTS.stateTitle : 0],
+        ['National title', season.nationalTitle ? `1 × ${CAREER_POINTS.nationalTitle}` : '—', season.nationalTitle ? CAREER_POINTS.nationalTitle : 0],
         ['College signees', `${season.collegeSignees} × ${CAREER_POINTS.collegeSignee}`, season.collegeSignees * CAREER_POINTS.collegeSignee]
       ]
     : [];
@@ -119,9 +108,12 @@ export const SeasonScorecard: React.FC<{ team: Team }> = ({ team }) => {
         <div style={arcade}>
           <div style={{ fontSize: '11px', letterSpacing: '0.18em', color: '#22D3EE' }}>CAREER SCORE</div>
           <div style={{ fontSize: '32px', fontWeight: 900, color: '#FACC15', textShadow: '0 0 6px rgba(250,204,21,.6)' }}>{careerPoints(career)}</div>
+          <div style={{ fontSize: '11.5px', color: '#94A3B8', marginTop: '2px' }}>
+            {careerBasePoints(career)} PTS × {prestigeMultiplier(career.startingPrestige).toFixed(2)} START BONUS
+          </div>
           {place > 0 && (
-            <div style={{ fontSize: '12px', letterSpacing: '0.1em', marginTop: '2px' }}>
-              {ordinal(place).toUpperCase()} OF {board.length} ON YOUR {career.length}-YEAR LEADERBOARD
+            <div style={{ fontSize: '12px', letterSpacing: '0.1em', marginTop: '4px' }}>
+              {ordinal(place).toUpperCase()} OF {board.length} IN THE {career.length}-YEAR HALL OF FAME
             </div>
           )}
         </div>

@@ -32,6 +32,7 @@ export interface GameSaveRecord {
   interstateGames?: ScheduledGame[]; // the season's out-of-state games
   coachingStaff?: import('../sim/coachingStaff').HiredCoach[]; // the coach's paid assistants
   career?: import('../sim/careerScore').Career | null; // a scenario career (scored each season)
+  careerHistory?: import('../sim/careerScore').Career[]; // the coach's finished contracts in this save (Team › Career)
   userProbationUntil?: number | null; // last season of the coach's recruiting probation
   lightCalibration?: import('../sim/nationalWorld').LightCalibration | null; // the other states' rating mapping
   userViolationHeat?: number;

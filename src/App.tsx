@@ -7,7 +7,7 @@ import { FeederSection, FeedersScoutingView } from './components/FeedersScouting
 import { NewsMediaView } from './components/NewsMediaView';
 import { TeamView, TeamSection } from './components/TeamView';
 import { RankingsHub, RankingsSection } from './components/RankingsHub';
-import { LeaderboardView } from './components/LeaderboardView';
+import { CareerCompleteView } from './components/CareerCompleteView';
 import { BackToTop } from './components/ui/BackToTop';
 import { musicPlayer } from './utils/musicPlayer';
 import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
@@ -173,25 +173,9 @@ export const App: React.FC = () => {
     );
   }
 
-  // The career's last season is done: the final tally and where it ranks
+  // The contract's last season is done: the Hall of Fame score, then extend, move on, or leave the world
   if (careerComplete && career) {
-    return (
-      <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-        <div className="ui-screen" style={{ textAlign: 'center', paddingBottom: '8px' }}>
-          <div style={{ fontSize: '48px' }}>🏁</div>
-          <h1 style={{ margin: '8px 0', fontSize: '26px' }}>Career complete</h1>
-          <p style={{ color: '#475569', fontSize: '15px', margin: 0 }}>
-            {career.length} seasons at {career.startingProgram}. Here&apos;s how your career stacks up.
-          </p>
-        </div>
-        <LeaderboardView />
-        <div className="ui-screen" style={{ paddingTop: 0 }}>
-          <button className="ui-btn ui-btn-primary ui-btn-block" style={{ minHeight: '50px' }} onClick={() => setShowMenu(true)}>
-            Back to the main menu
-          </button>
-        </div>
-      </div>
-    );
+    return <CareerCompleteView onMainMenu={() => setShowMenu(true)} />;
   }
 
   // The season wrap-up, step 1: the state's All-State honors

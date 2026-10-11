@@ -1,13 +1,19 @@
 import { SCENARIOS } from '../../src/data/scenarios';
+import { dataPrestige } from '../../src/data/stateWorlds';
 
 // ---------------------------------------------------------------------------
 // What the server accepts. Scores are computed on the player's device, so every submission is checked: the
-// program must be a scenario program, the totals must be possible for the seasons played, and the points
-// must match the formula. That stops typos and casual edits; a determined cheater who submits a believable
+// school must be in the state's data, the totals must be possible for the seasons played, and the points
+// must match the formula (the seasons' points times the starting-prestige bonus). That stops typos and casual edits; a determined cheater who submits a believable
 // career can't be stopped without simulating the games on the server.
 // ---------------------------------------------------------------------------
 
-export const POINTS = { win: 5, loss: 1, playoffWin: 8, stateTitle: 10, collegeSignee: 1 };
+export const POINTS = { win: 5, loss: 1, playoffWin: 8, stateTitle: 10, nationalTitle: 15, collegeSignee: 1 };
+const SCENARIO_IDS = ['RECLAIM', 'POWERHOUSE', 'OPEN'];
+const MIN_PRESTIGE = 40; // the game never lets a program fall below 40
+
+/** The starting-prestige bonus: x1.00 at 99 prestige, x1.12 at 87, x1.59 at 40 (the game's careerScore). */
+export const prestigeMultiplier = (startingPrestige: number) => 1 + (99 - startingPrestige) / 100;
 export const LENGTHS = [3, 5, 10];
 const MAX_REGULAR_GAMES = 10; // weeks 8-17, the out-of-state game included
 const MAX_PLAYOFF_GAMES = 6; // Ohio's six rounds are the most
@@ -27,6 +33,8 @@ export interface Submission {
   losses: number;
   playoffWins: number;
   titles: number;
+  nationalTitles: number; // #1 in the final national poll (older games don't send it: 0)
+  startingPrestige: number; // the program's prestige when the contract began (older games don't send it: 99, no bonus)
   collegeSignees: number;
   points: number;
 }
@@ -51,8 +59,10 @@ export function validate(body: unknown): { ok: true; value: Submission } | { ok:
   const coachName = cleanName(b.coachName);
   if (!coachName) return { ok: false, error: 'Bad coachName' };
   if (typeof b.scenario !== 'string' || typeof b.state !== 'string' || typeof b.startingSchool !== 'string') return { ok: false, error: 'Bad program' };
-  const program = PROGRAMS.get(`${b.scenario}|${b.state}|${b.startingSchool}`);
-  if (!program) return { ok: false, error: 'Not a scenario program' };
+  if (!SCENARIO_IDS.includes(b.scenario)) return { ok: false, error: 'Bad scenario' };
+  // A scenario program goes by its scenario name; any other school in the state ("Your Pick", or a new job) by its own
+  const program = PROGRAMS.get(`${b.scenario}|${b.state}|${b.startingSchool}`) ?? (dataPrestige(b.state, b.startingSchool) !== undefined ? b.startingSchool : undefined);
+  if (!program) return { ok: false, error: 'Not a school in the state' };
   if (typeof b.length !== 'number' || !LENGTHS.includes(b.length)) return { ok: false, error: 'Bad length' };
   const length = b.length;
   if (!isCount(b.seasons, length) || b.seasons < 1) return { ok: false, error: 'Bad seasons' };
@@ -63,9 +73,19 @@ export function validate(body: unknown): { ok: true; value: Submission } | { ok:
   // A season is at most ten regular-season games plus the playoff games won and one playoff loss
   if (b.wins - b.playoffWins + b.losses > seasons * (MAX_REGULAR_GAMES + 1)) return { ok: false, error: 'Too many games' };
   if (!isCount(b.titles, seasons) || b.titles > b.playoffWins) return { ok: false, error: 'Bad titles' };
+  const nationalTitles = b.nationalTitles ?? 0;
+  if (!isCount(nationalTitles, seasons)) return { ok: false, error: 'Bad nationalTitles' };
+  const startingPrestige = b.startingPrestige ?? 99;
+  if (!isCount(startingPrestige, 99) || startingPrestige < MIN_PRESTIGE) return { ok: false, error: 'Bad startingPrestige' };
   if (!isCount(b.collegeSignees, seasons * MAX_SIGNEES)) return { ok: false, error: 'Bad collegeSignees' };
-  const expected =
-    (b.wins - b.playoffWins) * POINTS.win + b.losses * POINTS.loss + b.playoffWins * POINTS.playoffWin + b.titles * POINTS.stateTitle + b.collegeSignees * POINTS.collegeSignee;
+  const base =
+    (b.wins - b.playoffWins) * POINTS.win +
+    b.losses * POINTS.loss +
+    b.playoffWins * POINTS.playoffWin +
+    b.titles * POINTS.stateTitle +
+    nationalTitles * POINTS.nationalTitle +
+    b.collegeSignees * POINTS.collegeSignee;
+  const expected = Math.round(base * prestigeMultiplier(startingPrestige));
   if (b.points !== expected) return { ok: false, error: 'Points do not match the formula' };
   return {
     ok: true,
@@ -83,6 +103,8 @@ export function validate(body: unknown): { ok: true; value: Submission } | { ok:
       losses: b.losses,
       playoffWins: b.playoffWins,
       titles: b.titles,
+      nationalTitles,
+      startingPrestige,
       collegeSignees: b.collegeSignees,
       points: expected
     }
