@@ -5,8 +5,8 @@ import { NowPlayingPopup } from './components/NowPlayingPopup';
 import { musicPlayer } from './utils/musicPlayer';
 import './styles/index.css';
 
-// Browsers allow sound only after the player touches the page: the soundtrack starts on the first tap (and keeps
-// trying on later taps until a song actually plays)
+// The intro tries to start as the game loads; where the browser allows sound only after the player touches the page,
+// it starts on the first tap instead (and keeps trying on later taps until a song actually plays)
 const unlockMusic = () => {
   musicPlayer.unlock();
   if (musicPlayer.hasStarted()) {

@@ -4,8 +4,10 @@ import { getMusicSettings, subscribeMusicSettings } from './musicSettings';
 
 // ---------------------------------------------------------------------------
 // The soundtrack player: shuffled songs on every screen except a live game (which has its own sound effects).
-// Browsers only allow sound after the player touches the page, so it starts on the first tap. Volume and fades
-// go through the Web Audio API, because iPhones ignore an audio element's own volume.
+// The intro song tries to start as soon as the game loads. Most browsers only allow sound after the player touches
+// the page (iPhones always; Chrome unless the site is visited and played often, or installed), so when the browser
+// refuses, the intro waits for the first tap anywhere. Volume and fades go through the Web Audio API, because
+// iPhones ignore an audio element's own volume.
 // ---------------------------------------------------------------------------
 
 const FADE_IN = 1.2; // seconds
@@ -23,6 +25,7 @@ class MusicPlayer {
   private songs: Song[] = [];
   private round: Song[] = [];
   private unlocked = false;
+  private autoplaying = false; // trying to start before any tap: the browser may refuse
   private started = false; // a song has actually played (iPhones may refuse the first tries)
   private inGame = false;
   private hidden = false;
@@ -37,6 +40,7 @@ class MusicPlayer {
     // to start only while handling a tap)
     void loadSoundtrack().then((songs) => {
       this.songs = songs;
+      this.tryAutoplay();
       this.update();
     });
     subscribeMusicSettings(() => {
@@ -49,12 +53,25 @@ class MusicPlayer {
     });
   }
 
+  /** As the game loads: start the intro without waiting for a tap, if the browser allows sound yet. */
+  private tryAutoplay() {
+    if (this.unlocked || this.started || this.songs.length === 0) return;
+    this.autoplaying = true;
+    this.unlocked = true;
+    this.ensureAudio();
+    void this.ctx?.resume();
+  }
+
   /** Called on the coach's taps until a song has played: sound is allowed from here on. */
   unlock = () => {
+    // A tap while the load-time start is still pending: the tap starts it, and the pop-up shows now
+    const pending = this.autoplaying && this.state.song !== null;
+    this.autoplaying = false;
     this.unlocked = true;
     this.ensureAudio();
     void this.ctx?.resume();
     this.update();
+    if (pending) this.listeners.forEach((l) => l());
   };
 
   /** True once a song has started playing (the taps no longer need to unlock anything). */
@@ -145,10 +162,29 @@ class MusicPlayer {
     this.setGain(0, 0);
     this.audio.src = songUrl(song);
     void this.ctx?.resume();
-    void this.audio.play().catch(() => undefined);
+    const previous = this.state;
+    this.state = { song, playId: previous.playId + 1 };
+    const notify = () => this.listeners.forEach((l) => l());
+    // Before any tap the Now Playing pop-up waits until the browser actually lets the song play
+    const attempt = this.autoplaying;
+    void this.audio
+      .play()
+      .then(() => {
+        if (!attempt) return;
+        this.autoplaying = false;
+        notify();
+      })
+      .catch((e: unknown) => {
+        if (!attempt || !this.autoplaying || (e as { name?: string })?.name !== 'NotAllowedError') return;
+        // No sound before a tap here: put the song back and start it on the first tap instead
+        this.autoplaying = false;
+        this.unlocked = false;
+        this.state = previous;
+        if (!intro) this.round.unshift(song);
+        this.audio?.removeAttribute('src');
+      });
     this.applyVolume(FADE_IN);
-    this.state = { song, playId: this.state.playId + 1 };
-    this.listeners.forEach((l) => l());
+    if (!attempt) notify();
   }
 
   /** Leaving for a game: fade out, and start fresh (the next song) when the game is over. */
