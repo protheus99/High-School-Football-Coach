@@ -996,7 +996,7 @@ h3 {
   }
 }
 
-/* The game's name on the title screen: FRIDAY NIGHT over a big gold DYNASTIES */
+/* The game's name on the title screen: a big gold FOOTBALL COACH over HIGH SCHOOL EDITION */
 .game-title {
   margin: 4px 0 0;
   display: flex;
@@ -1007,15 +1007,16 @@ h3 {
   line-height: 1;
 }
 
-.game-title-kicker {
-  font-size: clamp(15px, 3.6vw, 20px);
+.game-title-sub {
+  margin-top: 6px;
+  font-size: clamp(14px, 3.4vw, 19px);
   letter-spacing: 0.32em;
   color: #cbd5e1;
-  padding-left: 0.32em; /* letter spacing adds space after the last letter: keep the word centered */
+  padding-left: 0.32em; /* letter spacing adds space after the last letter: keep the words centered */
 }
 
 .game-title-main {
-  font-size: clamp(46px, 11vw, 68px);
+  font-size: clamp(36px, 9.5vw, 64px);
   letter-spacing: 0.04em;
   background: linear-gradient(180deg, #fef3c7, #fbbf24 55%, #b45309);
   -webkit-background-clip: text;

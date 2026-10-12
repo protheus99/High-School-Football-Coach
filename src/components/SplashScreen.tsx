@@ -116,8 +116,8 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ fontSize: '48px' }}>🏈</div>
           <h1 className="game-title">
-            <span className="game-title-kicker">FRIDAY NIGHT</span>
-            <span className="game-title-main">DYNASTIES</span>
+            <span className="game-title-main">FOOTBALL COACH</span>
+            <span className="game-title-sub">HIGH SCHOOL EDITION</span>
           </h1>
           <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: '15px', fontStyle: 'italic' }}>Every dynasty starts on a Friday night.</p>
         </div>
