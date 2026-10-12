@@ -12,6 +12,6 @@
   ],
   "vars": {
     // The game's site (comma-separated); localhost:4173 is `npm run preview`, which plays the live music
-    "ALLOWED_ORIGINS": "https://high-school-football-coach.protheus99.workers.dev,http://localhost:3000,http://localhost:4173"
+    "ALLOWED_ORIGINS": "https://footballcoachgame.com,https://www.footballcoachgame.com,https://high-school-football-coach.protheus99.workers.dev,http://localhost:3000,http://localhost:4173"
   }
 }

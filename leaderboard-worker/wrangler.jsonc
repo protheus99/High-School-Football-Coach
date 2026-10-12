@@ -15,6 +15,6 @@
   ],
   "vars": {
     // The game's site (comma-separated if more than one); add http://localhost:3000 to test from the dev server
-    "ALLOWED_ORIGINS": "https://high-school-football-coach.protheus99.workers.dev,http://localhost:3000"
+    "ALLOWED_ORIGINS": "https://footballcoachgame.com,https://www.footballcoachgame.com,https://high-school-football-coach.protheus99.workers.dev,http://localhost:3000"
   }
 }
