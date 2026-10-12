@@ -7,5 +7,9 @@ coverage/
 .wrangler/
 *.tsbuildinfo
 
+# Local Worker secrets (Google, Facebook and Resend keys): never commit
+.dev.vars
+**/.dev.vars
+
 # Licensed music: the MP3s live in Cloudflare R2 behind music-worker/ and must never be in this public repo
 public/music/*.mp3

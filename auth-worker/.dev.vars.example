@@ -1,0 +1,6 @@
+# Copy this file to .dev.vars (git-ignored) for `npx wrangler dev`, and fill in your own values.
+# Never commit .dev.vars or paste these values anywhere public.
+APP_URL=http://localhost:3000
+GOOGLE_CLIENT_SECRET=
+FACEBOOK_APP_SECRET=
+RESEND_API_KEY=

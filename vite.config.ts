@@ -56,7 +56,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    open: true
+    open: true,
+    // Accounts: the dev server hands /api/auth to the sign-in Worker running locally (`npx wrangler dev` in auth-worker/)
+    proxy: { '/api/auth': 'http://localhost:8787' }
   },
   build: {
     target: 'es2020',
