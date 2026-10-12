@@ -14,15 +14,8 @@
 		{
 			"binding": "DB",
 			"database_name": "hsfhc-auth",
-			// Paste the id printed by `npx wrangler d1 create hsfhc-auth`
 			"database_id": "51c9ea67-49af-4389-8fcc-6ec8528ada03",
 			"migrations_dir": "migrations"
-		},
-		{
-			"binding": "hsfhc_auth",
-			"database_name": "hsfhc-auth",
-			"database_id": "51c9ea67-49af-4389-8fcc-6ec8528ada03",
-			"remote": true
 		}
 	],
 	"vars": {
