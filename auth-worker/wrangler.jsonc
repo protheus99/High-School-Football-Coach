@@ -1,29 +1,40 @@
 {
-  // Player accounts: a Worker with a D1 database, on the game's own domain at /api/auth/* (a route there takes
-  // priority over the game's static site). Deployed on its own (see README.md); run every command from this folder.
-  "name": "hsfhc-auth",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-10-01",
-  "routes": [{ "pattern": "footballcoachgame.com/api/auth/*", "zone_name": "footballcoachgame.com" }],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "hsfhc-auth",
-      // Paste the id printed by `npx wrangler d1 create hsfhc-auth`
-      "database_id": "REPLACE_WITH_DATABASE_ID",
-      "migrations_dir": "migrations"
-    }
-  ],
-  "vars": {
-    "APP_URL": "https://footballcoachgame.com",
-    // The game's pages that may call the API (POSTs from anywhere else are refused)
-    "ALLOWED_ORIGINS": "https://footballcoachgame.com,https://www.footballcoachgame.com,http://localhost:3000",
-    // Public ids (not secrets). An empty one turns that sign-in option off.
-    "GOOGLE_CLIENT_ID": "",
-    "FACEBOOK_APP_ID": "",
-    "FACEBOOK_GRAPH_VERSION": "v23.0",
-    "EMAIL_FROM": "Football Coach <signin@footballcoachgame.com>"
-  }
-  // Secrets, set with `npx wrangler secret put NAME` (never in this file):
-  //   GOOGLE_CLIENT_SECRET, FACEBOOK_APP_SECRET, RESEND_API_KEY
+	// Player accounts: a Worker with a D1 database, on the game's own domain at /api/auth/* (a route there takes
+	// priority over the game's static site). Deployed on its own (see README.md); run every command from this folder.
+	"name": "hsfhc-auth",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-10-01",
+	"routes": [
+		{
+			"pattern": "footballcoachgame.com/api/auth/*",
+			"zone_name": "footballcoachgame.com"
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "hsfhc-auth",
+			// Paste the id printed by `npx wrangler d1 create hsfhc-auth`
+			"database_id": "51c9ea67-49af-4389-8fcc-6ec8528ada03",
+			"migrations_dir": "migrations"
+		},
+		{
+			"binding": "hsfhc_auth",
+			"database_name": "hsfhc-auth",
+			"database_id": "51c9ea67-49af-4389-8fcc-6ec8528ada03",
+			"remote": true
+		}
+	],
+	"vars": {
+		"APP_URL": "https://footballcoachgame.com",
+		// The game's pages that may call the API (POSTs from anywhere else are refused)
+		"ALLOWED_ORIGINS": "https://footballcoachgame.com,https://www.footballcoachgame.com,http://localhost:3000",
+		// Public ids (not secrets). An empty one turns that sign-in option off.
+		"GOOGLE_CLIENT_ID": "",
+		"FACEBOOK_APP_ID": "",
+		"FACEBOOK_GRAPH_VERSION": "v23.0",
+		"EMAIL_FROM": "Football Coach <signin@footballcoachgame.com>"
+	}
+	// Secrets, set with `npx wrangler secret put NAME` (never in this file):
+	//   GOOGLE_CLIENT_SECRET, FACEBOOK_APP_SECRET, RESEND_API_KEY
 }
