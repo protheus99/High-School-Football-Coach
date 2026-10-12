@@ -1,9 +1,10 @@
-import { FeederOutcome, FeederOutcomeType, FeederProspect, Player, PlayerClass, Position, PotentialGrade, ProspectSource, Team } from '../types/game';
+import { BoosterOffer, FeederOutcome, FeederOutcomeType, FeederProspect, Player, PlayerClass, Position, PotentialGrade, ProspectSource, Team } from '../types/game';
 import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 import { generateProceduralPlayer, INTAKE_SHIFT, programTalent, rollTalent } from '../generators/rosterGenerator';
 import { NameProfile, randomPlayerName } from '../generators/names';
 import { RecruitingContext, assignSuitors, choiceShares, pickHomeRival, rollPriorities } from './feederCompetition';
 import { clamp, randomInt } from './math/variance';
+import { activeBoosterOffers, BOOSTER_OFFERS } from './compliance';
 
 // ============================================================================
 // FEEDER PIPELINE (design spec 14, expanded)
@@ -352,6 +353,12 @@ export const EVALUATION_INTEREST = 50;
 /** Evaluated: scouted (e.g. at a combine) or interested enough (50+). */
 export const isEvaluated = (p: FeederProspect) => p.revealedPotential !== 'UNKNOWN' || p.interestScore >= EVALUATION_INTEREST;
 /** Records the evaluation once he reaches 50 interest, so it stays if his interest later falls. */
+/** A booster offer from the coach: its interest right away (each offer once per prospect). */
+export function boostProspect(p: FeederProspect, offer: BoosterOffer): FeederProspect {
+  if (p.boosterOffers?.includes(offer)) return p;
+  return withEvaluation({ ...p, interestScore: Math.min(100, p.interestScore + BOOSTER_OFFERS[offer].interest), boosterOffers: [...(p.boosterOffers ?? []), offer] });
+}
+
 export const withEvaluation = (p: FeederProspect) => (p.revealedPotential === 'UNKNOWN' && p.interestScore >= EVALUATION_INTEREST ? scoutProspect(p) : p);
 
 /** Scouting reveals potential, speed and strength (useful, but it doesn't change anyone's mind). */
@@ -508,7 +515,7 @@ export function prospectToPlayer(p: FeederProspect): Player {
 /** A prospect signing with a school: flagged when that school's boosters made him an illegal offer. */
 export function signProspect(p: FeederProspect, teamId: string, userTeamId?: string): Player {
   const player = prospectToPlayer(p);
-  const induced = teamId === userTeamId ? p.userInducement : p.suitors.find((s) => s.teamId === teamId)?.inducement;
+  const induced = teamId === userTeamId ? p.userInducement || activeBoosterOffers(p) : p.suitors.find((s) => s.teamId === teamId)?.inducement;
   if (induced) player.improperlyRecruited = true;
   return player;
 }

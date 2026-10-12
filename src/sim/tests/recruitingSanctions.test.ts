@@ -57,26 +57,4 @@ describe('Recruiting probation', () => {
     expect(rival.feederProfile!.ethics).toBeGreaterThanOrEqual(CLEAN_ETHICS); // no more illegal offers
     expect(store.getState().newsArticles.some((a) => a.featuredTeamName === rival.name && a.content.includes('3 improperly recruited players are ruled ineligible'))).toBe(true);
   });
-
-  it('the coach gets the same: tainted players gone, probation, and out-of-area recruiting locked', () => {
-    const store = useGameStore;
-    store.getState().newGame('MEDIUM', 'Maryland');
-    const { leagueTeams, userTeamId, currentYear } = store.getState();
-    const me = leagueTeams.find((t) => t.id === userTeamId)!;
-    const tainted = me.roster.slice(0, 2);
-    tainted.forEach((p) => (p.improperlyRecruited = true));
-    store.setState({ userViolationHeat: 1500 });
-    store.getState().advanceWeek();
-    expect(me.roster.some((p) => tainted.includes(p))).toBe(false);
-    expect(store.getState().userProbationUntil).toBe(currentYear + 1);
-
-    store.setState({ coachPoints: 1000 });
-    const wide = store.getState().widePool[0];
-    store.getState().contactFeederProspect(wide.id, 'TEXT');
-    expect(store.getState().widePool[0].interestScore).toBe(wide.interestScore);
-    expect(store.getState().coachPoints).toBe(1000);
-    const local = store.getState().scoutingPool.find((p) => !restrictedOnProbation(p))!;
-    store.getState().contactFeederProspect(local.id, 'TEXT');
-    expect(store.getState().coachPoints).toBeLessThan(1000);
-  });
 });

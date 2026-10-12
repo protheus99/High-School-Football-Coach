@@ -9,6 +9,7 @@ import { NewsMediaView } from './components/NewsMediaView';
 import { TeamView, TeamSection } from './components/TeamView';
 import { RankingsHub, RankingsSection } from './components/RankingsHub';
 import { CareerCompleteView } from './components/CareerCompleteView';
+import { ComplianceDecisionSheet } from './components/ComplianceSheets';
 import { BackToTop } from './components/ui/BackToTop';
 import { musicPlayer } from './utils/musicPlayer';
 import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
@@ -255,6 +256,7 @@ export const App: React.FC = () => {
       )}
 
       {showTalents && <CoachRPGSkillTreeModal onClose={() => setShowTalents(false)} />}
+      <ComplianceDecisionSheet />
 
       {/* Top Navigation Bar */}
       <div className="app-topbar">
@@ -263,7 +265,7 @@ export const App: React.FC = () => {
           <span
             aria-label={`Coach Points: ${coachPoints}`}
             title={`Coach Points: ${formatCP(coachPoints)}`}
-            style={{ ...topBtn('#FACC15'), ...statStack, color: '#0F172A', padding: '2px 5px', cursor: 'default' }}
+            style={{ ...topBtn(coachPoints < 0 ? '#DC2626' : '#FACC15'), ...statStack, color: coachPoints < 0 ? '#fff' : '#0F172A', padding: '2px 5px', cursor: 'default' }}
           >
             {/* Five figures shorten (₡12.3k) so the bar stays one line on the narrowest phones */}
             {coachPoints >= 10000 ? `₡${(coachPoints / 1000).toFixed(1)}k` : formatCP(coachPoints)}

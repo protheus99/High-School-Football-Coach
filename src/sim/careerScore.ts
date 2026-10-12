@@ -29,6 +29,7 @@ export interface CareerSeason {
   nationalTitle?: boolean; // #1 in the final national poll
   collegeSignees: number;
   points: number;
+  vacated?: { wins: number; playoffWins: number; stateTitle: boolean; nationalTitle: boolean }; // taken away by the final review (booster violations)
 }
 
 /** A career: who, which scenario, the program it started with, and every season so far. */
@@ -83,4 +84,17 @@ export function scoreSeason(team: Team, bracket: PlayoffBracketState | null, yea
     collegeSignees: team.roster.filter((p) => p.classYear === 'Senior' && p.recruiting.isNationalLetterOfIntentSigned).length
   };
   return { year, school: team.name, ...season, points: seasonPoints(season) };
+}
+
+/** A season's wins and titles taken away (improper booster offers found at the contract's final review). */
+export function vacateSeason(season: CareerSeason): CareerSeason {
+  if (season.vacated) return season;
+  const kept = { wins: 0, losses: season.losses, playoffWins: 0, stateTitle: false, collegeSignees: season.collegeSignees };
+  return {
+    ...season,
+    ...kept,
+    nationalTitle: undefined,
+    points: seasonPoints(kept),
+    vacated: { wins: season.wins, playoffWins: season.playoffWins, stateTitle: season.stateTitle, nationalTitle: !!season.nationalTitle }
+  };
 }

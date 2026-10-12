@@ -1,3 +1,4 @@
+import type { ComplianceState } from '../sim/compliance';
 import Dexie, { Table } from 'dexie';
 import type { Difficulty, LeagueStructure } from '../sim/league';
 import type { TalentId } from '../sim/coachPoints';
@@ -35,7 +36,8 @@ export interface GameSaveRecord {
   careerHistory?: import('../sim/careerScore').Career[]; // the coach's finished contracts in this save (Team › Career)
   userProbationUntil?: number | null; // last season of the coach's recruiting probation
   lightCalibration?: import('../sim/nationalWorld').LightCalibration | null; // the other states' rating mapping
-  userViolationHeat?: number;
+  userViolationHeat?: number; // older saves (booster evidence now lives in compliance)
+  compliance?: ComplianceState;
   pendingUserBan?: boolean;
   onHotSeat?: boolean; // board warning from last season's review
   seasonSchedule?: ScheduledGame[];

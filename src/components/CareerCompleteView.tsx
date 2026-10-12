@@ -6,6 +6,7 @@ import { findDistrict } from '../sim/league';
 import { ordinal } from '../utils/format';
 import { useHallOfFame } from '../utils/useHallOfFame';
 import { CoachCareerView } from './CoachCareerView';
+import { FinalReviewSheet } from './ComplianceSheets';
 
 const TIER_COLORS: Record<OfferTier, string> = { POWERHOUSE: '#7C3AED', TRADITION: '#2563EB', REBUILD: '#16A34A' };
 
@@ -80,6 +81,7 @@ export const CareerCompleteView: React.FC<{ onMainMenu: () => void }> = ({ onMai
 
   return (
     <div className="ui-screen" style={{ maxWidth: '640px', margin: '0 auto' }}>
+      <FinalReviewSheet />
       <div style={{ textAlign: 'center', margin: '4px 0 12px' }}>
         <div style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '0.08em', color: '#475569' }}>{career.length}-YEAR CONTRACT COMPLETE</div>
         <div style={{ fontSize: '24px', fontWeight: 900 }}>🏁 {coachTitle(career.coachName)}</div>

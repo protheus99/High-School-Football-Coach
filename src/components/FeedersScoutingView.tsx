@@ -28,6 +28,7 @@ import {
 } from '../sim/feederEngine';
 import { FACTOR_LABELS, buildRecruitingContext, onProbation, restrictedOnProbation, topPriority } from '../sim/feederCompetition';
 import { wideJoinProbability } from '../sim/widePool';
+import { BOOSTER_OFFERS, BOOSTER_ORDER, BoosterOffer } from '../sim/compliance';
 import { staffBonuses } from '../sim/coachingStaff';
 import { pageScrollTop, scrollPageTo } from '../utils/pageScroll';
 
@@ -105,6 +106,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     lastFeederResults,
     runFeederEvent,
     contactFeederProspect,
+    makeBoosterOffer,
     removeFeederProspect,
     widePool,
     coachingStaff,
@@ -409,6 +411,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                 chance={p.scope ? wideJoinProbability(p, userTeamId) : userJoinProbability(p, userTeam.prestige, ctx)}
                 coachPoints={coachPoints}
                 onContact={(action) => contactFeederProspect(p.id, action)}
+                onBooster={(offer) => makeBoosterOffer(p.id, offer)}
+                boostersLocked={probation}
                 locked={probation && restrictedOnProbation(p)}
                 interestBonus={interestBonus}
                 rank={rankLabel(p)}
@@ -444,6 +448,8 @@ const ProspectCard: React.FC<{
   chance: number;
   coachPoints: number;
   onContact: (action: ContactAction) => void;
+  onBooster: (offer: BoosterOffer) => void;
+  boostersLocked?: boolean; // no booster offers at all while on probation
   positionFilled: boolean;
   onRemove: () => void;
   rank?: string;
@@ -451,8 +457,9 @@ const ProspectCard: React.FC<{
   commitment: { name: string; interest: number; isYou: boolean; tied: boolean } | null;
   interestBonus: number; // the staff's Feeder Pipeline
   locked?: boolean; // off limits while the program is on recruiting probation
-}> = ({ prospect: p, chance, coachPoints, onContact, positionFilled, onRemove, rank, schools, commitment, interestBonus, locked }) => {
+}> = ({ prospect: p, chance, coachPoints, onContact, onBooster, boostersLocked, positionFilled, onRemove, rank, schools, commitment, interestBonus, locked }) => {
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [boosterAsk, setBoosterAsk] = useState<BoosterOffer | null>(null);
   // Evaluated once scouted or at 50+ interest: his potential, speed and strength show
   const scouted = isEvaluated(p);
   const seen = scouted ? scoutProspect(p) : p;
@@ -553,6 +560,52 @@ const ProspectCard: React.FC<{
           );
         })}
       </div>
+      {/* Boosters: free interest now, evidence for later (each offer once per player; not for tryouts or on probation) */}
+      {p.source !== 'TRYOUT' && (
+        <div style={{ marginTop: '10px', border: '1px dashed #E11D48', borderRadius: '8px', padding: '8px', background: '#FFF1F2' }}>
+          <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#9F1239' }}>🚩 Boosters</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', marginTop: '6px' }}>
+            {BOOSTER_ORDER.map((offer, i) => {
+              const made = p.boosterOffers?.includes(offer);
+              const disabled = made || !!boostersLocked;
+              return (
+                <button
+                  key={offer}
+                  onClick={() => setBoosterAsk(offer)}
+                  disabled={disabled}
+                  style={{ ...actionBtn(['#E11D48', '#DC2626', '#B91C1C'][i], disabled), padding: '6px 4px', lineHeight: 1.2 }}
+                >
+                  {BOOSTER_OFFERS[offer].label}
+                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'normal' }}>{boostersLocked ? 'probation' : made ? 'done' : `Free · +${BOOSTER_OFFERS[offer].interest}`}</span>
+                </button>
+              );
+            })}
+          </div>
+          {boosterAsk && (
+            <div role="alert" style={{ marginTop: '8px', padding: '8px', background: '#fff', border: '1px solid #FDA4AF', borderRadius: '6px', fontSize: '12px', lineHeight: 1.5, color: '#7F1D1D' }}>
+              <b>
+                {BOOSTER_OFFERS[boosterAsk].label} for {p.name}: +{BOOSTER_OFFERS[boosterAsk].interest} interest, {BOOSTER_OFFERS[boosterAsk].risk} evidence.
+              </b>
+              <br />
+              If it comes out, every player signed this way is ruled ineligible, and you get up to 2 seasons of probation.
+              <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                <button
+                  onClick={() => {
+                    onBooster(boosterAsk);
+                    setBoosterAsk(null);
+                  }}
+                  style={actionBtn('#DC2626', false)}
+                >
+                  Make the offer
+                </button>
+                <button onClick={() => setBoosterAsk(null)} style={actionBtn('#64748B', false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

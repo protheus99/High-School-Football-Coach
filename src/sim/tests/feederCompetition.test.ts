@@ -139,13 +139,13 @@ describe('Competition through the store', () => {
     store.getState().advanceWeek();
     expect(cheater.feederProfile!.bannedSeason).toBe(store.getState().currentYear);
 
-    // User inducement: costs AP and adds hidden heat
+    // A booster offer from the coach: free, and it leaves hidden evidence
     const prospect = store.getState().scoutingPool.find((p) => p.source !== 'TRYOUT')!;
-    const ap = store.getState().coachPoints;
-    store.getState().offerFeederInducement(prospect.id);
-    expect(store.getState().coachPoints).toBe(ap - 20);
-    expect(store.getState().userViolationHeat).toBeGreaterThan(0);
-    expect(store.getState().scoutingPool.find((p) => p.id === prospect.id)!.userInducement).toBe(true);
+    const cp = store.getState().coachPoints;
+    store.getState().makeBoosterOffer(prospect.id, 'GIFT');
+    expect(store.getState().coachPoints).toBe(cp);
+    expect(store.getState().compliance.evidence).toBeGreaterThan(0);
+    expect(store.getState().scoutingPool.find((p) => p.id === prospect.id)!.boosterOffers).toEqual(['GIFT']);
 
     while (!store.getState().playoffBracket) store.getState().advanceWeek();
     const bracketIds = store.getState().playoffBracket!.divisions.flatMap((d) => d.rounds[0]).flatMap((n) => [n.team1.id, n.team2.id]);

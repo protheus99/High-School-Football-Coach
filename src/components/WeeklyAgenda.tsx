@@ -40,6 +40,7 @@ export type AgendaTab =
   | 'COLLEGE'
   | 'STAFF'
   | 'SCHEDULE'
+  | 'COMPLIANCE'
   | 'TALENTS'
   | 'FEEDERS'
   | 'FEEDER_PROGRAMS'
@@ -194,6 +195,25 @@ export const WeeklyAgenda: React.FC<{
   // ---------------------------------------------------------------- reusable cards
   // This week's decision, once made: it stays on the list as done
   const decided = dilemmaLog.find((r) => r.year === currentYear && r.week === currentWeek);
+  // The state's call on the coach's booster money, when he chose to decide later
+  const complianceCard = (): AgendaItem | null => {
+    const decision = store.compliance.pendingDecision;
+    if (!decision || !store.compliance.decisionDeferred) return null;
+    return {
+      id: 'compliance',
+      icon: '⚖️',
+      kicker: 'NEEDS YOUR DECISION',
+      title: decision === 'INQUIRY' ? 'A formal inquiry is open' : 'The state has questions',
+      detail: 'Self-report now, or say nothing and let it ride.',
+      tone: 'urgent',
+      accent: 'warnings',
+      actions: [
+        { label: 'Decide', primary: true, onClick: () => useGameStore.setState({ compliance: { ...store.compliance, decisionDeferred: false } }) },
+        { label: 'Compliance', onClick: () => onNavigate('COMPLIANCE') }
+      ]
+    };
+  };
+
   const dilemmaCard = (): AgendaItem | null => {
     if (!activeDilemma)
       return decided
@@ -636,7 +656,7 @@ export const WeeklyAgenda: React.FC<{
   }
 
   // ---------------------------------------------------------------- needs you
-  const needs = [dilemmaCard(), isGamePhase || currentWeek === LAST_TRAINING_CAMP_WEEK ? (game || !isGamePhase ? unavailableCard() : null) : null, warningsCard()].filter(
+  const needs = [dilemmaCard(), complianceCard(), isGamePhase || currentWeek === LAST_TRAINING_CAMP_WEEK ? (game || !isGamePhase ? unavailableCard() : null) : null, warningsCard()].filter(
     (c): c is AgendaItem => c !== null
   );
 

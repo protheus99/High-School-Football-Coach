@@ -410,6 +410,9 @@ export type ProspectSource =
   | 'TRYOUT'; // general students who come out for the team
 
 /** What a prospect weighs when choosing a program; every prospect weights these differently. */
+/** The coach's booster offers to a prospect, smallest to largest (see sim/compliance). */
+export type BoosterOffer = 'GIFT' | 'TRIP' | 'PAYOFF';
+
 export type RecruitingFactor = 'PLAYING_TIME' | 'WINNING' | 'HOME' | 'RELATIONSHIP' | 'BOOSTERS';
 
 /** A rival program recruiting a prospect. */
@@ -440,7 +443,9 @@ export interface FeederProspect {
   priorities: Record<RecruitingFactor, number>; // weights summing to 1
   suitors: ProspectSuitor[]; // rival programs also recruiting this player
   homeTeamId?: string; // the school the player is zoned to, when it isn't the user's
-  userInducement?: boolean; // the user's boosters made an illegal offer
+  userInducement?: boolean; // older saves: the user's boosters made an illegal offer
+  boosterOffers?: BoosterOffer[]; // the coach's booster offers to him (each once; sim/compliance)
+  boosterReported?: boolean; // the coach self-reported them: he signs clean
   actionsThisWeek?: string[]; // recruiting contacts the user already made this week (each once a week)
   scope?: 'STATE' | 'NATIONAL'; // a wide-pool prospect: elsewhere in the state, or in another state
   homeState?: string; // NATIONAL: the state he lives in
