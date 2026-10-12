@@ -113,13 +113,12 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   return (
     <div className="ui-on-dark" style={pageStyle}>
       <div style={{ width: '100%', maxWidth: '760px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ fontSize: '48px' }}>🏈</div>
-          <h1 className="game-title">
-            <span className="game-title-main">FOOTBALL COACH</span>
-            <span className="game-title-sub">HIGH SCHOOL EDITION</span>
+        <div style={{ textAlign: 'center', marginBottom: view === 'MENU' ? '28px' : '16px' }}>
+          {/* The logo, under the lights; smaller on New Game and Load Game so their choices stay near the top */}
+          <h1 className={view === 'MENU' ? 'title-logo' : 'title-logo title-logo-compact'}>
+            <img src="/logo/football-coach-logo.webp" alt="Football Coach: High School Edition" width={840} height={459} />
           </h1>
-          <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: '15px', fontStyle: 'italic' }}>Every dynasty starts on a Friday night.</p>
+          {view === 'MENU' && <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: '15px', fontStyle: 'italic' }}>Every dynasty starts on a Friday night.</p>}
         </div>
 
         {view === 'MENU' && (
@@ -150,7 +149,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
         {view === 'NEW' && (
           <div>
             <h2 style={sectionTitle}>Choose a State</h2>
-            <div aria-label="State" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', marginBottom: '8px' }}>
+            <div aria-label="State" className="title-states">
               {PLAYABLE_STATES.map((st) => (
                 <button key={st} className="ui-chip" aria-pressed={state === st} onClick={() => chooseState(st)} style={{ justifyContent: 'center' }}>
                   {st}
