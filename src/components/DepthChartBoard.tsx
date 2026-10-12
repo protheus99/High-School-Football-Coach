@@ -1,47 +1,29 @@
-import React from 'react';
-import { Player, Position, Team } from '../types/game';
+import React, { useEffect, useRef, useState } from 'react';
+import { Player, Position, PotentialGrade, Team } from '../types/game';
 import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
-import { DEPTH_ROWS, DEPTH_TEMPLATE, SLOT_LABELS, depthChartName, depthGroup } from '../sim/depthChart';
+import { DEPTH_TEMPLATE, SLOT_LABELS, depthGroup, starterRatings } from '../sim/depthChart';
+import { fatigueLevel } from '../sim/training';
+import { FATIGUE_COLORS } from './ui/fatigueColors';
+import { formatPercent } from '../utils/format';
+import { scroller } from '../utils/pageScroll';
 
-/** A slot on the board: a position and which starter column it is (e.g. OT column 0 = LT). */
+/** A slot on the depth chart: a position and which starter column it is (e.g. OT column 0 = LT). */
 type Slot = [Position, number];
+type UnitId = 'offense' | 'defense' | 'special';
 
-/** A formation row: slots pinned to the left edge, centered, and pinned to the right edge. Rows never wrap. */
-interface FormationRow {
-  left?: Slot[];
-  center?: Slot[];
-  right?: Slot[];
-}
-
-// Formation rows, like a printed depth chart
-const DEFENSE: FormationRow[] = [
+// One table per slot, in the order a depth chart is read: offense, defense, then special teams
+const UNITS: { id: UnitId; title: string; short: string; slots: Slot[] }[] = [
   {
-    center: [
-      ['S', 0],
-      ['S', 1]
-    ]
-  },
-  {
-    left: [['CB', 0]],
-    center: [
-      ['LB', 0],
-      ['LB', 1],
-      ['LB', 2]
-    ],
-    right: [['CB', 1]]
-  },
-  {
-    center: [
-      ['DE', 0],
-      ['DT', 0],
-      ['DT', 1],
-      ['DE', 1]
-    ]
-  }
-];
-const OFFENSE: FormationRow[] = [
-  {
-    center: [
+    id: 'offense',
+    title: 'Offense',
+    short: 'Offense',
+    slots: [
+      ['QB', 0],
+      ['RB', 0],
+      ['WR', 0],
+      ['WR', 1],
+      ['WR', 2],
+      ['TE', 0],
       ['OT', 0],
       ['OG', 0],
       ['C', 0],
@@ -50,223 +32,264 @@ const OFFENSE: FormationRow[] = [
     ]
   },
   {
-    left: [
-      ['WR', 0],
-      ['WR', 2]
-    ],
-    right: [
-      ['TE', 0],
-      ['WR', 1]
+    id: 'defense',
+    title: 'Defense',
+    short: 'Defense',
+    slots: [
+      ['DE', 0],
+      ['DT', 0],
+      ['DT', 1],
+      ['DE', 1],
+      ['LB', 0],
+      ['LB', 1],
+      ['LB', 2],
+      ['CB', 0],
+      ['CB', 1],
+      ['S', 0],
+      ['S', 1]
     ]
   },
   {
-    center: [
-      ['QB', 0],
-      ['RB', 0]
-    ]
-  }
-];
-const SPECIALISTS: FormationRow[] = [
-  {
-    center: [
+    id: 'special',
+    title: 'Special Teams',
+    short: 'Special',
+    slots: [
       ['K', 0],
       ['P', 0]
     ]
   }
 ];
 
-const CARD_WIDTH = 150;
-const GAP = 8;
-const BOARD_MIN_WIDTH = CARD_WIDTH * 5 + GAP * 4; // the offensive line, the widest row
+const CLASS_SHORT: Record<Player['classYear'], string> = { Freshman: 'Fr', Sophomore: 'So', Junior: 'Jr', Senior: 'Sr' };
+
+const POTENTIAL_COLORS: Record<PotentialGrade, { background: string; color: string }> = {
+  'A+': { background: '#DCFCE7', color: '#166534' },
+  A: { background: '#DCFCE7', color: '#166534' },
+  B: { background: '#DBEAFE', color: '#1E40AF' },
+  C: { background: '#FEF3C7', color: '#92400E' },
+  D: { background: '#F1F5F9', color: '#475569' }
+};
+
+/** Rating colors: green 80+, blue 70s, amber 60s, gray below. */
+const ratingColor = (ovr: number) => (ovr >= 80 ? '#16A34A' : ovr >= 70 ? '#2563EB' : ovr >= 60 ? '#D97706' : '#94A3B8');
 
 const unavailable = (p: Player) => p.condition.injuryStatus !== 'HEALTHY' || !p.academics.isEligible;
 
+/** Where a unit heading lands after a jump, and the line it has to pass to count as the unit on screen. */
+const NAV_OFFSET = 'calc(var(--topbar-h) + 76px)';
+
+/**
+ * The depth chart: one table per slot (QB, RB, WR, … K, P), players in depth order with the starter on top. Each
+ * player shows his rating, name and stars, potential, class, fatigue and college offers, with ▼▲ to move him at his
+ * position. Desktop shows columns; phones put the details in a line of tags under the name. A sticky bar jumps
+ * between offense, defense and special teams and shows each unit's rating.
+ */
 export const DepthChartBoard: React.FC<{
   team: Team;
   onMove: (playerId: string, direction: -1 | 1) => void;
   onSelect?: (player: Player) => void;
 }> = ({ team, onMove, onSelect }) => {
-  const isPhone = !useMediaQuery(DESKTOP_QUERY); // mobile-first: the grid is the default layout
+  const isPhone = !useMediaQuery(DESKTOP_QUERY);
+  const ratings = starterRatings(team.roster);
   const groups = new Map((Object.keys(DEPTH_TEMPLATE) as Position[]).map((pos) => [pos, depthGroup(team.roster, pos)]));
+  const headings = useRef<Partial<Record<UnitId, HTMLElement | null>>>({});
+  const nav = useRef<HTMLElement | null>(null);
+  const [active, setActive] = useState<UnitId>('offense');
 
-  const card = ([position, column]: Slot) => {
+  // The unit on screen: the last one whose heading has scrolled up to the sticky bar
+  useEffect(() => {
+    const el = scroller();
+    const onScroll = () => {
+      const line = (nav.current?.getBoundingClientRect().bottom ?? 0) + 24;
+      let on: UnitId = 'offense';
+      UNITS.forEach((u) => {
+        const h = headings.current[u.id];
+        if (h && h.getBoundingClientRect().top <= line) on = u.id;
+      });
+      setActive(on);
+    };
+    onScroll();
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  /** Every player in a slot, in depth order (the starter first, then 2nd, 3rd and the reserves). */
+  const slotPlayers = ([position, column]: Slot) => {
     const group = groups.get(position)!;
     const k = DEPTH_TEMPLATE[position].starters;
-    const indexes = group.map((_, i) => i).filter((i) => i % k === column);
-    const rows = Array.from({ length: DEPTH_ROWS }, (_, r) => indexes[r]);
-    const reserves = indexes.slice(DEPTH_ROWS);
-    const line = (i: number | undefined, row: number) => {
-      if (i === undefined)
-        return (
-          <div key={`empty_${row}`} style={{ ...lineStyle, color: '#CBD5E1' }}>
-            —
-          </div>
-        );
-      const p = group[i];
-      const out = unavailable(p);
-      return (
-        <div key={p.id} style={{ ...lineStyle, minHeight: isPhone ? '44px' : '22px', fontWeight: row === 0 ? 'bold' : 'normal', fontSize: isPhone ? '14px' : row === 0 ? '13px' : '12px' }}>
-          <button
-            onClick={() => onSelect?.(p)}
-            style={{ ...nameBtn, color: out ? '#B91C1C' : row === 0 ? '#0F172A' : '#475569', ...(isPhone && { alignSelf: 'stretch' }) }}
-            title={`${p.firstName} ${p.lastName} · ${p.classYear}${out ? ' · unavailable (injured or ineligible)' : ''}`}
-          >
-            {depthChartName(p)}
-            {out && '*'}
-          </button>
-          <span style={{ display: 'flex', gap: isPhone ? '6px' : '2px' }}>
-            <button onClick={() => onMove(p.id, -1)} disabled={i - k < 0} style={arrowBtn(i - k < 0, isPhone)} aria-label={`Move ${p.lastName} up`}>
-              ▲
-            </button>
-            <button
-              onClick={() => onMove(p.id, 1)}
-              disabled={i + k >= group.length}
-              style={arrowBtn(i + k >= group.length, isPhone)}
-              aria-label={`Move ${p.lastName} down`}
-            >
-              ▼
-            </button>
-          </span>
-        </div>
-      );
+    return group.flatMap((p, i) => (i % k === column ? [{ p, i, k, last: i + k >= group.length }] : []));
+  };
+
+  const nameCell = (p: Player, starter: boolean) => (
+    <span className="depth-name">
+      <button onClick={() => onSelect?.(p)} title={`${p.firstName} ${p.lastName} · ${p.classYear}`} style={{ fontWeight: starter ? 'bold' : 'normal' }}>
+        {p.firstName} {p.lastName}
+      </button>
+      {p.recruiting.starRating > 0 && (
+        <span className="depth-stars" aria-label={`${p.recruiting.starRating}-star recruit`}>
+          {p.recruiting.starRating}★
+        </span>
+      )}
+      {unavailable(p) && (
+        <span className="depth-out" title="Injured or ineligible: the next man up plays">
+          OUT
+        </span>
+      )}
+    </span>
+  );
+
+  const tags = (p: Player) => {
+    const level = fatigueLevel(p.condition.seasonWear);
+    const offers = p.recruiting.offers.length;
+    return {
+      potential: (
+        <span className="depth-tag depth-potential" style={POTENTIAL_COLORS[p.potential]} aria-label={`Potential ${p.potential}`}>
+          {p.potential}
+        </span>
+      ),
+      year: <span className="depth-tag depth-year">{CLASS_SHORT[p.classYear]}</span>,
+      fatigue: (
+        <span className="depth-tag depth-fatigue" style={FATIGUE_COLORS[level]}>
+          {level} {formatPercent(p.condition.seasonWear)}
+        </span>
+      ),
+      offers: offers > 0 ? <span className="depth-tag depth-offers">{offers === 1 ? '1 offer' : `${offers} offers`}</span> : null
     };
+  };
+
+  // No ▲ for the starter and no ▼ for the last man (an empty space keeps the buttons lined up)
+  const moveButton = (p: Player, direction: -1 | 1, show: boolean) =>
+    show ? (
+      <button className="depth-move" onClick={() => onMove(p.id, direction)} aria-label={`Move ${p.lastName} ${direction < 0 ? 'up' : 'down'}`}>
+        {direction < 0 ? '▲' : '▼'}
+      </button>
+    ) : (
+      <span className="depth-move-space" />
+    );
+
+  const table = (slot: Slot) => {
+    const rows = slotPlayers(slot);
+    const label = SLOT_LABELS[slot[0]][slot[1]];
     return (
-      <div key={`${position}_${column}`} style={isPhone ? { ...cardStyle, width: '100%' } : cardStyle}>
-        <div style={cardHeader}>{SLOT_LABELS[position][column]}</div>
-        <div style={{ padding: '4px 6px' }}>
-          {rows.map((i, r) => line(i, r))}
-          {reserves.length > 0 && (
-            <div style={{ borderTop: '1px dashed #E2E8F0', marginTop: '2px', paddingTop: '2px' }}>
-              <div style={{ fontSize: '12px', color: '#64748B' }}>Reserves</div>
-              {reserves.map((i) => line(i, DEPTH_ROWS))}
+      <table key={`${slot[0]}_${slot[1]}`} className="depth-table">
+        <colgroup>
+          <col style={{ width: '64px' }} />
+          <col />
+          <col style={{ width: '82px' }} />
+          <col style={{ width: '52px' }} />
+          <col style={{ width: '112px' }} />
+          <col style={{ width: '88px' }} />
+          <col style={{ width: '48px' }} />
+          <col style={{ width: '48px' }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">{label}</th>
+            <th scope="col" className="depth-th-name">
+              Name
+            </th>
+            <th scope="col">Potential</th>
+            <th scope="col">Year</th>
+            <th scope="col">Fatigue</th>
+            <th scope="col">Offers</th>
+            <th scope="col">Down</th>
+            <th scope="col">Up</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ p, i, k, last }, r) => {
+            const t = tags(p);
+            return (
+              <tr key={p.id} className={r === 0 ? 'depth-starter' : r >= 3 ? 'depth-reserve' : undefined}>
+                <td>
+                  <span className="depth-ovr" style={{ background: ratingColor(p.overallRating) }}>
+                    {p.overallRating}
+                  </span>
+                </td>
+                <td className="depth-td-name">{nameCell(p, r === 0)}</td>
+                <td>{t.potential}</td>
+                <td>{t.year}</td>
+                <td>{t.fatigue}</td>
+                <td>{t.offers}</td>
+                <td>{moveButton(p, 1, !last)}</td>
+                <td>{moveButton(p, -1, i - k >= 0)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    );
+  };
+
+  const card = (slot: Slot) => {
+    const rows = slotPlayers(slot);
+    return (
+      <div key={`${slot[0]}_${slot[1]}`} className="depth-card">
+        <div className="depth-card-head">{SLOT_LABELS[slot[0]][slot[1]]}</div>
+        {rows.map(({ p, i, k, last }, r) => {
+          const t = tags(p);
+          return (
+            <div key={p.id} className={`depth-row${r === 0 ? ' depth-starter' : r >= 3 ? ' depth-reserve' : ''}`}>
+              <span className="depth-ovr depth-ovr-lg" style={{ background: ratingColor(p.overallRating) }}>
+                {p.overallRating}
+              </span>
+              <div className="depth-row-main">
+                {nameCell(p, r === 0)}
+                <div className="depth-tags">
+                  {t.potential}
+                  {t.year}
+                  {t.fatigue}
+                  {t.offers}
+                </div>
+              </div>
+              <span className="depth-row-moves">
+                {moveButton(p, 1, !last)}
+                {moveButton(p, -1, i - k >= 0)}
+              </span>
             </div>
-          )}
-        </div>
+          );
+        })}
       </div>
     );
   };
 
-  const group = (slots: Slot[] | undefined, justify: 'flex-start' | 'center' | 'flex-end') => (
-    <div style={{ display: 'flex', gap: `${GAP}px`, justifyContent: justify }}>{slots?.map(card)}</div>
-  );
-
-  const section = (title: string, rows: FormationRow[]) => (
-    <div id={`depth-${title.toLowerCase()}`} style={{ marginBottom: '18px', scrollMarginTop: isPhone ? 'calc(var(--topbar-h) + 64px)' : undefined }}>
-      <h3 style={sectionTitle}>{title.charAt(0) + title.slice(1).toLowerCase()}</h3>
-      {isPhone ? (
-        // Phones: one slot card per row (two on larger phones), in formation order, with thumb-sized arrows
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: `${GAP}px` }}>
-          {rows.flatMap((row) => [...(row.left ?? []), ...(row.center ?? []), ...(row.right ?? [])]).map(card)}
-        </div>
-      ) : (
-        rows.map((row, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: `${GAP}px`, marginBottom: `${GAP}px` }}>
-            {group(row.left, 'flex-start')}
-            {group(row.center, 'center')}
-            {group(row.right, 'flex-end')}
-          </div>
-        ))
-      )}
-    </div>
-  );
-
   return (
-    // Mid-size screens scroll the formation sideways rather than breaking it; phones get the grid above
-    // (phones skip the sideways scroller: it would keep the jump bar from sticking)
-    <div style={{ overflowX: isPhone ? 'visible' : 'auto' }}>
-      <div style={{ minWidth: isPhone ? undefined : `${BOARD_MIN_WIDTH}px` }}>
-        {isPhone ? (
-          <>
-            {/* Phones: offense first, with a jump bar that stays on screen down the long chart */}
-            <div className="ui-chips" role="navigation" aria-label="Depth chart sections" style={jumpBar}>
-              {['OFFENSE', 'DEFENSE', 'SPECIALISTS'].map((s) => (
-                <button key={s} className="ui-chip" onClick={() => document.getElementById(`depth-${s.toLowerCase()}`)?.scrollIntoView()}>
-                  {s.charAt(0) + s.slice(1).toLowerCase()}
-                </button>
-              ))}
-            </div>
-            {section('OFFENSE', OFFENSE)}
-            {section('DEFENSE', DEFENSE)}
-          </>
-        ) : (
-          <>
-            {section('DEFENSE', DEFENSE)}
-            {section('OFFENSE', OFFENSE)}
-          </>
-        )}
-        {section('SPECIALISTS', SPECIALISTS)}
-        <div style={{ fontSize: '12px', color: '#64748B', textAlign: 'center' }}>
-          Bold = starter. ▲▼ swaps a player with the one above or below him in that slot. <span style={{ color: '#B91C1C' }}>*</span> injured or
-          ineligible (the next man up plays).
-        </div>
-      </div>
+    <div className="depth-board">
+      <nav ref={nav} className="depth-unit-nav" aria-label="Depth chart units">
+        {UNITS.map((u) => (
+          <button
+            key={u.id}
+            aria-current={active === u.id ? 'true' : undefined}
+            onClick={() => headings.current[u.id]?.scrollIntoView()}
+          >
+            {isPhone ? u.short : u.title}
+            <span className="depth-unit-badge" style={{ background: ratingColor(ratings[u.id].rating) }}>
+              OVR {ratings[u.id].rating}
+            </span>
+          </button>
+        ))}
+      </nav>
+      {UNITS.map((u) => (
+        <section key={u.id} aria-label={u.title}>
+          <h3
+            ref={(el) => {
+              headings.current[u.id] = el;
+            }}
+            className="depth-unit-title"
+            style={{ scrollMarginTop: NAV_OFFSET }}
+          >
+            {u.title}
+            <span className="depth-unit-badge" style={{ background: ratingColor(ratings[u.id].rating) }}>
+              OVR {ratings[u.id].rating}
+            </span>
+          </h3>
+          <div className="depth-list">{u.slots.map(isPhone ? card : table)}</div>
+        </section>
+      ))}
+      <p className="depth-note">
+        Players are listed in depth order: the top row (blue) starts. ▲▼ move a player up or down at his position. {isPhone ? 'Tap' : 'Click'} a name
+        for his player card. <span className="depth-out">OUT</span> injured or ineligible: the next man up plays.
+      </p>
     </div>
   );
 };
-
-const jumpBar: React.CSSProperties = {
-  position: 'sticky',
-  top: 'var(--topbar-h)',
-  zIndex: 20,
-  background: '#F8FAFC',
-  padding: '8px 0',
-  marginBottom: '8px',
-  flexWrap: 'nowrap'
-};
-
-const sectionTitle: React.CSSProperties = { margin: '0 0 8px 0' };
-
-const cardStyle: React.CSSProperties = {
-  width: `${CARD_WIDTH}px`,
-  flexShrink: 0,
-  background: '#fff',
-  border: '1px solid #CBD5E1',
-  borderRadius: '4px',
-  overflow: 'hidden'
-};
-
-const cardHeader: React.CSSProperties = {
-  background: '#0F172A',
-  color: '#fff',
-  textAlign: 'center',
-  fontWeight: 'bold',
-  fontSize: '13px',
-  padding: '3px 0',
-  letterSpacing: '0.5px'
-};
-
-const lineStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: '4px',
-  minHeight: '22px'
-};
-
-const nameBtn: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  font: 'inherit',
-  cursor: 'pointer',
-  textAlign: 'left',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  minWidth: 0,
-  flex: 1
-};
-
-/** Arrow buttons: thumb-sized on phones, compact in the desktop formation view. */
-const arrowBtn = (disabled: boolean, phone: boolean): React.CSSProperties => ({
-  width: phone ? '40px' : '22px',
-  height: phone ? '40px' : '22px',
-  padding: 0,
-  fontSize: phone ? '14px' : '12px',
-  lineHeight: 1,
-  border: '1px solid #CBD5E1',
-  borderRadius: '3px',
-  background: disabled ? '#F8FAFC' : '#EFF6FF',
-  color: disabled ? '#CBD5E1' : '#1D4ED8',
-  cursor: disabled ? 'default' : 'pointer'
-});

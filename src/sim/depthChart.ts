@@ -125,9 +125,10 @@ export function setDepthTier(roster: Player[], playerId: string, tier: Player['d
 
 export const OFFENSE_POSITIONS: Position[] = ['QB', 'RB', 'WR', 'TE', 'OT', 'OG', 'C'];
 export const DEFENSE_POSITIONS: Position[] = ['DE', 'DT', 'LB', 'CB', 'S'];
+export const SPECIAL_TEAMS_POSITIONS: Position[] = ['K', 'P'];
 
-/** The depth chart's ratings: the average overall of every starter, and of the offensive and defensive starters. */
-export function starterRatings(roster: Player[]): Record<'team' | 'offense' | 'defense', { rating: number; starters: number }> {
+/** The depth chart's ratings: the average overall of every starter, and of the offensive, defensive and special teams starters. */
+export function starterRatings(roster: Player[]): Record<'team' | 'offense' | 'defense' | 'special', { rating: number; starters: number }> {
   const starters = roster.filter((p) => p.depthChartTier === 1);
   const rate = (players: Player[]) => ({
     rating: players.length ? Math.round(players.reduce((s, p) => s + p.overallRating, 0) / players.length) : 0,
@@ -136,6 +137,7 @@ export function starterRatings(roster: Player[]): Record<'team' | 'offense' | 'd
   return {
     team: rate(starters),
     offense: rate(starters.filter((p) => OFFENSE_POSITIONS.includes(p.position))),
-    defense: rate(starters.filter((p) => DEFENSE_POSITIONS.includes(p.position)))
+    defense: rate(starters.filter((p) => DEFENSE_POSITIONS.includes(p.position))),
+    special: rate(starters.filter((p) => SPECIAL_TEAMS_POSITIONS.includes(p.position)))
   };
 }

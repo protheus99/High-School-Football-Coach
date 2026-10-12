@@ -29,12 +29,12 @@ export const RosterDepthChartView: React.FC = () => {
     <div className="ui-screen">
       {/* The starters' ratings */}
       <div aria-label="Starter ratings" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '12px' }}>
-        <RatingTile label="Team" value={ratings.team.rating} help={`${ratings.team.starters} starters`} strong />
-        <RatingTile label="Offense" value={ratings.offense.rating} help={`${ratings.offense.starters} starters`} />
-        <RatingTile label="Defense" value={ratings.defense.rating} help={`${ratings.defense.starters} starters`} />
+        <RatingTile label="Team" value={ratings.team.rating} strong />
+        <RatingTile label="Offense" value={ratings.offense.rating} />
+        <RatingTile label="Defense" value={ratings.defense.rating} />
       </div>
 
-      <div className="ui-chips" aria-label="Roster view" style={{ marginBottom: '14px' }}>
+      <div className="ui-chips" aria-label="Roster view" style={{ marginBottom: view === 'CHART' ? '4px' : '14px' }}>
         <button className="ui-chip" aria-pressed={view === 'CHART'} onClick={() => setView('CHART')}>
           Depth Chart
         </button>
@@ -108,10 +108,9 @@ export const RosterDepthChartView: React.FC = () => {
   );
 };
 
-const RatingTile: React.FC<{ label: string; value: number; help: string; strong?: boolean }> = ({ label, value, help, strong }) => (
+const RatingTile: React.FC<{ label: string; value: number; strong?: boolean }> = ({ label, value, strong }) => (
   <div style={{ background: strong ? '#0F172A' : '#fff', color: strong ? '#fff' : '#0F172A', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '8px', textAlign: 'center' }}>
     <div style={{ fontSize: '12px', fontWeight: 'bold', color: strong ? '#CBD5E1' : '#64748B' }}>{label} OVR</div>
     <div style={{ fontSize: '24px', fontWeight: 900, lineHeight: 1.2 }}>{value}</div>
-    <div style={{ fontSize: '12px', color: strong ? '#94A3B8' : '#64748B' }}>{help}</div>
   </div>
 );
