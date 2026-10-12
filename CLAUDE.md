@@ -1,7 +1,10 @@
-# High School Football Head Coach: working rules
+# Football Coach High School Edition: working rules
 
 A React + TypeScript + Vite + Zustand PWA. Production deploys from `main` on Cloudflare
-(https://high-school-football-coach.protheus99.workers.dev).
+(https://footballcoachgame.com, also at https://high-school-football-coach.protheus99.workers.dev).
+
+The game's name: **Football Coach High School Edition** (long, e.g. the browser tab and the installed app) and
+**Football Coach** (short, e.g. the home screen label).
 
 ## Mockup first (standard step)
 

@@ -116,7 +116,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
         <div style={{ textAlign: 'center', marginBottom: view === 'MENU' ? '28px' : '16px' }}>
           {/* The logo, under the lights; smaller on New Game and Load Game so their choices stay near the top */}
           <h1 className={view === 'MENU' ? 'title-logo' : 'title-logo title-logo-compact'}>
-            <img src="/logo/football-coach-logo.webp" alt="Football Coach: High School Edition" width={840} height={459} />
+            <img src="/logo/football-coach-logo.webp" alt="Football Coach High School Edition" width={840} height={459} />
           </h1>
           {view === 'MENU' && <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: '15px', fontStyle: 'italic' }}>Every dynasty starts on a Friday night.</p>}
         </div>
