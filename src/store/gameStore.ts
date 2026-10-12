@@ -467,6 +467,7 @@ interface GameStoreState {
   newScenarioGame: (scenario: ScenarioId, state: string, school: string, coachName: string, length: CareerLength) => void; // a scored career at a scenario program
   loadGame: (save: GameSaveRecord) => void;
   saveGame: (saveName?: string) => Promise<string>; // new save slot; returns its id
+  autosave: () => Promise<void>; // the autosave slot, now (before leaving the page, e.g. to sign in)
   advanceWeek: () => void;
   resolveDilemma: (choice: DilemmaChoice) => void;
   awardGameBall: (playerId: string, summary: { opponentName: string; won: boolean; score: string; line: string }) => void;
@@ -839,6 +840,13 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p) ? save.scoutingPool : generateFeederPool(userTeam)
     });
     whenIdle(() => get().runAhead());
+  },
+
+  autosave: async () => {
+    const state = get();
+    const userTeam = state.leagueTeams.find((t) => t.id === state.userTeamId);
+    if (!state.league || !userTeam) return;
+    await persistSaveGame(buildSaveRecord(state, AUTOSAVE_SLOT, `Week ${state.currentWeek} - ${userTeam.name}`));
   },
 
   saveGame: async (saveName) => {

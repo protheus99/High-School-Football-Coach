@@ -6,6 +6,7 @@ import { AUTOSAVE_ID, loadSaveGame } from '../services/db';
 import { buildCustomLeague, buildStateLeague, buildStateWorld, GameWorld, nearestDistrictIndexes, StateDistrictFile } from '../sim/league';
 import { PLAYABLE_STATES } from '../sim/stateRules';
 import { MusicSettingsPanel } from './MusicSettingsPanel';
+import { AccountCard, CookiesCard, SignInSheet } from './AccountPanels';
 
 export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { districtTeams, saveGame, loadGame } = useGameStore();
@@ -14,6 +15,7 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   const [leagueIndex, setLeagueIndex] = useState<LeagueIndexEntry[]>([]);
   const [selectedState, setSelectedState] = useState('');
   const [selectedDistrictFile, setSelectedDistrictFile] = useState('');
+  const [signingIn, setSigningIn] = useState(false);
 
   // Real state districts built from the design spec's school databases (public/leagues)
   useEffect(() => {
@@ -94,7 +96,10 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
   };
 
   return (
-    <Sheet title="Settings" subtitle="Music, saves and districts" onClose={onClose}>
+    <Sheet title="Settings" subtitle="Account, music, saves and districts" onClose={onClose}>
+      {signingIn && <SignInSheet onClose={() => setSigningIn(false)} />}
+      <AccountCard onSignIn={() => setSigningIn(true)} />
+      <CookiesCard />
       <MusicSettingsPanel />
 
       {feedback && (

@@ -27,16 +27,26 @@ function dropLicensedMusic(): Plugin {
 }
 
 // Google Analytics (gtag.js), right after <head> as Google asks. Only in the site build, so the dev server and local
-// testing never show up in the statistics.
+// testing never show up in the statistics. It loads only once the player allows analytics cookies (the cookie banner,
+// src/services/consent.ts): the page sets up gtag and a loader, and calls it at once for a player who already agreed.
 const GOOGLE_TAG_ID = 'G-FE5ZDP3K2T';
-const GOOGLE_TAG = `<!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}"></script>
+const GOOGLE_TAG = `<!-- Google tag (gtag.js), after consent -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', '${GOOGLE_TAG_ID}');
+      window.fcAnalyticsId = '${GOOGLE_TAG_ID}';
+      window.fcLoadAnalytics = function () {
+        if (window.fcAnalyticsLoaded) return;
+        window.fcAnalyticsLoaded = true;
+        window['ga-disable-${GOOGLE_TAG_ID}'] = false;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}';
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', '${GOOGLE_TAG_ID}');
+      };
+      try { if (localStorage.getItem('fc.cookieConsent') === 'analytics') window.fcLoadAnalytics(); } catch (e) {}
     </script>`;
 
 function googleTag(): Plugin {

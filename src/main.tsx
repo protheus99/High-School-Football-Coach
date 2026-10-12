@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { NowPlayingPopup } from './components/NowPlayingPopup';
+import { CookieBanner } from './components/CookieBanner';
+import { initAccount } from './services/account';
 import { musicPlayer } from './utils/musicPlayer';
 import './styles/index.css';
 
@@ -17,9 +19,13 @@ const unlockMusic = () => {
 window.addEventListener('pointerdown', unlockMusic, true);
 window.addEventListener('keydown', unlockMusic, true);
 
+// The optional account: who is signed in, how a sign-in just went, and cloud save uploads
+initAccount();
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
     <NowPlayingPopup />
+    <CookieBanner />
   </React.StrictMode>
 );

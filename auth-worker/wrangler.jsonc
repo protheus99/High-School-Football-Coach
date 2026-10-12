@@ -18,6 +18,13 @@
 			"migrations_dir": "migrations"
 		}
 	],
+	// Cloud saves: the save files (create the bucket once with `npx wrangler r2 bucket create hsfhc-saves`)
+	"r2_buckets": [
+		{
+			"binding": "SAVES",
+			"bucket_name": "hsfhc-saves"
+		}
+	],
 	"vars": {
 		"APP_URL": "https://footballcoachgame.com",
 		// The game's pages that may call the API (POSTs from anywhere else are refused)

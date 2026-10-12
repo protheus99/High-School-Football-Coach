@@ -5,7 +5,8 @@ import { createRequire } from 'node:module';
 import type { DatabaseSync as DatabaseSyncType } from 'node:sqlite';
 // Node's built-in SQLite, loaded directly (the test bundler doesn't know the node:sqlite module yet)
 const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as { DatabaseSync: typeof DatabaseSyncType };
-import worker, { Env, safeReturn } from '../src/index';
+import worker, { Env } from '../src/index';
+import { safeReturn } from '../src/paths';
 import { hmacSha256Base64Url, pkceChallenge } from '../src/crypto';
 
 const APP = 'https://footballcoachgame.com';
@@ -13,7 +14,7 @@ const APP = 'https://footballcoachgame.com';
 /** D1 over an in-memory SQLite database with the real migration. */
 function database() {
   const sqlite = new DatabaseSync(':memory:');
-  sqlite.exec(readFileSync(new URL('../migrations/0001_accounts.sql', import.meta.url), 'utf8'));
+  for (const file of ['0001_accounts.sql', '0002_saves.sql']) sqlite.exec(readFileSync(new URL(`../migrations/${file}`, import.meta.url), 'utf8'));
   const clean = (v: unknown) => (v === undefined ? null : typeof v === 'boolean' ? Number(v) : v) as null | number | string;
   const prepare = (sql: string) => {
     let args: (null | number | string)[] = [];
@@ -29,6 +30,7 @@ function database() {
 }
 
 let db: ReturnType<typeof database>;
+let bucket: Map<string, ArrayBuffer>;
 let env: Env;
 let sent: { to: string; link: string }[];
 let googleUser: Record<string, unknown>;
@@ -37,8 +39,14 @@ let lastVerifier: string | null;
 
 beforeEach(() => {
   db = database();
+  bucket = new Map();
   env = {
     DB: db.DB,
+    SAVES: {
+      put: async (key: string, value: ArrayBuffer) => void bucket.set(key, value),
+      get: async (key: string) => (bucket.has(key) ? { arrayBuffer: async () => bucket.get(key)! } : null),
+      delete: async (keys: string | string[]) => [keys].flat().forEach((k) => bucket.delete(k))
+    },
     APP_URL: APP,
     ALLOWED_ORIGINS: `${APP},http://localhost:3000`,
     GOOGLE_CLIENT_ID: 'google-id',
@@ -93,7 +101,7 @@ async function googleSignIn(query = '') {
 
 describe('Sign-in server', () => {
   it('reports no player and which sign-in options are on', async () => {
-    expect(await session()).toEqual({ user: null, options: { google: true, facebook: true, email: true } });
+    expect(await session()).toEqual({ user: null, options: { google: true, facebook: true, email: true, cloudSaves: true } });
     env.FACEBOOK_APP_SECRET = undefined;
     expect((await session()).options.facebook).toBe(false);
   });
@@ -202,6 +210,37 @@ describe('Sign-in server', () => {
 
     const forged = await worker.fetch(new Request(`${APP}/api/auth/facebook/delete`, { method: 'POST', body: new URLSearchParams({ signed_request: `bad.${payload}` }) }), env);
     expect(forged.status).toBe(400);
+  });
+
+  it('keeps the signed-in player’s cloud saves: store, list, download, replace and delete', async () => {
+    const { cookie } = await googleSignIn();
+    const summary = { saveName: 'Week 5', timestamp: 111, teamName: 'Odessa Permian', wins: 4, losses: 0, currentWeek: 5, currentYear: 2026, isAutosave: true };
+    const put = (slot: string, bytes: number[], withCookie = cookie, origin = APP) =>
+      call(`/api/auth/saves/${slot}`, { method: 'PUT', body: new Uint8Array(bytes), cookie: withCookie, origin, headers: { 'X-Save-Summary': encodeURIComponent(JSON.stringify(summary)) } });
+    expect((await put('current_save', [1, 2, 3])).status).toBe(200);
+    const list = (await (await call('/api/auth/saves', { cookie })).json()) as { saves: Record<string, unknown>[] };
+    expect(list.saves).toHaveLength(1);
+    expect(list.saves[0]).toMatchObject({ id: 'current_save', teamName: 'Odessa Permian', size: 3 });
+    const file = await call('/api/auth/saves/current_save', { cookie });
+    expect([...new Uint8Array(await file.arrayBuffer())]).toEqual([1, 2, 3]);
+    await put('current_save', [9, 9]);
+    expect((await (await call('/api/auth/saves', { cookie })).json() as { saves: unknown[] }).saves).toHaveLength(1);
+    expect([...new Uint8Array(await (await call('/api/auth/saves/current_save', { cookie })).arrayBuffer())]).toEqual([9, 9]);
+
+    // Signed in, from the game's pages, and a sensible slot name only
+    expect((await put('slot_b', [1], '')).status).toBe(401);
+    expect((await put('slot_b', [1], cookie, 'https://evil.example')).status).toBe(403);
+    expect((await put('bad.slot', [1])).status).toBe(400);
+    // Ten slots at most
+    for (let i = 0; i < 9; i++) expect((await put(`slot_${i}`, [i + 1])).status).toBe(200);
+    expect((await put('slot_extra', [1])).status).toBe(409);
+
+    expect((await call('/api/auth/saves/slot_0', { method: 'DELETE', cookie, origin: APP })).status).toBe(200);
+    expect((await call('/api/auth/saves/slot_0', { cookie })).status).toBe(404);
+    // Deleting the account removes every cloud save
+    await post('/api/auth/delete', {}, cookie);
+    expect(bucket.size).toBe(0);
+    expect((db.sqlite.prepare('SELECT COUNT(*) AS n FROM saves').get() as { n: number }).n).toBe(0);
   });
 
   it('only returns players to pages on the game site', () => {

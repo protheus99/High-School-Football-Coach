@@ -10,7 +10,9 @@ import { CAREER_LENGTHS, CareerLength } from '../sim/careerScore';
 
 // The classic game (a random school at a difficulty, unranked) is hidden for now; flip this to bring it back
 const SHOW_CLASSIC_GAME = false;
-import { deleteSaveGame, listSaveSummaries, loadSaveGame, SaveSummary } from '../services/db';
+import { deleteAnySave, listAllSaves, loadAnySave, SaveEntry, signInAvailable, useAccount } from '../services/account';
+import { reopenCookieBanner } from '../services/consent';
+import { AccountSheet, SignInResult, SignInSheet } from './AccountPanels';
 import { version } from '../../package.json';
 
 const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; color: string }[] = [
@@ -29,26 +31,30 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   const { newGame, newScenarioGame, loadGame } = useGameStore();
   const [view, setView] = useState<'MENU' | 'NEW' | 'LOAD'>('MENU');
   useScrollTopOnScreenChange(view);
-  const [saves, setSaves] = useState<SaveSummary[] | null>(null);
+  const [saves, setSaves] = useState<SaveEntry[] | null>(null);
+  const account = useAccount();
+  const [accountSheet, setAccountSheet] = useState<'SIGN_IN' | 'ACCOUNT' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // The newest save (autosave or manual): Continue picks up there after a refresh or a new visit
-  const [latest, setLatest] = useState<SaveSummary | null>(null);
+  const [latest, setLatest] = useState<SaveEntry | null>(null);
+  // Signed in, the lists include the account's cloud saves (the newer copy of each slot)
+  const accountKey = `${account.ready}|${account.user?.id ?? ''}`;
 
   useEffect(() => {
     if (view !== 'MENU' || canContinue) return;
-    listSaveSummaries()
+    listAllSaves()
       .then((list) => setLatest(list[0] ?? null))
       .catch(() => setLatest(null));
-  }, [view, canContinue]);
+  }, [view, canContinue, accountKey]);
 
   useEffect(() => {
     if (view !== 'LOAD') return;
-    listSaveSummaries()
+    listAllSaves()
       .then(setSaves)
       .catch(() => setSaves([]));
-  }, [view]);
+  }, [view, accountKey]);
 
   const [state, setState] = useState('Texas');
   const [pick, setPick] = useState<{ scenario: ScenarioId; school: string } | null>(null);
@@ -89,11 +95,11 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
     }, 20);
   };
 
-  const load = async (id: string) => {
+  const load = async (entry: SaveEntry) => {
     setBusy(true);
     setError(null);
     try {
-      const save = await loadSaveGame(id);
+      const save = await loadAnySave(entry);
       if (!save) throw new Error('missing');
       loadGame(save);
       onEnterGame();
@@ -105,13 +111,30 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   };
 
   const remove = async (id: string) => {
-    await deleteSaveGame(id);
+    await deleteAnySave(id);
     setConfirmDelete(null);
     setSaves((list) => list?.filter((s) => s.id !== id) ?? null);
   };
 
   return (
     <div className="ui-on-dark" style={pageStyle}>
+      {/* The optional account: sign in, or who is signed in */}
+      {account.user ? (
+        <button className="account-pill" onClick={() => setAccountSheet('ACCOUNT')} aria-label="Account">
+          <span className="account-pill-dot" aria-hidden="true">
+            ●
+          </span>
+          {account.user.name || account.user.email?.split('@')[0] || 'Account'}
+        </button>
+      ) : (
+        signInAvailable(account.options) && (
+          <button className="account-pill" onClick={() => setAccountSheet('SIGN_IN')}>
+            Sign in
+          </button>
+        )
+      )}
+      {accountSheet === 'SIGN_IN' && <SignInSheet onClose={() => setAccountSheet(null)} />}
+      {accountSheet === 'ACCOUNT' && <AccountSheet onClose={() => setAccountSheet(null)} onSignIn={() => setAccountSheet('SIGN_IN')} />}
       <div style={{ width: '100%', maxWidth: '760px' }}>
         <div style={{ textAlign: 'center', marginBottom: view === 'MENU' ? '28px' : '16px' }}>
           {/* The logo, under the lights; smaller on New Game and Load Game so their choices stay near the top */}
@@ -121,11 +144,12 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
           {view === 'MENU' && <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: '15px', fontStyle: 'italic' }}>Every dynasty starts on a Friday night.</p>}
         </div>
 
+        {view === 'MENU' && <SignInResult />}
         {view === 'MENU' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
             {/* Continue: the game in progress, or (after a refresh or a new visit) the newest save */}
             {(canContinue || latest) && (
-              <button onClick={() => (canContinue ? onEnterGame() : latest && load(latest.id))} disabled={busy} style={menuBtn('#F59E0B', '#0F172A')}>
+              <button onClick={() => (canContinue ? onEnterGame() : latest && load(latest))} disabled={busy} style={menuBtn('#F59E0B', '#0F172A')}>
                 ▶️ {busy ? 'Loading…' : 'Continue'}
                 {!canContinue && latest && (
                   <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginTop: '2px' }}>
@@ -142,6 +166,11 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             <button onClick={() => setView('LOAD')} style={menuBtn('#334155', '#fff')}>
               📂 Load Game
             </button>
+            {account.user && account.options.cloudSaves ? (
+              <div style={{ textAlign: 'center', fontSize: '12px', color: '#86EFAC' }}>☁️ Saves sync to your account</div>
+            ) : (
+              signInAvailable(account.options) && <div style={{ textAlign: 'center', fontSize: '12px', color: '#94A3B8' }}>Sign in to keep your saves on every device</div>
+            )}
             <MusicTapHint />
           </div>
         )}
@@ -335,6 +364,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
                     <div style={{ fontWeight: 'bold', color: '#0F172A' }}>
                       {save.teamName}
                       {save.isAutosave && <span style={badge('#FEF3C7', '#92400E')}>Autosave</span>}
+                      {save.inCloud && <span style={badge('#DCFCE7', '#166534')}>{save.cloudNewer ? '☁️ Cloud' : '☁️ Synced'}</span>}
                       {save.difficulty && <span style={badge('#EEF2FF', '#3730A3')}>{save.difficulty.charAt(0) + save.difficulty.slice(1).toLowerCase()}</span>}
                     </div>
                     <div style={{ fontSize: '12px', color: '#64748B' }}>
@@ -354,7 +384,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
                       </>
                     ) : (
                       <>
-                        <button onClick={() => load(save.id)} disabled={busy} style={smallBtn('#2563EB', '#fff')}>
+                        <button onClick={() => load(save)} disabled={busy} style={smallBtn('#2563EB', '#fff')}>
                           Load
                         </button>
                         <button onClick={() => setConfirmDelete(save.id)} disabled={busy} style={smallBtn('#E2E8F0', '#B91C1C')} aria-label={`Delete save for ${save.teamName}`}>
@@ -369,8 +399,18 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             <BackButton onClick={() => setView('MENU')} />
           </div>
         )}
+        <nav className="title-links" aria-label="Policies">
+          <a href="/privacy" target="_blank" rel="noopener">
+            Privacy
+          </a>{' '}
+          ·{' '}
+          <a href="/terms" target="_blank" rel="noopener">
+            Terms
+          </a>{' '}
+          · <button onClick={reopenCookieBanner}>Cookies</button>
+        </nav>
         {/* The build the coach is playing (package.json), for bug reports */}
-        <div style={{ textAlign: 'center', marginTop: '28px', color: '#64748B', fontSize: '12px' }}>Version {version}</div>
+        <div style={{ textAlign: 'center', marginTop: '8px', color: '#64748B', fontSize: '12px' }}>Version {version}</div>
       </div>
     </div>
   );
@@ -385,6 +425,7 @@ const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
 );
 
 const pageStyle: React.CSSProperties = {
+  position: 'relative', // the account pill sits in its top corner
   minHeight: '100%',
   boxSizing: 'border-box',
   background: 'radial-gradient(circle at top, #1E3A5F 0%, #0F172A 60%)',

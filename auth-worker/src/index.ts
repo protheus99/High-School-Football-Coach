@@ -1,4 +1,5 @@
 import { fromBase64Url, hmacSha256Base64Url, pkceChallenge, randomToken, safeEqual, sha256Hex } from './crypto';
+import { safeReturn } from './paths';
 import { authorizeUrl, configured, EmailEnv, fetchProfile, Provider, ProviderEnv, PROVIDERS, sendSignInEmail } from './providers';
 
 // ---------------------------------------------------------------------------
@@ -13,6 +14,11 @@ import { authorizeUrl, configured, EmailEnv, fetchProfile, Provider, ProviderEnv
 //   POST /api/auth/delete                      deletes the account and everything stored with it
 //   POST /api/auth/facebook/delete             Facebook's data deletion callback (signed by Facebook)
 //   GET  /api/auth/facebook/deletion?code=     the deletion status page Facebook links to
+//   GET  /api/auth/saves                       the signed-in player's cloud saves (the load screen's lines)
+//   GET  /api/auth/saves/<slot>                one save file (gzip)
+//   PUT  /api/auth/saves/<slot>                stores a save (gzip body; its summary in X-Save-Summary)
+//   DELETE /api/auth/saves/<slot>              removes one
+// The Workers runtime treats every export of this file as an entry point: only the handler (and types) are exported.
 // Sessions live in an HttpOnly cookie; only SHA-256 hashes of tokens are stored. Accounts with the same verified
 // email are one player, whichever way they sign in. Sign-in is optional: the game plays without it.
 // ---------------------------------------------------------------------------
@@ -29,19 +35,31 @@ interface D1PreparedStatement {
 interface D1Database {
   prepare(query: string): D1PreparedStatement;
 }
+interface R2ObjectBody {
+  arrayBuffer(): Promise<ArrayBuffer>;
+}
+interface R2Bucket {
+  put(key: string, value: ArrayBuffer, options?: { httpMetadata?: { contentType?: string } }): Promise<unknown>;
+  get(key: string): Promise<R2ObjectBody | null>;
+  delete(keys: string | string[]): Promise<void>;
+}
 
 export interface Env extends ProviderEnv, EmailEnv {
   DB: D1Database;
+  SAVES?: R2Bucket; // cloud saves (off without the bucket)
   ALLOWED_ORIGINS: string; // the game's site, comma-separated (POSTs must come from one of them)
 }
 
-export const SESSION_COOKIE = 'fc_session';
+const SESSION_COOKIE = 'fc_session';
 const OAUTH_COOKIE = 'fc_oauth';
 const SESSION_DAYS = 30;
 const EMAIL_LINK_MINUTES = 15;
 const OAUTH_MINUTES = 10;
 const EMAIL_LIMIT = 3; // sign-in emails per address per 10 minutes
 const MAX_BODY_BYTES = 2048;
+const MAX_SAVE_BYTES = 8 * 1024 * 1024; // a compressed save is ~2 MB
+const MAX_SAVE_SLOTS = 10;
+const SLOT_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 const DAY = 24 * 60 * 60 * 1000;
 
 interface UserRow {
@@ -59,15 +77,10 @@ const allowedOrigins = (env: Env) => env.ALLOWED_ORIGINS.split(',').map((o) => o
 function corsHeaders(request: Request, env: Env): Record<string, string> {
   const origin = request.headers.get('Origin') ?? '';
   return allowedOrigins(env).includes(origin)
-    ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', Vary: 'Origin' }
+    ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Save-Summary', Vary: 'Origin' }
     : { Vary: 'Origin' };
 }
 
-/** Only a path on the game's own site (no other sites: "//evil.example" is refused). */
-export function safeReturn(value: string | null | undefined): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\') || value.length > 200) return '/';
-  return value;
-}
 
 /** The game page to land on, with how the sign-in went (?signin=ok|failed|unavailable). */
 function landing(env: Env, returnTo: string, result: string): string {
@@ -126,7 +139,7 @@ async function userJson(env: Env, user: UserRow) {
  * The player behind a sign-in: the same provider account as before, else the player with the same verified email
  * (one player, several ways in), else a new player. Ticking "game news" opts in; it never opts anyone out.
  */
-export async function findOrCreateUser(env: Env, provider: Provider | 'email', providerId: string, email: string | null, name: string | null, marketing: boolean): Promise<string> {
+async function findOrCreateUser(env: Env, provider: Provider | 'email', providerId: string, email: string | null, name: string | null, marketing: boolean): Promise<string> {
   const now = Date.now();
   const identity = await env.DB.prepare('SELECT user_id FROM identities WHERE provider = ? AND provider_id = ?').bind(provider, providerId).first<{ user_id: string }>();
   let userId = identity?.user_id ?? null;
@@ -156,6 +169,9 @@ async function startSession(env: Env, userId: string): Promise<string> {
 }
 
 async function deleteUser(env: Env, userId: string): Promise<void> {
+  const { results } = await env.DB.prepare('SELECT slot_id FROM saves WHERE user_id = ?').bind(userId).all<{ slot_id: string }>();
+  if (env.SAVES && results.length) await env.SAVES.delete(results.map((r) => saveKey(userId, r.slot_id)));
+  await env.DB.prepare('DELETE FROM saves WHERE user_id = ?').bind(userId).run();
   await env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(userId).run();
   await env.DB.prepare('DELETE FROM identities WHERE user_id = ?').bind(userId).run();
   await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
@@ -237,6 +253,56 @@ async function verifyEmailLink(url: URL, env: Env): Promise<Response> {
   return redirect(landing(env, row.return_to, 'ok'), [await startSession(env, userId)]);
 }
 
+// --- Cloud saves --------------------------------------------------------------
+
+const saveKey = (userId: string, slot: string) => `saves/${userId}/${slot}`;
+
+async function listSaves(env: Env, user: UserRow, cors: Record<string, string>): Promise<Response> {
+  const { results } = await env.DB.prepare('SELECT slot_id, summary, size, updated_at FROM saves WHERE user_id = ? ORDER BY updated_at DESC')
+    .bind(user.id)
+    .all<{ slot_id: string; summary: string; size: number; updated_at: number }>();
+  return json({ saves: results.map((r) => ({ ...(JSON.parse(r.summary) as object), id: r.slot_id, size: r.size, updatedAt: r.updated_at })) }, 200, cors);
+}
+
+async function getSave(env: Env, user: UserRow, slot: string, cors: Record<string, string>): Promise<Response> {
+  const file = await env.SAVES!.get(saveKey(user.id, slot));
+  if (!file) return json({ error: 'Not found' }, 404, cors);
+  return new Response(await file.arrayBuffer(), { status: 200, headers: { ...cors, 'Content-Type': 'application/gzip', 'Cache-Control': 'no-store' } });
+}
+
+async function putSave(request: Request, env: Env, user: UserRow, slot: string, cors: Record<string, string>): Promise<Response> {
+  if (Number(request.headers.get('Content-Length') ?? 0) > MAX_SAVE_BYTES) return json({ error: 'Save too large' }, 413, cors);
+  let summary: unknown;
+  try {
+    summary = JSON.parse(decodeURIComponent(request.headers.get('X-Save-Summary') ?? ''));
+  } catch {
+    return json({ error: 'Bad summary' }, 400, cors);
+  }
+  const summaryText = JSON.stringify(summary);
+  if (!summary || typeof summary !== 'object' || Array.isArray(summary) || summaryText.length > 2048) return json({ error: 'Bad summary' }, 400, cors);
+  const body = await request.arrayBuffer();
+  if (body.byteLength === 0 || body.byteLength > MAX_SAVE_BYTES) return json({ error: 'Bad save' }, 413, cors);
+  const existing = await env.DB.prepare('SELECT slot_id FROM saves WHERE user_id = ? AND slot_id = ?').bind(user.id, slot).first();
+  if (!existing) {
+    const count = await env.DB.prepare('SELECT COUNT(*) AS n FROM saves WHERE user_id = ?').bind(user.id).first<{ n: number }>();
+    if ((count?.n ?? 0) >= MAX_SAVE_SLOTS) return json({ error: `Up to ${MAX_SAVE_SLOTS} cloud saves. Delete one first.` }, 409, cors);
+  }
+  await env.SAVES!.put(saveKey(user.id, slot), body, { httpMetadata: { contentType: 'application/gzip' } });
+  const now = Date.now();
+  await env.DB.prepare(
+    'INSERT INTO saves (user_id, slot_id, summary, size, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(user_id, slot_id) DO UPDATE SET summary = excluded.summary, size = excluded.size, updated_at = excluded.updated_at'
+  )
+    .bind(user.id, slot, summaryText, body.byteLength, now)
+    .run();
+  return json({ ok: true, updatedAt: now }, 200, cors);
+}
+
+async function deleteSave(env: Env, user: UserRow, slot: string, cors: Record<string, string>): Promise<Response> {
+  await env.SAVES!.delete(saveKey(user.id, slot));
+  await env.DB.prepare('DELETE FROM saves WHERE user_id = ? AND slot_id = ?').bind(user.id, slot).run();
+  return json({ ok: true }, 200, cors);
+}
+
 // --- Facebook data deletion ---------------------------------------------------
 
 /** Facebook's data deletion callback: verify the signed request, delete the player, answer with a status link. */
@@ -285,7 +351,7 @@ export default {
           return json(
             {
               user: user ? await userJson(env, user) : null,
-              options: { google: configured(env, 'google'), facebook: configured(env, 'facebook'), email: !!env.RESEND_API_KEY }
+              options: { google: configured(env, 'google'), facebook: configured(env, 'facebook'), email: !!env.RESEND_API_KEY, cloudSaves: !!env.SAVES }
             },
             200,
             cors
@@ -295,6 +361,20 @@ export default {
         if (provider && path.startsWith('/callback/')) return await finishSignIn(request, url, env, provider);
         if (path === '/email/verify') return await verifyEmailLink(url, env);
         if (path === '/facebook/deletion') return await deletionStatus(url, env);
+      }
+      // Cloud saves: the signed-in player's own, from the game's pages
+      const saveMatch = path.match(/^\/saves(?:\/([^/]+))?$/);
+      if (saveMatch) {
+        if (!env.SAVES) return json({ error: 'Cloud saves are off' }, 503, cors);
+        if (request.method !== 'GET' && !allowedOrigins(env).includes(request.headers.get('Origin') ?? '')) return json({ error: 'Forbidden' }, 403, cors);
+        const user = await currentUser(request, env);
+        if (!user) return json({ error: 'Not signed in' }, 401, cors);
+        const slot = saveMatch[1];
+        if (!slot) return request.method === 'GET' ? await listSaves(env, user, cors) : json({ error: 'Not found' }, 404, cors);
+        if (!SLOT_PATTERN.test(slot)) return json({ error: 'Bad slot' }, 400, cors);
+        if (request.method === 'GET') return await getSave(env, user, slot, cors);
+        if (request.method === 'PUT') return await putSave(request, env, user, slot, cors);
+        if (request.method === 'DELETE') return await deleteSave(env, user, slot, cors);
       }
       if (request.method === 'POST') {
         // Facebook calls this one from its servers, signed with the app secret

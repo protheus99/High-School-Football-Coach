@@ -124,11 +124,18 @@ export const db = new GameDatabase();
 // Saves are written one at a time, in call order, so a slow earlier autosave never lands after a newer one
 let writeQueue: Promise<void> = Promise.resolve();
 
+/** Told about every save written on this device (cloud saves upload a copy when the player is signed in). */
+type SaveListener = (summary: SaveSummary, payload: Uint8Array) => void;
+let saveListener: SaveListener | null = null;
+export const setSaveListener = (listener: SaveListener | null) => {
+  saveListener = listener;
+};
+
 /**
  * Saves the game to local IndexedDB, gzip-compressed when the browser supports it (~2 MB instead of ~23 MB).
  * The record is snapshotted immediately, since the game keeps mutating its objects after this call.
  */
-export function persistSaveGame(record: GameSaveRecord): Promise<void> {
+export function persistSaveGame(record: GameSaveRecord, options: { fromCloud?: boolean } = {}): Promise<void> {
   const json = JSON.stringify(record);
   const summary = summarizeSave(record);
   const write = async () => {
@@ -147,6 +154,8 @@ export function persistSaveGame(record: GameSaveRecord): Promise<void> {
       await db.saves.put(row);
       await db.summaries.put(summary);
     });
+    // A copy downloaded from the cloud is already there
+    if (!options.fromCloud && isCompressed(row)) saveListener?.(summary, row.payload);
   };
   const result = writeQueue.then(write);
   writeQueue = result.catch(() => undefined);
@@ -173,6 +182,19 @@ export async function loadSaveGame(id = 'current_save'): Promise<GameSaveRecord 
   const row = await db.saves.get(id);
   if (!row) return undefined;
   return isCompressed(row) ? (JSON.parse(await decompressText(row.payload)) as GameSaveRecord) : row;
+}
+
+/** A stored save as its summary and gzip bytes (for uploading), or null. */
+export async function readSaveForUpload(id: string): Promise<{ summary: SaveSummary; payload: Uint8Array } | null> {
+  await writeQueue;
+  const [row, summary] = await Promise.all([db.saves.get(id), db.summaries.get(id)]);
+  if (!row || !summary || !canCompressSaves()) return null;
+  return { summary, payload: isCompressed(row) ? row.payload : await compressText(JSON.stringify(row)) };
+}
+
+/** A save downloaded from the cloud (gzip bytes) as a record. */
+export async function decodeCloudSave(bytes: Uint8Array): Promise<GameSaveRecord> {
+  return JSON.parse(await decompressText(bytes)) as GameSaveRecord;
 }
 
 /**
