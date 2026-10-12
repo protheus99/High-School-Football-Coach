@@ -30,7 +30,7 @@
 		// The game's pages that may call the API (POSTs from anywhere else are refused)
 		"ALLOWED_ORIGINS": "https://footballcoachgame.com,https://www.footballcoachgame.com,http://localhost:3000",
 		// Public ids (not secrets). An empty one turns that sign-in option off.
-		"GOOGLE_CLIENT_ID": "",
+		"GOOGLE_CLIENT_ID": "258872076396-bd8oirb491rkdpa1hvdhv9i7m0i2vudt.apps.googleusercontent.com",
 		"FACEBOOK_APP_ID": "",
 		"FACEBOOK_GRAPH_VERSION": "v23.0",
 		"EMAIL_FROM": "Football Coach <signin@footballcoachgame.com>"
