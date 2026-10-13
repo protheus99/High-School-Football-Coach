@@ -1,9 +1,10 @@
 import { Career, careerNationalTitles, careerPoints, careerTitles } from '../sim/careerScore';
+import { accountState } from './account';
 
 // ---------------------------------------------------------------------------
 // The Hall of Fame: one board per career length (3, 5 and 10 years), every program on it. Every career on this
-// device is kept locally; on the live game (or with VITE_LEADERBOARD_URL set), each completed season is also
-// submitted to the server and its boards are shown alongside, so coaches on different devices compete together.
+// device is kept locally; on the live game (or with VITE_LEADERBOARD_URL set), a signed-in player's completed seasons
+// are also submitted to the server and its boards are shown alongside, so coaches on different devices compete together.
 // ---------------------------------------------------------------------------
 
 const STORAGE_KEY = 'hsfhc_careers_v1';
@@ -92,11 +93,13 @@ export function localLeaderboard(length?: Career['length']): LeaderboardEntry[] 
 const REMOTE_URL: string | undefined = import.meta.env.VITE_LEADERBOARD_URL ?? (import.meta.env.PROD ? 'https://hsfhc-leaderboard.protheus99.workers.dev' : undefined);
 export const hasRemoteLeaderboard = () => !!REMOTE_URL;
 
+// Posting needs a signed-in player: it goes through the game's own domain (/api/hof), where the sign-in cookie is sent.
+// Signed out, careers stay on this device.
 async function submitRemote(career: Career): Promise<void> {
-  if (!REMOTE_URL || !career.token || career.seasons.length === 0) return;
+  if (!REMOTE_URL || !career.token || career.seasons.length === 0 || !accountState().user) return;
   try {
     const entry = { ...toEntry(career), isLocal: undefined, updatedAt: undefined, token: career.token };
-    await fetch(`${REMOTE_URL}/careers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) });
+    await fetch('/api/hof/careers', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) });
   } catch {
     // Offline: the next season's submission carries the whole career
   }

@@ -4,6 +4,9 @@
   "name": "hsfhc-leaderboard",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
+  // Posts come through the game's own domain, where the sign-in cookie is sent (a route there takes priority over
+  // the static site); the board can still be read at the worker's own address
+  "routes": [{ "pattern": "footballcoachgame.com/api/hof/*", "zone_name": "footballcoachgame.com" }],
   "d1_databases": [
     {
       "binding": "DB",
@@ -11,6 +14,12 @@
       // Paste the id printed by `npx wrangler d1 create hsfhc-leaderboard`
       "database_id": "207adbc5-935d-452f-8823-dd4d2f3e33de",
       "migrations_dir": "migrations"
+    },
+    {
+      // The sign-in server's database (auth-worker/): only its sessions are read, to know who is posting
+      "binding": "AUTH_DB",
+      "database_name": "hsfhc-auth",
+      "database_id": "51c9ea67-49af-4389-8fcc-6ec8528ada03"
     }
   ],
   "vars": {

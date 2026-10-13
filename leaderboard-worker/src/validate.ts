@@ -1,4 +1,4 @@
-import { SCENARIOS } from '../../src/data/scenarios';
+import { SCENARIOS, scenarioById, ScenarioId } from '../../src/data/scenarios';
 import { dataPrestige } from '../../src/data/stateWorlds';
 
 // ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ export const prestigeMultiplier = (startingPrestige: number) => 1 + (99 - starti
 export const LENGTHS = [3, 5, 10];
 const MAX_REGULAR_GAMES = 10; // weeks 8-17, the out-of-state game included
 const MAX_PLAYOFF_GAMES = 6; // Ohio's six rounds are the most
-const MAX_SIGNEES = 40; // seniors signing with colleges in one season (far above what the game produces)
+const MAX_SIGNEES = 25; // seniors signing with colleges in one season (a whole senior class, above what the game produces)
 
 export interface Submission {
   careerId: string;
@@ -42,6 +42,16 @@ export interface Submission {
 const PROGRAMS = new Map<string, string>(SCENARIOS.flatMap((s) => s.programs.map((p) => [`${s.id}|${p.state}|${p.school}`, p.displayName] as const)));
 
 const isCount = (n: unknown, max: number): n is number => typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= max;
+
+/**
+ * The starting prestige a coach's first contract at this program has: the scenario's rule applied to the school's
+ * prestige in the state's data (Reclaim caps it at 72, Powerhouse lifts it to 96, Your Pick keeps it). Extensions
+ * and new jobs start at the program's prestige at the time, which only a coach with a finished career can have.
+ */
+export function firstContractPrestige(scenario: string, state: string, school: string): number | undefined {
+  const data = dataPrestige(state, school);
+  return data === undefined ? undefined : scenarioById(scenario as ScenarioId).startingPrestige(data);
+}
 
 /** Letters, digits, spaces and simple punctuation; 1-24 characters. */
 export function cleanName(name: unknown): string | null {
