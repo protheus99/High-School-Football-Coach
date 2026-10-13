@@ -5,6 +5,8 @@ import { hasRemoteLeaderboard, LeaderboardEntry } from '../services/leaderboard'
 import { ordinal, stateAbbreviation } from '../utils/format';
 import { useHallOfFame } from '../utils/useHallOfFame';
 import { StatePennant, UsFlag } from './ui/TitleMarks';
+import { signInAvailable, useAccount } from '../services/account';
+import { SignInSheet } from './AccountPanels';
 
 const SCORING: [string, string][] = [
   ['Win', `${CAREER_POINTS.win}`],
@@ -38,6 +40,10 @@ export const TitleCounts: React.FC<{ state: string; titles: number; nationalTitl
 export const HallOfFameBoard: React.FC = () => {
   const career = useGameStore((s) => s.career);
   const [length, setLength] = useState<CareerLength>(career?.length ?? 3);
+  const account = useAccount();
+  const [signingIn, setSigningIn] = useState(false);
+  // Signed out, careers stay on this device: they post to the Hall of Fame only for a signed-in player
+  const deviceOnly = hasRemoteLeaderboard() && !account.user;
   const board = useHallOfFame(length, career);
 
   return (
@@ -117,7 +123,7 @@ export const HallOfFameBoard: React.FC = () => {
         ) : (
           <div>
             {board.map((e, i) => (
-              <BoardRow key={e.careerId} entry={e} rank={i + 1} mine={e.careerId === career?.id} />
+              <BoardRow key={e.careerId} entry={e} rank={i + 1} mine={e.careerId === career?.id} deviceOnly={deviceOnly && e.careerId === career?.id} />
             ))}
           </div>
         )}
@@ -135,11 +141,25 @@ export const HallOfFameBoard: React.FC = () => {
           Showing careers played on this device.
         </p>
       )}
+      {signingIn && <SignInSheet onClose={() => setSigningIn(false)} />}
+      {deviceOnly && signInAvailable(account.options) && (
+        <div style={{ marginTop: '10px', background: '#EFF6FF', border: '1px solid #93C5FD', borderLeft: '5px solid #2563EB', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', color: '#1E3A8A', lineHeight: 1.45 }}>
+          Your careers count only on this device. Sign in to put them on the Hall of Fame for everyone. Careers count from their first season, so sign in before you start one.
+          <button className="ui-btn ui-btn-block" style={{ marginTop: '8px', background: '#2563EB', borderColor: '#2563EB', color: '#fff' }} onClick={() => setSigningIn(true)}>
+            Sign in
+          </button>
+        </div>
+      )}
+      {hasRemoteLeaderboard() && account.user && (
+        <div style={{ marginTop: '10px', background: '#F0FDF4', border: '1px solid #86EFAC', borderLeft: '5px solid #16A34A', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', color: '#166534' }}>
+          Your careers post to the Hall of Fame under your account.
+        </div>
+      )}
     </div>
   );
 };
 
-const BoardRow: React.FC<{ entry: LeaderboardEntry; rank: number; mine: boolean }> = ({ entry: e, rank, mine }) => (
+const BoardRow: React.FC<{ entry: LeaderboardEntry; rank: number; mine: boolean; deviceOnly?: boolean }> = ({ entry: e, rank, mine, deviceOnly }) => (
   <div
     style={{
       display: 'grid',
@@ -158,6 +178,7 @@ const BoardRow: React.FC<{ entry: LeaderboardEntry; rank: number; mine: boolean 
       <span style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#94A3B8', fontSize: '11px' }}>
         {e.startingProgram} · {stateAbbreviation(e.state)}
         {e.seasons < e.length ? ` · ${e.seasons} of ${e.length}` : ''}
+        {deviceOnly ? ' · this device only' : ''}
       </span>
     </span>
     <TitleCounts state={e.state} titles={e.titles} nationalTitles={e.nationalTitles} />

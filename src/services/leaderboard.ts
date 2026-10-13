@@ -90,7 +90,8 @@ export function localLeaderboard(length?: Career['length']): LeaderboardEntry[] 
 
 // The live game ranks careers on the Hall of Fame server (leaderboard-worker/); the dev server keeps them on the
 // device unless VITE_LEADERBOARD_URL points somewhere
-const REMOTE_URL: string | undefined = import.meta.env.VITE_LEADERBOARD_URL ?? (import.meta.env.PROD ? 'https://hsfhc-leaderboard.protheus99.workers.dev' : undefined);
+// (the live game reads it through its own domain, /api/hof, the same place it posts)
+const REMOTE_URL: string | undefined = import.meta.env.VITE_LEADERBOARD_URL ?? (import.meta.env.PROD ? '/api/hof' : undefined);
 export const hasRemoteLeaderboard = () => !!REMOTE_URL;
 
 // Posting needs a signed-in player: it goes through the game's own domain (/api/hof), where the sign-in cookie is sent.

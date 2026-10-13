@@ -7,6 +7,8 @@
   // Posts come through the game's own domain, where the sign-in cookie is sent (a route there takes priority over
   // the static site); the board can still be read at the worker's own address
   "routes": [{ "pattern": "footballcoachgame.com/api/hof/*", "zone_name": "footballcoachgame.com" }],
+  // Keep the worker's own address too (wrangler turns it off when routes are set): older game versions read it
+  "workers_dev": true,
   "d1_databases": [
     {
       "binding": "DB",
