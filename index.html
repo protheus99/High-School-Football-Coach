@@ -4,15 +4,85 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#0F172A" />
-    <meta name="description" content="Football Coach High School Edition. Build a high school football program into a dynasty. Every dynasty starts on a Friday night." />
+    <title>Football Coach High School Football Sim</title>
+    <meta name="description" content="High school football coaching sim you play in your browser. Take over a program in one of 12 states, recruit, develop players, call plays and chase a state and national title." />
+    <!-- Link previews (Facebook, iMessage, Discord, X and others): the share card's title, words and picture -->
+    <link rel="canonical" href="https://footballcoachgame.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Football Coach High School Edition" />
+    <meta property="og:url" content="https://footballcoachgame.com/" />
+    <meta property="og:title" content="Football Coach High School Football Sim" />
+    <meta property="og:description" content="High school football coaching sim you play in your browser. Take over a program in one of 12 states, recruit, develop players, call plays and chase a state and national title." />
+    <meta property="og:image" content="https://footballcoachgame.com/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The Football Coach High School Edition logo under stadium lights, above a football field" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- What this is, for search engines (schema.org): the site, the game and who publishes it -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://footballcoachgame.com/#website",
+            "url": "https://footballcoachgame.com/",
+            "name": "Football Coach High School Edition",
+            "alternateName": "Football Coach",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://footballcoachgame.com/#publisher" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://footballcoachgame.com/#publisher",
+            "name": "Facada Inc",
+            "url": "https://footballcoachgame.com/",
+            "logo": "https://footballcoachgame.com/icons/icon-512.png",
+            "email": "privacy@footballcoachgame.com"
+          },
+          {
+            "@type": "VideoGame",
+            "@id": "https://footballcoachgame.com/#game",
+            "name": "Football Coach High School Edition",
+            "alternateName": "Football Coach",
+            "url": "https://footballcoachgame.com/",
+            "description": "High school football coaching sim you play in your browser. Take over a program in one of 12 states, recruit, develop players, call plays and chase a state and national title.",
+            "image": "https://footballcoachgame.com/og-image.jpg",
+            "genre": ["Sports", "Simulation"],
+            "gamePlatform": "Web browser",
+            "applicationCategory": "GameApplication",
+            "operatingSystem": "Any",
+            "playMode": "SinglePlayer",
+            "inLanguage": "en",
+            "isAccessibleForFree": true,
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+            "publisher": { "@id": "https://footballcoachgame.com/#publisher" }
+          }
+        ]
+      }
+    </script>
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <title>Football Coach High School Edition</title>
   </head>
   <body style="margin: 0; padding: 0; background-color: #F8FAFC; -webkit-font-smoothing: antialiased;">
-    <div id="root"></div>
+    <div id="root">
+      <!-- What the page says before the game loads (and to search engines that don't run it): the title screen's own
+           words. The game replaces all of this as soon as it starts. -->
+      <main style="min-height: 100vh; box-sizing: border-box; padding: 48px 16px; text-align: center; color: #E2E8F0; font-family: sans-serif; background: radial-gradient(circle at top, #1e3a5f 0%, #0f172a 60%)">
+        <h1 style="margin: 0 auto; max-width: 420px"><img src="/logo/football-coach-logo.webp" alt="Football Coach High School Edition" width="840" height="459" style="width: 100%; height: auto" /></h1>
+        <p style="margin: 8px 0 0; color: #94a3b8; font-style: italic">Every dynasty starts on a Friday night.</p>
+        <p style="margin: 12px auto 0; max-width: 320px; line-height: 1.45">The high school football coaching sim. Take over a program and build it into a dynasty. Can you win a national title?</p>
+        <ul style="list-style: none; padding: 0; margin: 14px 0 0; line-height: 1.8">
+          <li>🏈 Call the plays</li>
+          <li>🎓 Recruit and develop</li>
+          <li>🏆 Chase state titles</li>
+        </ul>
+        <p style="margin-top: 24px; color: #94a3b8">Loading the game…</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

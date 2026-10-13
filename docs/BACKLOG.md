@@ -16,7 +16,9 @@ Work that's decided but parked. Newest first.
 
 ## Title screen backgrounds
 
-- **Status:** shelved (added 2026-10-13, before 1.15).
+- **Status:** shelved (added 2026-10-13, before 1.15). Tested on 2026-10-13 with a sunset scene (a coach from
+  behind, stadium lights): the plain title screen worked better, so it stays off. Try again only with a
+  different kind of picture.
 - **What it is:** a random full-screen scene behind the title screen, a portrait image for phones and a landscape
   one for wider screens, never the same one twice in a row. The scenes are listed in `public/cover/covers.json`.
 - **Where the code is:** the git stash "Title screen random cover backgrounds (shelved)", made on `v1.14`. It holds

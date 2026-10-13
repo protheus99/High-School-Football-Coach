@@ -1026,6 +1026,34 @@ h3 {
   height: auto;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
 }
+/* The title screen's one-line pitch and what-you-do chips, under the tagline */
+.title-pitch {
+  margin: 10px auto 0;
+  max-width: 330px;
+  color: #e2e8f0;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.title-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.title-chips li {
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 2px 6px rgba(2, 6, 23, 0.35);
+}
+
 .title-logo-compact {
   width: 56%;
   max-width: 260px;

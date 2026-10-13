@@ -142,7 +142,18 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
           <h1 className={view === 'MENU' ? 'title-logo' : 'title-logo title-logo-compact'}>
             <img src={assetUrl('logo/football-coach-logo.webp')} alt="Football Coach High School Edition" width={840} height={459} />
           </h1>
-          {view === 'MENU' && <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: '15px', fontStyle: 'italic' }}>Every dynasty starts on a Friday night.</p>}
+          {view === 'MENU' && (
+            <>
+              <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: '15px', fontStyle: 'italic' }}>Every dynasty starts on a Friday night.</p>
+              {/* What the game is, for anyone arriving from a link (the same words are in index.html for search engines) */}
+              <p className="title-pitch">The high school football coaching sim. Take over a program and build it into a dynasty. Can you win a national title?</p>
+              <ul className="title-chips" aria-label="What you do">
+                <li>🏈 Call the plays</li>
+                <li>🎓 Recruit and develop</li>
+                <li>🏆 Chase state titles</li>
+              </ul>
+            </>
+          )}
         </div>
 
         {view === 'MENU' && <SignInResult />}
