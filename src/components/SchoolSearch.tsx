@@ -48,7 +48,7 @@ export const SchoolSearch: React.FC<{ state: string; selected: string | null; on
       {typed && results.length === 0 && (
         <div style={hint}>
           No school matches &quot;<b style={{ color: '#F8FAFC' }}>{query.trim()}</b>&quot;. Not all schools are represented,{' '}
-          <a href="mailto:privacy@footballcoachgame.com?subject=School%20suggestion" style={{ color: '#93C5FD' }}>
+          <a href="mailto:suggestions@footballcoachgame.com?subject=School%20suggestion" style={{ color: '#93C5FD' }}>
             contact us
           </a>{' '}
           to recommend new schools.
