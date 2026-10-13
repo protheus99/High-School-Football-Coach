@@ -214,7 +214,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               </span>
               <span style={{ minWidth: 0 }}>
                 <b style={{ display: 'block', fontSize: '15px' }}>Pick any program</b>
-                <span style={{ fontSize: '12px', color: '#CBD5E1' }}>Search every {state} school and choose your own</span>
+                <span style={{ fontSize: '12px', color: '#CBD5E1' }}>Search for a program in {state} and see if you can take it to the title.</span>
               </span>
               <span aria-hidden="true" style={{ marginLeft: 'auto', color: '#93C5FD', fontWeight: 800 }}>
                 {anyProgram ? '▾' : '›'}

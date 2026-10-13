@@ -47,7 +47,11 @@ export const SchoolSearch: React.FC<{ state: string; selected: string | null; on
       {!typed && <div style={hint}>Type at least {SEARCH_MIN_LETTERS} letters of a school&apos;s name to search.</div>}
       {typed && results.length === 0 && (
         <div style={hint}>
-          No school matches &quot;<b style={{ color: '#F8FAFC' }}>{query.trim()}</b>&quot;. Check the spelling, or try part of the name.
+          No school matches &quot;<b style={{ color: '#F8FAFC' }}>{query.trim()}</b>&quot;. Not all schools are represented,{' '}
+          <a href="mailto:privacy@footballcoachgame.com?subject=School%20suggestion" style={{ color: '#93C5FD' }}>
+            contact us
+          </a>{' '}
+          to recommend new schools.
         </div>
       )}
       {typed && results.length > 0 && (
