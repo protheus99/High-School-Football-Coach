@@ -5,7 +5,7 @@ export function registerPWA(): void {
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('/sw.js')
+        .register(`${import.meta.env.BASE_URL}sw.js`)
         .then((registration) => {
           console.log('HSFHC ServiceWorker registered with scope: ', registration.scope);
         })

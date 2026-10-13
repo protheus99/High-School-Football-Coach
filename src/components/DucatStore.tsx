@@ -4,6 +4,7 @@ import { SignInSheet } from './AccountPanels';
 import { DUCAT_PACKS, DucatPackId, formatDucats } from '../data/ducats';
 import { useAccount } from '../services/account';
 import { buyDucats, CheckoutPhase, clearCheckout, refreshDucats, useDucats } from '../services/ducats';
+import { sitePage } from '../utils/site';
 
 // The ducat store (packs, bought through Stripe), the balance card on the Staff screen, and the sheet that says how
 // a checkout went when the player comes back from Stripe.
@@ -177,7 +178,7 @@ export const DucatStoreSheet: React.FC<{ onClose: () => void; onSignIn: () => vo
         US cards only. Under 18? Ask a parent before you buy.
         <br />
         Checkout is by Stripe; the game never sees your card. Unspent ducats can be refunded within 14 days (
-        <a href="/terms#ducats" target="_blank" rel="noreferrer">
+        <a href={sitePage('/terms#ducats')} target="_blank" rel="noreferrer">
           terms
         </a>
         ).

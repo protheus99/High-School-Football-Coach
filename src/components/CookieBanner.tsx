@@ -1,5 +1,6 @@
 import React, { useSyncExternalStore } from 'react';
 import { cookieBannerOpen, setCookieChoice, subscribeConsent } from '../services/consent';
+import { sitePage } from '../utils/site';
 
 /** The first-visit cookie question: sign-in only, or analytics too. Two equal buttons; nothing loads before an answer. */
 export const CookieBanner: React.FC = () => {
@@ -10,7 +11,7 @@ export const CookieBanner: React.FC = () => {
       <b>Cookies</b>
       <p>
         We use one cookie to keep you signed in. With your OK we also use Google Analytics to see how the game is played.{' '}
-        <a href="/privacy" target="_blank" rel="noopener">
+        <a href={sitePage('/privacy')} target="_blank" rel="noopener">
           Cookie details
         </a>
       </p>

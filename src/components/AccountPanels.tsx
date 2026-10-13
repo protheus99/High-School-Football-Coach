@@ -3,6 +3,7 @@ import { Sheet } from './ui/Sheet';
 import { useGameStore } from '../store/gameStore';
 import { clearSignInResult, deleteAccount, sendSignInLink, setMarketing, signInAvailable, signInWith, signOut, useAccount } from '../services/account';
 import { cookieChoice, reopenCookieBanner, subscribeConsent } from '../services/consent';
+import { sitePage } from '../utils/site';
 
 const PROVIDER_NAMES: Record<string, string> = { google: 'Google', facebook: 'Facebook', email: 'email link' };
 
@@ -108,11 +109,11 @@ export const SignInSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       </label>
       <p style={{ fontSize: '12px', color: '#64748B', margin: '12px 0 0', lineHeight: 1.5 }}>
         By continuing you agree to the{' '}
-        <a href="/terms" target="_blank" rel="noopener">
+        <a href={sitePage('/terms')} target="_blank" rel="noopener">
           Terms
         </a>{' '}
         and{' '}
-        <a href="/privacy" target="_blank" rel="noopener">
+        <a href={sitePage('/privacy')} target="_blank" rel="noopener">
           Privacy Policy
         </a>
         . No password: Google, Facebook or a one-time email link signs you in.
@@ -205,7 +206,7 @@ export const CookiesCard: React.FC = () => {
       <b>Cookies</b>
       <p>
         Analytics: <b>{choice === 'analytics' ? 'allowed' : choice === 'necessary' ? 'off' : 'not chosen yet'}</b> ·{' '}
-        <a href="/privacy" target="_blank" rel="noopener">
+        <a href={sitePage('/privacy')} target="_blank" rel="noopener">
           Privacy Policy
         </a>
       </p>
