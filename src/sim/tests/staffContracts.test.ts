@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { coachPrice, contractTerms, formatPrice, needsSettling, settleKind, staffWindowOpen } from '../staffContracts';
-import { generateCandidates, HiredCoach } from '../coachingStaff';
+import { coachPrice, contractTerms, formatCost, formatPrice, needsSettling, seasonCost, settled, settleKind, staffWindowOpen } from '../staffContracts';
+import { COACH_ROLES, generateCandidates, HiredCoach } from '../coachingStaff';
+import { DUCAT_PACKS, MAX_COACHES_PER_PAYMENT } from '../../data/ducats';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
 import { useGameStore } from '../../store/gameStore';
@@ -9,10 +10,25 @@ const coach = (rating: number, role: HiredCoach['role'] = 'QUARTERBACKS'): Hired
 
 describe('Staff contracts', () => {
   it('prices B and up in ducats and C+ and down in Coach Points, per season', () => {
-    expect(formatPrice(coachPrice(97))).toBe('₾20');
-    expect(formatPrice(coachPrice(72))).toBe('₾1');
+    expect(formatPrice(coachPrice(97))).toBe('₾100');
+    expect(formatPrice(coachPrice(72))).toBe('₾5');
     expect(formatPrice(coachPrice(68))).toBe('₡200');
     expect(formatPrice(coachPrice(50))).toBe('₡50');
+  });
+
+  it('adds up a staff in both currencies', () => {
+    const cost = seasonCost([coach(97), coach(87, 'RUNNING_BACKS'), coach(68, 'TIGHT_ENDS')]);
+    expect(cost).toEqual({ cp: 200, ducats: 150 });
+    expect(formatCost(cost)).toBe('₡200 + ₾150');
+    expect(formatCost({ cp: 0, ducats: 25 })).toBe('₾25');
+  });
+
+  it('sells packs with a bigger bonus for bigger packs, and one payment can cover the whole staff', () => {
+    expect(DUCAT_PACKS.map((p) => [p.cents, p.ducats])).toEqual([[300, 300], [500, 550], [1000, 1200], [2000, 2600]]);
+    DUCAT_PACKS.forEach((p) => expect(p.ducats - p.bonus).toBe(p.cents));
+    const perDollar = DUCAT_PACKS.map((p) => p.ducats / p.cents);
+    perDollar.slice(1).forEach((v, i) => expect(v).toBeGreaterThan(perDollar[i]));
+    expect(MAX_COACHES_PER_PAYMENT).toBe(COACH_ROLES.length);
   });
 
   it('opens the staff in the off-season and pre-season, and locks it at the season opener', () => {
@@ -41,7 +57,7 @@ describe('Staff through the store', () => {
     const store = useGameStore;
     store.getState().newScenarioGame('OPEN', 'Maryland', 'Quince Orchard', 'Tester', 5);
     const cp = store.getState().coachPoints;
-    expect(store.getState().hireCoach(coach(97), 1)).toMatch(/ducats/); // not on sale yet
+    expect(store.getState().hireCoach(coach(97), 1)).toMatch(/ducats/); // the account pays first
     expect(store.getState().hireCoach(coach(65, 'QUARTERBACKS'), 1)).toBeNull(); // C: 150 a season
     expect(store.getState().hireCoach(coach(57, 'RUNNING_BACKS'), 2)).toBeNull(); // D+: 100 a season
     expect(store.getState().coachPoints).toBe(cp - 150 - 100);
@@ -90,5 +106,31 @@ describe('Staff through the store', () => {
     expect(store.getState().settleStaff(['RUNNING_BACKS'], [])).toMatch(/Needs/); // can't afford the C+ coach's 200
     expect(store.getState().settleStaff([], ['RUNNING_BACKS'])).toBeNull(); // let go instead
     expect(store.getState().coachingStaff.map((c) => c.role)).toEqual(['QUARTERBACKS']);
+  });
+
+  it('hires a ducat coach once the account has paid, and never spends Coach Points on him', () => {
+    const store = useGameStore;
+    store.getState().newScenarioGame('OPEN', 'Maryland', 'Quince Orchard', 'Tester', 5);
+    const cp = store.getState().coachPoints;
+    expect(store.getState().hireCoach(coach(97), 2, true)).toBeNull();
+    expect(store.getState().coachPoints).toBe(cp);
+    expect(store.getState().coachingStaff[0]).toMatchObject({ rating: 97, contractEndSeason: 2027, paidThroughSeason: 2026 });
+  });
+
+  it('the off-season pays Coach Point coaches automatically but waits for a tap to spend ducats', () => {
+    const store = useGameStore;
+    store.getState().newScenarioGame('OPEN', 'Maryland', 'Quince Orchard', 'Tester', 5);
+    store.getState().hireCoach(coach(97), 2, true); // S+, ₾100 a season
+    store.getState().hireCoach(coach(57, 'RUNNING_BACKS'), 2); // D+, ₡100 a season
+    store.setState({ currentWeek: 24, isBanquetActive: true, coachPoints: 1000 });
+    store.getState().finishBanquet();
+    const s = store.getState();
+    expect(s.coachingStaff.find((c) => c.role === 'RUNNING_BACKS')!.paidThroughSeason).toBe(2027);
+    expect(s.coachingStaff.find((c) => c.role === 'QUARTERBACKS')!.paidThroughSeason).toBe(2026); // still due
+    const cpBefore = s.coachPoints;
+    expect(s.settleStaff(['QUARTERBACKS'], [])).toMatch(/ducats/); // not without the account's payment
+    expect(store.getState().settleStaff(['QUARTERBACKS'], [], true)).toBeNull();
+    expect(store.getState().coachPoints).toBe(cpBefore);
+    expect(store.getState().coachingStaff.find((c) => c.role === 'QUARTERBACKS')).toEqual(settled(s.coachingStaff.find((c) => c.role === 'QUARTERBACKS')!, 2026));
   });
 });

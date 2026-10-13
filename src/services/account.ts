@@ -22,6 +22,7 @@ export interface SignInOptions {
   facebook: boolean;
   email: boolean;
   cloudSaves: boolean;
+  ducats: boolean; // the ducat store is open (Stripe is set up on the server)
 }
 export type SignInResult = 'ok' | 'failed' | 'expired' | 'unavailable';
 
@@ -33,7 +34,7 @@ interface AccountState {
   sync: { status: 'idle' | 'syncing' | 'synced' | 'error'; at: number | null };
 }
 
-const NO_OPTIONS: SignInOptions = { google: false, facebook: false, email: false, cloudSaves: false };
+const NO_OPTIONS: SignInOptions = { google: false, facebook: false, email: false, cloudSaves: false, ducats: false };
 let state: AccountState = { ready: false, user: null, options: NO_OPTIONS, result: null, sync: { status: 'idle', at: null } };
 const listeners = new Set<() => void>();
 const update = (patch: Partial<AccountState>) => {
@@ -42,14 +43,13 @@ const update = (patch: Partial<AccountState>) => {
 };
 
 export const accountState = () => state;
+/** Calls back on every change to the account (sign-in, sign-out, the session check finishing). */
+export function subscribeAccount(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
 export function useAccount(): AccountState {
-  return useSyncExternalStore(
-    (l) => {
-      listeners.add(l);
-      return () => listeners.delete(l);
-    },
-    () => state
-  );
+  return useSyncExternalStore(subscribeAccount, () => state);
 }
 
 /** Whether any way to sign in is on (the sign-in button hides when none is, e.g. on the dev server). */

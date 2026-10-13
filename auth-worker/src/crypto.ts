@@ -32,6 +32,13 @@ export async function hmacSha256Base64Url(secret: string, message: string): Prom
   return toBase64Url(new Uint8Array(sig));
 }
 
+/** HMAC-SHA256 of a message, as hex (Stripe's webhook signatures). */
+export async function hmacSha256Hex(secret: string, message: string): Promise<string> {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 /** Compares two strings in constant time. */
 export function safeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;

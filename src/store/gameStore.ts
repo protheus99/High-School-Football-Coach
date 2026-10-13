@@ -116,7 +116,7 @@ import {
   offerEvidence
 } from '../sim/compliance';
 import { JobOffer, jobOffers, newContract } from '../sim/jobMarket';
-import { amountDue, coachPrice, contractTerms, ContractYears, FIRST_OFF_SEASON_WEEK, needsSettling, settled, settleKind, staffWindowOpen, withContract } from '../sim/staffContracts';
+import { coachPrice, contractTerms, ContractYears, FIRST_OFF_SEASON_WEEK, needsSettling, seasonCost, settled, settleKind, staffWindowOpen, withContract } from '../sim/staffContracts';
 import { ScenarioId, scenarioById } from '../data/scenarios';
 import { recordCareer } from '../services/leaderboard';
 import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
@@ -424,9 +424,9 @@ interface GameStoreState {
   interstateGames: ScheduledGame[]; // the season's out-of-state games, every state (the league's are also in its schedule)
   coachingStaff: HiredCoach[]; // the coach's paid assistants (game-day edge, development, injuries, Coach Points)
   setCoachingStaff: (staff: HiredCoach[]) => void;
-  hireCoach: (coach: HiredCoach, years: ContractYears) => string | null; // null when hired, else why not
+  hireCoach: (coach: HiredCoach, years: ContractYears, ducatsPaid?: boolean) => string | null; // null when hired, else why not (ducat coaches: paid on the account first)
   releaseCoach: (role: HiredCoach['role']) => void;
-  settleStaff: (keep: HiredCoach['role'][], letGo: HiredCoach['role'][]) => string | null; // the off-season: pay or renew, and let go
+  settleStaff: (keep: HiredCoach['role'][], letGo: HiredCoach['role'][], ducatsPaid?: boolean) => string | null; // the off-season: pay or renew, and let go (the ducat part paid on the account first)
   runAhead: () => WeekResults; // simulates this week's other games now if they haven't been (idempotent)
   compliance: ComplianceState; // the coach's booster offers and the state's slow investigation (sim/compliance)
   pendingUserBan: boolean; // caught at year end: banned from next season's playoffs
@@ -1229,14 +1229,17 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     set({ coachingStaff: staff, weekResults: null });
   },
 
-  // Hiring: only while the staff window is open; the first season is paid now (Coach Point coaches only until ducats go on sale)
-  hireCoach: (coach, years) => {
+  // Hiring: only while the staff window is open; the first season is paid now (in ducats, by the account beforehand)
+  hireCoach: (coach, years, ducatsPaid = false) => {
     const { currentWeek, currentYear, coachPoints, coachingStaff } = get();
     if (!staffWindowOpen(currentWeek)) return 'The staff is locked until the off-season.';
     const price = coachPrice(coach.rating);
-    if (price.currency === 'DUCATS') return 'Coaches paid in ducats are coming soon.';
-    if (coachPoints < price.amount) return `Needs ${formatCP(price.amount)}`;
-    set({ coachPoints: coachPoints - price.amount });
+    if (price.currency === 'DUCATS') {
+      if (!ducatsPaid) return 'Pay the first season in ducats first.';
+    } else {
+      if (coachPoints < price.amount) return `Needs ${formatCP(price.amount)}`;
+      set({ coachPoints: coachPoints - price.amount });
+    }
     get().setCoachingStaff([...coachingStaff.filter((c) => c.role !== coach.role), { ...coach, ...contractTerms(currentWeek, currentYear, years) }]);
     return null;
   },
@@ -1247,12 +1250,13 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   },
 
   // The off-season: pay next season for the coaches kept (renewals add a season at the same price) and let the rest go
-  settleStaff: (keep, letGo) => {
+  settleStaff: (keep, letGo, ducatsPaid = false) => {
     const { coachingStaff, currentWeek, currentYear, coachPoints } = get();
     const kept = coachingStaff.filter((c) => keep.includes(c.role) && needsSettling(c, currentWeek, currentYear));
-    const cost = kept.reduce((n, c) => n + amountDue(coachPrice(c.rating)), 0);
-    if (cost > coachPoints) return `Needs ${formatCP(cost)}`;
-    set({ coachPoints: coachPoints - cost });
+    const cost = seasonCost(kept);
+    if (cost.ducats > 0 && !ducatsPaid) return 'Pay the ducats first.';
+    if (cost.cp > coachPoints) return `Needs ${formatCP(cost.cp)}`;
+    set({ coachPoints: coachPoints - cost.cp });
     get().setCoachingStaff(coachingStaff.filter((c) => !letGo.includes(c.role)).map((c) => (kept.includes(c) ? settled(c, currentYear) : c)));
     return null;
   },
@@ -1295,15 +1299,16 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   finishBanquet: () => {
     const { currentWeek, coachPoints, coachTalents } = get();
     set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents, get().districtTeams.find((t) => t.id === get().userTeamId)?.programMeters.schoolBoardTrust) });
-    // The off-season opens: coaches still under contract are paid for next season when there's enough; the rest wait for the coach
+    // The off-season opens: Coach Point coaches still under contract are paid for next season when there's enough; the rest
+    // (and every ducat coach: real money is only spent on a tap) wait for the coach
     if (get().currentWeek === FIRST_OFF_SEASON_WEEK) {
       const year = get().currentYear;
       let cp = get().coachPoints;
       const staff = get().coachingStaff.map((c) => {
         if (!needsSettling(c, FIRST_OFF_SEASON_WEEK, year) || settleKind(c, year) !== 'PAYMENT') return c;
-        const due = amountDue(coachPrice(c.rating));
-        if (due > cp) return c;
-        cp -= due;
+        const price = coachPrice(c.rating);
+        if (price.currency === 'DUCATS' || price.amount > cp) return c;
+        cp -= price.amount;
         return settled(c, year);
       });
       set({ coachPoints: cp });

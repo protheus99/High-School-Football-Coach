@@ -7,14 +7,14 @@ import type { DatabaseSync as DatabaseSyncType } from 'node:sqlite';
 const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as { DatabaseSync: typeof DatabaseSyncType };
 import worker, { Env } from '../src/index';
 import { safeReturn } from '../src/paths';
-import { hmacSha256Base64Url, pkceChallenge } from '../src/crypto';
+import { hmacSha256Base64Url, hmacSha256Hex, pkceChallenge } from '../src/crypto';
 
 const APP = 'https://footballcoachgame.com';
 
 /** D1 over an in-memory SQLite database with the real migration. */
 function database() {
   const sqlite = new DatabaseSync(':memory:');
-  for (const file of ['0001_accounts.sql', '0002_saves.sql']) sqlite.exec(readFileSync(new URL(`../migrations/${file}`, import.meta.url), 'utf8'));
+  for (const file of ['0001_accounts.sql', '0002_saves.sql', '0003_ducats.sql']) sqlite.exec(readFileSync(new URL(`../migrations/${file}`, import.meta.url), 'utf8'));
   const clean = (v: unknown) => (v === undefined ? null : typeof v === 'boolean' ? Number(v) : v) as null | number | string;
   const prepare = (sql: string) => {
     let args: (null | number | string)[] = [];
@@ -36,6 +36,8 @@ let sent: { to: string; link: string }[];
 let googleUser: Record<string, unknown>;
 let facebookUser: Record<string, unknown>;
 let lastVerifier: string | null;
+let stripeCalls: { method: string; path: string; params: URLSearchParams }[];
+let cardCountry: string;
 
 beforeEach(() => {
   db = database();
@@ -54,8 +56,12 @@ beforeEach(() => {
     FACEBOOK_APP_ID: 'fb-id',
     FACEBOOK_APP_SECRET: 'fb-secret',
     RESEND_API_KEY: 're_test',
-    EMAIL_FROM: 'Football Coach <signin@footballcoachgame.com>'
+    EMAIL_FROM: 'Football Coach <signin@footballcoachgame.com>',
+    STRIPE_SECRET_KEY: 'sk_test_x',
+    STRIPE_WEBHOOK_SECRET: 'whsec_test'
   };
+  stripeCalls = [];
+  cardCountry = 'US';
   sent = [];
   lastVerifier = null;
   googleUser = { sub: 'g-123', email: 'Coach@Example.com', email_verified: true, given_name: 'Jean', name: 'Jean Coach' };
@@ -74,6 +80,13 @@ beforeEach(() => {
       const body = JSON.parse(String(init?.body)) as { to: string[]; text: string };
       sent.push({ to: body.to[0], link: body.text.match(/https:\/\/\S+/)![0] });
       return Response.json({ id: 'email_1' });
+    }
+    if (url.startsWith('https://api.stripe.com/v1/')) {
+      const path = url.slice('https://api.stripe.com/v1/'.length);
+      stripeCalls.push({ method: init?.method ?? 'GET', path, params: new URLSearchParams(String(init?.body ?? '')) });
+      if (path === 'checkout/sessions') return Response.json({ id: 'cs_test_1', url: 'https://checkout.stripe.com/c/pay/cs_test_1' });
+      if (path.startsWith('payment_intents/')) return Response.json({ latest_charge: { payment_method_details: { card: { country: cardCountry } } } });
+      if (path === 'refunds') return Response.json({ id: 're_1' });
     }
     throw new Error(`Unexpected fetch ${url}`);
   });
@@ -101,7 +114,7 @@ async function googleSignIn(query = '') {
 
 describe('Sign-in server', () => {
   it('reports no player and which sign-in options are on', async () => {
-    expect(await session()).toEqual({ user: null, options: { google: true, facebook: true, email: true, cloudSaves: true } });
+    expect(await session()).toEqual({ user: null, options: { google: true, facebook: true, email: true, cloudSaves: true, ducats: true } });
     env.FACEBOOK_APP_SECRET = undefined;
     expect((await session()).options.facebook).toBe(false);
   });
@@ -249,5 +262,111 @@ describe('Sign-in server', () => {
     expect(safeReturn('https://evil.example')).toBe('/');
     expect(safeReturn('/\\evil.example')).toBe('/');
     expect(safeReturn(null)).toBe('/');
+  });
+});
+
+describe('Ducats', () => {
+  /** Stripe's signed webhook call. */
+  const stripeEvent = async (type: string, object: Record<string, unknown>, secret = 'whsec_test') => {
+    const body = JSON.stringify({ id: `evt_${Math.random()}`, type, data: { object } });
+    const t = Math.floor(Date.now() / 1000);
+    const headers = { 'Stripe-Signature': `t=${t},v1=${await hmacSha256Hex(secret, `${t}.${body}`)}` };
+    return call('/api/auth/stripe/webhook', { method: 'POST', body, headers });
+  };
+  const paid = (session: string, pack: string, userId: string, intent = `pi_${session}`) =>
+    stripeEvent('checkout.session.completed', { id: session, client_reference_id: userId, metadata: { pack, user_id: userId }, payment_status: 'paid', payment_intent: intent });
+  const store = async (cookie: string, query = '') =>
+    (await (await call(`/api/auth/ducats${query}`, { cookie })).json()) as { balance: number; checkout?: { status: string; added?: number } };
+  const userId = () => (db.sqlite.prepare('SELECT id FROM users').get() as { id: string }).id;
+
+  it('opens a Stripe checkout for a pack: US dollars, cards, tied to the player', async () => {
+    const { cookie } = await googleSignIn();
+    expect((await post('/api/auth/ducats/checkout', { pack: 'P99' }, cookie)).status).toBe(400);
+    expect((await post('/api/auth/ducats/checkout', { pack: 'P10' })).status).toBe(401);
+    const res = await post('/api/auth/ducats/checkout', { pack: 'P10' }, cookie);
+    expect(await res.json()).toEqual({ url: 'https://checkout.stripe.com/c/pay/cs_test_1' });
+    const params = stripeCalls[0].params;
+    expect(params.get('line_items[0][price_data][unit_amount]')).toBe('1000');
+    expect(params.get('line_items[0][price_data][currency]')).toBe('usd');
+    expect(params.get('payment_method_types[0]')).toBe('card');
+    expect(params.get('client_reference_id')).toBe(userId());
+    expect(params.get('metadata[pack]')).toBe('P10');
+    expect(params.get('customer_email')).toBe('coach@example.com');
+    expect(params.get('success_url')).toBe(`${APP}/?ducats=paid&session={CHECKOUT_SESSION_ID}`);
+    expect(params.get('automatic_tax[enabled]')).toBeNull();
+    env.STRIPE_TAX = 'on';
+    await post('/api/auth/ducats/checkout', { pack: 'P3' }, cookie);
+    expect(stripeCalls[1].params.get('automatic_tax[enabled]')).toBe('true');
+    env.STRIPE_SECRET_KEY = undefined;
+    expect((await post('/api/auth/ducats/checkout', { pack: 'P3' }, cookie)).status).toBe(503);
+  });
+
+  it('adds the pack only when Stripe confirms the payment, once per checkout', async () => {
+    const { cookie } = await googleSignIn();
+    expect(await store(cookie, '?session=cs_a')).toMatchObject({ balance: 0, checkout: { status: 'pending' } });
+    expect((await paid('cs_a', 'P10', userId())).status).toBe(200);
+    expect((await paid('cs_a', 'P10', userId())).status).toBe(200); // Stripe sends it again
+    expect(await store(cookie, '?session=cs_a')).toMatchObject({ balance: 1200, checkout: { status: 'paid', added: 1200 } });
+  });
+
+  it('refuses unsigned, wrongly signed or stale webhook calls', async () => {
+    await googleSignIn();
+    expect((await call('/api/auth/stripe/webhook', { method: 'POST', body: '{}' })).status).toBe(400);
+    const body = JSON.stringify({ type: 'checkout.session.completed', data: { object: {} } });
+    const old = Math.floor(Date.now() / 1000) - 3600;
+    const stale = await call('/api/auth/stripe/webhook', { method: 'POST', body, headers: { 'Stripe-Signature': `t=${old},v1=${await hmacSha256Hex('whsec_test', `${old}.${body}`)}` } });
+    expect(stale.status).toBe(400);
+    expect((await stripeEvent('checkout.session.completed', { id: 'cs_x' }, 'whsec_wrong')).status).toBe(400);
+  });
+
+  it('refunds a card from outside the US straight away and adds nothing', async () => {
+    const { cookie } = await googleSignIn();
+    cardCountry = 'CA';
+    await paid('cs_ca', 'P20', userId());
+    expect(stripeCalls.find((c) => c.path === 'refunds')?.params.get('payment_intent')).toBe('pi_cs_ca');
+    expect(await store(cookie, '?session=cs_ca')).toMatchObject({ balance: 0, checkout: { status: 'blocked' } });
+  });
+
+  it('pays for coaches at the shared prices, only with enough ducats, once per payment id', async () => {
+    const { cookie } = await googleSignIn();
+    await paid('cs_b', 'P3', userId()); // ₾300
+    const spend = (id: string, grades: unknown) => post('/api/auth/ducats/spend', { id, grades }, cookie);
+    expect((await spend('pay-00001', ['C+'])).status).toBe(400); // Coach Point grades aren't sold for ducats
+    const first = await spend('pay-00002', ['S+', 'A+']); // 100 + 50
+    expect(await first.json()).toEqual({ balance: 150 });
+    expect(await (await spend('pay-00002', ['S+', 'A+'])).json()).toEqual({ balance: 150 }); // a retry isn't charged twice
+    const short = await spend('pay-00003', ['S+', 'S']); // 175
+    expect(short.status).toBe(402);
+    expect(await short.json()).toEqual({ error: 'Needs ₾175', balance: 150 });
+    expect((await store(cookie)).balance).toBe(150);
+  });
+
+  it('takes ducats back for refunds and chargebacks, and restores a chargeback we win', async () => {
+    const { cookie } = await googleSignIn();
+    await paid('cs_c', 'P10', userId(), 'pi_c'); // ₾1,200 for $10
+    await stripeEvent('charge.refunded', { id: 'ch_c', payment_intent: 'pi_c', amount: 1000, amount_refunded: 500 });
+    expect((await store(cookie)).balance).toBe(600);
+    await stripeEvent('charge.refunded', { id: 'ch_c', payment_intent: 'pi_c', amount: 1000, amount_refunded: 500 }); // sent again
+    expect((await store(cookie)).balance).toBe(600);
+    await stripeEvent('charge.dispute.created', { id: 'dp_c', payment_intent: 'pi_c', status: 'needs_response' });
+    expect((await store(cookie)).balance).toBe(0);
+    await stripeEvent('charge.dispute.closed', { id: 'dp_c', payment_intent: 'pi_c', status: 'won' });
+    expect((await store(cookie)).balance).toBe(600);
+  });
+
+  it("a refund after the ducats were spent leaves a negative balance, and nothing can be bought until it's back", async () => {
+    const { cookie } = await googleSignIn();
+    await paid('cs_d', 'P3', userId(), 'pi_d');
+    await post('/api/auth/ducats/spend', { id: 'pay-00010', grades: ['S+', 'S+'] }, cookie);
+    await stripeEvent('charge.refunded', { id: 'ch_d', payment_intent: 'pi_d', amount: 300, amount_refunded: 300 });
+    expect((await store(cookie)).balance).toBe(-200);
+    expect((await post('/api/auth/ducats/spend', { id: 'pay-00011', grades: ['B'] }, cookie)).status).toBe(402);
+  });
+
+  it('deleting the account deletes its ducats', async () => {
+    const { cookie } = await googleSignIn();
+    await paid('cs_e', 'P5', userId());
+    await post('/api/auth/delete', {}, cookie);
+    expect(db.sqlite.prepare('SELECT COUNT(*) AS n FROM ducat_ledger').get()).toEqual({ n: 0 });
   });
 });

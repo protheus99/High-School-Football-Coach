@@ -1,5 +1,8 @@
 import { fromBase64Url, hmacSha256Base64Url, pkceChallenge, randomToken, safeEqual, sha256Hex } from './crypto';
 import { safeReturn } from './paths';
+import type { D1Database, R2Bucket } from './d1';
+import { checkoutStatus, createCheckout, DucatEnv, ducatsOn, spendDucats, storeJson, stripeWebhook } from './ducats';
+import { ducatPack } from '../../src/data/ducats';
 import { authorizeUrl, configured, EmailEnv, fetchProfile, Provider, ProviderEnv, PROVIDERS, sendSignInEmail } from './providers';
 
 // ---------------------------------------------------------------------------
@@ -18,33 +21,16 @@ import { authorizeUrl, configured, EmailEnv, fetchProfile, Provider, ProviderEnv
 //   GET  /api/auth/saves/<slot>                one save file (gzip)
 //   PUT  /api/auth/saves/<slot>                stores a save (gzip body; its summary in X-Save-Summary)
 //   DELETE /api/auth/saves/<slot>              removes one
+//   GET  /api/auth/ducats                      the ducat store: packs and the player's balance (?session= adds how a checkout went)
+//   POST /api/auth/ducats/checkout             a Stripe Checkout page for a pack ({ pack }); answers { url }
+//   POST /api/auth/ducats/spend                pays for coaches in ducats ({ id, grades })
+//   POST /api/auth/stripe/webhook              Stripe's payment events (signed by Stripe)
 // The Workers runtime treats every export of this file as an entry point: only the handler (and types) are exported.
 // Sessions live in an HttpOnly cookie; only SHA-256 hashes of tokens are stored. Accounts with the same verified
 // email are one player, whichever way they sign in. Sign-in is optional: the game plays without it.
 // ---------------------------------------------------------------------------
 
-interface D1Result<T> {
-  results: T[];
-}
-interface D1PreparedStatement {
-  bind(...values: unknown[]): D1PreparedStatement;
-  first<T>(): Promise<T | null>;
-  all<T>(): Promise<D1Result<T>>;
-  run(): Promise<unknown>;
-}
-interface D1Database {
-  prepare(query: string): D1PreparedStatement;
-}
-interface R2ObjectBody {
-  arrayBuffer(): Promise<ArrayBuffer>;
-}
-interface R2Bucket {
-  put(key: string, value: ArrayBuffer, options?: { httpMetadata?: { contentType?: string } }): Promise<unknown>;
-  get(key: string): Promise<R2ObjectBody | null>;
-  delete(keys: string | string[]): Promise<void>;
-}
-
-export interface Env extends ProviderEnv, EmailEnv {
+export interface Env extends ProviderEnv, EmailEnv, DucatEnv {
   DB: D1Database;
   SAVES?: R2Bucket; // cloud saves (off without the bucket)
   ALLOWED_ORIGINS: string; // the game's site, comma-separated (POSTs must come from one of them)
@@ -172,6 +158,7 @@ async function deleteUser(env: Env, userId: string): Promise<void> {
   const { results } = await env.DB.prepare('SELECT slot_id FROM saves WHERE user_id = ?').bind(userId).all<{ slot_id: string }>();
   if (env.SAVES && results.length) await env.SAVES.delete(results.map((r) => saveKey(userId, r.slot_id)));
   await env.DB.prepare('DELETE FROM saves WHERE user_id = ?').bind(userId).run();
+  await env.DB.prepare('DELETE FROM ducat_ledger WHERE user_id = ?').bind(userId).run(); // Stripe keeps the payment records
   await env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(userId).run();
   await env.DB.prepare('DELETE FROM identities WHERE user_id = ?').bind(userId).run();
   await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
@@ -351,7 +338,7 @@ export default {
           return json(
             {
               user: user ? await userJson(env, user) : null,
-              options: { google: configured(env, 'google'), facebook: configured(env, 'facebook'), email: !!env.RESEND_API_KEY, cloudSaves: !!env.SAVES }
+              options: { google: configured(env, 'google'), facebook: configured(env, 'facebook'), email: !!env.RESEND_API_KEY, cloudSaves: !!env.SAVES, ducats: ducatsOn(env) }
             },
             200,
             cors
@@ -361,6 +348,12 @@ export default {
         if (provider && path.startsWith('/callback/')) return await finishSignIn(request, url, env, provider);
         if (path === '/email/verify') return await verifyEmailLink(url, env);
         if (path === '/facebook/deletion') return await deletionStatus(url, env);
+        if (path === '/ducats') {
+          const user = await currentUser(request, env);
+          if (!user) return json({ error: 'Not signed in' }, 401, cors);
+          const session = url.searchParams.get('session');
+          return json({ ...(await storeJson(env, user.id)), ...(session && { checkout: await checkoutStatus(env.DB, user.id, session) }) }, 200, cors);
+        }
       }
       // Cloud saves: the signed-in player's own, from the game's pages
       const saveMatch = path.match(/^\/saves(?:\/([^/]+))?$/);
@@ -379,6 +372,8 @@ export default {
       if (request.method === 'POST') {
         // Facebook calls this one from its servers, signed with the app secret
         if (path === '/facebook/delete') return await facebookDeletion(request, env);
+        // Stripe calls this one from its servers, signed with the webhook secret
+        if (path === '/stripe/webhook') return await stripeWebhook(request, env);
         // Everything else only from the game's own pages (no cross-site requests)
         if (!allowedOrigins(env).includes(request.headers.get('Origin') ?? '')) return json({ error: 'Forbidden' }, 403, cors);
         if (path === '/email') return await requestEmailLink(request, env, cors);
@@ -396,6 +391,21 @@ export default {
             .bind(optIn ? 1 : 0, optIn ? Date.now() : null, Date.now(), user.id)
             .run();
           return json({ user: await userJson(env, { ...user, marketing_opt_in: optIn ? 1 : 0 }) }, 200, cors);
+        }
+        if (path === '/ducats/checkout') {
+          if (!ducatsOn(env)) return json({ error: "Ducats aren't on sale right now." }, 503, cors);
+          const pack = ducatPack((await readJson(request))?.pack);
+          if (!pack) return json({ error: 'Pick a pack.' }, 400, cors);
+          try {
+            return json({ url: await createCheckout(env, user, pack) }, 200, cors);
+          } catch {
+            return json({ error: "Checkout couldn't open. Try again in a minute." }, 502, cors);
+          }
+        }
+        if (path === '/ducats/spend') {
+          const body = await readJson(request);
+          const result = await spendDucats(env.DB, user.id, body?.id, body?.grades);
+          return result.ok ? json({ balance: result.balance }, 200, cors) : json({ error: result.error, balance: result.balance }, result.status, cors);
         }
         if (path === '/delete') {
           await deleteUser(env, user.id);

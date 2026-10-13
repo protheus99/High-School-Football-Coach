@@ -27,6 +27,9 @@ import { AllStateHonorsPage } from './components/AllStateHonorsPage';
 import { calculateSeasonAwards, SeasonAwardsRecord, topPerformers } from './sim/awardsEngine';
 import { GameSimulationState, OffensiveScheme } from './types/game';
 import { rulesForState } from './sim/stateRules';
+import { DucatCheckoutSheet } from './components/DucatStore';
+import { returnedFromCheckout } from './services/ducats';
+import { AUTOSAVE_ID, loadSaveGame } from './services/db';
 
 type AppTab = 'DASHBOARD' | 'TEAM' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS';
 
@@ -136,6 +139,18 @@ export const App: React.FC = () => {
     setActiveMatch(newGame);
   };
 
+  // Back from Stripe's checkout (a page load): reopen the game where the coach left it, on the Staff screen
+  useEffect(() => {
+    if (!returnedFromCheckout()) return;
+    void loadSaveGame(AUTOSAVE_ID).then((save) => {
+      if (!save) return;
+      useGameStore.getState().loadGame(save);
+      setTeamSection('STAFF');
+      setTab('TEAM');
+      setShowMenu(false);
+    });
+  }, []);
+
   // The soundtrack plays everywhere but a live game, which has its own sound effects
   useEffect(() => musicPlayer.setInGame(!!activeMatch), [activeMatch]);
 
@@ -151,16 +166,19 @@ export const App: React.FC = () => {
   // Title screen: new game, continue, or load a save
   if (showMenu) {
     return (
-      <SplashScreen
-        canContinue={league !== null && !firedFrom && !careerComplete}
-        onEnterGame={() => {
-          setShowMenu(false);
-          setTab('DASHBOARD');
-          setActiveMatch(null);
-          setShowSaveLoadModal(false);
-          setAwardsRecord(null);
-        }}
-      />
+      <>
+        <DucatCheckoutSheet />
+        <SplashScreen
+          canContinue={league !== null && !firedFrom && !careerComplete}
+          onEnterGame={() => {
+            setShowMenu(false);
+            setTab('DASHBOARD');
+            setActiveMatch(null);
+            setShowSaveLoadModal(false);
+            setAwardsRecord(null);
+          }}
+        />
+      </>
     );
   }
 
@@ -258,6 +276,7 @@ export const App: React.FC = () => {
 
       {showTalents && <CoachRPGSkillTreeModal onClose={() => setShowTalents(false)} />}
       <ComplianceDecisionSheet />
+      <DucatCheckoutSheet />
 
       {/* Top Navigation Bar */}
       <div className="app-topbar">

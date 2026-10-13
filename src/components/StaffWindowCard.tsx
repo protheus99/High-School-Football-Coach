@@ -1,8 +1,7 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { COACH_ROLES, staffGrade } from '../sim/coachingStaff';
-import { formatCP } from '../sim/coachPoints';
-import { amountDue, coachPrice, FIRST_OFF_SEASON_WEEK, needsSettling, STAFF_LOCK_WEEK, staffWindowOpen } from '../sim/staffContracts';
+import { FIRST_OFF_SEASON_WEEK, formatCost, needsSettling, seasonCost, STAFF_LOCK_WEEK, staffWindowOpen } from '../sim/staffContracts';
 import { getSeasonPhase } from '../sim/scheduleEngine';
 
 /**
@@ -14,18 +13,18 @@ export const StaffWindowCard: React.FC<{ onOpenStaff: () => void }> = ({ onOpenS
   const open = staffWindowOpen(currentWeek);
   const due = coachingStaff.filter((c) => needsSettling(c, currentWeek, currentYear));
   const grade = staffGrade(coachingStaff);
-  const yearly = coachingStaff.reduce((n, c) => n + (coachPrice(c.rating).currency === 'CP' ? coachPrice(c.rating).amount : 0), 0);
-  const summary = `Staff: ${coachingStaff.length} of ${COACH_ROLES.length} roles${grade ? ` · grade ${grade}` : ''}${yearly ? ` · ${formatCP(yearly)} a season` : ''}`;
+  const yearly = seasonCost(coachingStaff);
+  const summary = `Staff: ${coachingStaff.length} of ${COACH_ROLES.length} roles${grade ? ` · grade ${grade}` : ''}${yearly.cp + yearly.ducats > 0 ? ` · ${formatCost(yearly)} a season` : ''}`;
 
   if (due.length > 0) {
-    const cost = due.reduce((n, c) => n + amountDue(coachPrice(c.rating)), 0);
+    const cost = seasonCost(due);
     return (
       <Card edge="#F59E0B" background="#FFFBEB">
         <strong style={{ fontSize: '15px' }}>
           ⏳ {due.length} {due.length === 1 ? 'coach needs' : 'coaches need'} signing for next season
         </strong>
         <div style={line}>
-          {cost > 0 ? `${formatCP(cost)} to keep everyone. ` : ''}Renew, pay or let go before the off-season ends (after Week {FIRST_OFF_SEASON_WEEK + 3}); anyone not signed leaves.
+          {cost.cp + cost.ducats > 0 ? `${formatCost(cost)} to keep everyone. ` : ''}Renew, pay or let go before the off-season ends (after Week {FIRST_OFF_SEASON_WEEK + 3}); anyone not signed leaves.
         </div>
         <button className="ui-btn ui-btn-block" style={{ marginTop: '8px', background: '#F59E0B', borderColor: '#F59E0B', color: '#0F172A' }} onClick={onOpenStaff}>
           Sign your staff ›

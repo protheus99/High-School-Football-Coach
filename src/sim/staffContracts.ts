@@ -1,15 +1,16 @@
 import { CoachGrade, coachGrade, HiredCoach } from './coachingStaff';
 import { formatCP } from './coachPoints';
+import { COACH_DUCAT_PRICES, formatDucats } from '../data/ducats';
 import { FIRST_NON_DISTRICT_WEEK, getSeasonPhase, STATE_FINAL_WEEK } from './scheduleEngine';
 
 // ---------------------------------------------------------------------------
 // Assistant coach contracts. A coach is hired for 1, 2 or 3 seasons and paid a year at a time: the first season
 // when he's hired, each later one in the off-season. Coaches graded C+ and below cost Coach Points; B and above
-// cost ducats (₾, bought with real money), which aren't on sale yet, so those coaches can't be hired. Hiring and
+// cost ducats (₾, bought with real money and kept on the player's account, see data/ducats.ts). Hiring and
 // releasing are only open in the off-season and pre-season (through training camp); the staff locks at the
-// season opener. In the off-season every coach needs next season paid: coaches still under contract are paid
-// automatically when there's enough, and expiring contracts are renewed or let go. Anyone not paid for by the
-// end of the off-season leaves.
+// season opener. In the off-season every coach needs next season paid: Coach Point coaches still under contract
+// are paid automatically when there's enough (ducats are only ever spent when the coach taps to pay), and expiring
+// contracts are renewed or let go. Anyone not paid for by the end of the off-season leaves.
 // ---------------------------------------------------------------------------
 
 export type StaffCurrency = 'CP' | 'DUCATS';
@@ -19,20 +20,14 @@ export interface CoachPrice {
   amount: number; // per season
 }
 
-/** Ducats can't be bought yet: ducat-priced coaches can't be hired, and those already on a staff renew for free. */
-export const DUCATS_LIVE = false;
-
-export const DUCAT_SIGN = '₾';
-export const formatDucats = (amount: number) => `${DUCAT_SIGN}${amount.toLocaleString('en-US')}`;
-
-/** Price per season by grade: ₾1 is one cent. */
+/** Price per season by grade: ducats for B and up (₾1 is one cent), Coach Points below. */
 export const COACH_PRICES: Record<CoachGrade, CoachPrice> = {
-  'S+': { currency: 'DUCATS', amount: 20 },
-  S: { currency: 'DUCATS', amount: 15 },
-  'A+': { currency: 'DUCATS', amount: 10 },
-  A: { currency: 'DUCATS', amount: 5 },
-  'B+': { currency: 'DUCATS', amount: 2 },
-  B: { currency: 'DUCATS', amount: 1 },
+  'S+': { currency: 'DUCATS', amount: COACH_DUCAT_PRICES['S+']! },
+  S: { currency: 'DUCATS', amount: COACH_DUCAT_PRICES.S! },
+  'A+': { currency: 'DUCATS', amount: COACH_DUCAT_PRICES['A+']! },
+  A: { currency: 'DUCATS', amount: COACH_DUCAT_PRICES.A! },
+  'B+': { currency: 'DUCATS', amount: COACH_DUCAT_PRICES['B+']! },
+  B: { currency: 'DUCATS', amount: COACH_DUCAT_PRICES.B! },
   'C+': { currency: 'CP', amount: 200 },
   C: { currency: 'CP', amount: 150 },
   'D+': { currency: 'CP', amount: 100 },
@@ -42,8 +37,20 @@ export const COACH_PRICES: Record<CoachGrade, CoachPrice> = {
 export const coachPrice = (rating: number): CoachPrice => COACH_PRICES[coachGrade(rating)];
 export const formatPrice = (p: CoachPrice) => (p.currency === 'CP' ? formatCP(p.amount) : formatDucats(p.amount));
 
-/** What a season actually costs right now: ducat coaches are free to keep until ducats go on sale. */
-export const amountDue = (p: CoachPrice) => (p.currency === 'DUCATS' && !DUCATS_LIVE ? 0 : p.amount);
+/** What a group of coaches costs for a season, in each currency. */
+export function seasonCost(coaches: HiredCoach[]): { cp: number; ducats: number } {
+  return coaches.reduce(
+    (sum, c) => {
+      const p = coachPrice(c.rating);
+      return p.currency === 'CP' ? { ...sum, cp: sum.cp + p.amount } : { ...sum, ducats: sum.ducats + p.amount };
+    },
+    { cp: 0, ducats: 0 }
+  );
+}
+
+/** A cost in both currencies, e.g. "₡200 + ₾150" (just one when the other is zero). */
+export const formatCost = (cost: { cp: number; ducats: number }) =>
+  [cost.cp > 0 && formatCP(cost.cp), cost.ducats > 0 && formatDucats(cost.ducats)].filter(Boolean).join(' + ') || formatCP(0);
 
 export const CONTRACT_YEARS = [1, 2, 3] as const;
 export type ContractYears = (typeof CONTRACT_YEARS)[number];

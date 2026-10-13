@@ -9,6 +9,7 @@ there takes priority over the game's static site, so the sign-in cookie is first
 - "Send me game news" is off unless the player ticks it; the time they opted in is stored as proof of consent.
 - Players can turn news off, sign out and delete their account (everything stored with it) from the game.
 - Facebook's data deletion callback is built in (`/api/auth/facebook/delete`).
+- Ducats: the paid currency, bought through Stripe and kept on the player's account (see below).
 - Cloud saves: signed-in players' saves (gzip, about 2 MB each, up to 10) live in the R2 bucket `hsfhc-saves`; the
   database lists them. Deleting the account deletes them.
 
@@ -74,6 +75,44 @@ root folder would deploy the game itself instead.
 
 **Resend**: verify `footballcoachgame.com` and create a sending-only API key. The sender is `EMAIL_FROM` in
 `wrangler.jsonc`.
+
+## Ducats (Stripe)
+
+Ducats (₾) are the paid currency. Players buy packs on Stripe's own checkout page; Stripe tells this server (a
+signed webhook) and only then are the ducats added to the player's account, in the `ducat_ledger` table. The packs
+and coach prices are in `src/data/ducats.ts`, shared by the game and this server. Ducats are off until both
+Stripe secrets are set.
+
+1. Create the table: `npx wrangler d1 migrations apply hsfhc-auth --remote` (adds `0003_ducats.sql`).
+2. In the Stripe dashboard, **Developers, Webhooks, Add endpoint**:
+   - URL: `https://footballcoachgame.com/api/auth/stripe/webhook`
+   - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `charge.refunded`,
+     `charge.dispute.created`, `charge.dispute.closed`
+3. Store the secret key (Developers, API keys) and the endpoint's signing secret (`whsec_...`):
+
+   ```bash
+   npx wrangler secret put STRIPE_SECRET_KEY
+   npx wrangler secret put STRIPE_WEBHOOK_SECRET
+   ```
+
+4. Deploy (`npx wrangler deploy`, from this folder).
+5. Optional: **Settings, Customer emails**: turn on receipts for successful payments.
+
+Use the test-mode keys (`sk_test_...`) first: Stripe's test card `4242 4242 4242 4242` buys a pack without
+real money. Switch both secrets to the live ones when it all works.
+
+- **US cards only:** a payment with a card from anywhere else is refunded automatically and adds nothing.
+- **Refunds** (from the Stripe dashboard) and **chargebacks** take the same share of the pack back off the
+  player's balance; a chargeback that's won puts it back.
+- **Sales tax:** off by default. To collect it, set up Stripe Tax (your registrations, and a default product tax
+  code) in the dashboard, then add `"STRIPE_TAX": "on"` to `vars` in `wrangler.jsonc` and deploy. Tax is then
+  added on top of the pack price where you're registered.
+
+A player's ledger:
+
+```bash
+npx wrangler d1 execute hsfhc-auth --remote --command "SELECT kind, amount, ref, cents, datetime(created_at / 1000, 'unixepoch') FROM ducat_ledger WHERE user_id = (SELECT id FROM users WHERE email = 'player@example.com') ORDER BY id"
+```
 
 ## Testing on this computer
 

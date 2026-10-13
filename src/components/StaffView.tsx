@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getSeasonPhase } from '../sim/scheduleEngine';
 import { useGameStore } from '../store/gameStore';
 import {
@@ -16,19 +16,23 @@ import {
 import { randomPlayerName } from '../generators/names';
 import { formatCP } from '../sim/coachPoints';
 import {
-  amountDue,
   coachPrice,
   CONTRACT_YEARS,
   ContractYears,
-  DUCATS_LIVE,
   FIRST_OFF_SEASON_WEEK,
   firstContractSeason,
+  formatCost,
   formatPrice,
   needsSettling,
+  seasonCost,
   settleKind,
   STAFF_LOCK_WEEK,
   staffWindowOpen
 } from '../sim/staffContracts';
+import { formatDucats } from '../data/ducats';
+import { useAccount } from '../services/account';
+import { spendDucats, useDucats } from '../services/ducats';
+import { DucatBalanceCard, DucatSheetKind, DucatSheets } from './DucatStore';
 
 const GRADE_COLORS: Record<CoachGrade, string> = {
   'S+': '#7C3AED',
@@ -47,13 +51,31 @@ const GRADE_COLORS: Record<CoachGrade, string> = {
  * The coaching staff, in the players' terms: each coach's letter grade (S+ down to D), what their effects do, what
  * they cost a season and how long their contract runs. Hiring and releasing are open in the off-season and
  * pre-season only; in the off-season every coach needs next season paid (renew, pay or let go). The numbers behind
- * the grades show only in development builds.
+ * the grades show only in development builds. Coaches graded B and up are paid in ducats, from the player's account.
  */
 export const StaffView: React.FC = () => {
   const { coachingStaff, currentWeek, currentYear, coachPoints, hireCoach, releaseCoach } = useGameStore();
   const [openRole, setOpenRole] = useState<CoachRole | null>(null);
-  const [candidates, setCandidates] = useState<Partial<Record<CoachRole, HiredCoach[]>>>({});
+  // Candidates stay put for the week, even across a trip to the ducat store (which reloads the page)
+  const candidatesKey = `staff-candidates:${useGameStore.getState().userTeamId}:${currentYear}:${currentWeek}`;
+  const [candidates, setCandidates] = useState<Partial<Record<CoachRole, HiredCoach[]>>>(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem(candidatesKey) ?? '{}');
+    } catch {
+      return {};
+    }
+  });
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(candidatesKey, JSON.stringify(candidates));
+    } catch {
+      // private browsing: the list just won't survive a reload
+    }
+  }, [candidatesKey, candidates]);
   const [picked, setPicked] = useState<{ name: string; years: ContractYears } | null>(null);
+  const [sheet, setSheet] = useState<DucatSheetKind>(null);
+  const [paying, setPaying] = useState(false);
+  const [hireError, setHireError] = useState<string | null>(null);
   const bonus = staffBonuses(coachingStaff);
   const grade = staffGrade(coachingStaff);
   const open = staffWindowOpen(currentWeek);
@@ -67,10 +89,20 @@ export const StaffView: React.FC = () => {
     if (openRole === role) return setOpenRole(null);
     if (!candidates[role]) setCandidates({ ...candidates, [role]: generateCandidates(role, name) });
     setPicked(null);
+    setHireError(null);
     setOpenRole(role);
   };
-  const hire = (coach: HiredCoach, years: ContractYears) => {
-    if (hireCoach(coach, years)) return;
+  const hire = async (coach: HiredCoach, years: ContractYears) => {
+    const ducats = coachPrice(coach.rating).currency === 'DUCATS';
+    if (ducats) {
+      // The first season comes off the account's ducats before the coach joins
+      setPaying(true);
+      setHireError(null);
+      const problem = await spendDucats([coachGrade(coach.rating)]);
+      setPaying(false);
+      if (problem) return setHireError(problem);
+    }
+    if (hireCoach(coach, years, ducats)) return;
     setCandidates({ ...candidates, [coach.role]: undefined });
     setOpenRole(null);
     setPicked(null);
@@ -89,6 +121,7 @@ export const StaffView: React.FC = () => {
 
   return (
     <div className="ui-screen" style={{ maxWidth: '900px' }}>
+      <DucatSheets sheet={sheet} onChange={setSheet} />
       {/* The staff at a glance */}
       <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px 14px', marginBottom: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
         {grade ? <GradeBadge grade={grade} large /> : <span style={badgeStyle('#CBD5E1', true)}>–</span>}
@@ -99,8 +132,9 @@ export const StaffView: React.FC = () => {
           <div style={{ color: '#475569', marginTop: '2px' }}>{benefits.length > 0 ? benefits.join(' · ') : 'Hire assistants to give the program an edge.'}</div>
         </div>
       </div>
+      <DucatBalanceCard onOpen={setSheet} />
       <StaffWindowBanner week={currentWeek} />
-      {due.length > 0 && <SettlePanel due={due} />}
+      {due.length > 0 && <SettlePanel due={due} onOpen={setSheet} />}
       {import.meta.env.DEV && <DebugPanel staff={coachingStaff} />}
 
       {/* Every role */}
@@ -147,9 +181,15 @@ export const StaffView: React.FC = () => {
                       years={picked?.name === c.name ? picked.years : 1}
                       coachPoints={coachPoints}
                       startSeason={firstContractSeason(currentWeek, currentYear)}
-                      onSelect={() => setPicked({ name: c.name, years: picked?.name === c.name ? picked.years : 1 })}
+                      paying={paying}
+                      error={picked?.name === c.name ? hireError : null}
+                      onSelect={() => {
+                        if (picked?.name !== c.name) setHireError(null);
+                        setPicked({ name: c.name, years: picked?.name === c.name ? picked.years : 1 });
+                      }}
                       onYears={(years) => setPicked({ name: c.name, years })}
                       onHire={(years) => hire(c, years)}
+                      onOpen={setSheet}
                     />
                   ))}
                 </div>
@@ -203,13 +243,67 @@ const CandidateCard: React.FC<{
   years: ContractYears;
   coachPoints: number;
   startSeason: number;
+  paying: boolean;
+  error: string | null;
   onSelect: () => void;
   onYears: (years: ContractYears) => void;
   onHire: (years: ContractYears) => void;
-}> = ({ coach, selected, years, coachPoints, startSeason, onSelect, onYears, onHire }) => {
+  onOpen: (sheet: DucatSheetKind) => void;
+}> = ({ coach, selected, years, coachPoints, startSeason, paying, error, onSelect, onYears, onHire, onOpen }) => {
   const price = coachPrice(coach.rating);
   const g = coachGrade(coach.rating);
   const ducats = price.currency === 'DUCATS';
+  const { user } = useAccount();
+  const { balance } = useDucats();
+  const surname = coach.name.split(' ')[1] ?? coach.name;
+  const stop = (fn: () => void) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    fn();
+  };
+  // What the hire button does: pay in Coach Points or ducats, or what's missing first
+  const action = (() => {
+    if (!ducats)
+      return coachPoints < price.amount ? (
+        <button className="ui-btn ui-btn-block" disabled style={{ marginTop: '8px' }}>
+          Needs {formatCP(price.amount - coachPoints)} more
+        </button>
+      ) : (
+        <button className="ui-btn ui-btn-block" style={{ marginTop: '8px', background: '#4F46E5', borderColor: '#4F46E5', color: '#fff' }} onClick={stop(() => onHire(years))}>
+          Hire {surname} · pay {formatPrice(price)} now
+        </button>
+      );
+    if (!user)
+      return (
+        <button className="ui-btn ui-btn-block" style={{ marginTop: '8px', background: '#2563EB', borderColor: '#2563EB', color: '#fff' }} onClick={stop(() => onOpen('SIGN_IN'))}>
+          Sign in to hire
+        </button>
+      );
+    if (balance === null)
+      return (
+        <button className="ui-btn ui-btn-block" disabled style={{ marginTop: '8px' }}>
+          Checking your ducats…
+        </button>
+      );
+    if (balance < price.amount)
+      return (
+        <>
+          <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '10px', padding: '8px 10px', marginTop: '8px', fontSize: '13px' }}>
+            You have {formatDucats(balance)}: <strong>{formatDucats(price.amount - balance)} short</strong> for the first season.
+          </div>
+          <button className="ui-btn ui-btn-block" style={{ marginTop: '8px', background: '#F59E0B', borderColor: '#F59E0B', color: '#451A03', fontWeight: 800 }} onClick={stop(() => onOpen('STORE'))}>
+            Get ducats
+          </button>
+        </>
+      );
+    return (
+      <>
+        <button className="ui-btn ui-btn-block" disabled={paying} style={{ marginTop: '8px', background: '#4F46E5', borderColor: '#4F46E5', color: '#fff' }} onClick={stop(() => onHire(years))}>
+          {paying ? 'Paying…' : `Hire ${surname} · pay ${formatPrice(price)} now`}
+        </button>
+        <div style={{ textAlign: 'center', fontSize: '12px', color: '#64748B', marginTop: '4px' }}>Leaves you {formatDucats(balance - price.amount)}</div>
+      </>
+    );
+  })();
   return (
     <div
       onClick={onSelect}
@@ -224,61 +318,39 @@ const CandidateCard: React.FC<{
         <strong style={{ color: ducats ? '#B45309' : '#1D4ED8' }}>{formatPrice(price)}</strong>
       </div>
       <EffectList coach={coach} />
-      {selected &&
-        (ducats && !DUCATS_LIVE ? (
-          <button className="ui-btn ui-btn-block" disabled style={{ marginTop: '8px' }}>
-            Coming soon: coaches paid in ducats
-          </button>
-        ) : (
-          <>
-            <div role="group" aria-label="Contract length" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginTop: '8px' }}>
-              {CONTRACT_YEARS.map((n) => (
-                <button
-                  key={n}
-                  aria-pressed={years === n}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onYears(n);
-                  }}
-                  style={{
-                    minHeight: '40px',
-                    borderRadius: '10px',
-                    fontWeight: 800,
-                    fontSize: '12.5px',
-                    cursor: 'pointer',
-                    border: `2px solid ${years === n ? '#4F46E5' : '#CBD5E1'}`,
-                    background: years === n ? '#EEF2FF' : '#fff',
-                    color: years === n ? '#3730A3' : '#0F172A'
-                  }}
-                >
-                  {n} {n === 1 ? 'season' : 'seasons'}
-                </button>
-              ))}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginTop: '6px' }}>
-              <span style={{ color: '#64748B' }}>
-                {startSeason}
-                {years > 1 ? `–${startSeason + years - 1}` : ''} · {formatPrice({ ...price, amount: price.amount * years })} in all
-              </span>
-            </div>
-            {coachPoints < price.amount ? (
-              <button className="ui-btn ui-btn-block" disabled style={{ marginTop: '8px' }}>
-                Needs {formatCP(price.amount - coachPoints)} more
-              </button>
-            ) : (
+      {selected && (
+        <>
+          <div role="group" aria-label="Contract length" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginTop: '8px' }}>
+            {CONTRACT_YEARS.map((n) => (
               <button
-                className="ui-btn ui-btn-block"
-                style={{ marginTop: '8px', background: '#4F46E5', borderColor: '#4F46E5', color: '#fff' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onHire(years);
+                key={n}
+                aria-pressed={years === n}
+                onClick={stop(() => onYears(n))}
+                style={{
+                  minHeight: '40px',
+                  borderRadius: '10px',
+                  fontWeight: 800,
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  border: `2px solid ${years === n ? '#4F46E5' : '#CBD5E1'}`,
+                  background: years === n ? '#EEF2FF' : '#fff',
+                  color: years === n ? '#3730A3' : '#0F172A'
                 }}
               >
-                Hire {coach.name.split(' ')[1] ?? coach.name} · pay {formatPrice(price)} now
+                {n} {n === 1 ? 'season' : 'seasons'}
               </button>
-            )}
-          </>
-        ))}
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', marginTop: '6px' }}>
+            <span style={{ color: '#64748B' }}>
+              {startSeason}
+              {years > 1 ? `–${startSeason + years - 1}` : ''} · {formatPrice({ ...price, amount: price.amount * years })} in all, a season at a time
+            </span>
+          </div>
+          {action}
+          {error && <p style={{ color: '#B91C1C', fontSize: '12.5px', margin: '6px 0 0' }}>{error}</p>}
+        </>
+      )}
     </div>
   );
 };
@@ -311,12 +383,31 @@ const StaffWindowBanner: React.FC<{ week: number }> = ({ week }) => {
 };
 
 /** The off-season: coaches whose next season isn't paid yet. Renew or pay to keep them; the rest leave when the off-season ends. */
-const SettlePanel: React.FC<{ due: HiredCoach[] }> = ({ due }) => {
+const SettlePanel: React.FC<{ due: HiredCoach[]; onOpen: (sheet: DucatSheetKind) => void }> = ({ due, onOpen }) => {
   const { currentYear, coachPoints, settleStaff } = useGameStore();
+  const { user } = useAccount();
+  const { balance } = useDucats();
   const [letGo, setLetGo] = useState<Set<string>>(new Set());
+  const [paying, setPaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const keep = due.filter((c) => !letGo.has(c.role));
-  const cost = keep.reduce((n, c) => n + amountDue(coachPrice(c.rating)), 0);
-  const short = cost - coachPoints;
+  const cost = seasonCost(keep);
+  const short = cost.cp - coachPoints;
+  const ducatsShort = cost.ducats > 0 && balance !== null ? cost.ducats - balance : 0;
+  const confirm = async () => {
+    setError(null);
+    if (cost.ducats > 0) {
+      setPaying(true);
+      const problem = await spendDucats(keep.filter((c) => coachPrice(c.rating).currency === 'DUCATS').map((c) => coachGrade(c.rating)));
+      setPaying(false);
+      if (problem) return setError(problem);
+    }
+    settleStaff(
+      keep.map((c) => c.role),
+      [...letGo] as CoachRole[],
+      cost.ducats > 0
+    );
+  };
   const toggle = (role: string, go: boolean) => setLetGo((s) => {
     const next = new Set(s);
     if (go) next.add(role);
@@ -343,7 +434,7 @@ const SettlePanel: React.FC<{ due: HiredCoach[] }> = ({ due }) => {
                 </div>
               </div>
               <strong style={{ color: price.currency === 'DUCATS' ? '#B45309' : '#1D4ED8', whiteSpace: 'nowrap' }}>
-                {amountDue(price) === 0 ? 'Free' : formatPrice(price)}
+                {formatPrice(price)}
               </strong>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '6px' }}>
@@ -367,31 +458,46 @@ const SettlePanel: React.FC<{ due: HiredCoach[] }> = ({ due }) => {
                 </button>
               ))}
             </div>
-            {price.currency === 'DUCATS' && !DUCATS_LIVE && <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>Free to keep until ducats go on sale.</div>}
           </div>
         );
       })}
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginTop: '6px' }}>
         <span>Total</span>
-        <strong>{formatCP(cost)}</strong>
+        <strong>{formatCost(cost)}</strong>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-        <span>Your Coach Points</span>
-        <strong>{formatCP(coachPoints)}</strong>
+        <span>You have</span>
+        <strong>
+          {formatCP(coachPoints)}
+          {cost.ducats > 0 && ` · ${user && balance !== null ? formatDucats(balance) : '₾ –'}`}
+        </strong>
       </div>
       {short > 0 ? (
         <p style={{ color: '#B91C1C', fontSize: '12.5px', margin: '6px 0 0' }}>
           {formatCP(short)} short. You earn Coach Points every week: sign them before the off-season ends, or let some go.
         </p>
+      ) : cost.ducats > 0 && !user ? (
+        <button className="ui-btn ui-btn-block" style={{ marginTop: '8px', background: '#2563EB', borderColor: '#2563EB', color: '#fff' }} onClick={() => onOpen('SIGN_IN')}>
+          Sign in to pay in ducats
+        </button>
+      ) : ducatsShort > 0 ? (
+        <>
+          <p style={{ color: '#B45309', fontSize: '12.5px', margin: '6px 0 0' }}>{formatDucats(ducatsShort)} short. Get ducats, or let some coaches go.</p>
+          <button className="ui-btn ui-btn-block" style={{ marginTop: '8px', background: '#F59E0B', borderColor: '#F59E0B', color: '#451A03', fontWeight: 800 }} onClick={() => onOpen('STORE')}>
+            Get ducats
+          </button>
+        </>
       ) : (
         <button
           className="ui-btn ui-btn-block"
+          disabled={paying || (cost.ducats > 0 && balance === null)}
           style={{ marginTop: '8px', background: '#16A34A', borderColor: '#16A34A', color: '#fff' }}
-          onClick={() => settleStaff(keep.map((c) => c.role), [...letGo] as CoachRole[])}
+          onClick={confirm}
         >
-          {keep.length === 0 ? 'Let them go' : cost === 0 ? 'Confirm' : `Confirm · pay ${formatCP(cost)}`}
+          {paying ? 'Paying…' : keep.length === 0 ? 'Let them go' : cost.cp + cost.ducats === 0 ? 'Confirm' : `Confirm · pay ${formatCost(cost)}`}
         </button>
       )}
+      {error && <p style={{ color: '#B91C1C', fontSize: '12.5px', margin: '6px 0 0' }}>{error}</p>}
     </section>
   );
 };

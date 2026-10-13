@@ -4,3 +4,7 @@ APP_URL=http://localhost:3000
 GOOGLE_CLIENT_SECRET=
 FACEBOOK_APP_SECRET=
 RESEND_API_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+# STRIPE_TAX=on adds sales tax through Stripe Tax (set it up in the Stripe dashboard first)
+STRIPE_TAX=
