@@ -1,76 +1,158 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { musicPlayer, useNowPlaying } from '../utils/musicPlayer';
-import { NowPlayingStyle, useMusicSettings } from '../utils/musicSettings';
+import { NowPlayingStyle, setMusicSettings, useMusicSettings } from '../utils/musicSettings';
 import { Song, coverUrl, songColor, songInitials } from '../utils/soundtrack';
+import { onNowPlayingRequest } from '../utils/nowPlayingRequests';
 
-const SHOW_FOR = 5000; // ms on screen per song
+const SHOW_FOR = 5000; // ms on screen when a song starts
+const SHOW_ON_REQUEST = 8000; // ms on screen when the coach taps 🎵 in the top bar
 const SLIDE = 450; // ms for the slide out
+
 
 /**
  * "Now Playing", the way sports games do it: when a song starts, a card slides in at the bottom right (above the
- * tab bar), shows the cover, the song and the artist for a few seconds, then slides away. Three styles (Settings);
- * a tap skips to the next song.
+ * tab bar), shows the cover, the song and the artist for a few seconds, then slides away. Three styles (Settings).
+ * The card has a mute button and a next-song button, stays up while the coach's finger or mouse is on it, and the
+ * top bar's 🎵 brings it up any time.
  */
 export const NowPlayingPopup: React.FC = () => {
   const { song, playId } = useNowPlaying();
-  const { popupStyle, enabled } = useMusicSettings();
-  const [shown, setShown] = useState<{ song: Song; playId: number } | null>(null);
+  const { popupStyle, enabled, muted } = useMusicSettings();
+  const [shown, setShown] = useState<{ song: Song | null; key: number } | null>(null);
   const [visible, setVisible] = useState(false);
+  const [request, setRequest] = useState(0); // bumps when 🎵 is tapped
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const holding = useRef(false); // a finger or the mouse is on the card
 
+  const clearTimers = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+  };
+  const hideAfter = (ms: number) => {
+    clearTimers();
+    timers.current = [
+      setTimeout(() => {
+        if (!holding.current) setVisible(false);
+      }, ms),
+      setTimeout(() => {
+        if (!holding.current) setShown(null);
+      }, ms + SLIDE)
+    ];
+  };
+  const showFor = (next: Song | null, ms: number) => {
+    setShown({ song: next, key: Date.now() });
+    hideAfter(ms); // (clears any earlier timers first)
+    timers.current.push(setTimeout(() => setVisible(true), 30));
+  };
+
+  // A new song: up for a few seconds
   useEffect(() => {
     if (!song || !enabled) {
       setVisible(false);
       return;
     }
-    setShown({ song, playId });
-    const enter = setTimeout(() => setVisible(true), 30);
-    const leave = setTimeout(() => setVisible(false), SHOW_FOR);
-    const clear = setTimeout(() => setShown(null), SHOW_FOR + SLIDE);
-    return () => [enter, leave, clear].forEach(clearTimeout);
-  }, [song, playId, enabled]);
+    clearTimers();
+    showFor(song, SHOW_FOR);
+    return clearTimers;
+  }, [song, playId, enabled]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 🎵 in the top bar: up for longer (music that hasn't started yet starts now)
+  useEffect(() => {
+    return onNowPlayingRequest(() => setRequest((n) => n + 1));
+  }, []);
+  useEffect(() => {
+    if (request === 0) return;
+    musicPlayer.unlock();
+    clearTimers();
+    showFor(musicPlayer.getState().song, SHOW_ON_REQUEST);
+  }, [request]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!shown) return null;
-  const s = shown.song;
+  const s = enabled ? shown.song : null;
+  const hold = () => {
+    holding.current = true;
+    clearTimers();
+  };
+  const release = () => {
+    holding.current = false;
+    hideAfter(2500);
+  };
   return (
-    <button
+    <div
       className={`ui-now-playing${visible ? ' ui-now-playing-in' : ''}`}
-      onClick={() => musicPlayer.skip()}
-      aria-label={`Now playing: ${s.title} by ${s.artist}. Tap to skip.`}
-      title="Tap to skip"
+      role="group"
+      aria-label={s ? `Now playing: ${s.title} by ${s.artist}` : 'Music'}
+      onPointerEnter={hold}
+      onPointerLeave={release}
+      onFocus={hold}
+      onBlur={release}
+      style={{ cursor: 'default' }}
     >
-      <Card song={s} style={popupStyle} />
-    </button>
+      {s ? <Card song={s} style={popupStyle} muted={muted} /> : <MusicOff enabled={enabled} />}
+    </div>
   );
 };
 
-const Card: React.FC<{ song: Song; style: NowPlayingStyle }> = ({ song, style }) => {
+/** Mute (the music keeps playing, silently) and next song: on every style of card. */
+const Controls: React.FC<{ muted: boolean; dark: boolean; accent: string; accentText: string }> = ({ muted, dark, accent, accentText }) => (
+  <>
+    <button
+      onClick={() => setMusicSettings({ muted: !muted })}
+      aria-label={muted ? 'Unmute music' : 'Mute music'}
+      aria-pressed={muted}
+      title={muted ? 'Unmute' : 'Mute'}
+      style={{ ...roundBtn, background: dark ? 'rgba(255,255,255,.12)' : '#F1F5F9', color: dark ? '#fff' : '#0F172A' }}
+    >
+      {muted ? '🔇' : '🔊'}
+    </button>
+    <button onClick={() => musicPlayer.skip()} aria-label="Next song" title="Next song" style={{ ...roundBtn, background: accent, color: accentText, fontWeight: 900 }}>
+      ⏭
+    </button>
+  </>
+);
+
+/** 🎵 with the music off (or not started): a way to turn it on. */
+const MusicOff: React.FC<{ enabled: boolean }> = ({ enabled }) => (
+  <span style={{ ...row, ...ring, gap: '10px', background: '#0F172A', color: '#fff', borderRadius: '12px', padding: '10px 12px', width: '250px', borderLeft: '4px solid #F59E0B', boxShadow: '0 8px 24px rgba(15,23,42,.35)' }}>
+    <span style={text}>
+      <span style={{ ...label, color: '#F59E0B' }}>MUSIC</span>
+      <span style={{ ...line, fontSize: '14px', fontWeight: 800 }}>{enabled ? 'Starting the music…' : 'Music is off'}</span>
+    </span>
+    {!enabled && (
+      <button onClick={() => setMusicSettings({ enabled: true })} style={{ ...roundBtn, width: 'auto', borderRadius: '8px', padding: '0 12px', background: '#F59E0B', color: '#0F172A', fontWeight: 800 }}>
+        Turn on
+      </button>
+    )}
+  </span>
+);
+
+const Card: React.FC<{ song: Song; style: NowPlayingStyle; muted: boolean }> = ({ song, style, muted }) => {
   if (style === 'VINYL')
     return (
-      <span style={{ ...row, ...ring, background: 'rgba(15,23,42,.92)', color: '#fff', borderRadius: '999px', padding: '5px 14px 5px 5px', maxWidth: '260px', boxShadow: '0 6px 18px rgba(15,23,42,.3)' }}>
+      <span style={{ ...row, ...ring, background: 'rgba(15,23,42,.92)', color: '#fff', borderRadius: '999px', padding: '5px', maxWidth: '300px', boxShadow: '0 6px 18px rgba(15,23,42,.3)' }}>
         <Cover song={song} size={36} round />
-        <span style={text}>
+        <span style={{ ...text, maxWidth: '150px' }}>
           <span style={{ ...line, fontSize: '13px', fontWeight: 800 }}>♪ {song.title}</span>
-          <span style={{ ...line, fontSize: '11px', color: '#CBD5E1' }}>{song.artist}</span>
+          <span style={{ ...line, fontSize: '11px', color: '#CBD5E1' }}>{muted ? 'Muted' : song.artist}</span>
         </span>
+        <Controls muted={muted} dark accent="#fff" accentText="#0F172A" />
       </span>
     );
   if (style === 'BIG_COVER')
     return (
-      <span style={{ ...row, gap: '10px', background: '#fff', color: '#0F172A', borderRadius: '14px', padding: '10px', width: '270px', border: '1px solid #E2E8F0', boxShadow: '0 10px 28px rgba(15,23,42,.3)' }}>
+      <span style={{ ...row, gap: '10px', background: '#fff', color: '#0F172A', borderRadius: '14px', padding: '10px', width: '300px', border: '1px solid #E2E8F0', boxShadow: '0 10px 28px rgba(15,23,42,.3)' }}>
         <Cover song={song} size={72} />
         <span style={text}>
-          <span style={{ ...label, color: '#2563EB' }}>NOW PLAYING</span>
+          <span style={{ ...label, color: '#2563EB' }}>{muted ? 'MUTED' : 'NOW PLAYING'}</span>
           <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '15px', fontWeight: 800, lineHeight: 1.2 }}>{song.title}</span>
           <span style={{ ...line, fontSize: '12px', color: '#475569' }}>{song.artist}</span>
         </span>
-        <span aria-hidden="true" style={{ flex: '0 0 32px', width: '32px', height: '32px', borderRadius: '50%', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px' }}>
-          ⏭
-        </span>
+        <Controls muted={muted} dark={false} accent="#2563EB" accentText="#fff" />
       </span>
     );
   // CLASSIC (the default)
   return (
-    <span style={{ ...row, ...ring, gap: '10px', background: '#0F172A', color: '#fff', borderRadius: '12px', padding: '8px 12px 8px 8px', width: '250px', borderLeft: '4px solid #F59E0B', boxShadow: '0 8px 24px rgba(15,23,42,.35)' }}>
+    <span style={{ ...row, ...ring, gap: '10px', background: '#0F172A', color: '#fff', borderRadius: '12px', padding: '8px', width: '300px', borderLeft: '4px solid #F59E0B', boxShadow: '0 8px 24px rgba(15,23,42,.35)' }}>
       <Cover song={song} size={52} />
       <span style={text}>
         <span style={{ ...label, color: '#F59E0B', display: 'flex', alignItems: 'center' }}>
@@ -79,12 +161,13 @@ const Card: React.FC<{ song: Song; style: NowPlayingStyle }> = ({ song, style })
             <i />
             <i />
           </span>
-          NOW PLAYING
+          {muted ? 'MUTED' : 'NOW PLAYING'}
         </span>
         <span style={{ ...line, fontSize: '14px', fontWeight: 800 }}>{song.title}</span>
         <span style={{ ...line, fontSize: '12px', color: '#CBD5E1' }}>{song.artist}</span>
         <Progress />
       </span>
+      <Controls muted={muted} dark accent="#F59E0B" accentText="#0F172A" />
     </span>
   );
 };
@@ -140,3 +223,16 @@ const row: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '
 const text: React.CSSProperties = { display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 };
 const line: React.CSSProperties = { display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
 const label: React.CSSProperties = { fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em' };
+const roundBtn: React.CSSProperties = {
+  font: 'inherit', // first, so the size below wins
+  flex: '0 0 40px',
+  width: '40px',
+  height: '40px',
+  borderRadius: '50%',
+  border: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '15px',
+  cursor: 'pointer'
+};

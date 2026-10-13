@@ -58,10 +58,13 @@ describe('The soundtrack', () => {
 
 describe('Music settings', () => {
   it('start on, at 60%, with the Classic pop-up, and remember changes in this browser', () => {
-    expect(DEFAULT_MUSIC_SETTINGS).toEqual({ enabled: true, volume: 0.6, popupStyle: 'CLASSIC' });
+    expect(DEFAULT_MUSIC_SETTINGS).toEqual({ enabled: true, volume: 0.6, muted: false, popupStyle: 'CLASSIC' });
     setMusicSettings({ popupStyle: 'VINYL', volume: 0.3 });
     expect(getMusicSettings()).toMatchObject({ popupStyle: 'VINYL', volume: 0.3, enabled: true });
     expect(JSON.parse(localStorage.getItem('hsfhc.music')!)).toMatchObject({ popupStyle: 'VINYL', volume: 0.3 });
+    // Muted is remembered too, and keeps the volume for unmuting
+    setMusicSettings({ muted: true });
+    expect(JSON.parse(localStorage.getItem('hsfhc.music')!)).toMatchObject({ muted: true, volume: 0.3 });
     setMusicSettings(DEFAULT_MUSIC_SETTINGS);
   });
 });

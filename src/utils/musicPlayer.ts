@@ -213,8 +213,8 @@ class MusicPlayer {
   }
 
   private applyVolume(seconds: number) {
-    const { enabled, volume } = getMusicSettings();
-    this.setGain(enabled ? volume : 0, seconds);
+    const { enabled, volume, muted } = getMusicSettings();
+    this.setGain(enabled && !muted ? volume : 0, seconds);
   }
 
   private setGain(value: number, seconds: number) {

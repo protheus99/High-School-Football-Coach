@@ -10,6 +10,7 @@ import { TeamView, TeamSection } from './components/TeamView';
 import { RankingsHub, RankingsSection } from './components/RankingsHub';
 import { CareerCompleteView } from './components/CareerCompleteView';
 import { ComplianceDecisionSheet } from './components/ComplianceSheets';
+import { showNowPlaying } from './utils/nowPlayingRequests';
 import { BackToTop } from './components/ui/BackToTop';
 import { musicPlayer } from './utils/musicPlayer';
 import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
@@ -286,6 +287,10 @@ export const App: React.FC = () => {
         </div>
         {/* Narrow icon buttons (full height for thumbs) keep the bar to one line, even with the playoff bracket */}
         <div style={{ display: 'flex', gap: '3px', flexWrap: 'nowrap', flex: '0 0 auto' }}>
+          {/* Music: brings up the Now Playing pop-up (mute and next song) */}
+          <button onClick={showNowPlaying} aria-label="Music" title="Music: mute or next song" style={iconBtn('#334155')}>
+            🎵 <span className="hide-sm">Music</span>
+          </button>
           {/* News, with a count of the stories the coach hasn't seen */}
           <button
             onClick={openNews}

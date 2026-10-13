@@ -8,7 +8,7 @@ import { Song, loadSoundtrack } from '../utils/soundtrack';
  * The choices stay in this browser for every career.
  */
 export const MusicSettingsPanel: React.FC = () => {
-  const { enabled, volume, popupStyle } = useMusicSettings();
+  const { enabled, volume, muted, popupStyle } = useMusicSettings();
   const { song } = useNowPlaying();
   const [songs, setSongs] = useState<Song[] | null>(null);
   const [showList, setShowList] = useState(false);
@@ -45,6 +45,17 @@ export const MusicSettingsPanel: React.FC = () => {
       </div>
 
       <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#334155', opacity: enabled ? 1 : 0.5 }}>
+        <button
+          type="button"
+          onClick={() => setMusicSettings({ muted: !muted })}
+          disabled={!enabled}
+          aria-label={muted ? 'Unmute music' : 'Mute music'}
+          aria-pressed={muted}
+          title={muted ? 'Unmute' : 'Mute'}
+          style={{ ...choice(muted), minHeight: '36px', width: '40px', flex: '0 0 40px', fontSize: '16px' }}
+        >
+          {muted ? '🔇' : '🔊'}
+        </button>
         Volume
         <input
           type="range"
@@ -57,7 +68,7 @@ export const MusicSettingsPanel: React.FC = () => {
           style={{ flex: 1 }}
           aria-label="Music volume"
         />
-        <span style={{ width: '36px', textAlign: 'right', fontWeight: 700 }}>{Math.round(volume * 100)}%</span>
+        <span style={{ width: '48px', textAlign: 'right', fontWeight: 700 }}>{muted ? 'Muted' : `${Math.round(volume * 100)}%`}</span>
       </label>
 
       <div>
