@@ -62,7 +62,7 @@ const UNITS: { id: UnitId; title: string; short: string; slots: Slot[] }[] = [
 
 const CLASS_SHORT: Record<Player['classYear'], string> = { Freshman: 'Fr', Sophomore: 'So', Junior: 'Jr', Senior: 'Sr' };
 
-const POTENTIAL_COLORS: Record<PotentialGrade, { background: string; color: string }> = {
+export const POTENTIAL_COLORS: Record<PotentialGrade, { background: string; color: string }> = {
   'A+': { background: '#DCFCE7', color: '#166534' },
   A: { background: '#DCFCE7', color: '#166534' },
   B: { background: '#DBEAFE', color: '#1E40AF' },

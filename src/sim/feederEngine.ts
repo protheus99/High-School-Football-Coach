@@ -554,7 +554,9 @@ export function resolveFeederClass(
   const joined: Player[] = [];
   const rivalSignings: RivalSigning[] = [];
   const outcomes: FeederOutcome[] = pool.map((p) => {
-    const base = { prospectId: p.id, prospectName: p.name, source: p.source, position: p.projectedPosition };
+    // The potential the coach had seen (prospects he evaluated), kept for the signing day board
+    const known = withEvaluation(p).revealedPotential;
+    const base = { prospectId: p.id, prospectName: p.name, source: p.source, position: p.projectedPosition, ...(known !== 'UNKNOWN' && { potential: known }) };
     if (p.isTransferRisk && Math.random() < 0.5) return { ...base, outcome: 'LEFT_AREA' as FeederOutcomeType };
 
     if (!ctx) {

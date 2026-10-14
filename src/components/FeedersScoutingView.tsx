@@ -1,8 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { feederEventsOpen, useGameStore } from '../store/gameStore';
+import { SigningDayBoard } from './SigningDayBoard';
 import { FEEDER_SIGNING_WEEK } from '../sim/scheduleEngine';
 import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
-import { FeederOutcomeType, FeederProspect, Player, Position, ProspectSource } from '../types/game';
+import { FeederProspect, Player, Position, ProspectSource } from '../types/game';
 import { PositionNeed, priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 import { PageHeader } from './ui/PageHeader';
 import { rulesForState } from '../sim/stateRules';
@@ -39,14 +40,6 @@ const SOURCE_COLORS: Record<ProspectSource, string> = {
   STAR_RECRUIT: '#D97706',
   OUT_OF_DISTRICT: '#BE123C',
   TRYOUT: '#64748B'
-};
-
-const OUTCOME_LABELS: Record<FeederOutcomeType, string> = {
-  JOINED: 'Joined the program',
-  NOT_PLAYING: 'Chose not to play',
-  LEFT_AREA: 'Moved away',
-  OTHER_SCHOOL: 'Enrolled elsewhere',
-  JV_TEAM: 'Playing JV'
 };
 
 function outlook(chance: number): { label: string; color: string } {
@@ -344,49 +337,9 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; the off season is the time to build the pipeline.'}
           </p>
 
-          {/* Last year's class */}
+          {/* The last signing day: who joined, who went to rivals */}
           {lastFeederResults && lastFeederResults.length > 0 && (
-            <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '12px 14px', marginBottom: '14px', fontSize: '13px' }}>
-              <strong>Last year&apos;s pipeline:</strong>{' '}
-              {(Object.keys(OUTCOME_LABELS) as FeederOutcomeType[])
-                .map((o) => ({ o, count: lastFeederResults.filter((r) => r.outcome === o).length }))
-                .filter(({ count }) => count > 0)
-                .map(({ o, count }) => `${count} ${OUTCOME_LABELS[o].toLowerCase().replace('jv', 'JV')}`)
-                .join(' · ')}
-              <div style={{ marginTop: '6px', color: '#166534' }}>
-                Newcomers:{' '}
-                {lastFeederResults.some((r) => r.outcome === 'JOINED')
-                  ? lastFeederResults
-                      .filter((r) => r.outcome === 'JOINED')
-                      .map((r, i) => {
-                        // Link to the player's profile while he is on the team
-                        const player = userTeam.roster.find((pl) => pl.id === r.playerId);
-                        const label = `${r.prospectName} (${r.position}, ${player?.overallRating ?? r.overall})`;
-                        return (
-                          <React.Fragment key={r.prospectId}>
-                            {i > 0 && ', '}
-                            {player ? (
-                              <button onClick={() => onOpenPlayer(player)} style={playerLink}>
-                                {label}
-                              </button>
-                            ) : (
-                              label
-                            )}
-                          </React.Fragment>
-                        );
-                      })
-                  : 'none'}
-              </div>
-              {lastFeederResults.some((r) => r.destinationTeamId) && (
-                <div style={{ marginTop: '4px', color: '#9F1239' }}>
-                  Lost to rivals:{' '}
-                  {lastFeederResults
-                    .filter((r) => r.destinationTeamId)
-                    .map((r) => `${r.prospectName} → ${r.destinationName}`)
-                    .join(', ')}
-                </div>
-              )}
-            </div>
+            <SigningDayBoard year={feederClassYear - 1} results={lastFeederResults} roster={userTeam.roster} onOpenPlayer={onOpenPlayer} />
           )}
 
           {probation && (

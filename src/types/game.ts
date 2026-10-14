@@ -466,6 +466,7 @@ export interface FeederOutcome {
   position: Position;
   outcome: FeederOutcomeType;
   overall?: number; // revealed for players who joined
+  potential?: PotentialGrade; // as the coach knew it at signing (evaluated prospects only)
   destinationTeamId?: string; // OTHER_SCHOOL: the program they chose, when known
   destinationName?: string;
 }

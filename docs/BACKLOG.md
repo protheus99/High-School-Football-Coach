@@ -16,6 +16,9 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   moved away, enrolled elsewhere), the newcomers as a comma list ("Name (POS, rating)") and "Lost to rivals" as a
   long run-on list. Make it feel like a signing-day moment. Code: `src/components/FeedersScoutingView.tsx`, the
   `lastFeederResults` block near the top of the Students section. Mockup first.
+  **Done 2026-10-14 (option A, v1.17):** `SigningDayBoard`: four count tiles, the newcomers as cards (rating,
+  potential, tap for the player card, the best three then "+ N more"), and losses grouped by rival school with the
+  potential the coach had seen (`FeederOutcome.potential`, kept from this signing day on).
 - **Hub: the "Prospect signing day: N newcomers joined" card has no link to the signing review.** It only offers
   "Roster". Add a link to the review (the "Last year's pipeline" summary above, once redesigned). Code:
   `src/components/WeeklyAgenda.tsx`, the `signing-results` card.

@@ -105,6 +105,18 @@ describe('Coach actions', () => {
 });
 
 describe('Year-end decisions', () => {
+  it('keeps the potential the coach had seen, for the signing day board (none for prospects never evaluated)', () => {
+    const team = teamWithPrestige(80);
+    const pool = generateFeederPool(team).map((p, i) =>
+      i % 2 === 0 ? { ...p, revealedPotential: 'UNKNOWN' as const, interestScore: 10 } : { ...p, revealedPotential: 'UNKNOWN' as const, interestScore: 60 }
+    );
+    const { outcomes } = resolveFeederClass(pool, team);
+    outcomes.forEach((o) => {
+      const p = pool.find((x) => x.id === o.prospectId)!;
+      expect(o.potential).toBe(p.interestScore >= 50 ? p.truePotential : undefined);
+    });
+  });
+
   it('not everyone joins, and those who do keep their name and ratings', () => {
     const team = teamWithPrestige(80);
     const outcomes: FeederOutcome[] = [];
