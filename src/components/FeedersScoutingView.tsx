@@ -51,7 +51,7 @@ function outlook(chance: number): { label: string; color: string } {
 
 export type FeederSection = 'STUDENTS' | 'PROGRAMS' | 'NEEDS';
 type PoolScope = 'DISTRICT' | 'REGION' | 'STATE' | 'NATIONAL';
-type PoolFilter = 'ALL' | 'TOP10' | 'COMMITTED';
+type PoolFilter = 'ALL' | 'TOP10' | 'COMMITTED' | 'MY_LIST';
 const PAGE_SIZE = 20; // prospect cards shown at a time (the State and National lists run to 100+)
 
 /** Position tabs above the prospect list (lines and the secondary grouped). */
@@ -101,6 +101,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     contactFeederProspect,
     makeBoosterOffer,
     removeFeederProspect,
+    shortlist,
+    toggleShortlist,
     widePool,
     coachingStaff,
     league,
@@ -181,12 +183,16 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   // Top 10: the district's five best A-level and five best B-level; wider scopes their ten best A-level
   const top10 = scope === 'DISTRICT' ? topDistrict : scope === 'REGION' ? topRegion : scopeList.filter(isA).slice(0, 10);
   const committedToMe = scopeList.filter((p) => currentCommitment(p, userTeamId)?.teamId === userTeamId);
+  // The coach's own list: every prospect he added, from any pool, whatever the scope
+  const listed = new Set(shortlist);
+  const myList = ranked([...scoutingPool, ...widePool].filter((p) => listed.has(p.id)));
   const filters: { id: PoolFilter; label: string; count?: number }[] = [
     { id: 'ALL', label: 'All', count: scopeList.length },
     { id: 'TOP10', label: 'Top 10' },
-    { id: 'COMMITTED', label: 'Committed', count: committedToMe.length }
+    { id: 'COMMITTED', label: 'Committed', count: committedToMe.length },
+    { id: 'MY_LIST', label: 'My List', count: myList.length }
   ];
-  const shown = filter === 'TOP10' ? top10 : filter === 'COMMITTED' ? committedToMe : scopeList;
+  const shown = filter === 'TOP10' ? top10 : filter === 'COMMITTED' ? committedToMe : filter === 'MY_LIST' ? myList : scopeList;
   const groupPositions = POSITION_GROUPS.find((g) => g.id === positionGroup)?.positions;
   const byPosition = groupPositions ? shown.filter((p) => groupPositions.includes(p.projectedPosition)) : shown;
   const page = byPosition.slice(0, visible);
@@ -375,13 +381,19 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                   return c ? { name: schoolName(c.teamId, p), interest: c.interest, isYou: c.teamId === userTeamId, tied: c.tied } : null;
                 })()}
                 positionFilled={(needs.find((n) => n.position === p.projectedPosition)?.need ?? 1) === 0}
+                onList={listed.has(p.id)}
+                onToggleList={() => toggleShortlist(p.id)}
                 onRemove={() => {
                   removeFeederProspect(p.id);
-                  setFeedback(`${p.name} was removed from your list.`);
+                  setFeedback(`${p.name} was dropped from your prospects.`);
                 }}
               />
             ))}
-            {byPosition.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No prospects in this group.</div>}
+            {byPosition.length === 0 && (
+              <div style={{ color: '#64748B', fontSize: '13px' }}>
+                {filter === 'MY_LIST' && myList.length === 0 ? 'Your list is empty. Tap "+ Add to List" on any prospect to follow him here.' : 'No prospects in this group.'}
+              </div>
+            )}
           </div>
           {byPosition.length > page.length && (
             <button className="ui-btn ui-btn-block" style={{ marginTop: '10px' }} onClick={() => setVisible(visible + PAGE_SIZE)}>
@@ -405,12 +417,14 @@ const ProspectCard: React.FC<{
   boostersLocked?: boolean; // no booster offers at all while on probation
   positionFilled: boolean;
   onRemove: () => void;
+  onList: boolean; // on the coach's list
+  onToggleList: () => void;
   rank?: string;
   schools: { name: string; interest: number; isYou: boolean }[];
   commitment: { name: string; interest: number; isYou: boolean; tied: boolean } | null;
   interestBonus: number; // the staff's Feeder Pipeline
   locked?: boolean; // off limits while the program is on recruiting probation
-}> = ({ prospect: p, chance, coachPoints, onContact, onBooster, boostersLocked, positionFilled, onRemove, rank, schools, commitment, interestBonus, locked }) => {
+}> = ({ prospect: p, chance, coachPoints, onContact, onBooster, boostersLocked, positionFilled, onRemove, onList, onToggleList, rank, schools, commitment, interestBonus, locked }) => {
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [boosterAsk, setBoosterAsk] = useState<BoosterOffer | null>(null);
   // Evaluated once scouted or at 50+ interest: his potential, speed and strength show
@@ -434,8 +448,11 @@ const ProspectCard: React.FC<{
         </strong>
         <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontWeight: 'bold' }}>{p.projectedPosition}</span>
+          <button onClick={onToggleList} aria-pressed={onList} style={listBtn(onList)}>
+            {onList ? '✓ On List' : '+ Add to List'}
+          </button>
           {!confirmRemove && (
-            <button onClick={() => setConfirmRemove(true)} aria-label={`Remove ${p.name} from the list`} title="Remove from the list" style={removeBtn}>
+            <button onClick={() => setConfirmRemove(true)} aria-label={`Drop ${p.name} from your prospects`} title="Drop from your prospects" style={removeBtn}>
               ✕
             </button>
           )}
@@ -443,9 +460,9 @@ const ProspectCard: React.FC<{
       </div>
       {confirmRemove && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', margin: '6px 0', padding: '8px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '6px', fontSize: '12px' }}>
-          <span style={{ flex: '1 1 140px' }}>Remove {p.name} from your list? He won&apos;t come back.</span>
+          <span style={{ flex: '1 1 140px' }}>Drop {p.name} from your prospects? He won&apos;t come back.</span>
           <button onClick={onRemove} style={actionBtn('#B91C1C', false)}>
-            Remove
+            Drop
           </button>
           <button onClick={() => setConfirmRemove(false)} style={actionBtn('#64748B', false)}>
             Keep
@@ -646,6 +663,20 @@ const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void }
     </div>
   );
 };
+
+const listBtn = (on: boolean): React.CSSProperties => ({
+  flex: '0 0 auto',
+  minHeight: '32px',
+  padding: '4px 9px',
+  borderRadius: '8px',
+  border: '2px solid #2563EB',
+  background: on ? '#2563EB' : '#fff',
+  color: on ? '#fff' : '#1D4ED8',
+  fontWeight: 800,
+  fontSize: '12px',
+  whiteSpace: 'nowrap',
+  cursor: 'pointer'
+});
 
 const removeBtn: React.CSSProperties = {
   minWidth: '40px',

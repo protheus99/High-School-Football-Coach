@@ -47,6 +47,7 @@ export interface GameSaveRecord {
   difficulty?: Difficulty;
   feederClassYear?: number;
   seasonRecap?: import('../store/gameStore').SeasonRecap | null;
+  shortlist?: string[]; // the coach's recruiting list (prospect ids)
   careerKey?: string; // the playthrough, across its saves (its played games are written down outside the saves)
 }
 

@@ -347,6 +347,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     pendingUserBan: state.pendingUserBan,
     onHotSeat: state.onHotSeat,
     ...(state.careerKey && { careerKey: state.careerKey }),
+    shortlist: state.shortlist,
     ...(state.difficulty && { difficulty: state.difficulty })
   };
 }
@@ -433,6 +434,7 @@ interface GameStoreState {
   activeDilemma: NarrativeDilemma | null;
   dilemmaLog: DilemmaRecord[];
   pressLog: PressRecord[]; // post-game press questions asked (rotation and cooldowns)
+  shortlist: string[]; // prospects the coach put on his list (Prospects › List › My List)
   careerKey: string | null; // this playthrough, across its saves: its played games are written down (sim/gameLock.ts)
   playedGames: Record<string, PlayedGame>; // the career's games that kicked off, live or final
   lockNotice: { year: number; week: number; opponentName: string; userScore: number; opponentScore: number; seen: boolean } | null; // a final put back after loading a save
@@ -505,7 +507,8 @@ interface GameStoreState {
   runFeederEvent: (type: FeederEventType) => FeederProspect[]; // returns newly discovered prospects
   scoutFeederProspect: (prospectId: string) => void;
   visitFeederProspect: (prospectId: string) => void;
-  removeFeederProspect: (prospectId: string) => void; // drop a prospect the program doesn't want (frees a pipeline spot)
+  removeFeederProspect: (prospectId: string) => void;
+  toggleShortlist: (prospectId: string) => void; // "+ Add to List" / "✓ On List" // drop a prospect the program doesn't want (frees a pipeline spot)
   contactFeederProspect: (prospectId: string, action: ContactAction) => void; // text, email, call, visit, invite, wine & dine
   pitchFeederStar: (prospectId: string) => void;
   makeBoosterOffer: (prospectId: string, offer: BoosterOffer) => void; // free interest now, evidence for later
@@ -661,6 +664,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   activeDilemma: null,
   dilemmaLog: [],
   pressLog: [],
+  shortlist: [],
   careerKey: null,
   playedGames: {},
   lockNotice: null,
@@ -733,6 +737,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       statewideRecruits: generateStatewideElite(ctx),
       widePool: generateWidePool(ctx, league.state ?? 'Texas', nationalLeagues),
       weekResults: null,
+      shortlist: [],
       feederClassYear: get().currentYear + 1,
       seasonRecap: null,
       compliance: initialCompliance(),
@@ -844,6 +849,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       lightCalibration: save.lightCalibration ?? null,
       dilemmaLog: save.dilemmaLog ?? [],
       pressLog: save.pressLog ?? [],
+      shortlist: save.shortlist ?? [],
       currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
       userTeamId: userTeam.id,
       coachPoints: save.coachPoints ?? save.coachingAP ?? STARTING_COACH_POINTS,
@@ -1778,7 +1784,16 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   },
 
   removeFeederProspect: (prospectId) =>
-    set({ scoutingPool: get().scoutingPool.filter((p) => p.id !== prospectId), widePool: get().widePool.filter((p) => p.id !== prospectId) }),
+    set({
+      scoutingPool: get().scoutingPool.filter((p) => p.id !== prospectId),
+      widePool: get().widePool.filter((p) => p.id !== prospectId),
+      shortlist: get().shortlist.filter((id) => id !== prospectId)
+    }),
+
+  toggleShortlist: (prospectId) => {
+    const { shortlist } = get();
+    set({ shortlist: shortlist.includes(prospectId) ? shortlist.filter((id) => id !== prospectId) : [...shortlist, prospectId] });
+  },
 
   contactFeederProspect: (prospectId, action) => {
     const { coachPoints, scoutingPool, widePool } = get();

@@ -50,6 +50,10 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   "Shortlist" button on his card) and a quick way back to them. A natural fit is a "Shortlist" choice in the List
   menu, next to All and Top 10 (`src/components/FeedersScoutingView.tsx`, the list filters around `TOP10`). Save
   the shortlist with the game. Consider the same for college recruiting (seniors and juniors). Mockup first.
+  **Done 2026-10-14 (option A, v1.17):** a "+ Add to List" button on every prospect card ("✓ On List" once added) and
+  "My List (n)" in the List menu, showing the listed prospects from every pool whatever the scope; saved with the
+  game. The card's ✕ now says "Drop" (from your prospects) so it isn't confused with the list. College recruiting:
+  not done (still an idea).
 - **Banquet: mark the graduating seniors who signed with a college.** The "Graduating Senior Class" list
   (`src/components/OffSeasonBanquetView.tsx`) is every senior with an OVR, so the ones going on to college don't
   stand out. Add a symbol next to them, maybe with the school. They're all graduates, so **no graduation cap**.
