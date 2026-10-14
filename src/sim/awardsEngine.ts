@@ -42,6 +42,14 @@ const DEFENSE = new Set<Position>(['DE', 'DT', 'LB', 'CB', 'S']);
 // Linemen and punters have no box score: they're judged on their play (rating) and a little on the team's season
 const NO_STATS = new Set<Position>(['OT', 'OG', 'C', 'P']);
 
+/**
+ * The big awards compare players across positions: each position's season score is scaled so a typical state
+ * leader at QB, WR or on defense lands a little below a typical leading rusher. Running backs still win most
+ * years, but a truly exceptional quarterback, receiver or defender can take Mr. Football (measured over 120
+ * simulated state seasons, 2026-10-14: MVP about 68% RB, 14% QB, 8% WR, 10% defense).
+ */
+export const AWARD_WEIGHT: Partial<Record<Position, number>> = { RB: 1, QB: 1.2, WR: 1.35, TE: 3.4, LB: 1, DE: 1.3, CB: 1.7, S: 1.7 };
+
 interface Candidate {
   player: Player;
   team: Team;
@@ -83,18 +91,19 @@ export function seasonImpact(p: Player, teamWins: number): number {
   }
 }
 
-/** A player's line for the honors page ("1,988 rush yds · 24 TD"). */
+/** A player's line for the honors page: everything his season score counted ("1,556 rush · 312 rec · 18 TD"). */
 export function statHeadline(p: Player): string {
   const s = p.stats;
   const n = (v: number) => v.toLocaleString('en-US');
+  const line = (...parts: (string | false)[]) => parts.filter(Boolean).join(' · ');
   switch (p.position) {
     case 'QB':
-      return `${n(s.passYards)} yds · ${s.passTDs} TD · ${s.interceptionsThrown} INT`;
+      return line(`${n(s.passYards)} pass`, s.rushYards > 0 && `${n(s.rushYards)} rush`, `${s.passTDs + s.rushTDs} TD`, `${s.interceptionsThrown} INT`);
     case 'RB':
-      return `${n(s.rushYards)} rush yds · ${s.rushTDs} TD`;
+      return line(`${n(s.rushYards)} rush`, s.receivingYards > 0 && `${n(s.receivingYards)} rec`, `${s.rushTDs + s.receivingTDs} TD`);
     case 'WR':
     case 'TE':
-      return `${n(s.receivingYards)} yds · ${s.receivingTDs} TD`;
+      return line(`${n(s.receivingYards)} yds`, `${s.receptions} catches`, `${s.receivingTDs} TD`);
     case 'K':
       return `${s.fieldGoalsMade}/${s.fieldGoalsAttempted} FG`;
     case 'OT':
@@ -103,7 +112,7 @@ export function statHeadline(p: Player): string {
     case 'P':
       return `${p.overallRating} OVR`;
     default:
-      return [s.tackles ? `${s.tackles} tkl` : '', s.sacks ? `${s.sacks} sacks` : '', s.interceptionsCaught ? `${s.interceptionsCaught} INT` : ''].filter(Boolean).join(' · ') || `${p.overallRating} OVR`;
+      return line(s.tackles > 0 && `${s.tackles} tkl`, s.tacklesForLoss > 0 && `${s.tacklesForLoss} TFL`, s.sacks > 0 && `${s.sacks} sacks`, s.interceptionsCaught > 0 && `${s.interceptionsCaught} INT`) || `${p.overallRating} OVR`;
   }
 }
 
@@ -124,8 +133,8 @@ export function calculateSeasonAwards(year: number, allTeams: Team[], bracket?: 
   const teamWins = new Map(allTeams.map((t) => [t.id, t.record.wins + playoffWins(t, bracket).wins]));
   const candidates: Candidate[] = allTeams.flatMap((team) => team.roster.map((player) => ({ player, team, impact: seasonImpact(player, teamWins.get(team.id) ?? 0) })));
   const best = (filter: (c: Candidate) => boolean) => candidates.filter(filter).sort((a, b) => b.impact - a.impact || b.player.overallRating - a.player.overallRating);
-  // The big awards weigh in the team's season a little: the MVP of a 14-win team over a similar line on a 4-win team
-  const award = (c: Candidate) => c.impact * (1 + (teamWins.get(c.team.id) ?? 0) / 40);
+  // The big awards weigh in the team's season a little, and scale each position (AWARD_WEIGHT): the MVP of a 14-win team over a similar line on a 4-win team
+  const award = (c: Candidate) => c.impact * (AWARD_WEIGHT[c.player.position] ?? 1) * (1 + (teamWins.get(c.team.id) ?? 0) / 40);
   const ranked = (filter: (c: Candidate) => boolean) => candidates.filter(filter).sort((a, b) => award(b) - award(a));
 
   const mvp = ranked((c) => OFFENSE.has(c.player.position) || DEFENSE.has(c.player.position))[0];

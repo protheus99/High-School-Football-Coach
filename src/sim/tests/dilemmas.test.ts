@@ -100,6 +100,23 @@ describe('Dilemma library', () => {
     });
   });
 
+  it('pays by tier: corrupt calls ₡150-300, risky ₡60-120, and doing right costs ₡10-30 (balance review 2026-10-14)', () => {
+    const [team] = generateDistrictTeams();
+    team.roster.slice(0, 3).forEach((p) => (p.academics.gpa = 2.1));
+    const subject = team.roster.find((p) => p.depthChartTier === 1)!;
+    TEMPLATES.forEach((t) =>
+      t.build(team, 10, subject).choices.forEach((c) => {
+        const cp = c.impact.coachPointsDelta ?? 0;
+        const where = `${t.id}/${c.id}`;
+        if (c.tier === 'CORRUPT') expect({ where, ok: cp >= 150 && cp <= 300 }).toEqual({ where, ok: true });
+        // A risky call pays unless its story spends money (restitution from the team account)
+        if (c.tier === 'RISKY') expect({ where, ok: (cp >= 60 && cp <= 120) || cp < 0 }).toEqual({ where, ok: true });
+        if (c.tier === 'COMPROMISE') expect({ where, ok: cp >= -30 && cp <= 30 }).toEqual({ where, ok: true });
+        if (c.tier === 'GOOD') expect({ where, ok: cp >= -30 && cp <= -10 }).toEqual({ where, ok: true });
+      })
+    );
+  });
+
   it('every choice applies cleanly to a team', () => {
     TEMPLATES.forEach((t) => {
       const [team] = generateDistrictTeams();

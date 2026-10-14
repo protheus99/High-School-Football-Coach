@@ -65,6 +65,11 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
     example), so the order can look wrong even when the math is consistent.
   Check whether the formulas are fair across positions, whether the win boost is the right size, and whether
   the card should show what the ranking used.
+  **Done 2026-10-14 (option A, plus balance so a truly exceptional QB or WR can win):** the card shows everything
+  the score counted ("1,556 rush · 312 rec · 18 TD"; QBs add rushing, receivers add catches, defenders add TFL).
+  The big awards scale each position (`AWARD_WEIGHT` in `src/sim/awardsEngine.ts`). Measured over 120 simulated
+  state seasons: Mr. Football went from 92% RB to about 68% RB, 14% QB, 8% WR and 10% defenders; Defensive Player
+  of the Year from 96% LB to about 43% LB, 28% DE, 17% CB and 12% S.
 - **National rankings: an unbeaten state champion wasn't ranked.** St. Thomas Aquinas (Florida 6A) finished 13-0
   and never made the national poll. In the state final listing it showed as plain "St. Thomas Aquinas (9-0)" next
   to "#26 Apopka (8-2)". Find out why. The poll is a computer ranking solved from every result, with schedule
@@ -73,6 +78,15 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   how Florida's teams connect to the rest of the national pool (few games between states can strand a whole
   state), and whether results from simulated states count the same. Also check which rank the score list shows
   (national or state) and that it's labeled.
+  **Measured 2026-10-14:** the ranking counts this season only (a preseason estimate from the roster fades out
+  completely by the end of the regular season), so a team that was never strong isn't held back by past years.
+  The problem is the state's network: a champion whose state rates low can't climb past it (in three simulated
+  worlds, unbeaten champions from Florida ranked #17 and #30, New Jersey #41, Pennsylvania #57, Maryland #137).
+  Rank labels: only the national rank (Top 25) is ever shown in front of a team name, which is what's wanted.
+  Option B measured (the final poll mixes a résumé score with the computer rating; résumé = win percentage,
+  unbeaten, state title, quality wins): with 30% résumé, champions' median rank goes from #20 to #7 and 32 of 39
+  make the top 25 (21 today); with 40%, 36 of 39, the worst unbeaten champion #12. Two-loss teams in the top 25
+  drop from 40 to 31 (30%) or 27 (40%). Waiting on the user's call (30% or 40%, final poll only or every week).
 - **Box score: the record under each team reads as wrong.** After Miami Northwestern beat Doral Academy 15-14, the
   Final Box Score showed "Miami Northwestern 2-3, 1-3 Home" while the Hub showed "2-3 (1-1)" (overall, then
   district). The second pair in the box score isn't the district record: it's the team's home record, or for the
@@ -137,6 +151,11 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   real risk (investigations, sanctions, booster and board effects). Then measure it in simulated seasons, so that
   cheating is tempting but not the only way to win. The project's balance rule applies: check title turnover
   across many seasons.
+  **Done 2026-10-14 (option A, v1.17):** every choice rescaled by tier: corrupt ₡150-300 (average ₡205), risky
+  ₡60-120 (one story cost kept: restitution from the team account), good −₡10 to −₡30, compromise unchanged (its
+  costs are paid for in the story). Measured over a season at five schools: always corrupt earns about +₡2,050 but
+  ends in a playoff ban every time with the board at 0; corrupt only while compliance is 65 or more earns about
+  +₡710 with one ban in five; always good costs about ₡150.
 - **Coaching staff: candidates of different grades look identical.** On the JV Offensive Coordinator's list, the
   S+ (₾100), A (₾25), C (₡150) and D+ (₡100) candidates all show the same single effect: "Young Offense: Freshman
   and sophomore offense grows +1 a season". The grade does change the strength, but only behind the scenes
@@ -149,6 +168,17 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   Review so the grades differ clearly: show each candidate's real amount ("+0.3 a season"), or use words or bars
   for strength; check the prices against what each grade really gives; and give single-effect roles more effects
   or a bigger spread between grades. Mockup first.
+  **Decided 2026-10-14: direction P2.** Whole-number levels, one per letter: D = 1, C = 2, B = 3, A = 4, S = 5;
+  a plus grade (B+, A+, S+) adds one more effect instead of more strength. Cards show "Young Offense +3" and a
+  meter equal to the level. Fractional growth text ("+0.3 a season") was rejected.
+  **Pay-to-win concern (measured, 1,500 games per row, equal teams, full 17-role staffs vs no staff):** all D
+  +0.2 edge 54% wins; all C+ (best Coach Point staff) +0.7, 56-57%; all B +1.25, 63%; all A +1.6, 68%; all S+
+  +2.0 (cap), 69%. Best paid vs best free is about 63%, plus up to +0.5 overall per player a season through
+  development. **Decided 2026-10-14 (both):** (1) cap the gap: best paid staff vs best free staff about 55-58%
+  wins (lower the game-day cap, or let Coach Point coaches reach higher); (2) pay for breadth, not wins: S grades
+  add more effects in development, recruiting, Coach Points and compliance, with the same game-day ceiling as a
+  strong free coach. Next: draft level values per effect, prices, then measure win
+  rates and title turnover over many seasons before building.
 - **Save-scumming: reloading to replay a big game until it's won.** Settings › Saves has "Save game" and "Load
   autosave", so a player can save before an important game and reload after a loss. That's less a cheat than the
   price of a single-player game, but consider options to stop it (raised before in the 2026-10-13 security
@@ -162,6 +192,7 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
      or worth a Hall of Fame bonus.
   4. **Only the Hall of Fame cares:** leave normal play alone, but count loads in the save and mark or exclude
      reloaded careers on the Hall of Fame.
+  **Decided 2026-10-14: option 2 (a game counts once it starts).** Design and mockup next.
   The likely mix is 1 + 2 for everyone, or 3 for Hall of Fame careers. Check how cloud saves and the "Load
   autosave" button fit in.
 
