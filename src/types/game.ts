@@ -144,6 +144,7 @@ export interface Player {
   age: number;
   overallRating: number;
   potential: PotentialGrade;
+  joinedYear?: number; // the year he joined the program (signing day or a transfer): "NEW" for that season
   depthChartTier: DepthChartTier;
   depthOrder?: number; // order within the position group (0 = first starter); see sim/depthChart
   improperlyRecruited?: boolean; // joined through an illegal booster offer: ruled ineligible if the program is caught

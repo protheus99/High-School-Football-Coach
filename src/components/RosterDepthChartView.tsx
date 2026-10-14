@@ -6,19 +6,24 @@ import { DepthChartBoard } from './DepthChartBoard';
 import { DataList } from './ui/DataList';
 import { DEFENSE_POSITIONS, OFFENSE_POSITIONS, starterRatings } from '../sim/depthChart';
 import { FatigueChip } from './ui/FatigueChip';
+import type { Player } from '../types/game';
 
 export const RosterDepthChartView: React.FC = () => {
-  const { districtTeams, userTeamId, moveDepthChartPlayer, openPlayerCard } = useGameStore();
+  const { districtTeams, userTeamId, moveDepthChartPlayer, openPlayerCard, currentYear } = useGameStore();
   const [view, setView] = useState<'CHART' | 'ROSTER'>('CHART');
   useScrollTopOnScreenChange(view);
-  const [filter, setFilter] = useState<'ALL' | 'OFF' | 'DEF'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'OFF' | 'DEF' | 'NEW'>('ALL');
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   if (!userTeam) return null;
 
+  // Newcomers: players who joined the program this year (signing day or a transfer)
+  const isNew = (p: Player) => p.joinedYear !== undefined && p.joinedYear === currentYear;
+  const newcomers = userTeam.roster.filter(isNew).length;
   const filtered = userTeam.roster.filter((p) => {
     if (filter === 'OFF') return OFFENSE_POSITIONS.includes(p.position);
     if (filter === 'DEF') return DEFENSE_POSITIONS.includes(p.position);
+    if (filter === 'NEW') return isNew(p);
     return true;
   });
   const ratings = starterRatings(userTeam.roster);
@@ -43,7 +48,7 @@ export const RosterDepthChartView: React.FC = () => {
         </button>
       </div>
 
-      {view === 'CHART' && <DepthChartBoard team={userTeam} onMove={moveDepthChartPlayer} onSelect={(p) => openPlayerCard(p.id)} />}
+      {view === 'CHART' && <DepthChartBoard team={userTeam} onMove={moveDepthChartPlayer} onSelect={(p) => openPlayerCard(p.id)} currentYear={currentYear} />}
 
       {view === 'ROSTER' && (
         <>
@@ -56,6 +61,9 @@ export const RosterDepthChartView: React.FC = () => {
             </button>
             <button className="ui-chip" aria-pressed={filter === 'DEF'} onClick={() => setFilter('DEF')}>
               Defense
+            </button>
+            <button className="ui-chip" aria-pressed={filter === 'NEW'} onClick={() => setFilter('NEW')}>
+              New ({newcomers})
             </button>
           </div>
           <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
@@ -78,6 +86,11 @@ export const RosterDepthChartView: React.FC = () => {
                     {p.recruiting.starRating > 0 && (
                       <span aria-label={`${p.recruiting.starRating}-star recruit`} style={{ color: '#B45309', fontSize: '13px', marginLeft: '6px', whiteSpace: 'nowrap' }}>
                         {'★'.repeat(p.recruiting.starRating)}
+                      </span>
+                    )}
+                    {isNew(p) && (
+                      <span className="depth-tag depth-new" style={{ marginLeft: '6px' }}>
+                        NEW
                       </span>
                     )}
                   </>

@@ -81,7 +81,8 @@ export const DepthChartBoard: React.FC<{
   team: Team;
   onMove: (playerId: string, direction: -1 | 1) => void;
   onSelect?: (player: Player) => void;
-}> = ({ team, onMove, onSelect }) => {
+  currentYear?: number; // newcomers this year get a NEW tag
+}> = ({ team, onMove, onSelect, currentYear }) => {
   const isPhone = !useMediaQuery(DESKTOP_QUERY);
   const ratings = starterRatings(team.roster);
   const groups = new Map((Object.keys(DEPTH_TEMPLATE) as Position[]).map((pos) => [pos, depthGroup(team.roster, pos)]));
@@ -141,6 +142,7 @@ export const DepthChartBoard: React.FC<{
         </span>
       ),
       year: <span className="depth-tag depth-year">{CLASS_SHORT[p.classYear]}</span>,
+      newcomer: p.joinedYear !== undefined && p.joinedYear === currentYear ? <span className="depth-tag depth-new">NEW</span> : null,
       fatigue: (
         <span className="depth-tag depth-fatigue" style={FATIGUE_COLORS[level]}>
           {level} {formatPercent(p.condition.seasonWear)}
@@ -201,7 +203,10 @@ export const DepthChartBoard: React.FC<{
                 </td>
                 <td className="depth-td-name">{nameCell(p, r === 0)}</td>
                 <td>{t.potential}</td>
-                <td>{t.year}</td>
+                <td>
+                  {t.year}
+                  {t.newcomer}
+                </td>
                 <td>{t.fatigue}</td>
                 <td>{t.offers}</td>
                 <td>{moveButton(p, 1, !last)}</td>
@@ -231,6 +236,7 @@ export const DepthChartBoard: React.FC<{
                 <div className="depth-tags">
                   {t.potential}
                   {t.year}
+                  {t.newcomer}
                   {t.fatigue}
                   {t.offers}
                 </div>

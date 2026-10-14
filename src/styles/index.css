@@ -1325,6 +1325,11 @@ body:has(.ui-back-to-top) .ui-now-playing {
   width: 18px; /* fixed widths keep the tags after them lined up from row to row */
   text-align: center;
 }
+.depth-tag.depth-new {
+  color: #fff;
+  background: #16a34a;
+  letter-spacing: 0.04em;
+}
 .depth-tag.depth-year {
   width: 16px;
   text-align: center;

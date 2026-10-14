@@ -1638,7 +1638,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     // Named before the decision runs: a player who leaves the program is still the one the story is about
     const involved = userTeam.roster.find((p) => p.id === activeDilemma?.involvedPlayerId);
+    const before = new Set(userTeam.roster.map((p) => p.id));
     executeDilemmaDecision(userTeam, choice);
+    // A transfer who joins is a newcomer this season
+    userTeam.roster.filter((p) => !before.has(p.id)).forEach((p) => (p.joinedYear = currentYear));
 
     const record: DilemmaRecord = {
       templateId: activeDilemma?.templateId ?? activeDilemma?.id ?? 'UNKNOWN',
@@ -1934,6 +1937,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   runFeederSigningDay: () => {
     const { leagueTeams, districtTeams, userTeamId, scoutingPool, currentYear, currentWeek } = get();
     const userTeam = leagueTeams.find((t) => t.id === userTeamId)!;
+    const returning = new Set(userTeam.roster.map((p) => p.id));
     const ctx = recruitingContext(get());
     const feederClass = resolveFeederClass(scoutingPool, userTeam, ctx);
     const elite = ctx ? resolveStatewideElite(get().statewideRecruits, ctx) : { signings: [] as RivalSigning[], headlines: [] as string[] };
@@ -1959,6 +1963,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         );
     });
     enforceVarsityRosterLimit(userTeam, feederClass.joined, feederClass.outcomes);
+    // Everyone new on the coach's roster (signees and walk-on freshmen) is a newcomer this season
+    userTeam.roster.filter((p) => !returning.has(p.id)).forEach((p) => (p.joinedYear = currentYear));
     // The pool is shared across the region: report only on the user's own pipeline (and anyone who chose the user)
     const pipelineIds = new Set([...scoutingPool.filter(inUserPipeline), ...get().widePool.filter((p) => p.coachContacts > 0)].map((p) => p.id));
     const outcomes = feederClass.outcomes.filter((o) => pipelineIds.has(o.prospectId) || o.outcome === 'JOINED' || o.outcome === 'JV_TEAM');
