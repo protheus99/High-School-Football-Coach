@@ -122,9 +122,6 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   resumes the game, so none of the promised effects happen (`src/components/HalftimeSpeechModal.tsx`,
   `src/components/LiveMatchScreen.tsx` around `onApplySpeech`). Decide the options (maybe tied to the score: up,
   down, tied), wire each one into the second half, and test that each effect shows up in simulated games.
-- **Team stamina and health rating (later).** There's no overall team stamina or health number, so a "Hydrate
-  and recover" halftime talk can't be judged and was dropped from the v1.17 halftime rework. Once a team rating
-  exists (Hub, live game, halftime), a recovery talk could come back.
 - **Music: the progress bar doesn't restart when you skip a song.** In the Now Playing card, skipping to the next
   song keeps the old bar. Likely cause: the bar (`Progress` in `src/components/NowPlayingPopup.tsx`) reads the
   position once when it first appears, and the card stays open when the song changes. Give the bar the song as
@@ -229,18 +226,6 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   replay a game; it needs a sign-in server update and a database change (user deploys).
   The likely mix is 1 + 2 for everyone, or 3 for Hall of Fame careers. Check how cloud saves and the "Load
   autosave" button fit in.
-
-## Sales tax on ducats (Georgia)
-
-- **Status:** waiting on a tax professional (added 2026-10-13, after 1.15.0).
-- **Question:** does Georgia's sales tax on digital goods (taxed since January 1, 2024 when bought with a
-  "permanent right of use") cover in-game currency like ducats? No source found says either way; a 2021 bill
-  excluded prepaid "stored value" codes, but that may not be in the law as passed.
-- **Ready to switch on:** the sign-in server adds tax through Stripe Tax when `STRIPE_TAX` is `"on"` (see
-  `auth-worker/README.md`, Ducats). Tax is added on top of the pack price where Facada inc is registered.
-- **To do if it applies:** register in Georgia, set up Stripe Tax (registration and a default product tax code)
-  in the live Stripe account, add `"STRIPE_TAX": "on"` to `vars` in `auth-worker/wrangler.jsonc`, deploy the
-  sign-in server from `auth-worker/`.
 
 ## Title screen backgrounds
 
