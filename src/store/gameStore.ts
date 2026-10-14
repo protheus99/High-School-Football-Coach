@@ -1161,6 +1161,12 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       // The final polls and leaders, with every state's title game in
       const everyone = nationalTeams(leagueTeams, get().nationalLeagues);
       const finalPolls = generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get()), league?.state ?? 'Texas');
+      // Last season, for recruits who want to win: each state's champions and the final national Top 25
+      const champions = new Set(
+        [get().playoffBracket, ...get().nationalLeagues.map((l) => l.bracket)].flatMap((b) => b?.divisions.map((d) => d.championTeamId) ?? []).filter((id): id is string => !!id)
+      );
+      const nationalRank = new Map(finalPolls.nationalTop25.map((e) => [e.teamId, e.rank]));
+      everyone.forEach((t) => (t.lastSeason = { year: get().currentYear, stateChampion: champions.has(t.id), ...(nationalRank.has(t.id) && { nationalRank: nationalRank.get(t.id) }) }));
       // The full year is in: score it for the career's Hall of Fame entry (#1 in the final national poll is a national title)
       const career = get().career;
       const nationalTitle = finalPolls.nationalTop25[0]?.teamId === userTeamId;

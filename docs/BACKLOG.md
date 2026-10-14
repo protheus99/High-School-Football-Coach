@@ -6,6 +6,33 @@ Work that's decided but parked. Newest first.
 
 Captured as sent; to be worked on in today's update (v1.17) when the user says to begin.
 
+- **New Students: needs, interest marks, where he's from, what he wants (done 2026-10-14, v1.17).** Needs rows
+  are links to Students at that position; Students shows the needs of the group in view (top needs on All) in
+  place of the explanation (now behind "How recruiting works"); the signing day is one short line. "in pipeline"
+  became "prospects". The interest bar has marks at 50 (scouted) and 80 (commits), explained once in a legend.
+  Each card has a where-he's-from tag (your district / zoned elsewhere: harder / elsewhere in the state / out of
+  state: hardest) and his top two wants with how the program measures up. Wants vary more (new starting
+  weights), and they drive moves for State and National prospects: a kid who wants to win moves more readily for
+  a winner, a homebody rarely moves. Winning now counts last season's state title and final national rank
+  (`Team.lastSeason`, set at the banquet). Measured over 18 state seasons (contacts only): newcomers per class 13.8
+  → 14.2, outside-district joins 0.3 → 0.3; class rating 49.5 → 48.2 and champions 16 → 14 of 18 (small sample,
+  to be re-measured with the programs).
+- **Programs all year, with real weight (decided 2026-10-14, mockup waiting for OK).** Off-season-only programs leave
+  no time to use them. Programs become the main way to build the district pipeline (quantity and quality); State
+  and National add specific players. Open all year except the post season, each with a cooldown; Coach Points
+  are the limit. Pipeline cap 40 → 60. A standing Hub card every week: "Which programs should we run this week,
+  Coach?" (not counted as a task). Programs (draft prices, to be measured):
+  - Find new prospects (every 4 weeks): Youth Football Clinic (all positions, 2–3 new, every middle schooler +1
+    rating, ₡60), 7-on-7 League Night (QB/RB/WR/TE, 1–2 new, ₡50), Lockdown League (LB/CB/S, 1–2 new, ₡50).
+  - Interest for everyone: Community Tryout Day (+5 to all district prospects, 1–2 walk-ons, ₡40, every 4
+    weeks), Family Night Cookout (+10 to all, ₡80, every 8 weeks).
+  - Position programs (₡40, every 3 weeks; +6–10 interest, +1 rating up to +3 a season each, sometimes a new
+    prospect): Quarterback Academy (QB), Ball Carrier Clinic (RB), Route Runners School (WR/TE), The Trenches
+    (OT/OG/C), War Zone (DE/DT), Linebacker U (LB), The Nickel (CB/S), Specialist Showcase (K/P).
+    They replace Big Man Camp and QB & Skills Academy.
+  - Scouting: Speed & Strength Combine kept (₡25, every 3 weeks).
+  Measure before shipping: class strength and title turnover over many seasons, all programs vs none (rival
+  programs don't run programs). Mockup: https://claude.ai/artifact/W3KSTS8hqwX34qNxJUqkdB
 - **Title screen: the three features look like buttons (added 2026-10-14, quick).** "🏈 Call the plays",
   "🎓 Recruit and develop" and "🏆 Chase state titles" under the pitch look tappable but aren't. Redesign them so
   they read as a feature list, not buttons (`src/components/SplashScreen.tsx`, the list near line 171). Mockup

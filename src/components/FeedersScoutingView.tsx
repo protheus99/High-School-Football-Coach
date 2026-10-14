@@ -3,7 +3,7 @@ import { feederEventsOpen, useGameStore } from '../store/gameStore';
 import { SigningDayBoard } from './SigningDayBoard';
 import { FEEDER_SIGNING_WEEK } from '../sim/scheduleEngine';
 import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
-import { FeederProspect, Player, Position, ProspectSource } from '../types/game';
+import { FeederProspect, Player, Position, ProspectSource, Team } from '../types/game';
 import { PositionNeed, priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 import { PageHeader } from './ui/PageHeader';
 import { rulesForState } from '../sim/stateRules';
@@ -27,7 +27,7 @@ import {
   schoolInterest,
   userJoinProbability
 } from '../sim/feederEngine';
-import { FACTOR_LABELS, buildRecruitingContext, onProbation, restrictedOnProbation, topPriority } from '../sim/feederCompetition';
+import { FACTOR_LABELS, buildRecruitingContext, onProbation, factorFit, restrictedOnProbation, topPriorities } from '../sim/feederCompetition';
 import { wideJoinProbability } from '../sim/widePool';
 import { BOOSTER_OFFERS, BOOSTER_ORDER, BoosterOffer } from '../sim/compliance';
 import { staffBonuses } from '../sim/coachingStaff';
@@ -281,17 +281,26 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
 
       {feedback && <div style={{ background: '#EEF2FF', color: '#3730A3', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', marginBottom: '12px' }}>{feedback}</div>}
 
-      {/* Signing day */}
-      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', marginBottom: '14px' }}>
-        ✍️ <strong>Prospect signing day:</strong>{' '}
+      {/* Signing day: the deadline, in one line */}
+      <div style={{ fontSize: '12.5px', color: '#475569', marginBottom: '10px' }}>
+        ✍️ <strong>Signing day:</strong>{' '}
         {currentYear >= feederClassYear && currentWeek <= FEEDER_SIGNING_WEEK
           ? currentWeek === FEEDER_SIGNING_WEEK
-            ? 'this week is the last chance. Prospects pick their school when the week ends.'
-            : `pre season week ${FEEDER_SIGNING_WEEK}, next week.`
-          : `pre season week ${FEEDER_SIGNING_WEEK} of ${feederClassYear}. Visits and pitches count until then.`}
+            ? 'this week, the last chance. Prospects pick their school when the week ends.'
+            : 'next week.'
+          : `pre season week ${FEEDER_SIGNING_WEEK}, ${feederClassYear}`}
       </div>
 
-      {section === 'NEEDS' && <TeamNeedsPanel needs={needs} onPrograms={() => onSection('PROGRAMS')} />}
+      {section === 'NEEDS' && (
+        <TeamNeedsPanel
+          needs={needs}
+          onPrograms={() => onSection('PROGRAMS')}
+          onPick={(position) => {
+            setPositionGroup(groupOf(position));
+            onSection('STUDENTS');
+          }}
+        />
+      )}
 
       {section === 'PROGRAMS' && (
         <>
@@ -338,10 +347,11 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
 
       {section === 'STUDENTS' && (
         <>
-          <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#64748B' }}>
-            Every student who could join the team next year. Not everyone will come out: your programs and personal visits decide who does.{' '}
-            {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; the off season is the time to build the pipeline.'}
-          </p>
+          <NeedsStrip
+            needs={needs}
+            group={POSITION_GROUPS.find((g) => g.id === positionGroup)}
+            onPick={(position) => setPositionGroup(groupOf(position))}
+          />
 
           {/* The last signing day: who joined, who went to rivals */}
           {lastFeederResults && lastFeederResults.length > 0 && (
@@ -355,11 +365,29 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             </div>
           )}
 
-          <p className="ui-muted" style={{ margin: '0 0 10px 0', fontSize: '12px' }}>
-            {scope === 'NATIONAL' || (scope === 'STATE' && multiRegion)
-              ? `Faraway prospects are long shots: contacts earn ${scope === 'NATIONAL' ? 'half' : 'three quarters of'} the usual interest, and even with his commitment his family has to agree to move. His zoned school is working him too.`
-              : `Every program in the ${(scope === 'DISTRICT' ? regionWord : scopeName).toLowerCase()} recruits this pool. At ${COMMIT_THRESHOLD}+ interest a prospect commits; on Prospect signing day the school with the highest interest signs him, and a tie at the top is a coin flip.`}
-          </p>
+          <details style={{ margin: '0 0 8px 0', fontSize: '12.5px', color: '#475569' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#1D4ED8', minHeight: '32px', display: 'flex', alignItems: 'center' }}>How recruiting works</summary>
+            <p style={{ margin: '4px 0' }}>
+              Every student who could join the team next year. Not everyone will come out: your programs and personal visits decide who does.{' '}
+              {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; the off season is the time to build the pipeline.'}
+            </p>
+            <p style={{ margin: '4px 0' }}>
+              {scope === 'NATIONAL' || (scope === 'STATE' && multiRegion)
+                ? `Faraway prospects are long shots: contacts earn ${scope === 'NATIONAL' ? 'half' : 'three quarters of'} the usual interest, and even with his commitment his family has to agree to move. His zoned school is working him too.`
+                : `Every program in the ${(scope === 'DISTRICT' ? regionWord : scopeName).toLowerCase()} recruits this pool. At ${COMMIT_THRESHOLD}+ interest a prospect commits; on Prospect signing day the school with the highest interest signs him, and a tie at the top is a coin flip.`}
+            </p>
+          </details>
+          {/* The interest bar's two marks, explained once for the whole list */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', fontSize: '11.5px', fontWeight: 700, color: '#475569', margin: '0 0 8px 0' }}>
+            <span>
+              <i style={{ ...legendMark, background: '#334155' }} />
+              {EVALUATION_INTEREST} scouted: his potential shows
+            </span>
+            <span>
+              <i style={{ ...legendMark, background: '#B45309' }} />
+              {COMMIT_THRESHOLD} commits
+            </span>
+          </div>
 
           {/* Prospects */}
           <div ref={listRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '10px' }}>
@@ -367,7 +395,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
               <ProspectCard
                 key={p.id}
                 prospect={p}
-                chance={p.scope ? wideJoinProbability(p, userTeamId) : userJoinProbability(p, userTeam.prestige, ctx)}
+                chance={p.scope ? wideJoinProbability(p, userTeamId, userTeam) : userJoinProbability(p, userTeam.prestige, ctx)}
                 coachPoints={coachPoints}
                 onContact={(action) => contactFeederProspect(p.id, action)}
                 onBooster={(offer) => makeBoosterOffer(p.id, offer)}
@@ -382,6 +410,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                 })()}
                 positionFilled={(needs.find((n) => n.position === p.projectedPosition)?.need ?? 1) === 0}
                 onList={listed.has(p.id)}
+                userTeam={userTeam}
+                homeName={p.homeTeamId && p.homeTeamId !== userTeamId ? schoolName(p.homeTeamId, p) : undefined}
                 onToggleList={() => toggleShortlist(p.id)}
                 onRemove={() => {
                   removeFeederProspect(p.id);
@@ -408,6 +438,58 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   );
 };
 
+/** Where a prospect lives, and how much harder that makes him to get. */
+function whereFrom(p: FeederProspect, userTeamId: string, homeName?: string): { kind: 'HOME' | 'ZONED' | 'STATE' | 'NATIONAL'; text: string } {
+  if (p.scope === 'NATIONAL') return { kind: 'NATIONAL', text: `✈️ Out of state (${p.homeState}) · hardest: his family must move` };
+  if (p.scope === 'STATE') return { kind: 'STATE', text: `🚗 Elsewhere in the state${homeName ? ` (${homeName})` : ''} · hard: his family must move` };
+  if (p.source === 'STAR_RECRUIT') return { kind: 'STATE', text: '🚗 Out of area · a long shot' };
+  if (!p.homeTeamId || p.homeTeamId === userTeamId) return { kind: 'HOME', text: '🏠 Your district' };
+  return { kind: 'ZONED', text: `🏫 Zoned to ${homeName ?? 'another school'} · harder` };
+}
+
+const WHERE_STYLES: Record<'HOME' | 'ZONED' | 'STATE' | 'NATIONAL', React.CSSProperties> = {
+  HOME: { background: '#DCFCE7', color: '#166534' },
+  ZONED: { background: '#FEF3C7', color: '#92400E' },
+  STATE: { background: '#FFEDD5', color: '#9A3412' },
+  NATIONAL: { background: '#FEE2E2', color: '#991B1B' }
+};
+const whereTag: React.CSSProperties = { display: 'inline-block', alignSelf: 'flex-start', fontSize: '11.5px', fontWeight: 800, borderRadius: '6px', padding: '2px 7px', margin: '4px 0 2px' };
+const FIT_COLORS = { good: '#15803D', fair: '#B45309', poor: '#B91C1C' } as const;
+const barMark: React.CSSProperties = { position: 'absolute', top: '-3px', width: '2px', height: '14px', borderRadius: '1px', transform: 'translateX(-1px)' };
+const legendMark: React.CSSProperties = { display: 'inline-block', width: '2px', height: '12px', verticalAlign: 'middle', marginRight: '5px', borderRadius: '1px' };
+
+/** Students: the needs of the position group in view (or the biggest needs on All), each a tap away. */
+const NeedsStrip: React.FC<{ needs: PositionNeed[]; group?: { id: string; label: string; positions?: Position[] }; onPick: (position: Position) => void }> = ({ needs, group, onPick }) => {
+  const rows = group?.positions ? needs.filter((n) => group.positions!.includes(n.position)) : priorityNeeds(needs).slice(0, 4);
+  if (rows.length === 0) return null;
+  return (
+    <div style={{ background: '#fff', border: '1px solid #FCD34D', borderLeft: '5px solid #F59E0B', borderRadius: '10px', padding: '7px 10px', margin: '0 0 10px 0', display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '12.5px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', color: '#92400E' }}>
+        <span>{group?.positions ? `${group.label} NEEDS` : 'YOUR TOP NEEDS'}</span>
+        <span>NEXT SEASON</span>
+      </div>
+      {rows.map((n) => (
+        <button
+          key={n.position}
+          onClick={() => onPick(n.position)}
+          style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', background: 'none', border: 'none', padding: '2px 0', font: 'inherit', color: '#0F172A', cursor: 'pointer', textAlign: 'left', minHeight: '28px', alignItems: 'center' }}
+        >
+          <span>
+            <b>{n.position}</b> · {n.need > 0 ? `need ${n.need}` : 'set'}
+            {n.starterHoles > 0 && <span style={{ color: '#B91C1C', fontWeight: 700 }}> ({n.starterHoles} starter{n.starterHoles === 1 ? '' : 's'})</span>}
+          </span>
+          <span style={{ fontWeight: 800, color: n.pipeline >= n.need ? '#15803D' : '#B45309', whiteSpace: 'nowrap' }}>
+            {n.pipeline} {n.pipeline === 1 ? 'prospect' : 'prospects'}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+};
+
+/** The position-chip group a position belongs to (OT opens OL, S opens DB). */
+const groupOf = (position: Position) => POSITION_GROUPS.find((g) => g.positions?.includes(position))?.id ?? 'ALL';
+
 const ProspectCard: React.FC<{
   prospect: FeederProspect;
   chance: number;
@@ -418,24 +500,27 @@ const ProspectCard: React.FC<{
   positionFilled: boolean;
   onRemove: () => void;
   onList: boolean; // on the coach's list
+  userTeam: Team; // for how the program measures up on his wants
+  homeName?: string; // his zoned school's name, when it isn't yours
   onToggleList: () => void;
   rank?: string;
   schools: { name: string; interest: number; isYou: boolean }[];
   commitment: { name: string; interest: number; isYou: boolean; tied: boolean } | null;
   interestBonus: number; // the staff's Feeder Pipeline
   locked?: boolean; // off limits while the program is on recruiting probation
-}> = ({ prospect: p, chance, coachPoints, onContact, onBooster, boostersLocked, positionFilled, onRemove, onList, onToggleList, rank, schools, commitment, interestBonus, locked }) => {
+}> = ({ prospect: p, chance, coachPoints, onContact, onBooster, boostersLocked, positionFilled, onRemove, onList, onToggleList, userTeam, homeName, rank, schools, commitment, interestBonus, locked }) => {
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [boosterAsk, setBoosterAsk] = useState<BoosterOffer | null>(null);
   // Evaluated once scouted or at 50+ interest: his potential, speed and strength show
   const scouted = isEvaluated(p);
   const seen = scouted ? scoutProspect(p) : p;
   const look = outlook(chance);
+  const wants = topPriorities(p).map((f) => ({ label: FACTOR_LABELS[f], ...factorFit(f, p, userTeam, p.interestScore) }));
+  const where = whereFrom(p, userTeam.id, homeName);
   const notes: string[] = [];
   if (p.source === 'SEVEN_ON_SEVEN') notes.push("Doesn't play tackle yet");
   if (p.source === 'STAR_RECRUIT') notes.push('Long shot: elite talent from out of area');
   if (p.source === 'TRYOUT') notes.push('General student trying out');
-  if (p.source === 'OUT_OF_DISTRICT') notes.push('Zoned to another school: out-recruit them to sign him');
   if (p.isTransferRisk) notes.push('Family may relocate');
   if (positionFilled) notes.push(`${p.projectedPosition} is already filled for next season`);
 
@@ -469,8 +554,9 @@ const ProspectCard: React.FC<{
           </button>
         </div>
       )}
+      <span style={{ ...whereTag, ...WHERE_STYLES[where.kind] }}>{where.text}</span>
       <div style={{ color: '#6B7280', fontSize: '12px' }}>
-        {SOURCE_LABELS[p.source]} · {p.middleSchool} · Incoming {p.incomingClass}
+        {SOURCE_LABELS[p.source]}{p.middleSchool.startsWith('Zoned to') ? '' : ` · ${p.middleSchool}`} · Incoming {p.incomingClass}
       </div>
       <div style={{ margin: '6px 0', fontSize: '12px' }}>
         {scouted ? (
@@ -480,13 +566,25 @@ const ProspectCard: React.FC<{
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
-        <div style={{ flex: 1, background: '#E5E7EB', height: '6px', borderRadius: '3px' }}>
-          <div style={{ width: `${p.interestScore}%`, background: SOURCE_COLORS[p.source], height: '100%', borderRadius: '3px' }} />
+        <div style={{ position: 'relative', flex: 1, background: '#E5E7EB', height: '8px', borderRadius: '4px' }}>
+          <div style={{ width: `${p.interestScore}%`, background: SOURCE_COLORS[p.source], height: '100%', borderRadius: '4px' }} />
+          <i aria-hidden="true" style={{ ...barMark, left: `${EVALUATION_INTEREST}%`, background: '#334155' }} />
+          <i aria-hidden="true" style={{ ...barMark, left: `${COMMIT_THRESHOLD}%`, background: '#B45309' }} />
         </div>
         <span>Interest: {interestLabel(p.interestScore)} ({p.interestScore})</span>
         <span style={{ color: look.color, fontWeight: 'bold' }}>{look.label}</span>
       </div>
-      <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>Cares most about: {FACTOR_LABELS[topPriority(p)]}</div>
+      {wants.length > 0 && (
+        <div style={{ fontSize: '12px', color: '#334155', marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '2px 8px' }}>
+          <span>Wants:</span>
+          {wants.map((w, i) => (
+            <span key={w.label}>
+              {i > 0 && '· '}
+              {w.label} <b style={{ color: FIT_COLORS[w.tone] }}>{w.text}</b>
+            </span>
+          ))}
+        </div>
+      )}
       {commitment && (
         <div
           style={{
@@ -608,13 +706,20 @@ const playerLink: React.CSSProperties = {
 };
 
 /** Holes in the roster by position, most urgent first, with how many prospects the pipeline has there. */
-const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void }> = ({ needs, onPrograms }) => {
+const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void; onPick: (position: Position) => void }> = ({ needs, onPrograms, onPick }) => {
   const priority = priorityNeeds(needs);
   const rest = needs.filter((n) => !priority.includes(n));
   const row = (n: PositionNeed, urgent: boolean) => (
-    <div
+    <button
       key={n.position}
+      onClick={() => onPick(n.position)}
+      aria-label={`${n.position}: see the prospects`}
       style={{
+        width: '100%',
+        textAlign: 'left',
+        font: 'inherit',
+        color: 'inherit',
+        cursor: 'pointer',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -637,9 +742,12 @@ const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void }
         </div>
       </div>
       <div style={{ textAlign: 'right', fontSize: '12px', color: n.pipeline >= n.need ? '#15803D' : '#B45309', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-        {n.pipeline} in pipeline
+        {n.pipeline} {n.pipeline === 1 ? 'prospect' : 'prospects'}
+        <span aria-hidden="true" style={{ color: '#1D4ED8', fontSize: '17px', marginLeft: '6px' }}>
+          ›
+        </span>
       </div>
-    </div>
+    </button>
   );
   return (
     <div>

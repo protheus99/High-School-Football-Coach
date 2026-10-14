@@ -226,3 +226,30 @@ describe('Shared pool and commitments', () => {
     }
   });
 });
+
+describe("A prospect's wants", () => {
+  it('vary: no single want tops nine prospects in ten any more', async () => {
+    const { rollPriorities, RECRUITING_FACTORS } = await import('../feederCompetition');
+    const tops = new Map<string, number>();
+    for (let i = 0; i < 2000; i++) {
+      const p = rollPriorities('FEEDER_MIDDLE_SCHOOL');
+      const top = RECRUITING_FACTORS.reduce((best, f) => (p[f] > p[best] ? f : best), RECRUITING_FACTORS[0]);
+      tops.set(top, (tops.get(top) ?? 0) + 1);
+    }
+    expect(Math.max(...tops.values()) / 2000).toBeLessThan(0.7);
+    expect(tops.size).toBeGreaterThanOrEqual(3);
+  });
+
+  it('decide how readily a faraway kid moves: winners draw kids who want to win; homebodies stay', async () => {
+    const { relocationWillingness, winningScore } = await import('../feederCompetition');
+    const { teams } = world();
+    const team = { ...teams[0], prestige: 85, record: { ...teams[0].record, wins: 0, losses: 0 } } as Team;
+    const champ = { ...team, lastSeason: { year: 2026, stateChampion: true, nationalRank: 4 } } as Team;
+    expect(winningScore(champ)).toBeGreaterThan(winningScore(team));
+    const wantsToWin = { priorities: { WINNING: 0.45, HOME: 0.1, PLAYING_TIME: 0.2, RELATIONSHIP: 0.15, BOOSTERS: 0.1 } } as FeederProspect;
+    const homebody = { priorities: { WINNING: 0.1, HOME: 0.5, PLAYING_TIME: 0.15, RELATIONSHIP: 0.15, BOOSTERS: 0.1 } } as FeederProspect;
+    expect(relocationWillingness(wantsToWin, champ)).toBeGreaterThan(relocationWillingness(wantsToWin, team));
+    expect(relocationWillingness(wantsToWin, champ)).toBeGreaterThan(1);
+    expect(relocationWillingness(homebody, champ)).toBeLessThan(1);
+  });
+});

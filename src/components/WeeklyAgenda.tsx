@@ -397,7 +397,7 @@ export const WeeklyAgenda: React.FC<{
       id: 'team-needs',
       icon: '📋',
       title: `Team needs: ${top.map((n) => n.position).join(', ')}`,
-      detail: top.map((n) => `${n.position} need ${n.need}${n.starterHoles ? ` (${n.starterHoles} starting job${n.starterHoles === 1 ? '' : 's'} open)` : ''}, ${n.pipeline} in pipeline`).join(' · '),
+      detail: top.map((n) => `${n.position} need ${n.need}${n.starterHoles ? ` (${n.starterHoles} starting job${n.starterHoles === 1 ? '' : 's'} open)` : ''}, ${n.pipeline} ${n.pipeline === 1 ? 'prospect' : 'prospects'}`).join(' · '),
       tone: 'todo',
       link: { label: 'Team needs', onClick: () => onNavigate('FEEDER_NEEDS') }
     };

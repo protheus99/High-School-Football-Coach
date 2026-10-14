@@ -204,6 +204,7 @@ export interface Team {
   state?: string; // e.g. 'Texas'; ranking engines default to Texas when unset
   enrollment?: number; // drives the UIL 6A Division 1 / Division 2 playoff split
   historicalPrestige?: number; // the school's prestige in the data: AI programs' prestige drifts back toward it
+  lastSeason?: { year: number; stateChampion: boolean; nationalRank?: number }; // last full season: recruits who want to win notice
   nameProfile?: 'DEFAULT' | 'BORDER'; // regional name mix for generated players
   feederProfile?: FeederProfile;
   districtId: string;

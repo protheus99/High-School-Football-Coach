@@ -21,18 +21,20 @@ export const FACTOR_LABELS: Record<RecruitingFactor, string> = {
   BOOSTERS: 'Boosters & facilities'
 };
 
+// Home still leads on average for local kids, but every want comes up often enough to matter (balance review
+// 2026-10-14: "Staying home" used to top nine prospects in ten)
 const BASE_PRIORITIES: Record<ProspectSource, Record<RecruitingFactor, number>> = {
-  FEEDER_MIDDLE_SCHOOL: { HOME: 0.4, RELATIONSHIP: 0.25, PLAYING_TIME: 0.15, WINNING: 0.12, BOOSTERS: 0.08 },
-  SEVEN_ON_SEVEN: { PLAYING_TIME: 0.3, RELATIONSHIP: 0.3, WINNING: 0.2, HOME: 0.1, BOOSTERS: 0.1 },
-  MOVE_IN: { HOME: 0.3, WINNING: 0.25, PLAYING_TIME: 0.2, RELATIONSHIP: 0.15, BOOSTERS: 0.1 },
+  FEEDER_MIDDLE_SCHOOL: { HOME: 0.28, RELATIONSHIP: 0.24, PLAYING_TIME: 0.22, WINNING: 0.16, BOOSTERS: 0.1 },
+  SEVEN_ON_SEVEN: { PLAYING_TIME: 0.28, RELATIONSHIP: 0.24, WINNING: 0.24, HOME: 0.14, BOOSTERS: 0.1 },
+  MOVE_IN: { WINNING: 0.26, PLAYING_TIME: 0.24, HOME: 0.2, RELATIONSHIP: 0.18, BOOSTERS: 0.12 },
   STAR_RECRUIT: { WINNING: 0.35, PLAYING_TIME: 0.25, BOOSTERS: 0.2, RELATIONSHIP: 0.15, HOME: 0.05 },
-  OUT_OF_DISTRICT: { HOME: 0.4, RELATIONSHIP: 0.22, WINNING: 0.18, PLAYING_TIME: 0.12, BOOSTERS: 0.08 },
-  TRYOUT: { HOME: 0.5, RELATIONSHIP: 0.3, PLAYING_TIME: 0.1, WINNING: 0.05, BOOSTERS: 0.05 }
+  OUT_OF_DISTRICT: { HOME: 0.3, RELATIONSHIP: 0.2, WINNING: 0.2, PLAYING_TIME: 0.18, BOOSTERS: 0.12 },
+  TRYOUT: { HOME: 0.3, RELATIONSHIP: 0.26, PLAYING_TIME: 0.26, WINNING: 0.1, BOOSTERS: 0.08 }
 };
 
 /** Each prospect's own priorities: the source's typical weights, individually shuffled. */
 export function rollPriorities(source: ProspectSource): Record<RecruitingFactor, number> {
-  const raw = RECRUITING_FACTORS.map((f) => [f, BASE_PRIORITIES[source][f] * (0.6 + Math.random() * 0.8)] as const);
+  const raw = RECRUITING_FACTORS.map((f) => [f, BASE_PRIORITIES[source][f] * (0.4 + Math.random() * 1.2)] as const);
   const total = raw.reduce((s, [, w]) => s + w, 0);
   return Object.fromEntries(raw.map(([f, w]) => [f, w / total])) as Record<RecruitingFactor, number>;
 }
@@ -40,6 +42,9 @@ export function rollPriorities(source: ProspectSource): Record<RecruitingFactor,
 export function topPriority(p: FeederProspect): RecruitingFactor {
   return RECRUITING_FACTORS.reduce((best, f) => (p.priorities[f] > p.priorities[best] ? f : best), RECRUITING_FACTORS[0]);
 }
+
+/** A prospect's two biggest wants, biggest first. */
+export const topPriorities = (p: FeederProspect): RecruitingFactor[] => [...RECRUITING_FACTORS].sort((a, b) => p.priorities[b] - p.priorities[a]).slice(0, 2);
 
 // ---------------------------------------------------------------------------
 // Context
@@ -87,9 +92,44 @@ function playingTimeScore(p: FeederProspect, team: Team): number {
   return clamp(50 + (p.trueOverall - weakest) * 3, 0, 100);
 }
 
-function winningScore(team: Team): number {
+/** How a program looks to a prospect who wants to win: prestige, this season's record, and last season's state title and national rank. */
+export function winningScore(team: Team): number {
   const games = team.record.wins + team.record.losses;
-  return 0.6 * team.prestige + 0.4 * (games ? team.record.wins / games : 0.5) * 100;
+  const last = team.lastSeason;
+  const lastBonus = (last?.stateChampion ? 10 : 0) + (last?.nationalRank ? (26 - last.nationalRank) * 0.6 : 0);
+  return Math.min(100, 0.6 * team.prestige + 0.4 * (games ? team.record.wins / games : 0.5) * 100 + lastBonus);
+}
+
+/**
+ * A faraway prospect's willingness to move for a program (a multiplier on his family's relocation chance): a kid who
+ * wants to win moves more readily for a winner, one who wants to stay home rarely moves at all.
+ */
+export function relocationWillingness(p: FeederProspect, team: Team | undefined): number {
+  if (!team) return 1;
+  const winAppeal = (winningScore(team) - 60) / 40; // about -0.5 for a weak program, +1 for a champion
+  return clamp(1 + 2 * p.priorities.WINNING * winAppeal - 2 * (p.priorities.HOME - 0.2), 0.4, 1.6);
+}
+
+/** How a program measures up on one of a prospect's wants, in a few words for his card. */
+export function factorFit(factor: RecruitingFactor, p: FeederProspect, team: Team, relationship: number): { text: string; tone: 'good' | 'fair' | 'poor' } {
+  const tone = (score: number): 'good' | 'fair' | 'poor' => (score >= 70 ? 'good' : score >= 45 ? 'fair' : 'poor');
+  if (factor === 'HOME') {
+    if (!p.homeTeamId || p.homeTeamId === team.id) return { text: 'your district', tone: 'good' };
+    return { text: p.scope === 'NATIONAL' ? 'his family would move' : 'his zoned school', tone: 'poor' };
+  }
+  if (factor === 'PLAYING_TIME') {
+    const score = playingTimeScore(p, team);
+    return { text: score >= 90 ? 'open starting job' : score >= 70 ? 'could start' : score >= 45 ? 'would compete' : 'a backup for now', tone: tone(score) };
+  }
+  if (factor === 'WINNING') {
+    const last = team.lastSeason;
+    const honors = [last?.nationalRank ? '#' + last.nationalRank + ' nationally' : '', last?.stateChampion ? 'state champs' : ''].filter(Boolean).join(', ');
+    const score = winningScore(team);
+    return { text: honors || (score >= 70 ? 'a winner' : score >= 45 ? 'fair' : 'not yet'), tone: tone(score) };
+  }
+  if (factor === 'RELATIONSHIP') return { text: relationship >= 70 ? 'strong' : relationship >= 40 ? 'building' : 'barely knows you', tone: tone(relationship) };
+  const score = boosterScore(team, false);
+  return { text: score >= 70 ? 'strong backing' : score >= 45 ? 'fair' : 'thin', tone: tone(score) };
 }
 
 const boosterScore = (team: Team, inducement: boolean) => Math.min(100, team.programMeters.boosterApproval + (inducement ? 45 : 0));

@@ -1,7 +1,7 @@
 import { FeederOutcome, FeederProspect, PotentialGrade, Team } from '../types/game';
 import { clamp, randomInt } from './math/variance';
 import { COMMIT_THRESHOLD, createProspect, prospectRankScore, prospectToPlayer, RivalSigning, schoolInterest, signProspect } from './feederEngine';
-import { RecruitingContext } from './feederCompetition';
+import { RecruitingContext, relocationWillingness } from './feederCompetition';
 import type { LightLeague } from './nationalWorld';
 
 // ---------------------------------------------------------------------------
@@ -72,13 +72,15 @@ export function advanceWidePool(pool: FeederProspect[]): FeederProspect[] {
 }
 
 /** The chance he ends up with the user: winning the commitment (or close to it), then his family moving. */
-export function wideJoinProbability(p: FeederProspect, userTeamId: string): number {
+export function wideJoinProbability(p: FeederProspect, userTeamId: string, userTeam?: Team): number {
   const scope = p.scope ?? 'STATE';
+  // What he wants decides how readily his family moves: winners draw kids who want to win, homebodies stay
+  const relocation = Math.min(0.95, RELOCATION_CHANCE[scope] * relocationWillingness(p, userTeam));
   const [top, next] = schoolInterest(p, userTeamId);
-  if (top.teamId === userTeamId && top.interest >= COMMIT_THRESHOLD) return RELOCATION_CHANCE[scope] * (next && next.interest === top.interest ? 0.5 : 1);
+  if (top.teamId === userTeamId && top.interest >= COMMIT_THRESHOLD) return relocation * (next && next.interest === top.interest ? 0.5 : 1);
   // Not committed: only a slim chance he picks a faraway school on his own
   const mine = schoolInterest(p, userTeamId).find((e) => e.teamId === userTeamId)!.interest;
-  return clamp((mine - 50) / 400, 0, 0.1) * RELOCATION_CHANCE[scope];
+  return clamp((mine - 50) / 400, 0, 0.1) * relocation;
 }
 
 /**
@@ -97,7 +99,7 @@ export function resolveWidePool(
   pool.forEach((p) => {
     const recruited = p.coachContacts > 0;
     const base = { prospectId: p.id, prospectName: p.name, source: p.source, position: p.projectedPosition };
-    const userWins = Math.random() < wideJoinProbability(p, ctx.userTeamId);
+    const userWins = Math.random() < wideJoinProbability(p, ctx.userTeamId, ctx.teamsById.get(ctx.userTeamId));
     if (userWins) {
       const player = signProspect(p, ctx.userTeamId, ctx.userTeamId);
       joined.push(player);
