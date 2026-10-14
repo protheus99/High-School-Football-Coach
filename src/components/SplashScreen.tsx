@@ -13,6 +13,8 @@ import { CAREER_LENGTHS, CareerLength } from '../sim/careerScore';
 // The classic game (a random school at a difficulty, unranked) is hidden for now; flip this to bring it back
 const SHOW_CLASSIC_GAME = false;
 import { deleteAnySave, listAllSaves, loadAnySave, SaveEntry, signInAvailable, useAccount } from '../services/account';
+import { loadAllPlayedGames } from '../services/playedGames';
+import { gamesSince, PlayedGame } from '../sim/gameLock';
 import { reopenCookieBanner } from '../services/consent';
 import { AccountSheet, SignInResult, SignInSheet } from './AccountPanels';
 import { version } from '../../package.json';
@@ -55,12 +57,21 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
       .catch(() => setLatest(null));
   }, [view, canContinue, accountKey]);
 
+  // Games already played from a save's point on: loading it won't replay them (a game counts once it kicks off)
+  const [played, setPlayed] = useState<PlayedGame[]>([]);
   useEffect(() => {
     if (view !== 'LOAD') return;
     listAllSaves()
       .then(setSaves)
       .catch(() => setSaves([]));
+    void loadAllPlayedGames().then(setPlayed);
   }, [view, accountKey]);
+  const lockedNote = (save: SaveEntry) => {
+    if (!save.careerKey) return null;
+    const games = gamesSince(played, save.careerKey, save.currentYear, save.currentWeek);
+    if (games.length === 0) return null;
+    return games.length === 1 ? `🔒 ${games[0].year === save.currentYear ? '' : `${games[0].year} `}Week ${games[0].week} already played: the result stands` : `🔒 ${games.length} games already played: results stand`;
+  };
 
   const [state, setState] = useState('Texas');
   const [pick, setPick] = useState<{ scenario: ScenarioId; school: string } | null>(null);
@@ -395,6 +406,11 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
                       {save.currentYear} season · Week {save.currentWeek} · {save.wins}-{save.losses} · {new Date(save.timestamp).toLocaleString()}
                     </div>
                     {!save.isAutosave && <div style={{ fontSize: '12px', color: '#475569' }}>{save.saveName}</div>}
+                    {lockedNote(save) && (
+                      <div style={{ display: 'inline-block', marginTop: '4px', fontSize: '11.5px', fontWeight: 700, color: '#92400E', background: '#FEF3C7', borderRadius: '6px', padding: '3px 7px' }}>
+                        {lockedNote(save)}
+                      </div>
+                    )}
                   </div>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {confirmDelete === save.id ? (

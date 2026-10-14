@@ -10,14 +10,17 @@ import { needsSettling } from '../sim/staffContracts';
 import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
 import { getUserMatchup } from '../sim/userMatchup';
 import { findDistrict, findRegion } from '../sim/league';
+import { liveClockLabel, lockKey } from '../sim/gameLock';
 
 import type { DefensiveFocus } from '../sim/gamePlan';
 
 export const DashboardView: React.FC<{
   onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
+  onResumeGame: () => void;
   onNavigate: (tab: AgendaTab) => void;
-}> = ({ onLaunchGame, onNavigate }) => {
-  const { currentWeek, currentYear, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, nationalLeagues, activeDilemma, coachingStaff } = useGameStore();
+}> = ({ onLaunchGame, onResumeGame, onNavigate }) => {
+  const { currentWeek, currentYear, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, nationalLeagues, activeDilemma, coachingStaff, careerKey, playedGames, lockNotice } =
+    useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showSimWarning, setShowSimWarning] = useState(false);
 
@@ -28,6 +31,11 @@ export const DashboardView: React.FC<{
   const isPlayed = game?.isPlayed ?? false;
   const userScore = isHome ? game?.homeScore : game?.awayScore;
   const opponentScore = isHome ? game?.awayScore : game?.homeScore;
+  // A game counts once it kicks off: one in progress (from before a load, or a closed browser) can only be resumed,
+  // and one already played in this career has its final put back
+  const written = careerKey && opponent ? playedGames[lockKey(careerKey, currentYear, currentWeek, opponent.id)] : undefined;
+  const inProgress = !isPlayed && written?.status === 'LIVE' ? written : undefined;
+  const resultStands = isPlayed && lockNotice?.year === currentYear && lockNotice.week === currentWeek;
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
 
@@ -46,7 +54,34 @@ export const DashboardView: React.FC<{
 
   return (
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
-      {showSimWarning && opponent && (
+      {showSimWarning && opponent && inProgress && (
+        <Sheet
+          title="Game in progress"
+          onClose={() => setShowSimWarning(false)}
+          footer={
+            <div className="ui-stack">
+              <button
+                className="ui-btn ui-btn-primary"
+                onClick={() => {
+                  setShowSimWarning(false);
+                  onResumeGame();
+                }}
+              >
+                ▶ Resume Game
+              </button>
+              <button className="ui-btn" onClick={() => setShowSimWarning(false)}>
+                Cancel
+              </button>
+            </div>
+          }
+        >
+          <p style={{ margin: 0, fontSize: '15px', color: '#475569' }}>
+            This week&apos;s game {isHome ? 'vs' : 'at'} <strong>{opponent.name}</strong> already kicked off. A game counts once it kicks off, so finish it
+            before moving on.
+          </p>
+        </Sheet>
+      )}
+      {showSimWarning && opponent && !inProgress && (
         <Sheet
           title="Game not played yet"
           onClose={() => setShowSimWarning(false)}
@@ -133,11 +168,18 @@ export const DashboardView: React.FC<{
                 isPlayed,
                 isPlayoff: game.isPlayoff,
                 label: game.isPlayoff ? game.label : undefined,
-                result: isPlayed ? `${userScore! > opponentScore! ? 'Won' : 'Lost'} ${userScore}-${opponentScore} ${isHome ? 'vs' : 'at'} ${opponent.name}` : undefined
+                result: isPlayed ? `${userScore! > opponentScore! ? 'Won' : 'Lost'} ${userScore}-${opponentScore} ${isHome ? 'vs' : 'at'} ${opponent.name}` : undefined,
+                resultStands,
+                inProgress: inProgress && {
+                  userScore: isHome ? inProgress.homeScore : inProgress.awayScore,
+                  opponentScore: isHome ? inProgress.awayScore : inProgress.homeScore,
+                  clock: liveClockLabel(inProgress)
+                }
               }
             : null
         }
         onPlayGame={() => setShowPreGameModal(true)}
+        onResumeGame={onResumeGame}
         onAutoSim={handleSimGame}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}

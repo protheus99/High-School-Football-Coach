@@ -30,6 +30,9 @@ import { rulesForState } from './sim/stateRules';
 import { DucatCheckoutSheet } from './components/DucatStore';
 import { returnedFromCheckout } from './services/ducats';
 import { AUTOSAVE_ID, loadSaveGame } from './services/db';
+import { loadLiveState } from './services/playedGames';
+import { lockKey } from './sim/gameLock';
+import { Sheet } from './components/ui/Sheet';
 
 type AppTab = 'DASHBOARD' | 'TEAM' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS';
 
@@ -81,6 +84,9 @@ export const App: React.FC = () => {
     finishBanquet,
     advancePlayoffGame,
     recordUserGame,
+    markGameFinal,
+    lockNotice,
+    dismissLockNotice,
     newsSeen,
     markNewsSeen
   } = useGameStore();
@@ -136,7 +142,20 @@ export const App: React.FC = () => {
       offensiveGamePlan: { [userTeam.id]: offensiveScheme ?? userTeam.schemeOffense }
     };
 
+    // A game counts once it kicks off: it's written down outside the saves right away
+    useGameStore.getState().markGameLive(newGame, true);
     setActiveMatch(newGame);
+  };
+
+  // A game that kicked off before this save was loaded (or before the browser closed): back where it left off
+  const handleResumeMatch = async () => {
+    const s = useGameStore.getState();
+    const matchup = getUserMatchup(s);
+    if (!matchup || matchup.isPlayed || !s.careerKey) return;
+    const opponentId = matchup.home.id === s.userTeamId ? matchup.away.id : matchup.home.id;
+    const saved = await loadLiveState(lockKey(s.careerKey, s.currentYear, s.currentWeek, opponentId));
+    if (saved) setActiveMatch(saved);
+    else handleLaunchMatch(); // nothing stored on this device (storage cleared): a fresh kickoff
   };
 
   // Back from Stripe's checkout (a page load): reopen the game where the coach left it, on the Staff screen
@@ -241,6 +260,7 @@ export const App: React.FC = () => {
         userTeamId={userTeamId}
         onExit={(finalState) => {
           recordUserGame(finalState);
+          markGameFinal(finalState);
           if (playoffBracket) {
             advancePlayoffGame({ homeScore: finalState.homeScore, awayScore: finalState.awayScore });
           }
@@ -276,6 +296,14 @@ export const App: React.FC = () => {
 
       {showTalents && <CoachRPGSkillTreeModal onClose={() => setShowTalents(false)} />}
       <ComplianceDecisionSheet />
+      {lockNotice && !lockNotice.seen && lockNotice.year === currentYear && lockNotice.week === currentWeek && (
+        <Sheet title="This game was already played" onClose={dismissLockNotice} footer={<button className="ui-btn ui-btn-primary ui-btn-block" onClick={dismissLockNotice}>Got it</button>}>
+          <p style={{ margin: 0, fontSize: '14.5px', color: '#334155' }}>
+            You played Week {lockNotice.week} against {lockNotice.opponentName} and {lockNotice.userScore > lockNotice.opponentScore ? 'won' : 'lost'} {lockNotice.userScore}-{lockNotice.opponentScore}. A game
+            counts once it kicks off, so the result stands. Everything else this week is yours to redo.
+          </p>
+        </Sheet>
+      )}
       <DucatCheckoutSheet />
 
       {/* Top Navigation Bar */}
@@ -334,6 +362,7 @@ export const App: React.FC = () => {
         {tab === 'DASHBOARD' && (
           <DashboardView
             onLaunchGame={handleLaunchMatch}
+            onResumeGame={() => void handleResumeMatch()}
             onNavigate={(target) => {
               if (target === 'FEEDERS' || target === 'FEEDER_PROGRAMS' || target === 'FEEDER_NEEDS') {
                 setFeederSection(target === 'FEEDER_PROGRAMS' ? 'PROGRAMS' : target === 'FEEDER_NEEDS' ? 'NEEDS' : 'STUDENTS');

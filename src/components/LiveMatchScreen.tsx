@@ -68,7 +68,8 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   useEffect(() => {
     autoPlayRef.current = autoPlay;
   }, [autoPlay]);
-  const [showBoxScore, setShowBoxScore] = useState(false);
+  // A resumed game that had ended (the browser closed on the box score) opens on the box score
+  const [showBoxScore, setShowBoxScore] = useState(initialState.isGameOver);
   const [planOpen, setPlanOpen] = useState(false);
   // After the box score: the Player of the Game, then the press conference, then back to the Hub
   const [postStep, setPostStep] = useState<'GAME_BALL' | 'PRESS' | null>(null);
@@ -76,7 +77,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   const changedPlanAtHalftimeRef = useRef(false);
   const [showHalftimeModal, setShowHalftimeModal] = useState(false);
   // A ref (not state) so flipping it doesn't re-run the setup effect and restart the game
-  const halftimeHandledRef = useRef(false);
+  // (a resumed game past halftime, or whose talk was given, has had its halftime)
+  const halftimeHandledRef = useRef(
+    !!initialState.halftimeTalks?.[userTeamId] || initialState.currentQuarter === 4 || initialState.currentQuarter === 'OT'
+  );
   const logContainerRef = useRef<HTMLDivElement>(null);
   // Play-by-play starts collapsed (the strip under the field shows the latest play); the choice is remembered
   const [logOpen, setLogOpen] = useState(() => {
@@ -129,6 +133,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     // Shared by both play callbacks: update the screen, queue banners (or play out a flag), and open the halftime locker room
     const afterSnap = (state: GameSimulationState, event?: PlayEvent) => {
       setGameState({ ...state });
+      useGameStore.getState().markGameLive(state); // a game counts once it kicks off: where it stands is written down
       if (event?.penalty && !simmingToEndRef.current) {
         setAlertQueue([]);
         runFlag(event);
@@ -171,6 +176,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       },
       onGameOver: ({ state }) => {
         setGameState({ ...state });
+        useGameStore.getState().markGameLive(state, true);
         setAutoPlay(false);
         soundFx.playWhistle();
         setShowBoxScore(true);
@@ -322,6 +328,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
             // The message shapes the second half: the worker plays it, the screen's copy records it
             simWorkerBridge.setHalftimeTalk(userTeamId, talk);
             setGameState((s) => ({ ...s, halftimeTalks: { ...s.halftimeTalks, [userTeamId]: talk } }));
+            useGameStore.getState().markGameLive({ ...gameState, halftimeTalks: { ...gameState.halftimeTalks, [userTeamId]: talk } }, true);
             setShowHalftimeModal(false);
             soundFx.playWhistle();
             resumeAutoSim();

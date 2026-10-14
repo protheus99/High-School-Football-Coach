@@ -47,6 +47,7 @@ export interface GameSaveRecord {
   difficulty?: Difficulty;
   feederClassYear?: number;
   seasonRecap?: import('../store/gameStore').SeasonRecap | null;
+  careerKey?: string; // the playthrough, across its saves (its played games are written down outside the saves)
 }
 
 /** Lightweight listing for the load screen (full saves are ~10 MB each). */
@@ -61,6 +62,7 @@ export interface SaveSummary {
   currentYear: number;
   difficulty?: Difficulty;
   isAutosave: boolean;
+  careerKey?: string;
 }
 
 export const AUTOSAVE_ID = 'current_save';
@@ -77,6 +79,7 @@ export function summarizeSave(record: GameSaveRecord): SaveSummary {
     currentWeek: record.currentWeek,
     currentYear: record.currentYear ?? 2026,
     ...(record.difficulty && { difficulty: record.difficulty }),
+    ...(record.careerKey && { careerKey: record.careerKey }),
     isAutosave: record.id === AUTOSAVE_ID
   };
 }

@@ -205,7 +205,16 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
      or worth a Hall of Fame bonus.
   4. **Only the Hall of Fame cares:** leave normal play alone, but count loads in the save and mark or exclude
      reloaded careers on the Hall of Fame.
-  **Decided 2026-10-14: option 2 (a game counts once it starts).** Design and mockup next.
+  **Decided 2026-10-14: option 2 (a game counts once it starts). Done (v1.17), mockup approved the same day.**
+  The coach's games are written down in this browser, apart from the saves (`src/sim/gameLock.ts`,
+  `src/services/playedGames.ts`, keyed by a career key carried in every save): a live game from kickoff, with where
+  it stands as it's played, then its final and the players' lines; a simmed game's final too. Loading an older
+  save of the same career puts a played game's final back (same score, box score lines and records, with a
+  one-time "This game was already played" sheet), and a game that kicked off but wasn't finished (a closed
+  browser, or a reload mid-game) can only be resumed, where it left off. The Load Game list marks saves made
+  before games that have since been played. A playoff game against a different opponent is a new game.
+  **Follow-up:** keep the record on the account too (signed in), so loading a cloud save on another device can't
+  replay a game; it needs a sign-in server update and a database change (user deploys).
   The likely mix is 1 + 2 for everyone, or 3 for Hall of Fame careers. Check how cloud saves and the "Load
   autosave" button fit in.
 

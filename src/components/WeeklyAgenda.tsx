@@ -59,6 +59,8 @@ export interface HubGame {
   result?: string;
   label?: string; // playoff round
   isPlayoff: boolean;
+  resultStands?: boolean; // played before an older save was loaded: its final was put back
+  inProgress?: { userScore: number; opponentScore: number; clock: string }; // kicked off, not finished: resume only
 }
 
 interface AgendaAction {
@@ -126,11 +128,12 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 export const WeeklyAgenda: React.FC<{
   game: HubGame | null;
   onPlayGame: () => void;
+  onResumeGame: () => void;
   onAutoSim: () => void;
   onAdvanceWeek: () => void;
   onNavigate: (tab: AgendaTab) => void;
   phaseLabel: string; // e.g. Pre Season, Regular Season District
-}> = ({ game, onPlayGame, onAutoSim, onAdvanceWeek, onNavigate, phaseLabel }) => {
+}> = ({ game, onPlayGame, onResumeGame, onAutoSim, onAdvanceWeek, onNavigate, phaseLabel }) => {
   const store = useGameStore();
   const {
     leagueTeams,
@@ -405,7 +408,35 @@ export const WeeklyAgenda: React.FC<{
   let task: AgendaItem | null = null;
   const extras: AgendaItem[] = [];
 
-  if (game && !game.isPlayed) {
+  if (game && !game.isPlayed && game.inProgress) {
+    const opp = game.opponent;
+    const live = game.inProgress;
+    const team = districtTeams.find((t) => t.id === userTeamId);
+    const side = (name: string, score: number, right = false) => (
+      <div style={{ textAlign: right ? 'right' : 'left', minWidth: 0 }}>
+        <div style={{ fontSize: '12px', color: '#CBD5E1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
+        <div style={{ fontSize: '24px', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{score}</div>
+      </div>
+    );
+    headline = {
+      id: 'game',
+      icon: game.isPlayoff ? '🏆' : '🏈',
+      kicker: 'GAME IN PROGRESS',
+      title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${rankedName(opp, polls)} (${opp.record.wins}-${opp.record.losses})`,
+      detail: "This game already kicked off and wasn't finished. It picks up where it left off.",
+      tone: 'todo',
+      counted: true,
+      content: (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '6px', marginTop: '8px', background: '#0F172A', color: '#fff', borderRadius: '10px', padding: '8px 10px' }}>
+          {side(team?.name ?? 'You', live.userScore)}
+          <div style={{ textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#FACC15', letterSpacing: '0.04em', whiteSpace: 'pre-line' }}>{live.clock.toUpperCase().replace(' · ', '\n')}</div>
+          {side(opp.name, live.opponentScore, true)}
+        </div>
+      ),
+      actions: [{ label: '▶ Resume Game', primary: true, onClick: onResumeGame }],
+      note: 'A game counts once it kicks off.'
+    };
+  } else if (game && !game.isPlayed) {
     const roundIndex = playoffBracket ? bracketRoundForWeek(playoffBracket, currentWeek) : -1;
     const nextRound = playoffBracket?.roundNames[roundIndex + 1];
     const note = game.isPlayoff
@@ -435,7 +466,14 @@ export const WeeklyAgenda: React.FC<{
       note: 'Play: you set the game plan next. Sim: your staff picks it.'
     };
   } else if (game?.isPlayed && game.result) {
-    headline = { id: 'game', icon: game.isPlayoff ? '🏆' : '🏈', title: game.result, detail: "The final is in. Advance when you're ready.", tone: 'done', counted: true };
+    headline = {
+      id: 'game',
+      icon: game.isPlayoff ? '🏆' : '🏈',
+      title: game.result,
+      detail: game.resultStands ? 'Played before this save was loaded. The result stands.' : "The final is in. Advance when you're ready.",
+      tone: 'done',
+      counted: true
+    };
   } else if (phase === 'SPRING_EVALUATION') {
     if (currentWeek === 1) {
       headline =

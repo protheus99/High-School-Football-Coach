@@ -134,6 +134,9 @@ import {
 } from '../sim/nationalWorld';
 import { generatePlayerRankingsAndLeaderboards } from '../sim/playerRankingEngine';
 import { persistSaveGame } from '../services/db';
+import { finalRecord, liveRecord, lockKey, newCareerKey, PlayedGame, snapshotStats, statLines } from '../sim/gameLock';
+import { loadPlayedGames, storeFinal, storeLive } from '../services/playedGames';
+import { getUserMatchup } from '../sim/userMatchup';
 import type { GameSaveRecord } from '../services/db';
 import { addPlayerStats } from '../sim/playerStats';
 import { addIncomingClass, graduateAndProgress } from '../sim/offseasonEngine';
@@ -291,6 +294,21 @@ function punishCaughtProgram(team: Team, bannedSeason: number, week: number): Ne
 }
 
 /** A full save of the current game in a given slot. */
+/** A game's final by its id: a scheduled game (league or out-of-state) or a playoff game ("po_" + its matchup). */
+function matchupResult(
+  state: Pick<GameStoreState, 'seasonSchedule' | 'interstateGames' | 'playoffBracket'>,
+  gameId: string
+): { homeId: string; awayId: string; homeScore: number; awayScore: number } | null {
+  if (gameId.startsWith('po_')) {
+    const node = state.playoffBracket?.divisions.flatMap((d) => d.rounds.flat()).find((n) => `po_${n.matchupId}` === gameId);
+    return node && node.team1Score !== undefined && node.team2Score !== undefined
+      ? { homeId: node.team1.id, awayId: node.team2.id, homeScore: node.team1Score, awayScore: node.team2Score }
+      : null;
+  }
+  const g = [...state.seasonSchedule, ...state.interstateGames].find((x) => x.gameId === gameId);
+  return g && g.homeScore !== undefined && g.awayScore !== undefined ? { homeId: g.homeTeamId, awayId: g.awayTeamId, homeScore: g.homeScore, awayScore: g.awayScore } : null;
+}
+
 function buildSaveRecord(state: GameStoreState, id: string, saveName: string): GameSaveRecord {
   return {
     id,
@@ -328,6 +346,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     compliance: state.compliance,
     pendingUserBan: state.pendingUserBan,
     onHotSeat: state.onHotSeat,
+    ...(state.careerKey && { careerKey: state.careerKey }),
     ...(state.difficulty && { difficulty: state.difficulty })
   };
 }
@@ -414,6 +433,9 @@ interface GameStoreState {
   activeDilemma: NarrativeDilemma | null;
   dilemmaLog: DilemmaRecord[];
   pressLog: PressRecord[]; // post-game press questions asked (rotation and cooldowns)
+  careerKey: string | null; // this playthrough, across its saves: its played games are written down (sim/gameLock.ts)
+  playedGames: Record<string, PlayedGame>; // the career's games that kicked off, live or final
+  lockNotice: { year: number; week: number; opponentName: string; userScore: number; opponentScore: number; seen: boolean } | null; // a final put back after loading a save
   sanctionLevel: 0 | 1 | 2 | 3; // state association sanctions this season (design spec 12.2)
   scoutingPool: FeederProspect[]; // next season's feeder pipeline (15-40 prospects)
   feederEventsThisWeek: FeederEventType[];
@@ -475,6 +497,10 @@ interface GameStoreState {
   setPracticeIntensity: (mode: PracticeIntensity) => void;
   setActiveGame: (game: GameSimulationState | null) => void;
   recordUserGame: (finalState: GameSimulationState) => void;
+  markGameLive: (state: GameSimulationState, now?: boolean) => void; // kickoff (now), then as the game is played
+  markGameFinal: (finalState: GameSimulationState) => void; // a live game's final, kept outside the saves
+  applyLockedGame: () => void; // this week's game already played in this career: its final stands
+  dismissLockNotice: () => void;
   unlockTalent: (id: TalentId) => string | null; // null on success, otherwise why not
   runFeederEvent: (type: FeederEventType) => FeederProspect[]; // returns newly discovered prospects
   scoutFeederProspect: (prospectId: string) => void;
@@ -635,6 +661,9 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   activeDilemma: null,
   dilemmaLog: [],
   pressLog: [],
+  careerKey: null,
+  playedGames: {},
+  lockNotice: null,
   sanctionLevel: 0,
   scoutingPool: [],
   feederEventsThisWeek: [],
@@ -736,7 +765,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
   newGame: (difficulty, state = 'Texas') => {
     const school = pickSchoolForDifficulty(difficulty, state);
-    set({ currentYear: 2026, difficulty, career: null, careerHistory: [] });
+    set({ currentYear: 2026, difficulty, career: null, careerHistory: [], careerKey: newCareerKey(), playedGames: {}, lockNotice: null });
     get().startNewSeason(buildStateWorld(state, school));
     return school;
   },
@@ -757,7 +786,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       coachId: `coach_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       seasons: []
     };
-    set({ currentYear: 2026, difficulty: scenarioId === 'OPEN' ? difficultyForPrestige(stateSchool(state, school)?.prestige ?? 75) : scenario.difficulty, career, careerHistory: [] });
+    set({ currentYear: 2026, difficulty: scenarioId === 'OPEN' ? difficultyForPrestige(stateSchool(state, school)?.prestige ?? 75) : scenario.difficulty, career, careerHistory: [], careerKey: newCareerKey(), playedGames: {}, lockNotice: null });
     get().startNewSeason(buildStateWorld(state, school, false, scenario.startingPrestige));
     // The coach's own name, on his team (profile, awards, news); the contract's starting prestige sets its Hall of Fame bonus
     const team = get().leagueTeams.find((t) => t.id === get().userTeamId);
@@ -839,6 +868,16 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       // Pre-pipeline saves stored simple prospects; give those a fresh feeder pool
       scoutingPool: save.scoutingPool.every((p) => 'source' in p && 'suitors' in p) ? save.scoutingPool : generateFeederPool(userTeam)
     });
+    // The career's played games: the ones already known here, then the ones written down in this browser. Saves from
+    // before this get a new key, so they start counting now
+    const careerKey = save.careerKey ?? newCareerKey();
+    set({ careerKey, playedGames: careerKey === get().careerKey ? get().playedGames : {}, lockNotice: null });
+    get().applyLockedGame();
+    void loadPlayedGames(careerKey).then((games) => {
+      if (get().careerKey !== careerKey || games.length === 0) return;
+      set({ playedGames: { ...Object.fromEntries(games.map((g) => [g.key, g])), ...get().playedGames } });
+      get().applyLockedGame();
+    });
     whenIdle(() => get().runAhead());
   },
 
@@ -870,6 +909,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     const phase = getSeasonPhase(currentWeek);
     if (currentWeek === FEEDER_SIGNING_WEEK && get().currentYear >= get().feederClassYear) get().runFeederSigningDay();
+
+    // The coach's game, if it's simmed now: its players' stats before, so its final is written down with their lines
+    const simmed = get().careerKey ? getUserMatchup(get()) : undefined;
+    const simmedBefore = simmed && !simmed.isPlayed ? snapshotStats([simmed.home, simmed.away]) : null;
 
     // Finish this week's schedule: every unplayed game (including the user's, if skipped) is simulated, or
     // takes its run-ahead result
@@ -1215,6 +1258,18 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     };
 
     set({ ...updatedState, weekResults: null });
+
+    // The coach's simmed game counts like a played one: its final and lines are written down
+    if (simmed && simmedBefore && get().careerKey) {
+      const result = matchupResult(get(), simmed.gameId);
+      if (result) {
+        const game = finalRecord(get().careerKey!, get().currentYear, currentWeek, userTeamId, { ...result, lines: statLines([simmed.home, simmed.away], simmedBefore) });
+        set({ playedGames: { ...get().playedGames, [game.key]: game } });
+        void storeFinal(game);
+      }
+    }
+    // Next week's game, if this career already played it (an older save): its final stands
+    get().applyLockedGame();
 
     // Auto-save state to IndexedDB in background
     persistSaveGame(buildSaveRecord(get(), AUTOSAVE_SLOT, `Week ${nextWeek} - ${userTeam.name}`));
@@ -1623,6 +1678,61 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
     set({ districtTeams: [...districtTeams], leagueTeams: [...leagueTeams], seasonSchedule: [...seasonSchedule] });
   },
+
+  markGameLive: (state, now = false) => {
+    const { careerKey, currentYear, currentWeek, userTeamId } = get();
+    if (!careerKey) return;
+    const game = liveRecord(careerKey, currentYear, currentWeek, userTeamId, state);
+    if (get().playedGames[game.key]?.status === 'FINAL') return;
+    set({ playedGames: { ...get().playedGames, [game.key]: game } });
+    void storeLive(game, state, now);
+  },
+
+  markGameFinal: (finalState) => {
+    const { careerKey, currentYear, currentWeek, userTeamId } = get();
+    if (!careerKey) return;
+    const game = finalRecord(careerKey, currentYear, currentWeek, userTeamId, {
+      homeId: finalState.homeTeam.id,
+      awayId: finalState.awayTeam.id,
+      homeScore: finalState.homeScore,
+      awayScore: finalState.awayScore,
+      lines: finalState.playerGameStats ?? {}
+    });
+    set({ playedGames: { ...get().playedGames, [game.key]: game } });
+    void storeFinal(game);
+  },
+
+  applyLockedGame: () => {
+    const state = get();
+    if (!state.careerKey) return;
+    const matchup = getUserMatchup(state);
+    if (!matchup || matchup.isPlayed) return;
+    const opponent = matchup.home.id === state.userTeamId ? matchup.away : matchup.home;
+    const played = state.playedGames[lockKey(state.careerKey, state.currentYear, state.currentWeek, opponent.id)];
+    if (played?.status !== 'FINAL') return;
+    // The final as it was: the same score, box score lines and records (the press and the game ball were done then)
+    const flipped = played.homeId !== matchup.home.id;
+    const homeScore = flipped ? played.awayScore : played.homeScore;
+    const awayScore = flipped ? played.homeScore : played.awayScore;
+    get().recordUserGame({
+      homeTeam: matchup.home,
+      awayTeam: matchup.away,
+      homeScore,
+      awayScore,
+      playerGameStats: played.lines as GameSimulationState['playerGameStats']
+    } as GameSimulationState);
+    if (matchup.isPlayoff) get().advancePlayoffGame({ homeScore, awayScore });
+    const home = matchup.home.id === state.userTeamId;
+    set({
+      lockNotice: { year: state.currentYear, week: state.currentWeek, opponentName: opponent.name, userScore: home ? homeScore : awayScore, opponentScore: home ? awayScore : homeScore, seen: false }
+    });
+  },
+
+  dismissLockNotice: () => {
+    const notice = get().lockNotice;
+    if (notice) set({ lockNotice: { ...notice, seen: true } });
+  },
+
   unlockTalent: (id) => {
     const { coachPoints, coachTalents, districtTeams, userTeamId } = get();
     const blocker = talentBlocker(id, coachTalents, coachPoints);
