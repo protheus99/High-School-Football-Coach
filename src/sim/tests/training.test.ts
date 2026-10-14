@@ -4,6 +4,8 @@ import {
   FATIGUE_LEVELS,
   NO_BOOSTS,
   PHASE_TRAINING,
+  addPracticeWeek,
+  coachBoosted,
   fatigueInjuryMultiplier,
   fatigueLevel,
   migrateIntensity,
@@ -108,5 +110,29 @@ describe('Training', () => {
 
   it('reads old saves: Full Contact is Full, Standard is Limited, Walkthrough is No practice', () => {
     expect(['CONTACT', 'STANDARD', 'WALKTHROUGH', undefined, 'WEEK_OFF'].map(migrateIntensity)).toEqual(['FULL', 'LIMITED', 'NO_PRACTICE', 'LIMITED', 'WEEK_OFF']);
+  });
+
+  it("adds up the season's practice per player: where he started, his attribute points and overall; a new year starts over", () => {
+    const [team] = generateDistrictTeams();
+    let season = addPracticeWeek(null, 2026, runTrainingWeek(team, 'FULL', 'SPRING_EVALUATION', 1, false), team.roster);
+    for (let week = 2; week <= 6; week++) season = addPracticeWeek(season, 2026, runTrainingWeek(team, 'FULL', 'SPRING_EVALUATION', week, false), team.roster);
+    expect(season.weeks).toBe(6);
+    const tracked = Object.entries(season.players);
+    expect(tracked.length).toBeGreaterThan(0);
+    expect(season.points).toBe(tracked.reduce((n, [, g]) => n + g.points, 0));
+    expect(season.overall).toBe(tracked.reduce((n, [, g]) => n + g.overall, 0));
+    tracked.forEach(([id, g]) => expect(team.roster.find((p) => p.id === id)!.overallRating).toBe(g.start + g.overall)); // start + gain = today
+    const next = addPracticeWeek(season, 2027, { ...runTrainingWeek(team, 'WEEK_OFF', 'SPRING_EVALUATION', 1, false), players: [] }, team.roster);
+    expect([next.year, next.weeks, Object.keys(next.players).length]).toEqual([2027, 1, 0]);
+  });
+
+  it('marks players whose training a coach adds to: their position coach, or the JV staff for freshmen and sophomores', () => {
+    const [team] = generateDistrictTeams();
+    const boosts = trainingBoosts(team, false, { developmentByPosition: { QB: 1 }, freshmanDevelopment: 1, injuryReduction: 0 });
+    const qb = team.roster.find((p) => p.position === 'QB')!;
+    const upperclassman = team.roster.find((p) => p.position === 'LB' && (p.classYear === 'Junior' || p.classYear === 'Senior'))!;
+    const freshman = team.roster.find((p) => p.position !== 'QB' && p.classYear === 'Freshman')!;
+    expect([coachBoosted(qb, boosts), coachBoosted(upperclassman, boosts), coachBoosted(freshman, boosts)]).toEqual([true, false, true]);
+    expect(coachBoosted(qb, NO_BOOSTS)).toBe(false);
   });
 });

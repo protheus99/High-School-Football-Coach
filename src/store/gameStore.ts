@@ -144,7 +144,7 @@ import { NOTABLE_CLASS_WAVE, rollClassWave } from '../generators/rosterGenerator
 import { randomSurname } from '../generators/names';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { moveInDepthChart, normalizeDepthChart, setDepthTier } from '../sim/depthChart';
-import { NO_BOOSTS, PHASE_TRAINING, PracticeIntensity, TrainingBoosts, TrainingReport, aiIntensity, migrateIntensity, runTrainingWeek, trainingBoosts } from '../sim/training';
+import { NO_BOOSTS, PHASE_TRAINING, PracticeIntensity, PracticeSeason, TrainingBoosts, TrainingReport, addPracticeWeek, aiIntensity, migrateIntensity, runTrainingWeek, trainingBoosts } from '../sim/training';
 import {
   COACH_TALENTS,
   STARTING_COACH_POINTS,
@@ -348,6 +348,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     onHotSeat: state.onHotSeat,
     ...(state.careerKey && { careerKey: state.careerKey }),
     shortlist: state.shortlist,
+    practiceSeason: state.practiceSeason,
     ...(state.difficulty && { difficulty: state.difficulty })
   };
 }
@@ -471,6 +472,7 @@ interface GameStoreState {
   viewedPlayerId: string | null; // the player card that is open (not saved): the same card from every screen
   openPlayerCard: (playerId: string | null) => void;
   lastTrainingReport: TrainingReport | null; // what last week's practice did
+  practiceSeason: PracticeSeason | null; // what practice has added up to this year
 
   // Postseason & Offseason state
   playoffBracket: PlayoffBracketState | null;
@@ -700,6 +702,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   viewedPlayerId: null,
   openPlayerCard: (playerId) => set({ viewedPlayerId: playerId }),
   lastTrainingReport: null,
+  practiceSeason: null,
   playoffBracket: null,
   graduatingSeniors: [],
   seasonAwards: null,
@@ -738,6 +741,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       widePool: generateWidePool(ctx, league.state ?? 'Texas', nationalLeagues),
       weekResults: null,
       shortlist: [],
+      practiceSeason: null,
       feederClassYear: get().currentYear + 1,
       seasonRecap: null,
       compliance: initialCompliance(),
@@ -850,6 +854,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       dilemmaLog: save.dilemmaLog ?? [],
       pressLog: save.pressLog ?? [],
       shortlist: save.shortlist ?? [],
+      practiceSeason: save.practiceSeason ?? null,
       currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
       userTeamId: userTeam.id,
       coachPoints: save.coachPoints ?? save.coachingAP ?? STARTING_COACH_POINTS,
@@ -1139,7 +1144,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       const isUser = team.id === userTeamId;
       const intensity = isUser ? practiceIntensity : aiIntensity(played.has(team.id));
       const report = runTrainingWeek(team, intensity, phase, currentWeek, played.has(team.id), isUser ? userBoosts : NO_BOOSTS);
-      if (isUser && PHASE_TRAINING[phase] > 0) set({ lastTrainingReport: report });
+      if (isUser && PHASE_TRAINING[phase] > 0) set({ lastTrainingReport: report, practiceSeason: addPracticeWeek(get().practiceSeason, get().currentYear, report, team.roster) });
     });
 
     // Postseason starts the week after the regular season

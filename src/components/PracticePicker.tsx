@@ -9,7 +9,7 @@ const riskPercent = (risk: number) => `${Math.round(risk * 100)}%`;
 
 /**
  * The week's practice: one decision, how hard the team works. Four options on one line; under them, what
- * each would do this week (skill gain across the roster, a starter's fatigue change, the chance someone gets
+ * each would do this week (attribute gain across the roster, a starter's fatigue change, the chance someone gets
  * hurt in practice), worked out before the coach advances. Compact (the Hub): the chosen option's effects
  * only. Full (Team › Practice): all four side by side, plus the coaches' boosts.
  */
@@ -48,7 +48,7 @@ export const PracticePicker: React.FC<{ compact?: boolean }> = ({ compact = fals
           {!compact && (
             <>
               <p style={{ fontSize: '12px', color: '#475569', margin: '8px 0 0' }}>
-                {PRACTICE_OPTIONS.find((o) => o.id === practiceIntensity)?.help} Skill points are shared across every healthy player. Injury risk is the chance at least one player
+                {PRACTICE_OPTIONS.find((o) => o.id === practiceIntensity)?.help} Attribute points are shared across every healthy player. Injury risk is the chance at least one player
                 gets hurt in practice.
               </p>
               {boosts.sources.length > 0 && (
@@ -72,7 +72,7 @@ export const PracticePicker: React.FC<{ compact?: boolean }> = ({ compact = fals
 const ChosenEffects: React.FC<{ preview: PracticePreview }> = ({ preview }) => (
   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
     <span style={{ ...chip, ...(preview.skillPoints >= 0.5 ? GAIN : NEUTRAL) }}>
-      {preview.skillPoints >= 0.5 ? `+${Math.round(preview.skillPoints)} skill pts` : 'No skill gain'}
+      {preview.skillPoints >= 0.5 ? `+${Math.round(preview.skillPoints)} attribute pts` : 'No attribute gain'}
     </span>
     <span style={{ ...chip, ...(preview.starterFatigue > 0 ? LOSS : GAIN) }}>Starter fatigue {signed(preview.starterFatigue)}</span>
     <span style={{ ...chip, ...(preview.injuryRisk > 0 ? LOSS : NEUTRAL) }}>Injury risk {riskPercent(preview.injuryRisk)}</span>
@@ -86,7 +86,7 @@ const CompareTable: React.FC<{ previews: PracticePreview[]; chosen: PracticeInte
     <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: '12px', marginTop: '8px' }}>
       <tbody>
         <tr>
-          <td style={{ ...td, ...labelTd }}>Skill gain</td>
+          <td style={{ ...td, ...labelTd }}>Attribute gain</td>
           {previews.map((p) => (
             <td key={p.intensity} style={cell(p)}>
               {p.skillPoints >= 0.5 ? <span style={{ color: '#15803D' }}>+{Math.round(p.skillPoints)} pts</span> : '—'}

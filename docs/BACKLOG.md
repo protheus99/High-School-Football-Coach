@@ -156,6 +156,11 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   - a small week-by-week chart of the team's gains, marking the 2× weeks (spring, summer, camp);
   - a line on the choice buttons saying the gains stay all season.
   Check whether the game keeps each player's start-of-season ratings, or start keeping them. Mockup first.
+  **Done 2026-10-14 (option A, v1.17):** Team › Practice has "This season" (`PracticeSeasonCard`): the team's
+  attribute points, overall and weeks this year, then one row per position group (QB, RB, WR/TE, OL, DL, LB, DB,
+  K/P) that opens to its players, biggest gain first ("49 → 55 +6"), each with his potential, a Starter tag and a
+  🧑‍🏫 Coach tag when a position coach or the JV staff adds to his training. Totals count from this update on and
+  are saved with the game (`practiceSeason`). "Skill points" became "attribute points" on every practice screen.
 - **Dilemmas: review the Coach Point rewards, and make the bad choices really tempting.** Today the CP from
   dilemmas is small next to what recruiting costs, so the shady options aren't tempting and the second (middle)
   option is usually the best pick. Example, "Beloved Booster Accused": report him (+0), ask him to stay away

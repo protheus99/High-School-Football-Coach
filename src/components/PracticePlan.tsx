@@ -2,6 +2,7 @@ import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { PRACTICE_OPTIONS } from '../sim/training';
 import { PracticePicker } from './PracticePicker';
+import { PracticeSeasonCard } from './PracticeSeasonCard';
 
 const PHASES: [string, string][] = [
   ['Pre Season, Training Camp, Off Season', '2×'],
@@ -20,8 +21,8 @@ export const PracticePlan: React.FC = () => {
   return (
     <div>
       <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
-        Practice builds your players' key skills, one point at a time (+1 to each of a player's key skills adds +1 overall). Harder practice builds
-        more, but players tire and can get hurt.
+        Practice builds your players' key attributes, one point at a time (+1 to each of a player's key attributes adds +1 overall). Harder
+        practice builds more, but players tire and can get hurt.
       </p>
 
       <h3 style={sectionTitle}>This week</h3>
@@ -31,7 +32,7 @@ export const PracticePlan: React.FC = () => {
       {report ? (
         <div style={{ fontSize: '14px', color: '#334155' }}>
           <div>
-            {PRACTICE_OPTIONS.find((o) => o.id === report.intensity)?.label} ({report.multiplier}×): <b>+{report.skillPoints}</b> skill points
+            {PRACTICE_OPTIONS.find((o) => o.id === report.intensity)?.label} ({report.multiplier}×): <b>+{report.skillPoints}</b> attribute points
             {report.overallGains > 0 ? `, ${report.overallGains} overall` : ''}
             {report.injured.length > 0 ? ` · ${report.injured.length} hurt in practice` : ''}
           </div>
@@ -48,6 +49,9 @@ export const PracticePlan: React.FC = () => {
         <div className="ui-muted">No practice report yet. It comes in when the week advances.</div>
       )}
 
+      <h3 style={sectionTitle}>This season</h3>
+      <PracticeSeasonCard />
+
       <h3 style={sectionTitle}>Time of year</h3>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', color: '#334155' }}>
         <tbody>
@@ -60,7 +64,7 @@ export const PracticePlan: React.FC = () => {
         </tbody>
       </table>
       <p className="ui-muted" style={{ fontSize: '12px', margin: '6px 0 0' }}>
-        The multiplier applies to skill gain and practice fatigue alike.
+        The multiplier applies to attribute gain and practice fatigue alike.
       </p>
     </div>
   );

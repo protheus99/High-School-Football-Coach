@@ -330,7 +330,7 @@ export const WeeklyAgenda: React.FC<{
     id,
     icon: '🏋️',
     title,
-    detail: `Harder practice builds more skill but tires players and risks injuries.${tiredStarters > 0 ? ` ${plural(tiredStarters, 'starter')} ${tiredStarters === 1 ? 'is' : 'are'} Tired or worse.` : ''}`,
+    detail: `Harder practice builds more attribute points but tires players and risks injuries.${tiredStarters > 0 ? ` ${plural(tiredStarters, 'starter')} ${tiredStarters === 1 ? 'is' : 'are'} Tired or worse.` : ''}`,
     tone: 'done',
     counted: true,
     accent: 'practice',
@@ -523,7 +523,7 @@ export const WeeklyAgenda: React.FC<{
         : { id: 'enrollment', icon: '🏫', title: 'New student enrollment and college camps', detail: 'Summer camps get your juniors and seniors in front of college coaches.', tone: 'info' };
       task = collegeCard();
     } else {
-      headline = { id: 'camp-next', icon: '⛺', title: 'Training camp starts next week', detail: 'Camp weeks count double: skills build twice as fast, and so does practice fatigue.', tone: 'info' };
+      headline = { id: 'camp-next', icon: '⛺', title: 'Training camp starts next week', detail: 'Camp weeks count double: attributes build twice as fast, and so does practice fatigue.', tone: 'info' };
       task = practiceCard('Set your practice intensity');
     }
   } else if (phase === 'SUMMER_CAMP') {
@@ -535,7 +535,7 @@ export const WeeklyAgenda: React.FC<{
       headline = {
         id: 'camp-report',
         icon: '📈',
-        title: `Camp report: +${report?.skillPoints ?? 0} skill points${report?.injured.length ? `, ${report.injured.length} hurt in practice` : ''}`,
+        title: `Camp report: +${report?.skillPoints ?? 0} attribute points${report?.injured.length ? `, ${report.injured.length} hurt in practice` : ''}`,
         detail: [report?.improved.slice(0, 3).join(' · '), report?.injured.length ? `Hurt: ${report.injured.join(', ')}` : ''].filter(Boolean).join(' · ') || 'Practice results come in each week.',
         tone: 'info',
         link: { label: 'Practice', onClick: () => onNavigate('PRACTICE') }

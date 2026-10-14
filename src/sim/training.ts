@@ -14,10 +14,10 @@ import type { SeasonPhase } from './scheduleEngine';
 export type PracticeIntensity = 'FULL' | 'LIMITED' | 'NO_PRACTICE' | 'WEEK_OFF';
 
 export const PRACTICE_OPTIONS: { id: PracticeIntensity; label: string; help: string }[] = [
-  { id: 'FULL', label: 'Full', help: 'Full pads: the most skill gain, the most fatigue and injury risk.' },
-  { id: 'LIMITED', label: 'Limited', help: 'A lighter load: some skill gain, players recover a little.' },
-  { id: 'NO_PRACTICE', label: 'No practice', help: 'Film day: a small skill gain and good recovery.' },
-  { id: 'WEEK_OFF', label: 'Week off', help: 'Complete rest: no skill gain, the biggest recovery.' }
+  { id: 'FULL', label: 'Full', help: 'Full pads: the most attribute gain, the most fatigue and injury risk.' },
+  { id: 'LIMITED', label: 'Limited', help: 'A lighter load: some attribute gain, players recover a little.' },
+  { id: 'NO_PRACTICE', label: 'No practice', help: 'Film day: a small attribute gain and good recovery.' },
+  { id: 'WEEK_OFF', label: 'Week off', help: 'Complete rest: no attribute gain, the biggest recovery.' }
 ];
 
 /** Saves from before the training model used the old practice names. */
@@ -170,7 +170,32 @@ export interface TrainingReport {
   overallGains: number;
   improved: string[]; // a few of the players who gained, e.g. "QB J. Carter +1 Pass Accuracy"
   injured: string[]; // practice injuries, e.g. "LB M. Price (1 week)"
+  players?: { id: string; points: number; overall: number }[]; // each player who gained: attribute points and overall
 }
+
+/** What practice has added up to this year (Team › Practice, "This season's practice"). */
+export interface PracticeSeason {
+  year: number;
+  weeks: number; // weeks with practice
+  points: number; // attribute points across the roster
+  overall: number; // overall points across the roster
+  players: Record<string, { start: number; points: number; overall: number }>; // start: his overall before his first gain
+}
+
+/** Adds a week's practice to the year's totals (a new year starts over). */
+export function addPracticeWeek(season: PracticeSeason | null, year: number, report: TrainingReport, roster: Player[]): PracticeSeason {
+  const base: PracticeSeason = season?.year === year ? season : { year, weeks: 0, points: 0, overall: 0, players: {} };
+  const players = { ...base.players };
+  (report.players ?? []).forEach((g) => {
+    const now = roster.find((p) => p.id === g.id)?.overallRating;
+    const was = players[g.id] ?? { start: (now ?? 0) - g.overall, points: 0, overall: 0 };
+    players[g.id] = { start: was.start, points: was.points + g.points, overall: was.overall + g.overall };
+  });
+  return { year, weeks: base.weeks + 1, points: base.points + report.skillPoints, overall: base.overall + report.overallGains, players };
+}
+
+/** A player whose training his position coach (or the JV staff, for freshmen and sophomores) adds to. */
+export const coachBoosted = (p: Player, boosts: TrainingBoosts) => (boosts.byPosition[p.position] ?? 0) > 0 || (isYoung(p) && boosts.young > 0);
 
 const SKILL_LABELS: Partial<Record<keyof Player['attributes'], string>> = {
   passingAccuracy: 'Accuracy',
@@ -194,7 +219,7 @@ const SKILL_LABELS: Partial<Record<keyof Player['attributes'], string>> = {
  */
 export function runTrainingWeek(team: Team, intensity: PracticeIntensity, phase: SeasonPhase, week: number, played: boolean, boosts: TrainingBoosts = NO_BOOSTS): TrainingReport {
   const multiplier = PHASE_TRAINING[phase];
-  const report: TrainingReport = { week, intensity, multiplier, skillPoints: 0, overallGains: 0, improved: [], injured: [] };
+  const report: TrainingReport = { week, intensity, multiplier, skillPoints: 0, overallGains: 0, improved: [], injured: [], players: [] };
   team.roster.forEach((p) => {
     const gameLoad = played ? (p.depthChartTier === 1 ? GAME_FATIGUE.starter : GAME_FATIGUE.backup) : 0;
     const practicing = canTrain(p) && multiplier > 0;
@@ -209,6 +234,7 @@ export function runTrainingWeek(team: Team, intensity: PracticeIntensity, phase:
     if (earned > 0) {
       report.skillPoints += earned;
       report.overallGains += p.overallRating - before;
+      report.players!.push({ id: p.id, points: earned, overall: p.overallRating - before });
       const skill = POSITION_KEY_SKILLS[p.position].find((s) => p.attributes[s] !== skillsBefore[s]);
       if (skill) report.improved.push(`${p.position} ${p.firstName.charAt(0)}. ${p.lastName} +${earned} ${SKILL_LABELS[skill] ?? skill}`);
     }
