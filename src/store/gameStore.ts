@@ -348,6 +348,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     onHotSeat: state.onHotSeat,
     ...(state.careerKey && { careerKey: state.careerKey }),
     shortlist: state.shortlist,
+    programCooldowns: state.programCooldowns,
     practiceSeason: state.practiceSeason,
     ...(state.difficulty && { difficulty: state.difficulty })
   };
@@ -442,6 +443,7 @@ interface GameStoreState {
   sanctionLevel: 0 | 1 | 2 | 3; // state association sanctions this season (design spec 12.2)
   scoutingPool: FeederProspect[]; // next season's feeder pipeline (15-40 prospects)
   feederEventsThisWeek: FeederEventType[];
+  programCooldowns: Partial<Record<FeederEventType, number>>; // weeks before each program can run again
   lastFeederResults: FeederOutcome[] | null; // how last year's class turned out
   statewideRecruits: FeederProspect[]; // elite out-of-area recruits contested by the top AI programs
   widePool: FeederProspect[]; // prospects beyond the region: the rest of the state (Texas) and the other states
@@ -530,9 +532,18 @@ interface GameStoreState {
 }
 
 /** Feeder program events (clinics, 7-on-7, tryouts) run only in the off season. */
+/** Programs run all year except the post season (the banquet and signing day week). */
 export function feederEventsOpen(state: Pick<GameStoreState, 'currentWeek' | 'league'>): boolean {
-  return getSeasonPhase(state.currentWeek) === 'OFF_SEASON';
+  return getSeasonPhase(state.currentWeek) !== 'POST_SEASON';
 }
+
+/** A week passes: every program's cooldown is a week shorter. */
+const tickCooldowns = (cooldowns: Partial<Record<FeederEventType, number>>) =>
+  Object.fromEntries(
+    Object.entries(cooldowns)
+      .map(([type, weeks]) => [type, (weeks ?? 0) - 1] as const)
+      .filter(([, weeks]) => weeks > 0)
+  ) as Partial<Record<FeederEventType, number>>;
 
 /** The last season of a probation that starts now: this season if its regular season isn't over, else the next. */
 const probationEnd = (year: number, week: number, seasons: number) => (week <= LAST_REGULAR_SEASON_WEEK ? year + seasons - 1 : year + seasons);
@@ -673,6 +684,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   sanctionLevel: 0,
   scoutingPool: [],
   feederEventsThisWeek: [],
+  programCooldowns: {},
   lastFeederResults: null,
   statewideRecruits: [],
   widePool: [],
@@ -741,6 +753,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       widePool: generateWidePool(ctx, league.state ?? 'Texas', nationalLeagues),
       weekResults: null,
       shortlist: [],
+      programCooldowns: {},
       practiceSeason: null,
       feederClassYear: get().currentYear + 1,
       seasonRecap: null,
@@ -854,6 +867,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       dilemmaLog: save.dilemmaLog ?? [],
       pressLog: save.pressLog ?? [],
       shortlist: save.shortlist ?? [],
+      programCooldowns: save.programCooldowns ?? {},
       practiceSeason: save.practiceSeason ?? null,
       currentWeek: save.league ? save.currentWeek : Math.min(save.currentWeek, LAST_REGULAR_SEASON_WEEK),
       userTeamId: userTeam.id,
@@ -979,7 +993,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         Math.round(weeklyCpIncome(nextWeek, coachTalents, meters.schoolBoardTrust) * staffBonuses(get().coachingStaff).coachPointMultiplier) +
         staffBonuses(get().coachingStaff).weeklyCoachPoints +
         (userWon ? winBonus(false, coachTalents) : 0),
-      feederEventsThisWeek: []
+      feederEventsThisWeek: [],
+      programCooldowns: tickCooldowns(get().programCooldowns)
     });
     // Records and scores changed in place: new array references so every screen (standings, scoreboard) refreshes
     set({ leagueTeams: [...leagueTeams], seasonSchedule: [...seasonSchedule] });
@@ -1373,7 +1388,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
   finishBanquet: () => {
     const { currentWeek, coachPoints, coachTalents } = get();
-    set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents, get().districtTeams.find((t) => t.id === get().userTeamId)?.programMeters.schoolBoardTrust) });
+    set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], programCooldowns: tickCooldowns(get().programCooldowns), coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents, get().districtTeams.find((t) => t.id === get().userTeamId)?.programMeters.schoolBoardTrust) });
     // The off-season opens: Coach Point coaches still under contract are paid for next season when there's enough; the rest
     // (and every ducat coach: real money is only spent on a tap) wait for the coach
     if (get().currentWeek === FIRST_OFF_SEASON_WEEK) {
@@ -1767,12 +1782,17 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   },
 
   runFeederEvent: (type) => {
-    const { coachPoints, feederEventsThisWeek, scoutingPool, districtTeams, userTeamId } = get();
+    const { coachPoints, feederEventsThisWeek, scoutingPool, districtTeams, userTeamId, programCooldowns } = get();
     const cost = feederEventCost(FEEDER_EVENTS[type].cost, get().coachTalents);
-    if (coachPoints < cost || feederEventsThisWeek.includes(type) || !feederEventsOpen(get())) return [];
+    if (coachPoints < cost || (programCooldowns[type] ?? 0) > 0 || !feederEventsOpen(get())) return [];
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     const result = runFeederEvent(scoutingPool, type, userTeam, recruitingContext(get()));
-    set({ coachPoints: coachPoints - cost, scoutingPool: result.pool, feederEventsThisWeek: [...feederEventsThisWeek, type] });
+    set({
+      coachPoints: coachPoints - cost,
+      scoutingPool: result.pool,
+      feederEventsThisWeek: [...feederEventsThisWeek, type],
+      programCooldowns: { ...programCooldowns, [type]: FEEDER_EVENTS[type].every }
+    });
     return result.discovered;
   },
 

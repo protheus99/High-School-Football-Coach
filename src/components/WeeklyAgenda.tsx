@@ -11,8 +11,7 @@ import {
   getSeasonPhase,
   getTeamGameForWeek
 } from '../sim/scheduleEngine';
-import { FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
-import { feederEventCost } from '../sim/coachPoints';
+import { inUserPipeline } from '../sim/feederEngine';
 import { recruitScore } from '../sim/collegeRecruitingEngine';
 import { rankedName } from '../sim/newsEngine';
 import { HubHeadlines } from './HubHeadlines';
@@ -143,12 +142,9 @@ export const WeeklyAgenda: React.FC<{
     currentWeek,
     currentYear,
     coachPoints,
-    coachTalents,
     activeDilemma,
     resolveDilemma,
     dilemmaLog,
-    feederEventsThisWeek,
-    runFeederEvent,
     lastTrainingReport,
     practiceIntensity,
     polls,
@@ -164,11 +160,8 @@ export const WeeklyAgenda: React.FC<{
     coachingStaff
   } = store;
   // Confirmation for the last quick action; it belongs to the week it happened in
-  const [flashState, setFlashState] = useState<{ text: string; week: number } | null>(null);
   // The dilemma opens to its options on Review; one tap on an option decides
   const [reviewing, setReviewing] = useState(false);
-  const flash = flashState?.week === currentWeek ? flashState.text : null;
-  const setFlash = (text: string) => setFlashState({ text, week: currentWeek });
   const team = leagueTeams.find((t) => t.id === userTeamId);
   if (!team) return null;
 
@@ -356,38 +349,20 @@ export const WeeklyAgenda: React.FC<{
     };
   };
 
-  const feederEventsCard = (title: string): AgendaItem | null => {
-    if (!feederEventsOpen({ currentWeek, league })) return null;
-    // Programs that target this year's needs come first; the full list is on the Off Season Programs page
-    const needed = priorityNeeds(teamNeeds(team, scoutingPool, seniorsStillHere(currentYear, feederClassYear, currentWeek))).map((n) => n.position);
-    const targeted: FeederEventType[] = [
-      ...(needed.some((p) => LINE_POSITIONS.includes(p)) ? (['BIG_MAN_CAMP'] as FeederEventType[]) : []),
-      ...(needed.some((p) => SKILL_POSITIONS.includes(p)) ? (['SKILLS_ACADEMY'] as FeederEventType[]) : [])
-    ];
-    const events = [...new Set([...targeted, ...(Object.keys(FEEDER_EVENTS) as FeederEventType[])])].filter((e) => !feederEventsThisWeek.includes(e)).slice(0, 4);
-    if (events.length === 0) return null;
-    return {
-      id: 'feeder-events',
-      icon: '🔍',
-      title,
-      detail: scoutingPool.filter((p) => !p.homeTeamId).length >= MAX_POOL_SIZE
-        ? `Your pipeline is full (${MAX_POOL_SIZE}): programs warm up your prospects but won't find new ones until you remove some.`
-        : `Clinics and events find and win over next year's players. They pick their school on Prospect signing day (pre season week ${FEEDER_SIGNING_WEEK}).`,
-      tone: 'todo',
-      actions: events.map((e) => {
-        const cost = feederEventCost(FEEDER_EVENTS[e].cost, coachTalents);
-        return {
-          label: `${FEEDER_EVENTS[e].label} (₡${cost})`,
-          disabled: coachPoints < cost,
-          onClick: () => {
-            const found = runFeederEvent(e);
-            setFlash(`${FEEDER_EVENTS[e].label}: ${plural(found.length, 'new prospect')} discovered.`);
-          }
-        };
-      }),
-      link: { label: 'All programs', onClick: () => onNavigate('FEEDER_PROGRAMS') }
-    };
-  };
+  // Programs run all year (except the post season): a standing question, not a task. Coach Points are the limit
+  const programsCard = (): AgendaItem | null =>
+    feederEventsOpen({ currentWeek, league })
+      ? {
+          id: 'programs',
+          icon: '🏟️',
+          title: 'Which programs should we run this week, Coach?',
+          detail: 'Programs grow your district pipeline: more prospects, better ones, and more interest in your program.',
+          tone: 'info',
+          accent: 'feeder',
+          counted: false,
+          actions: [{ label: 'Programs ›', primary: true, onClick: () => onNavigate('FEEDER_PROGRAMS') }]
+        }
+      : null;
 
   // Post season on: the holes the next class has to fill
   const teamNeedsCard = (): AgendaItem | null => {
@@ -610,7 +585,6 @@ export const WeeklyAgenda: React.FC<{
         link: { label: 'Prospects', onClick: () => onNavigate('FEEDERS') }
       };
     }
-    task = feederEventsCard(currentWeek === totalWeeks ? 'Last chance for prospect events' : 'Run prospect events');
   } else {
     headline = { id: 'bye', icon: '😴', title: 'Bye week: rest and prepare', detail: 'No game this week. Injured players get a week to heal.', tone: 'info' };
   }
@@ -619,6 +593,8 @@ export const WeeklyAgenda: React.FC<{
   if (isGamePhase && game) task = practiceCard();
 
   // ---------------------------------------------------------------- week-specific extras
+  const programs = programsCard();
+  if (programs) extras.push(programs);
   if (phase === 'POST_SEASON' || phase === 'OFF_SEASON') {
     const needsCard = teamNeedsCard();
     if (needsCard) extras.push(needsCard);
@@ -769,11 +745,6 @@ export const WeeklyAgenda: React.FC<{
           </span>
         )}
       </div>
-      {flash && (
-        <div role="status" style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', margin: '6px 0' }}>
-          {flash}
-        </div>
-      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{visible.map((item) => renderCard(item))}</div>
       {folded.length > 0 && (
         <details style={{ marginTop: '8px' }}>

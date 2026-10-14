@@ -14,7 +14,7 @@ import { activeBoosterOffers, BOOSTER_OFFERS } from './compliance';
 // ============================================================================
 
 export const MIN_POOL_SIZE = 15;
-export const MAX_POOL_SIZE = 40;
+export const MAX_POOL_SIZE = 60; // room for programs to grow the district pipeline (balance review 2026-10-14)
 export const STAR_RECRUIT_MIN_PRESTIGE = 85; // older saves' pools still hold out-of-area stars
 export const MAX_VARSITY_ROSTER = 73; // newcomers beyond this play JV instead (base roster is 70)
 
@@ -63,49 +63,91 @@ export function contactProspect(p: FeederProspect, action: ContactAction, staffB
   return withEvaluation(contacted);
 }
 
-export type FeederEventType = 'YOUTH_CLINIC' | 'SEVEN_ON_SEVEN_LEAGUE' | 'TRYOUT_DAY' | 'FAMILY_NIGHT' | 'COMBINE' | 'BIG_MAN_CAMP' | 'SKILLS_ACADEMY';
+export type FeederEventType =
+  | 'YOUTH_CLINIC'
+  | 'SEVEN_ON_SEVEN_LEAGUE'
+  | 'LOCKDOWN_LEAGUE'
+  | 'TRYOUT_DAY'
+  | 'FAMILY_NIGHT'
+  | 'QB_ACADEMY'
+  | 'BALL_CARRIER_CLINIC'
+  | 'ROUTE_RUNNERS_SCHOOL'
+  | 'THE_TRENCHES'
+  | 'WAR_ZONE'
+  | 'LINEBACKER_U'
+  | 'THE_NICKEL'
+  | 'SPECIALIST_SHOWCASE'
+  | 'COMBINE';
 
-export const FEEDER_EVENTS: Record<FeederEventType, { label: string; cost: number; description: string }> = {
+export type ProgramGroup = 'DISCOVER' | 'INTEREST' | 'POSITION' | 'SCOUT';
+
+export interface FeederProgram {
+  label: string;
+  group: ProgramGroup;
+  cost: number;
+  every: number; // weeks before it can run again (its cooldown)
+  positions?: Position[];
+  description: string;
+}
+
+// ---------------------------------------------------------------------------
+// Programs run all year except the post season (balance review 2026-10-14). They are the main way to build the
+// district pipeline: discovery programs find new prospects, interest programs lift everyone, position programs
+// work one position group (interest, a rating point, sometimes a new prospect), and the Combine scouts. Coach
+// Points are the limit; each program has its own cooldown.
+// ---------------------------------------------------------------------------
+const POSITION_PROGRAM = { group: 'POSITION' as const, cost: 40, every: 3, description: 'Prospects at these positions: +6–10 interest and +1 rating (up to +3 each); sometimes a new one comes out.' };
+
+export const FEEDER_EVENTS: Record<FeederEventType, FeederProgram> = {
   YOUTH_CLINIC: {
     label: 'Youth Football Clinic',
-    cost: 50,
-    description: 'Coach up the district middle schoolers: they improve and warm to the program, and new players may come out.'
+    group: 'DISCOVER',
+    cost: 60,
+    every: 4,
+    description: '2–3 new middle schoolers; every district middle schooler +1 rating and +4–8 interest.'
   },
   SEVEN_ON_SEVEN_LEAGUE: {
     label: '7-on-7 League Night',
-    cost: 40,
-    description: "Host the summer 7-on-7 circuit: athletes who don't play tackle get a taste of your program."
+    group: 'DISCOVER',
+    cost: 50,
+    every: 4,
+    positions: ['QB', 'RB', 'WR', 'TE'],
+    description: '1–2 new offensive athletes; offensive prospects +5–10 interest.'
   },
-  TRYOUT_DAY: {
-    label: 'Community Tryout Day',
-    cost: 30,
-    description: 'Open tryouts for the student body: walk-ons who can fill out the depth chart.'
+  LOCKDOWN_LEAGUE: {
+    label: 'Lockdown League',
+    group: 'DISCOVER',
+    cost: 50,
+    every: 4,
+    positions: ['LB', 'CB', 'S'],
+    description: '1–2 new defensive athletes; defensive prospects +5–10 interest.'
   },
-  FAMILY_NIGHT: {
-    label: 'Family Night Cookout',
-    cost: 35,
-    description: 'Invite every prospect and their families to meet the staff: everyone in the pipeline warms to the program.'
-  },
+  TRYOUT_DAY: { label: 'Community Tryout Day', group: 'INTEREST', cost: 60, every: 4, description: '+5 interest for every prospect in your pipeline, and 1–2 walk-ons.' },
+  FAMILY_NIGHT: { label: 'Family Night Cookout', group: 'INTEREST', cost: 120, every: 8, description: '+10 interest for every prospect in your pipeline.' },
+  QB_ACADEMY: { ...POSITION_PROGRAM, label: 'Quarterback Academy', positions: ['QB'] },
+  BALL_CARRIER_CLINIC: { ...POSITION_PROGRAM, label: 'Ball Carrier Clinic', positions: ['RB'] },
+  ROUTE_RUNNERS_SCHOOL: { ...POSITION_PROGRAM, label: 'Route Runners School', positions: ['WR', 'TE'] },
+  THE_TRENCHES: { ...POSITION_PROGRAM, label: 'The Trenches', positions: ['OT', 'OG', 'C'] },
+  WAR_ZONE: { ...POSITION_PROGRAM, label: 'War Zone', positions: ['DE', 'DT'] },
+  LINEBACKER_U: { ...POSITION_PROGRAM, label: 'Linebacker U', positions: ['LB'] },
+  THE_NICKEL: { ...POSITION_PROGRAM, label: 'The Nickel', positions: ['CB', 'S'] },
+  SPECIALIST_SHOWCASE: { ...POSITION_PROGRAM, label: 'Specialist Showcase', positions: ['K', 'P'] },
   COMBINE: {
     label: 'Speed & Strength Combine',
+    group: 'SCOUT',
     cost: 25,
-    description: 'Test the pipeline: reveals potential, speed and strength for up to five unscouted prospects.'
-  },
-  BIG_MAN_CAMP: {
-    label: 'Big Man Camp',
-    cost: 40,
-    description: 'Line play for linemen: offensive and defensive line prospects warm up to you, and new linemen may come out.'
-  },
-  SKILLS_ACADEMY: {
-    label: 'QB & Skills Academy',
-    cost: 40,
-    description: 'Quarterback, receiver and secondary work: skill-position prospects warm up to you, and a new one may come out.'
+    every: 3,
+    description: 'Reveals potential, speed and strength for five unscouted prospects.'
   }
 };
+
+/** A program can't raise one prospect's rating more than this. */
+export const MAX_PROGRAM_BOOST = 3;
 
 export const LINE_POSITIONS: Position[] = ['OT', 'OG', 'C', 'DE', 'DT'];
 export const SKILL_POSITIONS: Position[] = ['QB', 'RB', 'WR', 'TE', 'CB', 'S'];
 const COMBINE_SCOUTS = 5;
+const POSITION_PROGRAM_FIND_CHANCE = 0.4;
 
 const MIDDLE_SCHOOLS = ['Lakeview MS', 'Cedar Creek MS', 'Oak Hill MS', 'Pecan Springs MS', 'Riverbend MS', 'Canyon Vista MS', 'Bluebonnet MS', 'Live Oak MS'];
 const SEVEN_ON_SEVEN_CLUBS = ['Texas Elite 7v7', 'Lone Star Legends', 'Hill Country Hurricanes', 'Gulf Coast Speed', 'DFW Prime', 'Alamo City Ballers'];
@@ -399,29 +441,37 @@ export function runFeederEvent(
     pool = pool.map((p) => (match(p) ? { ...p, interestScore: clamp(p.interestScore + randomInt(min, max), 0, 100) } : p));
   };
 
-  if (type === 'YOUTH_CLINIC') {
+  // A rating point from coaching, up to MAX_PROGRAM_BOOST per prospect
+  const coachUp = (match: (p: FeederProspect) => boolean) => {
     pool = pool.map((p) =>
-      p.source === 'FEEDER_MIDDLE_SCHOOL' && !p.homeTeamId
-        ? { ...p, interestScore: clamp(p.interestScore + randomInt(4, 8), 0, 100), trueOverall: Math.min(99, p.trueOverall + 1) }
-        : p
+      match(p) && (p.programBoost ?? 0) < MAX_PROGRAM_BOOST ? { ...p, trueOverall: Math.min(99, p.trueOverall + 1), programBoost: (p.programBoost ?? 0) + 1 } : p
     );
-    discover('FEEDER_MIDDLE_SCHOOL', randomInt(0, 2));
-  } else if (type === 'SEVEN_ON_SEVEN_LEAGUE') {
-    pool = pool.map((p) => (p.source === 'SEVEN_ON_SEVEN' ? { ...p, interestScore: clamp(p.interestScore + randomInt(5, 10), 0, 100) } : p));
-    discover('SEVEN_ON_SEVEN', randomInt(1, 2));
+  };
+  const mine = (p: FeederProspect) => inUserPipeline(p) && p.source !== 'STAR_RECRUIT';
+  const program = FEEDER_EVENTS[type];
+  const at = (p: FeederProspect) => !!program.positions?.includes(p.projectedPosition);
+
+  if (type === 'YOUTH_CLINIC') {
+    const middleSchooler = (p: FeederProspect) => p.source === 'FEEDER_MIDDLE_SCHOOL' && !p.homeTeamId;
+    warm(middleSchooler, 4, 8);
+    coachUp(middleSchooler);
+    discover('FEEDER_MIDDLE_SCHOOL', randomInt(2, 3));
+  } else if (type === 'SEVEN_ON_SEVEN_LEAGUE' || type === 'LOCKDOWN_LEAGUE') {
+    warm((p) => mine(p) && at(p), 5, 10);
+    discover('SEVEN_ON_SEVEN', randomInt(1, 2), program.positions);
+  } else if (type === 'TRYOUT_DAY') {
+    warm(mine, 5, 5);
+    discover('TRYOUT', randomInt(1, 2));
   } else if (type === 'FAMILY_NIGHT') {
-    warm((p) => p.source !== 'STAR_RECRUIT' && inUserPipeline(p), 3, 6);
+    warm(mine, 10, 10);
   } else if (type === 'COMBINE') {
     const unscouted = pool.filter((p) => !isEvaluated(p) && inUserPipeline(p)).slice(0, COMBINE_SCOUTS).map((p) => p.id);
     pool = pool.map((p) => (unscouted.includes(p.id) ? scoutProspect(p) : p));
-  } else if (type === 'BIG_MAN_CAMP') {
-    warm((p) => LINE_POSITIONS.includes(p.projectedPosition) && inUserPipeline(p), 6, 10);
-    discover('FEEDER_MIDDLE_SCHOOL', randomInt(1, 2), LINE_POSITIONS);
-  } else if (type === 'SKILLS_ACADEMY') {
-    warm((p) => SKILL_POSITIONS.includes(p.projectedPosition) && inUserPipeline(p), 6, 10);
-    discover('FEEDER_MIDDLE_SCHOOL', randomInt(0, 1), ['QB', 'QB', ...SKILL_POSITIONS]);
   } else {
-    discover('TRYOUT', randomInt(2, 4));
+    // A position program
+    warm((p) => mine(p) && at(p), 6, 10);
+    coachUp((p) => mine(p) && at(p));
+    if (Math.random() < POSITION_PROGRAM_FIND_CHANCE) discover('FEEDER_MIDDLE_SCHOOL', 1, program.positions);
   }
   return { pool: [...pool, ...discovered].map(withEvaluation), discovered: discovered.map(withEvaluation) };
 }

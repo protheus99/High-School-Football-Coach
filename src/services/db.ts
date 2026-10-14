@@ -48,6 +48,7 @@ export interface GameSaveRecord {
   feederClassYear?: number;
   seasonRecap?: import('../store/gameStore').SeasonRecap | null;
   shortlist?: string[]; // the coach's recruiting list (prospect ids)
+  programCooldowns?: Partial<Record<import('../sim/feederEngine').FeederEventType, number>>; // weeks before each program runs again
   practiceSeason?: import('../sim/training').PracticeSeason | null; // what practice has added up to this year
   careerKey?: string; // the playthrough, across its saves (its played games are written down outside the saves)
 }

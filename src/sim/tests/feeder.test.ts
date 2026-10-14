@@ -84,7 +84,7 @@ describe('Coach actions', () => {
     expect(pitchStarRecruit(regular, team)).toBe(regular);
   });
 
-  it('program events grow interest and discover new prospects, capped at 40', () => {
+  it('program events grow interest and discover new prospects, capped at 60', () => {
     const team = teamWithPrestige(80);
     const pool = generateFeederPool(team);
     const clinic = runFeederEvent(pool, 'YOUTH_CLINIC', team);
@@ -95,7 +95,7 @@ describe('Coach actions', () => {
       expect(after.trueOverall).toBe(Math.min(99, p.trueOverall + 1));
     });
     const tryout = runFeederEvent(pool, 'TRYOUT_DAY', team);
-    expect(tryout.discovered.length).toBeGreaterThanOrEqual(Math.min(2, MAX_POOL_SIZE - pool.length));
+    expect(tryout.discovered.length).toBeGreaterThanOrEqual(Math.min(1, MAX_POOL_SIZE - pool.length));
     tryout.discovered.forEach((p) => expect(p.source).toBe('TRYOUT'));
 
     let big = pool;
@@ -181,26 +181,32 @@ describe('Feeder pipeline through the store', () => {
     // Keep the board neutral (no income bonus or cut) so the CP math below is exact
     store.getState().leagueTeams.find((t) => t.id === store.getState().userTeamId)!.programMeters.schoolBoardTrust = 70;
 
-    // Program events wait for the off season; personal visits work any time before signing day
-    expect(store.getState().runFeederEvent('YOUTH_CLINIC')).toEqual([]);
-    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS);
+    // Programs run all year but the post season: the clinic costs 60, then waits out its cooldown
+    expect(store.getState().runFeederEvent('YOUTH_CLINIC').length).toBeGreaterThan(0);
+    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 60);
+    store.getState().runFeederEvent('YOUTH_CLINIC'); // cooling down: nothing happens
+    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 60);
+    // Personal visits work any time before signing day
     store.getState().visitFeederProspect(pool[0].id);
-    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 15);
+    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 75);
     expect(store.getState().scoutingPool.find((p) => p.id === pool[0].id)!.coachContacts).toBe(1);
 
     // A new game's rosters already hold this year's freshmen: no signing day until next season
     while (store.getState().currentWeek < 9) store.getState().advanceWeek();
     expect(store.getState().lastFeederResults).toBeNull();
     // Unspent CP carries over: what was left + pre season/camp weeks 2-7 + game weeks 8 and 9 (+ any win bonus)
-    expect(store.getState().coachPoints).toBeGreaterThanOrEqual(STARTING_COACH_POINTS - 15 + 6 * weeklyCoachPoints(2) + 2 * weeklyCoachPoints(9));
+    expect(store.getState().coachPoints).toBeGreaterThanOrEqual(STARTING_COACH_POINTS - 75 + 6 * weeklyCoachPoints(2) + 2 * weeklyCoachPoints(9));
 
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
+    const atBanquet = store.getState().coachPoints;
+    store.getState().runFeederEvent('YOUTH_CLINIC'); // the post season: closed
+    expect(store.getState().coachPoints).toBe(atBanquet);
     store.getState().finishBanquet(); // off season
     const cp = store.getState().coachPoints;
     store.getState().runFeederEvent('YOUTH_CLINIC');
-    expect(store.getState().coachPoints).toBe(cp - 50);
-    store.getState().runFeederEvent('YOUTH_CLINIC'); // already held this week
-    expect(store.getState().coachPoints).toBe(cp - 50);
+    expect(store.getState().coachPoints).toBe(cp - 60);
+    store.getState().runFeederEvent('YOUTH_CLINIC'); // cooling down
+    expect(store.getState().coachPoints).toBe(cp - 60);
 
     const year = store.getState().currentYear;
     while (store.getState().currentYear === year) store.getState().advanceWeek(); // off season ends: new year

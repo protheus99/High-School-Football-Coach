@@ -17,7 +17,7 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   (`Team.lastSeason`, set at the banquet). Measured over 18 state seasons (contacts only): newcomers per class 13.8
   → 14.2, outside-district joins 0.3 → 0.3; class rating 49.5 → 48.2 and champions 16 → 14 of 18 (small sample,
   to be re-measured with the programs).
-- **Programs all year, with real weight (decided 2026-10-14, mockup waiting for OK).** Off-season-only programs leave
+- **Programs all year, with real weight (decided 2026-10-14; done, v1.17).** Off-season-only programs leave
   no time to use them. Programs become the main way to build the district pipeline (quantity and quality); State
   and National add specific players. Open all year except the post season, each with a cooldown; Coach Points
   are the limit. Pipeline cap 40 → 60. A standing Hub card every week: "Which programs should we run this week,
@@ -33,6 +33,11 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   - Scouting: Speed & Strength Combine kept (₡25, every 3 weeks).
   Measure before shipping: class strength and title turnover over many seasons, all programs vs none (rival
   programs don't run programs). Mockup: https://claude.ai/artifact/W3KSTS8hqwX34qNxJUqkdB
+  **Built** with Family Night at ₡120 and Tryout Day at ₡60 (approved), cooldowns per program, the pipeline cap at
+  60 and a +3 cap on program rating boosts per prospect. **Measured** (60 state seasons each, six programs, a coach
+  calling his warmest prospects weekly, with or without running every program he can afford): newcomers per class
+  13.7 → 15.2; the coach's state titles 1 → 6 in 60 (all six in one run; none in the other); different champions
+  33 → 31 in 60. More depth, no lock-in: Coach Points limit it (a full program calendar costs more than a year's income).
 - **Title screen: the three features look like buttons (added 2026-10-14, quick).** "🏈 Call the plays",
   "🎓 Recruit and develop" and "🏆 Chase state titles" under the pitch look tappable but aren't. Redesign them so
   they read as a feature list, not buttons (`src/components/SplashScreen.tsx`, the list near line 171). Mockup

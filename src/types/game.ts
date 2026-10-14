@@ -431,6 +431,7 @@ export interface ProspectSuitor {
 
 export interface FeederProspect {
   id: string;
+  programBoost?: number; // rating points programs have added (up to MAX_PROGRAM_BOOST)
   name: string;
   source: ProspectSource;
   middleSchool: string; // origin: middle school, 7-on-7 club, or hometown

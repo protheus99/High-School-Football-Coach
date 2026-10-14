@@ -11,6 +11,7 @@ import {
   FEEDER_EVENTS,
   FeederEventType,
   MAX_POOL_SIZE,
+  ProgramGroup,
   CONTACT_ACTIONS,
   CONTACT_ORDER,
   ContactAction,
@@ -70,15 +71,23 @@ const POSITION_GROUPS: { id: string; label: string; positions?: Position[] }[] =
   { id: 'K', label: 'K/P', positions: ['K', 'P'] }
 ];
 
+/** The Programs screen's groups, in order. */
+const PROGRAM_GROUPS: { id: ProgramGroup; label: string; note: string; color: string }[] = [
+  { id: 'DISCOVER', label: 'Find new prospects', note: 'every 4 weeks', color: '#0F766E' },
+  { id: 'INTEREST', label: 'Interest for everyone', note: 'your whole pipeline', color: '#7C3AED' },
+  { id: 'POSITION', label: 'Position programs', note: '₡40 · every 3 weeks', color: '#EA580C' },
+  { id: 'SCOUT', label: 'Scouting', note: 'every 3 weeks', color: '#2563EB' }
+];
+
 const FEEDER_SUBTITLES: Record<FeederSection, string> = {
   STUDENTS: 'Every student who could join a program next year',
-  PROGRAMS: 'Off-season events that find and win over prospects',
+  PROGRAMS: 'Programs that find, coach up and win over prospects, all year',
   NEEDS: "Holes in next season's roster by position"
 };
 
 const SECTIONS: { id: FeederSection; label: string; short: string }[] = [
   { id: 'STUDENTS', label: '🧑‍🎓 New Students', short: '🧑‍🎓 Students' },
-  { id: 'PROGRAMS', label: '🏟️ Off Season Programs', short: '🏟️ Programs' },
+  { id: 'PROGRAMS', label: '🏟️ Programs', short: '🏟️ Programs' },
   { id: 'NEEDS', label: '📋 Team Needs', short: '📋 Needs' }
 ];
 
@@ -95,7 +104,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     currentWeek,
     districtTeams,
     userTeamId,
-    feederEventsThisWeek,
+    programCooldowns,
     lastFeederResults,
     runFeederEvent,
     contactFeederProspect,
@@ -156,7 +165,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const weeklyIncome = weeklyCpIncome(currentWeek, coachTalents, userTeam.programMeters.schoolBoardTrust);
   const eventCost = (type: FeederEventType) => feederEventCost(FEEDER_EVENTS[type].cost, coachTalents);
   const eventsOpen = feederEventsOpen({ currentWeek, league });
-  const pipelineFull = scoutingPool.filter((p) => !p.homeTeamId).length >= MAX_POOL_SIZE;
+  const pipelineCount = scoutingPool.filter((p) => !p.homeTeamId).length;
+  const pipelineFull = pipelineCount >= MAX_POOL_SIZE;
   const needs = teamNeeds(userTeam, scoutingPool, seniorsStillHere(currentYear, feederClassYear, currentWeek));
   const topNeeds = priorityNeeds(needs).slice(0, 4);
   // The pool is shared by every program in the region: views by district, region, the top 10s and commitments
@@ -314,34 +324,62 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
               </button>
             </div>
           )}
-          <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#64748B' }}>
-            Each program can run once a week during the four off-season weeks after the banquet.
-            {topNeeds.length > 0 && ` Your biggest needs: ${topNeeds.map((n) => n.position).join(', ')}.`}
-          </p>
+          {/* What there is to spend, and room in the pipeline */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ background: '#FACC15', color: '#0F172A', fontWeight: 800, borderRadius: '8px', padding: '3px 9px', fontSize: '13px' }}>₡{coachPoints.toLocaleString('en-US')} to spend</span>
+            <span style={{ fontSize: '12.5px', color: '#64748B' }}>
+              Pipeline {pipelineCount} / {MAX_POOL_SIZE}
+            </span>
+          </div>
+          {topNeeds.length > 0 && (
+            <p style={{ margin: '0 0 8px 0', fontSize: '12.5px', color: '#64748B' }}>Your biggest needs: {topNeeds.map((n) => n.position).join(', ')}.</p>
+          )}
           {!eventsOpen && (
             <p className="ui-muted" style={{ margin: '0 0 8px 0', fontSize: '13px' }}>
-              Programs open in the off season (after the banquet).
+              Post season: programs reopen after the banquet.
             </p>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px', marginBottom: '18px' }}>
-            {(Object.keys(FEEDER_EVENTS) as FeederEventType[]).map((type) => {
-              const event = FEEDER_EVENTS[type];
-              const done = feederEventsThisWeek.includes(type);
-              return (
-                <div key={type} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px' }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{event.label}</div>
-                  <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 8px' }}>{event.description}</div>
-                  <button
-                    onClick={() => handleEvent(type)}
-                    disabled={!eventsOpen || done || coachPoints < eventCost(type)}
-                    style={actionBtn('#0F766E', !eventsOpen || done || coachPoints < eventCost(type))}
-                  >
-                    {!eventsOpen ? 'Off season only' : done ? 'Held this week' : `Host (₡${eventCost(type)})`}
-                  </button>
+          {PROGRAM_GROUPS.map((g) => {
+            const types = (Object.keys(FEEDER_EVENTS) as FeederEventType[]).filter((t) => FEEDER_EVENTS[t].group === g.id);
+            const compact = g.id === 'POSITION';
+            return (
+              <section key={g.id} style={{ marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', margin: '0 0 6px' }}>
+                  <b style={{ fontSize: '12px', letterSpacing: '0.06em', textTransform: 'uppercase', color: g.color }}>{g.label}</b>
+                  <span style={{ fontSize: '11.5px', color: '#64748B' }}>{g.note}</span>
                 </div>
-              );
-            })}
-          </div>
+                <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(260px, 1fr))', gap: '7px' }}>
+                  {types.map((type) => {
+                    const program = FEEDER_EVENTS[type];
+                    const cost = eventCost(type);
+                    const wait = programCooldowns[type] ?? 0;
+                    const blocked = !eventsOpen || wait > 0 || coachPoints < cost;
+                    const label = !eventsOpen ? 'After the banquet' : wait > 0 ? `Back in ${wait} week${wait === 1 ? '' : 's'}` : coachPoints < cost ? `₡${cost}: not enough` : `Host ₡${cost}`;
+                    return (
+                      <div
+                        key={type}
+                        style={{ background: '#fff', border: '1px solid #E2E8F0', borderLeft: `4px solid ${g.color}`, borderRadius: '10px', padding: '9px 10px', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px', flexWrap: 'wrap' }}>
+                          <b style={{ fontSize: '13.5px' }}>{program.label}</b>
+                          {program.positions && (
+                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569', background: '#F1F5F9', borderRadius: '5px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
+                              {program.positions.join(' ')}
+                            </span>
+                          )}
+                        </div>
+                        {!compact && <div style={{ fontSize: '12px', color: '#475569' }}>{program.description}</div>}
+                        <button onClick={() => handleEvent(type)} disabled={blocked} style={{ ...actionBtn(g.color, blocked), alignSelf: 'flex-start', marginTop: '2px' }}>
+                          {label}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+                {compact && <p style={{ fontSize: '12px', color: '#475569', margin: '6px 0 0' }}>{FEEDER_EVENTS.QB_ACADEMY.description}</p>}
+              </section>
+            );
+          })}
         </>
       )}
 
@@ -752,10 +790,10 @@ const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void; 
   return (
     <div>
       <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#64748B' }}>
-        Holes in next season&apos;s roster by position, after the seniors leave. Target these positions with visits and programs: Big Man Camp
-        brings in linemen, the QB &amp; Skills Academy skill players.{' '}
+        Holes in next season&apos;s roster by position, after the seniors leave. Target these positions with visits and programs: each position group
+        has its own program (The Trenches for linemen, Quarterback Academy and more).{' '}
         <button onClick={onPrograms} style={{ ...playerLink, color: '#1D4ED8' }}>
-          Off Season Programs →
+          Programs →
         </button>
       </p>
       {priority.length > 0 ? (
