@@ -96,10 +96,6 @@ class MusicPlayer {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   };
-  /** How far into the current song (0-1), for the pop-up's progress bar. */
-  progress = () => (this.audio && this.audio.duration > 0 ? this.audio.currentTime / this.audio.duration : 0);
-  /** The current song's length in seconds (0 until known). */
-  duration = () => (this.audio && Number.isFinite(this.audio.duration) ? this.audio.duration : 0);
 
   private shouldPlay() {
     return this.unlocked && getMusicSettings().enabled && !this.inGame && !this.hidden && this.songs.length > 0;

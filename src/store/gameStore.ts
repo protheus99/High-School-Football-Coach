@@ -1137,10 +1137,13 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     // user handles grades through dilemmas.
     const stateRules = rulesForState(league?.state);
     const inCamp = phase === 'SUMMER_CAMP';
+    // Suspensions count games: they run down only for teams that played this week (any playoff week counts)
+    const weekGames = [...seasonSchedule, ...get().interstateGames];
     leagueTeams.forEach((team) => {
       const isUser = team.id === userTeamId;
+      const playedGame = phase === 'STATE_PLAYOFFS' || getTeamGameForWeek(weekGames, currentWeek, team.id) !== undefined;
       team.roster.forEach((p) => {
-        processWeeklyInjuryHealing(p, currentWeek);
+        processWeeklyInjuryHealing(p, currentWeek, playedGame);
         // Report cards every third week once the school year and season are under way
         if (nextWeek % 3 === 0 && nextWeek >= FIRST_NON_DISTRICT_WEEK) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p, stateRules) ? 0.1 : 0, stateRules);
       });
@@ -1157,7 +1160,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
             week: nextWeek,
             outlet: 'TOWN_JOURNAL',
             headline: `${userTeam.name} Suspends ${suspended.position} ${suspended.firstName} ${suspended.lastName}`,
-            content: `Sagging locker-room morale costs ${userTeam.name} a starter: ${suspended.lastName} sits this week's game.`,
+            content: `Sagging locker-room morale costs ${userTeam.name} a starter: ${suspended.lastName} sits the next game.`,
             impactSentiment: 'NEGATIVE',
             featuredTeamName: userTeam.name
           },

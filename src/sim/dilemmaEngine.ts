@@ -84,7 +84,7 @@ export function dilemmaChoiceEffects(choice: DilemmaChoice, userTeam: Team): Cho
   if (impact.skillBoostPlayerIds?.length) gains.push(impact.skillBoostPlayerIds.length === 1 ? `${name(impact.skillBoostPlayerIds[0])} +1 skill` : `${impact.skillBoostPlayerIds.length} young starters +1 skill`);
   if (impact.sidelinePlayer) {
     const w = impact.sidelinePlayer.weeks;
-    losses.push(`${name(impact.sidelinePlayer.playerId)} out ${w} wk`);
+    losses.push(`${name(impact.sidelinePlayer.playerId)} out ${w} ${w === 1 ? 'game' : 'games'}`);
   }
   if (impact.removePlayerId) losses.push(`${name(impact.removePlayerId)} leaves the program`);
   if (impact.injuryRisk) losses.push(`${Math.round(impact.injuryRisk.chance * 100)}% chance a starter is hurt ${impact.injuryRisk.weeks} wk`);
@@ -123,6 +123,8 @@ export function executeDilemmaDecision(userTeam: Team, choice: DilemmaChoice): v
     if (ply) {
       ply.condition.injuryStatus = 'DINGED';
       ply.condition.injuryWeeksRemaining = Math.max(ply.condition.injuryWeeksRemaining, sidelinePlayer.weeks);
+      // A suspension counts games, not weeks: it only runs down in weeks the team plays (a medical hold heals with time)
+      if (!sidelinePlayer.medical) ply.condition.isSuspended = true;
     }
   }
 

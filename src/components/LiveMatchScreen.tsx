@@ -318,7 +318,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           userTeamId={userTeamId}
           plan={{ offense: planOffense, focus: planFocus }}
           onUpdatePlan={() => setPlanOpen(true)}
-          onApplySpeech={(_speechType) => {
+          onApplySpeech={(talk) => {
+            // The message shapes the second half: the worker plays it, the screen's copy records it
+            simWorkerBridge.setHalftimeTalk(userTeamId, talk);
+            setGameState((s) => ({ ...s, halftimeTalks: { ...s.halftimeTalks, [userTeamId]: talk } }));
             setShowHalftimeModal(false);
             soundFx.playWhistle();
             resumeAutoSim();

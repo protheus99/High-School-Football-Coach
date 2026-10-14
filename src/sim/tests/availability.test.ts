@@ -60,6 +60,22 @@ describe('Game injuries and league-wide report cards', () => {
     expect(p.condition.injuryStatus).toBe('HEALTHY');
   });
 
+  it('a suspension counts games: weeks without a game do not serve it, while an injury heals with time', () => {
+    const [team] = generateDistrictTeams();
+    const [suspended, hurt] = team.roster;
+    Object.assign(suspended.condition, { injuryStatus: 'DINGED', injuryWeeksRemaining: 2, isSuspended: true });
+    Object.assign(hurt.condition, { injuryStatus: 'DINGED', injuryWeeksRemaining: 2 });
+    // Two summer weeks, no games
+    [3, 4].forEach((week) => team.roster.slice(0, 2).forEach((p) => processWeeklyInjuryHealing(p, week, false)));
+    expect(suspended.condition.injuryWeeksRemaining).toBe(2);
+    expect(hurt.condition.injuryStatus).toBe('HEALTHY');
+    // Then two game weeks
+    processWeeklyInjuryHealing(suspended, 8, true);
+    expect(suspended.condition.injuryStatus).toBe('DINGED');
+    processWeeklyInjuryHealing(suspended, 9, true);
+    expect(suspended.condition).toMatchObject({ injuryStatus: 'HEALTHY', isSuspended: false });
+  });
+
   it('AI programs pick up injuries and report cards over a season', () => {
     const store = useGameStore;
     store.getState().startNewSeason();

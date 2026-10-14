@@ -13,6 +13,9 @@ export type OffensiveScheme = 'TRIPLE_OPTION' | 'AIR_RAID' | 'POWER_I' | 'SPREAD
 export type DefensiveScheme = 'FOUR_THREE' | 'FOUR_FOUR' | 'THREE_THREE_FIVE' | 'DROP_EIGHT';
 export type WeatherType = 'CLEAR' | 'HEAVY_RAIN' | 'HIGH_WIND' | 'EXTREME_HEAT' | 'FREEZING_SNOW';
 export type MomentumTier = -2 | -1 | 0 | 1 | 2;
+
+/** The halftime locker-room message (sim/halftime.ts): momentum, offense, defense or the big play. */
+export type HalftimeTalk = 'FIRE_UP' | 'OFFENSE' | 'DEFENSE' | 'BIG_PLAY';
 export type InjurySeverity = 'HEALTHY' | 'DINGED' | 'MODERATE' | 'SEASON_ENDING';
 export type CollegeTier = 'POWER_4' | 'GROUP_OF_5' | 'FCS' | 'DIVISION_2' | 'DIVISION_3' | 'PWO'; // PWO = preferred walk-on at a Division I program
 
@@ -333,6 +336,7 @@ export interface GameSimulationState {
   offensiveGamePlan?: Record<string, OffensiveScheme>; // teamId -> scheme chosen for this game (defaults to the team's)
   playerGameStats?: Record<string, PlayerStats>; // playerId -> this game's stat line
   gameDayForm?: Record<string, number>; // teamId -> 'Any Given Friday' play-quality offset for this game
+  halftimeTalks?: Record<string, HalftimeTalk>; // teamId -> the halftime message, for the second half
 }
 
 /** Kansas Plan overtime: one possession per team per period from the opponent's 10. */
@@ -377,7 +381,7 @@ export interface DilemmaChoice {
     lockerRoomDisciplineDelta: number;
     complianceScoreDelta: number;
     playerAvailabilityOverride?: { playerId: string; isEligible: boolean };
-    sidelinePlayer?: { playerId: string; weeks: number }; // held out (injury protocol, suspension)
+    sidelinePlayer?: { playerId: string; weeks: number; medical?: boolean }; // held out for this many games: a suspension, or a medical hold (injury protocol)
     promoteToStarterPlayerId?: string;
     addTransfer?: { position: Position; overallRating: number; name: string };
     injuryRisk?: { chance: number; weeks: number }; // a random first-string player may get hurt

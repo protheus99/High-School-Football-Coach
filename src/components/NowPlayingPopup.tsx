@@ -165,7 +165,6 @@ const Card: React.FC<{ song: Song; style: NowPlayingStyle; muted: boolean }> = (
         </span>
         <span style={{ ...line, fontSize: '14px', fontWeight: 800 }}>{song.title}</span>
         <span style={{ ...line, fontSize: '12px', color: '#CBD5E1' }}>{song.artist}</span>
-        <Progress />
       </span>
       <Controls muted={muted} dark accent="#F59E0B" accentText="#0F172A" />
     </span>
@@ -198,21 +197,6 @@ const Cover: React.FC<{ song: Song; size: number; round?: boolean }> = ({ song, 
       ) : (
         songInitials(song.title)
       )}
-    </span>
-  );
-};
-
-/** How far into the song, moving for the few seconds the card is up. */
-const Progress: React.FC = () => {
-  const [width, setWidth] = useState(() => musicPlayer.progress());
-  useEffect(() => {
-    const duration = musicPlayer.duration();
-    const id = setTimeout(() => setWidth(Math.min(1, musicPlayer.progress() + (duration > 0 ? SHOW_FOR / 1000 / duration : 0.03))), 50);
-    return () => clearTimeout(id);
-  }, []);
-  return (
-    <span style={{ display: 'block', height: '3px', background: 'rgba(255,255,255,.18)', borderRadius: '2px', overflow: 'hidden', marginTop: '6px' }}>
-      <span style={{ display: 'block', height: '100%', width: `${width * 100}%`, background: '#F59E0B', transition: `width ${SHOW_FOR}ms linear` }} />
     </span>
   );
 };

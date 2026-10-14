@@ -85,6 +85,9 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   resumes the game, so none of the promised effects happen (`src/components/HalftimeSpeechModal.tsx`,
   `src/components/LiveMatchScreen.tsx` around `onApplySpeech`). Decide the options (maybe tied to the score: up,
   down, tied), wire each one into the second half, and test that each effect shows up in simulated games.
+- **Team stamina and health rating (later).** There's no overall team stamina or health number, so a "Hydrate
+  and recover" halftime talk can't be judged and was dropped from the v1.17 halftime rework. Once a team rating
+  exists (Hub, live game, halftime), a recovery talk could come back.
 - **Music: the progress bar doesn't restart when you skip a song.** In the Now Playing card, skipping to the next
   song keeps the old bar. Likely cause: the bar (`Progress` in `src/components/NowPlayingPopup.tsx`) reads the
   position once when it first appears, and the card stays open when the song changes. Give the bar the song as

@@ -36,19 +36,20 @@ export function teamAbbreviation(name: string): string {
 }
 
 /**
- * A team's record after this game, and at home or away ("4-2, 3-0 Home"): the regular season so far plus this game when
- * it counts (playoff games don't). Schools from another state show their overall record only.
+ * A team's record after this game, the way the Hub shows it: overall, then the district record in brackets
+ * ("2-3 (1-1)"). It starts from the team's own record (which already counts forfeits) and adds this game when it
+ * counts and isn't on the books yet (playoff games don't count). Schools from another state show their overall
+ * record only.
  */
 export function recordLine(team: Team, side: 'home' | 'away', game: GameSimulationState, schedule: ScheduledGame[]): string {
-  const counts = !game.gameId.startsWith('po_') && schedule.some((g) => g.gameId === game.gameId && g.homeScore === undefined);
+  const scheduled = schedule.find((g) => g.gameId === game.gameId);
+  const counts = !game.gameId.startsWith('po_') && scheduled !== undefined && scheduled.homeScore === undefined;
   const won = side === 'home' ? game.homeScore > game.awayScore : game.awayScore > game.homeScore;
   const wins = team.record.wins + (counts && won ? 1 : 0);
   const losses = team.record.losses + (counts && !won ? 1 : 0);
-  const played = schedule.filter((g) => g.homeScore !== undefined && g.awayScore !== undefined && (g.homeTeamId === team.id || g.awayTeamId === team.id));
   if (!schedule.some((g) => g.homeTeamId === team.id || g.awayTeamId === team.id)) return `${wins}-${losses}`;
-  const onSide = played.filter((g) => (side === 'home' ? g.homeTeamId : g.awayTeamId) === team.id);
-  const sideWinsBefore = onSide.filter((g) => (side === 'home' ? g.homeScore! > g.awayScore! : g.awayScore! > g.homeScore!)).length;
-  const sideWins = sideWinsBefore + (counts && won ? 1 : 0);
-  const sideLosses = onSide.length - sideWinsBefore + (counts && !won ? 1 : 0);
-  return `${wins}-${losses}, ${sideWins}-${sideLosses} ${side === 'home' ? 'Home' : 'Away'}`;
+  const district = counts && scheduled!.isDistrictGame;
+  const districtWins = team.record.districtWins + (district && won ? 1 : 0);
+  const districtLosses = team.record.districtLosses + (district && !won ? 1 : 0);
+  return `${wins}-${losses} (${districtWins}-${districtLosses})`;
 }

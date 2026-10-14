@@ -109,15 +109,16 @@ function pickWho(who: [Player, number][]): Player | undefined {
 
 /**
  * Rolls for a flag on one scrimmage snap: a pre-snap foul first (the play never happens), then a live-ball foul
- * (the play is called back or the yardage is enforced). Returns null on a clean snap.
+ * (the play is called back or the yardage is enforced). Returns null on a clean snap. `rateFor` scales a team's
+ * chances (a fired-up halftime talk).
  */
-export function rollFoul(offense: Team, defense: Team, isPass: boolean, isRoadOffense: boolean, playersAt: PlayersAt = startersAt): Foul | null {
+export function rollFoul(offense: Team, defense: Team, isPass: boolean, isRoadOffense: boolean, playersAt: PlayersAt = startersAt, rateFor: (team: Team) => number = () => 1): Foul | null {
   for (const timing of ['PRE_SNAP', 'LIVE'] as const) {
     for (const rule of PENALTIES) {
       if (rule.timing !== timing) continue;
       const team = rule.side === 'OFFENSE' ? offense : defense;
       const { chance, who } = ruleChance(rule, team, isPass, isRoadOffense && rule.side === 'OFFENSE', playersAt);
-      if (Math.random() < chance) return { rule, team, player: pickWho(who) };
+      if (Math.random() < chance * rateFor(team)) return { rule, team, player: pickWho(who) };
     }
   }
   return null;

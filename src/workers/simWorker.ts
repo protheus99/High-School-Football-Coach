@@ -1,4 +1,4 @@
-import { GameSimulationState, PlayConcept, DefensiveCall, OffensiveScheme } from '../types/game';
+import { GameSimulationState, PlayConcept, DefensiveCall, OffensiveScheme, HalftimeTalk } from '../types/game';
 import { simulateSnap, evaluateLeverageTrigger } from '../sim/matchEngine';
 
 let activeGameState: GameSimulationState | null = null;
@@ -24,6 +24,14 @@ self.onmessage = (e: MessageEvent) => {
       if (defensiveCall) defense[teamId] = defensiveCall;
       else delete defense[teamId];
       activeGameState.defensiveGamePlan = defense;
+      break;
+    }
+
+    // The halftime message: it shapes the team's plays for the rest of the game
+    case 'SET_HALFTIME_TALK': {
+      if (!activeGameState) return;
+      const { teamId, talk } = payload as { teamId: string; talk: HalftimeTalk };
+      activeGameState.halftimeTalks = { ...activeGameState.halftimeTalks, [teamId]: talk };
       break;
     }
 

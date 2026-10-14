@@ -63,10 +63,12 @@ export function evaluateSnapInjury(player: Player): InjurySeverity {
 
 /**
  * Decrements injury recovery counters during Monday triage. Injuries from this week's game are skipped,
- * so injuryWeeksRemaining is the number of games a player misses.
+ * so injuryWeeksRemaining is the number of games a player misses. A suspension only counts down in weeks the
+ * team played (`playedGame`): one handed out in the summer is served in the first games of the season.
  */
-export function processWeeklyInjuryHealing(player: Player, week?: number): void {
+export function processWeeklyInjuryHealing(player: Player, week?: number, playedGame = true): void {
   if (week !== undefined && player.condition.injuredInWeek === week) return;
+  if (player.condition.isSuspended && !playedGame) return;
   if (player.condition.injuryWeeksRemaining > 0) {
     player.condition.injuryWeeksRemaining -= 1;
     if (player.condition.injuryWeeksRemaining === 0) {

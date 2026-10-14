@@ -1,4 +1,4 @@
-import { GameSimulationState, PlayConcept, PlayEvent, LeverageType, DefensiveCall, OffensiveScheme } from '../types/game';
+import { GameSimulationState, PlayConcept, PlayEvent, LeverageType, DefensiveCall, OffensiveScheme, HalftimeTalk } from '../types/game';
 
 export type WorkerEventCallback = (data: {
   state: GameSimulationState;
@@ -39,6 +39,10 @@ class WorkerBridge {
 
   public setGamePlan(teamId: string, offense: OffensiveScheme, defensiveCall?: DefensiveCall): void {
     this.worker?.postMessage({ type: 'SET_GAME_PLAN', payload: { teamId, offense, defensiveCall } });
+  }
+
+  public setHalftimeTalk(teamId: string, talk: HalftimeTalk): void {
+    this.worker?.postMessage({ type: 'SET_HALFTIME_TALK', payload: { teamId, talk } });
   }
 
   public simQuarter(): void {

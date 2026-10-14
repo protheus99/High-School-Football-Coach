@@ -64,23 +64,29 @@ describe('Box score line score', () => {
     expect(teamAbbreviation('St. Thomas Aquinas')).toBe('STA');
   });
 
-  it('shows each team’s record after the game, overall and home or away', () => {
+  it('shows each team’s record after the game like the Hub: overall, then the district record', () => {
     const game = playGame();
-    game.homeScore = 21;
+    game.homeScore = 15;
     game.awayScore = 14;
     const { homeTeam: home, awayTeam: away } = game;
-    Object.assign(home.record, { wins: 3, losses: 1 });
-    Object.assign(away.record, { wins: 1, losses: 3 });
+    Object.assign(home.record, { wins: 1, losses: 3, districtWins: 0, districtLosses: 1 });
+    Object.assign(away.record, { wins: 4, losses: 0, districtWins: 0, districtLosses: 0 });
     const done = (gameId: string, h: string, a: string, hs: number, as: number): ScheduledGame => ({ gameId, week: 1, homeTeamId: h, awayTeamId: a, isDistrictGame: false, homeScore: hs, awayScore: as });
     const schedule: ScheduledGame[] = [
-      done('g1', home.id, 'x', 28, 7), // home: won at home
-      done('g2', 'y', home.id, 10, 3), // home: lost away
-      done('g3', 'z', away.id, 35, 0), // away: lost away
-      { gameId: game.gameId, week: 9, homeTeamId: home.id, awayTeamId: away.id, isDistrictGame: true }
+      done('g1', home.id, 'x', 28, 7),
+      { gameId: game.gameId, week: 12, homeTeamId: home.id, awayTeamId: away.id, isDistrictGame: true }
     ];
-    expect(recordLine(home, 'home', game, schedule)).toBe('4-1, 2-0 Home');
-    expect(recordLine(away, 'away', game, schedule)).toBe('1-4, 0-2 Away');
-    // Playoff games don't change the regular-season record
-    expect(recordLine(home, 'home', { ...game, gameId: 'po_m1' }, schedule)).toBe('3-1, 1-0 Home');
+    // This district game isn't on the books yet: it counts once, in both records
+    expect(recordLine(home, 'home', game, schedule)).toBe('2-3 (1-1)');
+    expect(recordLine(away, 'away', game, schedule)).toBe('4-1 (0-1)');
+    // Once it's recorded, the team's own record already has it
+    const recorded = schedule.map((g) => (g.gameId === game.gameId ? { ...g, homeScore: 15, awayScore: 14 } : g));
+    Object.assign(home.record, { wins: 2, losses: 3, districtWins: 1, districtLosses: 1 });
+    expect(recordLine(home, 'home', game, recorded)).toBe('2-3 (1-1)');
+    // A non-district game moves only the overall record; playoff games move neither
+    const nonDistrict = schedule.map((g) => (g.gameId === game.gameId ? { ...g, isDistrictGame: false } : g));
+    Object.assign(home.record, { wins: 1, losses: 3, districtWins: 0, districtLosses: 1 });
+    expect(recordLine(home, 'home', game, nonDistrict)).toBe('2-3 (0-1)');
+    expect(recordLine(home, 'home', { ...game, gameId: 'po_m1' }, schedule)).toBe('1-3 (0-1)');
   });
 });

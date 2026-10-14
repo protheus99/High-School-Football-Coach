@@ -38,6 +38,8 @@ const isRegularSeason = (week: number) => week >= FIRST_NON_DISTRICT_WEEK && wee
 const isDistrictPlay = (week: number) => week >= FIRST_DISTRICT_WEEK && week <= LAST_REGULAR_SEASON_WEEK;
 const isPlayoffs = (week: number) => week > LAST_REGULAR_SEASON_WEEK && week <= LAST_REGULAR_SEASON_WEEK + 6;
 const isGameWeek = (week: number) => isRegularSeason(week) || isPlayoffs(week);
+/** Training camp through the playoffs: games are coming, so suspensions and playing time mean something. */
+const isFootballSeason = (week: number) => isCamp(week) || isGameWeek(week);
 /** Report cards come out every third week during the season (midterms). */
 const isReportCardWeek = (week: number) => isGameWeek(week) && week % 3 === 0;
 const inWeeks = (week: number, from: number, to: number) => week >= from && week <= to;
@@ -119,7 +121,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'TRUANCY',
-    appliesTo: (team, week) => whenPlayer(week >= 3, pick(team.roster.filter((p) => p.academics.gpa < 2.6))),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pick(team.roster.filter((p) => p.academics.gpa < 2.6))),
     build: (_team, _week, player) => ({
       title: 'Skipping First Period',
       scenario: `The attendance office says ${name(player!)} has skipped first period nine times this six weeks. One more and state law flags him for truancy.`,
@@ -180,7 +182,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'BOOSTER_HEADSETS',
-    appliesTo: (team) => team.roster.find((p) => p.parent.archetype === 'DEMANDING_BOOSTER' && p.depthChartTier !== 1) ?? null,
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week), team.roster.find((p) => p.parent.archetype === 'DEMANDING_BOOSTER' && p.depthChartTier !== 1)),
     build: (_team, _week, player) => ({
       title: 'Booster Headset Funding Threat',
       scenario: `An influential booster is furious that his son (#${tag(player!)}) is on the bench and threatens to revoke funding for new digital sideline headsets.`,
@@ -313,7 +315,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'PARTY_PHOTOS',
-    appliesTo: (team, week) => whenPlayer(week >= 3, pickStarter(team)),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Photos From a Weekend Party',
       scenario: `Photos of ${name(player!)} holding a beer at a weekend party are circulating on social media. Your team rules say alcohol means a one-game suspension.`,
@@ -332,7 +334,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'HALLWAY_FIGHT',
-    appliesTo: (team, week) => whenPlayer(week >= 2, pickStarter(team, ['DE', 'DT', 'LB', 'OT', 'OG', 'RB'])),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pickStarter(team, ['DE', 'DT', 'LB', 'OT', 'OG', 'RB'])),
     build: (_team, _week, player) => ({
       title: 'Fight in the Hallway',
       scenario: `${name(player!)} got into a shoving match between classes that ended with a punch. The assistant principal is deciding on discipline and asked for your input.`,
@@ -351,7 +353,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'HAZING_REPORT',
-    appliesTo: (team, week) => whenPlayer(week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.classYear === 'Senior' && p.depthChartTier === 1))),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week) && week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.classYear === 'Senior' && p.depthChartTier === 1))),
     build: (_team, _week, player) => ({
       title: 'Hazing Allegation',
       scenario: `A freshman's parents report that seniors led by ${name(player!)} forced underclassmen through a humiliating "initiation" in the locker room.`,
@@ -389,7 +391,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'SHOPLIFTING_ARREST',
-    appliesTo: (team, week) => whenPlayer(week >= 3, pickStarter(team)),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Arrested for Shoplifting',
       scenario: `${name(player!)} was cited for shoplifting at the mall on Saturday. It is a misdemeanor and the store may drop charges if he pays restitution.`,
@@ -457,9 +459,9 @@ export const TEMPLATES: DilemmaTemplate[] = [
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_protocol', label: 'Follow Protocol: Sit Him Two Weeks', description: 'Player safety first.', tier: 'GOOD',
-          impact: impact(5, -3, 3, 5, { sidelinePlayer: { playerId: player!.id, weeks: 2 } }) },
+          impact: impact(5, -3, 3, 5, { sidelinePlayer: { playerId: player!.id, weeks: 2, medical: true } }) },
         { id: 'opt_reeval', label: 'Hold Him Out This Week, Re-evaluate', description: "A middle path with the trainer's blessing.", tier: 'COMPROMISE',
-          impact: impact(2, 0, 0, 0, { sidelinePlayer: { playerId: player!.id, weeks: 1 } }) },
+          impact: impact(2, 0, 0, 0, { sidelinePlayer: { playerId: player!.id, weeks: 1, medical: true } }) },
         { id: 'opt_play', label: 'Let Him Play if He Says He Feels Fine', description: 'He wants to play. Liability if anything happens.', tier: 'RISKY',
           impact: impact(-5, 3, 0, -10, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true }, injuryRisk: { chance: 0.25, weeks: 3 } }) },
         { id: 'opt_pressure', label: 'Pressure the Trainer to Clear Him', description: 'Overrule medical staff to keep your starter.', tier: 'CORRUPT',
@@ -494,7 +496,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_medical', label: 'Notify His Parents and Get an MRI', description: 'He is likely out a few weeks. It could save his shoulder.', tier: 'GOOD',
-          impact: impact(8, -2, 4, 6, { sidelinePlayer: { playerId: player!.id, weeks: 2 } }) },
+          impact: impact(8, -2, 4, 6, { sidelinePlayer: { playerId: player!.id, weeks: 2, medical: true } }) },
         { id: 'opt_rest', label: 'Confiscate the Pills, Limit His Practice Reps', description: 'He plays on Friday, carefully.', tier: 'COMPROMISE',
           impact: impact(0, 0, 0, -3, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true } }) },
         { id: 'opt_otc', label: 'Let Him Play Through It on Over-the-Counter Meds', description: 'He plays every snap. The shoulder gets worse.', tier: 'RISKY',
@@ -506,7 +508,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'STEROID_RUMOR',
-    appliesTo: (team, week) => whenPlayer(week >= 4, pick(team.roster.filter((p) => p.attributes.strength >= 75 && p.depthChartTier === 1))),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pick(team.roster.filter((p) => p.attributes.strength >= 75 && p.depthChartTier === 1))),
     build: (_team, _week, player) => ({
       title: 'Steroid Rumors',
       scenario: `${name(player!)} added 25 pounds of muscle over the summer. Opposing coaches are whispering, and he has been moody and quick to fight.`,
@@ -532,7 +534,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_sit', label: 'Sit Him and Promise His Job Is Safe', description: 'He heals, and trusts you more.', tier: 'GOOD',
-          impact: impact(4, -2, 8, 2, { sidelinePlayer: { playerId: player!.id, weeks: 1 } }) },
+          impact: impact(4, -2, 8, 2, { sidelinePlayer: { playerId: player!.id, weeks: 1, medical: true } }) },
         { id: 'opt_tape', label: 'Tape It and Limit His Snaps', description: 'He plays hurt, but less.', tier: 'COMPROMISE',
           impact: impact(0, 0, 0, 0, { playerAvailabilityOverride: { playerId: player!.id, isEligible: true }, injuryRisk: { chance: 0.2, weeks: 2 } }) },
         { id: 'opt_full_go', label: "Full Go: He Says He's Fine", description: 'A worse injury is a real possibility.', tier: 'RISKY',
@@ -544,14 +546,14 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'MENTAL_HEALTH',
-    appliesTo: (team, week) => whenPlayer(week >= 3, pickStarter(team)),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Player Struggling With Anxiety',
       scenario: `${name(player!)} broke down in your office, saying the pressure of college recruiting and school has him unable to sleep. He asked you not to tell anyone.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_counselor', label: 'Connect Him With the School Counselor and Give Him a Week Off', description: "His health over this week's game.", tier: 'GOOD',
-          impact: impact(8, -2, 8, 2, { sidelinePlayer: { playerId: player!.id, weeks: 1 } }) },
+          impact: impact(8, -2, 8, 2, { sidelinePlayer: { playerId: player!.id, weeks: 1, medical: true } }) },
         { id: 'opt_check_in', label: 'Lighten His Load and Check In Daily', description: 'He keeps playing with extra support. It takes real staff time.', tier: 'COMPROMISE',
           impact: impact(3, 0, 4, 0, { coachPointsDelta: -10 }) },
         { id: 'opt_tough', label: 'Tell Him to Toughen Up', description: 'He plays. Old-school advice that may backfire badly.', tier: 'RISKY',
@@ -763,7 +765,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'HELICOPTER_PARENT',
-    appliesTo: (team) => team.roster.find((p) => p.parent.archetype === 'HELICOPTER' && p.depthChartTier !== 1) ?? null,
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week), team.roster.find((p) => p.parent.archetype === 'HELICOPTER' && p.depthChartTier !== 1)),
     build: (_team, _week, player) => ({
       title: 'Helicopter Parent Conference',
       scenario: `#${tag(player!)}'s mother has emailed the principal three times this week demanding to know why her son isn't starting at ${player!.position}.`,
@@ -836,7 +838,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'STAR_TRANSFER_REQUEST',
-    appliesTo: (team, week) => whenPlayer(week >= 2 && week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.overallRating >= 72 && p.classYear !== 'Senior'))),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week) && week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.overallRating >= 72 && p.classYear !== 'Senior'))),
     build: (_team, _week, player) => ({
       title: 'Star Wants to Transfer to a Rival',
       scenario: `${name(player!)}'s father says his son is transferring to a district rival unless he is promised the starting job and a featured role. Rival boosters may be involved.`,
@@ -961,7 +963,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'FRESHMAN_PHENOM',
-    appliesTo: (team, week) => whenPlayer(week > 2 && week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.classYear === 'Freshman' && p.overallRating >= 65 && p.depthChartTier !== 1))),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week) && week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.classYear === 'Freshman' && p.overallRating >= 65 && p.depthChartTier !== 1))),
     build: (_team, _week, player) => ({
       title: 'Freshman Phenom',
       scenario: `Freshman ${name(player!)} has been the best player in practice for two weeks. Moving him up to varsity full-time would bump a senior who has waited three years.`,
@@ -1393,7 +1395,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'ASSISTANTS_SON',
-    appliesTo: (team, week) => whenPlayer(week >= 2 && week <= 15, pick(backups(team).filter((p) => p.position !== 'K' && p.position !== 'P'))),
+    appliesTo: (team, week) => whenPlayer(isFootballSeason(week) && week <= 15, pick(backups(team).filter((p) => p.position !== 'K' && p.position !== 'P'))),
     build: (_team, _week, player) => ({
       title: "The Assistant Coach's Son",
       scenario: `Your offensive line coach wants more playing time for his son, ${name(player!)}. The starter ahead of him is clearly better.`,

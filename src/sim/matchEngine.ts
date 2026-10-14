@@ -17,6 +17,7 @@ import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 import { compareDepth } from './depthChart';
 import { disciplinePlayQualityPenalty } from './programMeters';
 import { enforcedYards, rollFoul } from './penalties';
+import { talkEffect } from './halftime';
 import { rulesForState } from './stateRules';
 
 // Teams resting their starters on the current snap (set at the start of each simulateSnap call)
@@ -625,7 +626,7 @@ export function simulateSnap(
     }
   }
   // A flag: blown dead before the snap, or the play is called back and the penalty walked off
-  else if ((foul = !isTryDown ? rollFoul(offense, defense, isPassConcept(concept), !isHomeOffense, getPositionGroup) : null)) {
+  else if ((foul = !isTryDown ? rollFoul(offense, defense, isPassConcept(concept), !isHomeOffense, getPositionGroup, (t) => talkEffect(state, t.id).foulRate) : null)) {
     const { rule, team, player } = foul;
     // The defense was lined up in its call when the flag came out
     defensiveCall = chosenDefensiveCall ?? state.defensiveGamePlan?.[defense.id] ?? selectAIDefensiveCall(state);
@@ -669,6 +670,9 @@ export function simulateSnap(
     const contextMod = getContextualModifier(state.weather, state.teamMomentum, concept) + DEFENSIVE_CALL_MODIFIERS[defensiveCall][scrimmageConcept];
     const variance = calculateGaussianVariance(0, EXECUTION_STDEV + (defensiveCall === 'BLITZ' ? BLITZ_EXTRA_STDEV : 0));
     const form = (state.gameDayForm?.[offense.id] ?? 0) - (state.gameDayForm?.[defense.id] ?? 0);
+    // The halftime talks: the offense's message lifts (or costs) its plays, the defense's takes off (or adds)
+    const offenseTalk = talkEffect(state, offense.id);
+    const talk = offenseTalk.offense - talkEffect(state, defense.id).defense;
     const isPass = isPassConcept(concept);
     const offScheme = offensiveSchemeOf(state, offense);
     const schemeMod =
@@ -682,7 +686,7 @@ export function simulateSnap(
     const playQuality =
       MATCHUP_BASELINES[scrimmageConcept] +
       (delta - MATCHUP_BASELINES[scrimmageConcept]) * MATCHUP_SPREAD_SCALE +
-      contextMod + variance + form + schemeMod * SCHEME_EFFECT_SCALE + preventDefense + redZone;
+      contextMod + variance + form + talk + schemeMod * SCHEME_EFFECT_SCALE + preventDefense + redZone;
     const passThresholds = isPass ? PASS_THRESHOLDS[concept as 'SHORT_PASS' | 'DEEP_PASS'] : null;
 
     // Who is involved on this snap (usage shares from design spec 11.1)
@@ -693,10 +697,13 @@ export function simulateSnap(
 
     // Catastrophic Turnover Check
     // Undisciplined offenses are closer to a fumble or interception on every snap
-    const sloppiness = disciplinePlayQualityPenalty(offense);
+    const sloppiness = disciplinePlayQualityPenalty(offense) + offenseTalk.ballSecurity;
     const fumbleThreshold = RUN_THRESHOLDS.fumble - (offScheme === 'POWER_I' ? 4 : 0) + sloppiness;
-    const explosiveThreshold = EXPLOSIVE_PLAY_QUALITY - (offScheme === 'AIR_RAID' || offScheme === 'SPREAD' ? 3 : 0);
-    if (passThresholds ? playQuality < passThresholds.interception + sloppiness : playQuality < fumbleThreshold) {
+    const explosiveThreshold = EXPLOSIVE_PLAY_QUALITY - (offScheme === 'AIR_RAID' || offScheme === 'SPREAD' ? 3 : 0) - offenseTalk.explosive;
+    // A talk that holds an offense back makes it conservative, not careless: it doesn't add turnovers (only the
+    // big-play talk does, through ball security)
+    const turnoverQuality = playQuality - Math.min(0, talk);
+    if (passThresholds ? turnoverQuality < passThresholds.interception + sloppiness : turnoverQuality < fumbleThreshold) {
       isTurnover = true;
       turnoverType = isPass ? 'INTERCEPTION' : 'FUMBLE';
       const defender = isPass ? pickInterceptor(defense) : tackler;

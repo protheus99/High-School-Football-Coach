@@ -279,3 +279,34 @@ describe('Study hall through dilemmas', () => {
     expect(studyHall.impact.gpaChanges).toHaveLength(3);
   });
 });
+
+describe('Dilemma timing', () => {
+  // Summer (weeks 1-4) and the off season have no games: a suspension, a benching or a playing-time promise means nothing
+  const noGameWeeks = [1, 2, 3, 4, 25, 26, 27, 28];
+  // Pre-season paperwork is about being cleared before the opener: its hold is served in the first games
+  const allowedBeforeCamp = ['ELIGIBILITY_PAPERWORK'];
+  const aboutGames = (impact: DilemmaChoice['impact'], text: string) =>
+    !!impact.sidelinePlayer || !!impact.playerAvailabilityOverride || !!impact.promoteToStarterPlayerId || /playing time|starting (job|unit|spot|lineup)|on the bench/i.test(text);
+
+  it('never offers choices about games, playing time or suspensions when no games are coming', () => {
+    const offenders = new Set<string>();
+    for (let round = 0; round < 25; round++) {
+      const team = generateDistrictTeams()[0];
+      team.roster.forEach((p, i) => {
+        if (i % 7 === 0) p.parent.archetype = 'HELICOPTER';
+        if (i % 7 === 1) p.parent.archetype = 'DEMANDING_BOOSTER';
+      });
+      for (const week of noGameWeeks) {
+        for (const t of TEMPLATES) {
+          if (allowedBeforeCamp.includes(t.id)) continue;
+          const who = t.appliesTo(team, week);
+          if (!who) continue;
+          const d = t.build(team, week, who === true ? undefined : who);
+          if (d.choices.some((c) => aboutGames(c.impact, `${c.label} ${c.description}`))) offenders.add(`${t.id} (week ${week})`);
+        }
+      }
+    }
+    expect([...offenders]).toEqual([]);
+  });
+});
+

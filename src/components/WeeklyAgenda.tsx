@@ -11,7 +11,7 @@ import {
   getSeasonPhase,
   getTeamGameForWeek
 } from '../sim/scheduleEngine';
-import { CONTACT_ACTIONS, FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
+import { FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
 import { feederEventCost } from '../sim/coachPoints';
 import { isDivisionOne, recruitScore } from '../sim/collegeRecruitingEngine';
 import { rankedName } from '../sim/newsEngine';
@@ -152,7 +152,6 @@ export const WeeklyAgenda: React.FC<{
     league,
     scoutingPool,
     feederClassYear,
-    contactFeederProspect,
     lastFeederResults,
     seasonSchedule,
     playoffBracket,
@@ -329,12 +328,12 @@ export const WeeklyAgenda: React.FC<{
     link: tiredStarters > 0 ? { label: 'Health', onClick: () => onNavigate('INJURIES') } : { label: 'Practice', onClick: () => onNavigate('PRACTICE') }
   });
 
+  // Signing week: who's still deciding, and the way to the Prospects page to win them over (visits happen there)
   const visitsCard = (title: string, tone: AgendaItem['tone'], id = 'visits'): AgendaItem => {
     const onTheFence = scoutingPool
       .filter((p) => inUserPipeline(p) && p.interestScore >= 30 && p.interestScore <= 75)
       .sort((a, b) => b.interestScore - a.interestScore)
       .slice(0, 3);
-    const cost = onTheFence.filter((p) => !p.actionsThisWeek?.includes('VISIT')).length * CONTACT_ACTIONS.VISIT.cost;
     return {
       id,
       icon: '✍️',
@@ -343,19 +342,6 @@ export const WeeklyAgenda: React.FC<{
         onTheFence.length ? ` Still deciding: ${onTheFence.map((p) => `${p.projectedPosition} ${p.name}`).join(', ')}.` : ''
       }`,
       tone,
-      actions: onTheFence.length
-        ? [
-            {
-              label: `Home visits for ${onTheFence.length} (₡${cost})`,
-              primary: true,
-              disabled: coachPoints < cost,
-              onClick: () => {
-                onTheFence.forEach((p) => contactFeederProspect(p.id, 'VISIT'));
-                setFlash(`Visited ${plural(onTheFence.length, 'prospect')} before Prospect signing day.`);
-              }
-            }
-          ]
-        : undefined,
       link: { label: 'Prospects', onClick: () => onNavigate('FEEDERS') }
     };
   };
