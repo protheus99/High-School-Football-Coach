@@ -68,8 +68,9 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   **Done 2026-10-14 (option A, plus balance so a truly exceptional QB or WR can win):** the card shows everything
   the score counted ("1,556 rush · 312 rec · 18 TD"; QBs add rushing, receivers add catches, defenders add TFL).
   The big awards scale each position (`AWARD_WEIGHT` in `src/sim/awardsEngine.ts`). Measured over 120 simulated
-  state seasons: Mr. Football went from 92% RB to about 68% RB, 14% QB, 8% WR and 10% defenders; Defensive Player
-  of the Year from 96% LB to about 43% LB, 28% DE, 17% CB and 12% S.
+  state seasons (retuned the same day: the user wanted RBs closer to 40%): Mr. Football went from 92% RB to about
+  38% RB, 33% QB, 15% WR and 13% defenders; Defensive Player of the Year from 96% LB to about 48% LB, 20% DE, 20% CB
+  and 12% S.
 - **National rankings: an unbeaten state champion wasn't ranked.** St. Thomas Aquinas (Florida 6A) finished 13-0
   and never made the national poll. In the state final listing it showed as plain "St. Thomas Aquinas (9-0)" next
   to "#26 Apopka (8-2)". Find out why. The poll is a computer ranking solved from every result, with schedule
@@ -87,6 +88,18 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   unbeaten, state title, quality wins): with 30% résumé, champions' median rank goes from #20 to #7 and 32 of 39
   make the top 25 (21 today); with 40%, 36 of 39, the worst unbeaten champion #12. Two-loss teams in the top 25
   drop from 40 to 31 (30%) or 27 (40%). Waiting on the user's call (30% or 40%, final poll only or every week).
+  **User 2026-10-14:** a 15-0 team from New Jersey that beat strong out-of-state teams should have a chance;
+  teams outside Texas, Georgia and California do get ranked and win (Bishop Gorman 2023, Bixby 2025, John Curtis
+  2012). **Found:** the real cause was a team's own state, not its record. A dominant team in a big, uneven state
+  (Florida) plays many very weak teams; a blowout only counts up to the margin cap, so each of those wins pulled
+  its rating down (Florida's top teams sat about 4.5 times lower than their strength; a #2-strength team at #28).
+  **Done (v1.17):** two rules in `computeRatings`: a win never lowers a team's rating and a loss never raises it,
+  and this season's roster counts as one game all season (three at the opener) so a team whose wins say only
+  "better than expected" is placed by its roster. Measured over twelve simulated seasons: ranks match true
+  strength better (0.96-0.97, was 0.94), no state is held down (worst state 1.4 times, was 4.5), unbeaten state
+  champions median #5 (worst #35, was #166), an unbeaten New Jersey, Pennsylvania or North Carolina champion that
+  dominated reaches the top 10 (#3-#7 in some seasons), and the national #1 was a top-3 team from four different
+  states. The résumé blend (option B) wasn't needed.
 - **Box score: the record under each team reads as wrong.** After Miami Northwestern beat Doral Academy 15-14, the
   Final Box Score showed "Miami Northwestern 2-3, 1-3 Home" while the Hub showed "2-3 (1-1)" (overall, then
   district). The second pair in the box score isn't the district record: it's the team's home record, or for the

@@ -44,11 +44,11 @@ const NO_STATS = new Set<Position>(['OT', 'OG', 'C', 'P']);
 
 /**
  * The big awards compare players across positions: each position's season score is scaled so a typical state
- * leader at QB, WR or on defense lands a little below a typical leading rusher. Running backs still win most
- * years, but a truly exceptional quarterback, receiver or defender can take Mr. Football (measured over 120
- * simulated state seasons, 2026-10-14: MVP about 68% RB, 14% QB, 8% WR, 10% defense).
+ * leader at QB lands level with a typical leading rusher, and a leading receiver or defender a little below. So
+ * the best season wins: measured over 120 simulated state seasons (2026-10-14), Mr. Football went about 38% RB,
+ * 33% QB, 15% WR and 13% defenders, and Defensive Player of the Year about 48% LB, 20% DE, 20% CB, 12% S.
  */
-export const AWARD_WEIGHT: Partial<Record<Position, number>> = { RB: 1, QB: 1.2, WR: 1.35, TE: 3.4, LB: 1, DE: 1.3, CB: 1.7, S: 1.7 };
+export const AWARD_WEIGHT: Partial<Record<Position, number>> = { RB: 1, QB: 1.35, WR: 1.5, TE: 3.7, LB: 1.1, DE: 1.35, CB: 1.8, S: 1.8 };
 
 interface Candidate {
   player: Player;
