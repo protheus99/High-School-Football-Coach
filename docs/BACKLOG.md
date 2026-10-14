@@ -6,6 +6,10 @@ Work that's decided but parked. Newest first.
 
 Captured as sent; to be worked on in today's update (v1.17) when the user says to begin.
 
+- **Title screen: the three features look like buttons (added 2026-10-14, quick).** "🏈 Call the plays",
+  "🎓 Recruit and develop" and "🏆 Chase state titles" under the pitch look tappable but aren't. Redesign them so
+  they read as a feature list, not buttons (`src/components/SplashScreen.tsx`, the list near line 171). Mockup
+  first.
 - **Title screen (home page):** remove the tagline "Every dynasty starts on a Friday night."
 - **Title screen (home page):** add a link to the Hall of Fame.
 - **Hall of Fame board:** add each career's win-loss record to its entry. Mockup shown 2026-10-14 (three layouts;
