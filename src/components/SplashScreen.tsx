@@ -167,10 +167,20 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             <>
               {/* What the game is, for anyone arriving from a link (the same words are in index.html for search engines) */}
               <p className="title-pitch">The high school football coaching sim. Take over a program and build it into a dynasty. Can you win a national title?</p>
-              <ul className="title-chips" aria-label="What you do">
-                <li>🏈 Call the plays</li>
-                <li>🎓 Recruit and develop</li>
-                <li>🏆 Chase state titles</li>
+              {/* A feature strip, not buttons: no box or shadow, so only the menu below looks tappable */}
+              <ul className="title-features" aria-label="What you do">
+                {[
+                  ['🏈', 'Call the plays'],
+                  ['🎓', 'Recruit and develop'],
+                  ['🏆', 'Chase state titles']
+                ].map(([icon, label]) => (
+                  <li key={label}>
+                    <span className="title-feature-icon" aria-hidden="true">
+                      {icon}
+                    </span>
+                    <span className="title-feature-label">{label}</span>
+                  </li>
+                ))}
               </ul>
             </>
           )}

@@ -10,6 +10,8 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   "🎓 Recruit and develop" and "🏆 Chase state titles" under the pitch look tappable but aren't. Redesign them so
   they read as a feature list, not buttons (`src/components/SplashScreen.tsx`, the list near line 171). Mockup
   first.
+  **Done 2026-10-14 (option A, icon strip):** three columns, a big icon over a small uppercase label, thin
+  dividers, no box or shadow (`.title-features` in `src/styles/index.css`).
 - **Title screen (home page):** remove the tagline "Every dynasty starts on a Friday night."
 - **Title screen (home page):** add a link to the Hall of Fame.
 - **Hall of Fame board:** add each career's win-loss record to its entry. Mockup shown 2026-10-14 (three layouts;
