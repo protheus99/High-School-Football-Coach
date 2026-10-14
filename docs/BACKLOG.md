@@ -19,6 +19,9 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
 - **Hub: the "Prospect signing day: N newcomers joined" card has no link to the signing review.** It only offers
   "Roster". Add a link to the review (the "Last year's pipeline" summary above, once redesigned). Code:
   `src/components/WeeklyAgenda.tsx`, the `signing-results` card.
+- **Roster: mark the newcomers.** After signing day there's no way to tell who's new on the roster except by
+  spotting the freshmen by name (raised 2026-10-14 with the "Review Signings" button). Mark the new players, for
+  example a "NEW" chip for their first season, or a "New this year" filter.
 - **Hub: the senior college card should be about any college offer, not just D-I.** Today it reads "N seniors
   without a D-I offer". D-I is good, but the goal is every senior signed with any school: count and name seniors
   with no offer at all (and not yet committed). Code: `src/components/WeeklyAgenda.tsx`, `collegeCard()`

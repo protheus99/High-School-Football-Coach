@@ -21,3 +21,6 @@ const STATE_ABBREVIATIONS: Record<string, string> = {
 
 /** "TX" for Texas. */
 export const stateAbbreviation = (state: string) => STATE_ABBREVIATIONS[state] ?? state.slice(0, 2).toUpperCase();
+
+/** The school and its state, "Miami Northwestern (FL)"; a name with its own brackets reads "Catholic, Baton Rouge (LA)". */
+export const schoolWithState = (program: string, state: string) => `${program.replace(/\s*\(([^)]*)\)\s*$/, ', $1')} (${stateAbbreviation(state)})`;

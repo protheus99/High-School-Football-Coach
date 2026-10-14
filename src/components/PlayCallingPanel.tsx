@@ -40,7 +40,7 @@ export const PlayCallingPanel: React.FC<PlayCallingPanelProps> = ({ side, onCall
   return (
     <div style={{ background: '#1E293B', borderRadius: '8px', padding: '12px', margin: '12px 0' }}>
       <div style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase' }}>
-        Call the play
+        Call the next play
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
         <button onClick={() => onCallPlay('INSIDE_RUN')} disabled={disabled} style={playBtnStyle('#3B82F6')}>

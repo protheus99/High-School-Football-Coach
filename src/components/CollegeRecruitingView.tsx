@@ -51,6 +51,23 @@ const byStock = (a: Player, b: Player) => b.recruiting.starRating - a.recruiting
 
 const stars = (n: number) => (n > 0 ? '★'.repeat(n) : '—');
 
+type Stage = 'NO_OFFERS' | 'UNCOMMITTED' | 'COMMITTED';
+/** Where a recruit stands: committed (or signed), offers but still choosing, or no offer yet. */
+const stageOf = (p: Player): Stage => (p.recruiting.committedCollege ? 'COMMITTED' : p.recruiting.offers.length > 0 ? 'UNCOMMITTED' : 'NO_OFFERS');
+const STAGES: [Stage | 'ALL', string][] = [
+  ['ALL', 'All'],
+  ['NO_OFFERS', 'No offers'],
+  ['UNCOMMITTED', 'Uncommitted'],
+  ['COMMITTED', 'Committed']
+];
+const STAGE_EMPTY: Record<Stage, string> = {
+  NO_OFFERS: 'Every junior and senior has at least one offer.',
+  UNCOMMITTED: 'Every player with an offer has committed.',
+  COMMITTED: 'Nobody has committed yet.'
+};
+/** Before any offers come in, Uncommitted is empty because nobody has an offer yet: say that instead. */
+const NO_OFFERS_YET = 'None of your juniors or seniors has a college offer yet.';
+
 /** College recruiting for the coach's juniors and seniors. `focusPlayerId` (from a player card) opens on that player. */
 export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> = ({ focusPlayerId }) => {
   const { leagueTeams, userTeamId, coachPoints, currentWeek, currentYear, collegeRecruitAction } = useGameStore();
@@ -61,6 +78,8 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
   const [expanded, setExpanded] = useState<string | null>(focusPlayerId ?? null);
   // Recruiting (your players and the state's top seniors) or the college directory
   const [mode, setMode] = useState<'RECRUITING' | 'COLLEGES'>('RECRUITING');
+  // Your players by where they stand: no offer yet, offers but still choosing, or committed (signed included)
+  const [stage, setStage] = useState<Stage | 'ALL'>('ALL');
   useScrollTopOnScreenChange(mode);
   // Arriving from a player card: show his row, open
   useEffect(() => {
@@ -179,7 +198,14 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
       ) : (
         <>
       <div id="college-mine" style={{ display: 'flex', flexDirection: 'column', gap: '8px', scrollMarginTop: 'calc(var(--topbar-h) + 64px)' }}>
-        {recruits.map((p) => (
+        <div className="ui-chip-row" role="group" aria-label="Show players" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
+          {STAGES.map(([id, label]) => (
+            <button key={id} className="ui-chip" aria-pressed={stage === id} onClick={() => setStage(id)}>
+              {label} ({id === 'ALL' ? recruits.length : recruits.filter((p) => stageOf(p) === id).length})
+            </button>
+          ))}
+        </div>
+        {recruits.filter((p) => stage === 'ALL' || stageOf(p) === stage).map((p) => (
           <RecruitRow
             key={p.id}
             player={p}
@@ -193,6 +219,11 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
           />
         ))}
         {recruits.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No juniors or seniors on the roster.</div>}
+        {recruits.length > 0 && stage !== 'ALL' && !recruits.some((p) => stageOf(p) === stage) && (
+          <div style={{ color: '#64748B', fontSize: '13px' }}>
+            {stage === 'UNCOMMITTED' && recruits.every((p) => stageOf(p) === 'NO_OFFERS') ? NO_OFFERS_YET : STAGE_EMPTY[stage]}
+          </div>
+        )}
       </div>
 
       <h3 id="college-state" style={{ margin: '24px 0 6px 0', scrollMarginTop: 'calc(var(--topbar-h) + 64px)' }}>Top Senior Recruits in the State</h3>

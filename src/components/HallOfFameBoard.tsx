@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { coachTitle, useGameStore } from '../store/gameStore';
-import { CAREER_LENGTHS, CAREER_POINTS, CareerLength, careerBasePoints, careerPoints, prestigeMultiplier } from '../sim/careerScore';
+import { CAREER_LENGTHS, CAREER_POINTS, Career, CareerLength, careerBasePoints, careerPoints, prestigeMultiplier } from '../sim/careerScore';
 import { hasRemoteLeaderboard, LeaderboardEntry } from '../services/leaderboard';
-import { ordinal, stateAbbreviation } from '../utils/format';
+import { ordinal, schoolWithState } from '../utils/format';
 import { useHallOfFame } from '../utils/useHallOfFame';
 import { StatePennant, UsFlag } from './ui/TitleMarks';
 import { signInAvailable, useAccount } from '../services/account';
@@ -44,7 +44,6 @@ export const HallOfFameBoard: React.FC = () => {
   const [signingIn, setSigningIn] = useState(false);
   // Signed out, careers stay on this device: they post to the Hall of Fame only for a signed-in player
   const deviceOnly = hasRemoteLeaderboard() && !account.user;
-  const board = useHallOfFame(length, career);
 
   return (
     <div className="ui-screen" style={{ paddingTop: 0 }}>
@@ -93,49 +92,7 @@ export const HallOfFameBoard: React.FC = () => {
         </p>
       )}
 
-      <section aria-label="Hall of Fame" style={arcade}>
-        <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 900, letterSpacing: '0.16em', color: '#FACC15', textShadow: '0 0 6px rgba(250,204,21,.6)' }}>HALL OF FAME</div>
-        <div role="group" aria-label="Career length" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', margin: '10px 0' }}>
-          {CAREER_LENGTHS.map((n) => (
-            <button
-              key={n}
-              aria-pressed={length === n}
-              onClick={() => setLength(n)}
-              style={{
-                minHeight: '40px',
-                borderRadius: '8px',
-                fontFamily: 'inherit',
-                fontWeight: 900,
-                fontSize: '13px',
-                letterSpacing: '0.06em',
-                cursor: 'pointer',
-                border: `2px solid ${length === n ? '#22D3EE' : '#334155'}`,
-                background: length === n ? 'rgba(34,211,238,.15)' : 'transparent',
-                color: length === n ? '#22D3EE' : '#94A3B8'
-              }}
-            >
-              {n} YEARS
-            </button>
-          ))}
-        </div>
-        {board.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '14px 0' }}>NO {length}-YEAR CAREERS YET</p>
-        ) : (
-          <div>
-            {board.map((e, i) => (
-              <BoardRow key={e.careerId} entry={e} rank={i + 1} mine={e.careerId === career?.id} deviceOnly={deviceOnly && e.careerId === career?.id} />
-            ))}
-          </div>
-        )}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', marginTop: '12px', fontSize: '11px', color: '#94A3B8' }} aria-label="Scoring">
-          {SCORING.map(([label, pts]) => (
-            <span key={label}>
-              {label.toUpperCase()} <strong style={{ color: '#E2E8F0' }}>{pts}</strong>
-            </span>
-          ))}
-          <span>× START BONUS: LOWER PRESTIGE SCORES MORE</span>
-        </div>
-      </section>
+      <HallOfFameArcade career={career} length={length} onLength={setLength} deviceOnly={deviceOnly} />
       {!hasRemoteLeaderboard() && (
         <p className="ui-muted" style={{ marginTop: '10px' }}>
           Showing careers played on this device.
@@ -159,32 +116,102 @@ export const HallOfFameBoard: React.FC = () => {
   );
 };
 
-const BoardRow: React.FC<{ entry: LeaderboardEntry; rank: number; mine: boolean; deviceOnly?: boolean }> = ({ entry: e, rank, mine, deviceOnly }) => (
-  <div
-    style={{
-      display: 'grid',
-      gridTemplateColumns: '42px minmax(0, 1fr) auto 46px',
-      gap: '6px',
-      alignItems: 'center',
-      fontSize: '12.5px',
-      padding: '6px',
-      borderRadius: '6px',
-      ...(mine ? { background: 'rgba(250,204,21,.18)', outline: '1px solid #FACC15' } : {})
-    }}
-  >
-    <span style={{ color: rank === 1 ? '#FACC15' : '#22D3EE', fontWeight: 900 }}>{ordinal(rank).toUpperCase()}</span>
-    <span style={{ minWidth: 0, overflow: 'hidden' }}>
-      <span style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 700 }}>{coachTitle(e.coachName)}</span>
-      <span style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#94A3B8', fontSize: '11px' }}>
-        {e.startingProgram} · {stateAbbreviation(e.state)}
-        {e.seasons < e.length ? ` · ${e.seasons} of ${e.length}` : ''}
-        {deviceOnly ? ' · this device only' : ''}
+/**
+ * The arcade board itself: every career of one length (3, 5 or 10 years), ranked. The coach's own career is
+ * highlighted when there is one; the title screen shows it with no game loaded.
+ */
+export const HallOfFameArcade: React.FC<{ career: Career | null; length: CareerLength; onLength: (length: CareerLength) => void; deviceOnly?: boolean }> = ({
+  career,
+  length,
+  onLength,
+  deviceOnly = false
+}) => {
+  const board = useHallOfFame(length, career);
+  return (
+    <section aria-label="Hall of Fame" style={arcade}>
+      <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 900, letterSpacing: '0.16em', color: '#FACC15', textShadow: '0 0 6px rgba(250,204,21,.6)' }}>HALL OF FAME</div>
+      <div role="group" aria-label="Career length" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', margin: '10px 0' }}>
+        {CAREER_LENGTHS.map((n) => (
+          <button
+            key={n}
+            aria-pressed={length === n}
+            onClick={() => onLength(n)}
+            style={{
+              minHeight: '40px',
+              borderRadius: '8px',
+              fontFamily: 'inherit',
+              fontWeight: 900,
+              fontSize: '13px',
+              letterSpacing: '0.06em',
+              cursor: 'pointer',
+              border: `2px solid ${length === n ? '#22D3EE' : '#334155'}`,
+              background: length === n ? 'rgba(34,211,238,.15)' : 'transparent',
+              color: length === n ? '#22D3EE' : '#94A3B8'
+            }}
+          >
+            {n} YEARS
+          </button>
+        ))}
+      </div>
+      {board.length === 0 ? (
+        <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '14px 0' }}>NO {length}-YEAR CAREERS YET</p>
+      ) : (
+        <div>
+          {board.map((e, i) => (
+            <BoardRow key={e.careerId} entry={e} rank={i + 1} mine={e.careerId === career?.id} deviceOnly={deviceOnly && e.careerId === career?.id} />
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', marginTop: '12px', fontSize: '11px', color: '#94A3B8' }} aria-label="Scoring">
+        {SCORING.map(([label, pts]) => (
+          <span key={label}>
+            {label.toUpperCase()} <strong style={{ color: '#E2E8F0' }}>{pts}</strong>
+          </span>
+        ))}
+        <span>× START BONUS: LOWER PRESTIGE SCORES MORE</span>
+      </div>
+    </section>
+  );
+};
+
+const BoardRow: React.FC<{ entry: LeaderboardEntry; rank: number; mine: boolean; deviceOnly?: boolean }> = ({ entry: e, rank, mine, deviceOnly }) => {
+  const games = e.wins + e.losses;
+  const sub: React.CSSProperties = { display: 'block', color: '#94A3B8', fontSize: '11px' };
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '42px minmax(0, 1fr) 46px',
+        gap: '6px',
+        alignItems: 'start',
+        fontSize: '12.5px',
+        padding: '6px',
+        borderRadius: '6px',
+        ...(mine ? { background: 'rgba(250,204,21,.18)', outline: '1px solid #FACC15' } : {})
+      }}
+    >
+      <span style={{ color: rank === 1 ? '#FACC15' : '#22D3EE', fontWeight: 900 }}>{ordinal(rank).toUpperCase()}</span>
+      <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+        <span style={{ display: 'block', fontWeight: 700 }}>{coachTitle(e.coachName)}</span>
+        <span style={sub}>
+          {schoolWithState(e.startingProgram, e.state)}
+          {e.seasons < e.length ? ` · ${e.seasons} of ${e.length}` : ''}
+          {deviceOnly ? ' · this device only' : ''}
+        </span>
+        <span style={sub}>
+          RECORD <strong style={{ color: '#4ADE80' }}>{e.wins}-{e.losses}</strong>
+          {games > 0 ? ` · ${Math.round((e.wins / games) * 100)}% WINS` : ''}
+        </span>
+        {(e.titles > 0 || (e.nationalTitles ?? 0) > 0) && (
+          <span style={{ display: 'block', marginTop: '3px' }}>
+            <TitleCounts state={e.state} titles={e.titles} nationalTitles={e.nationalTitles} />
+          </span>
+        )}
       </span>
-    </span>
-    <TitleCounts state={e.state} titles={e.titles} nationalTitles={e.nationalTitles} />
-    <span style={{ textAlign: 'right', color: '#FACC15', fontWeight: 900, fontSize: '14px' }}>{e.points}</span>
-  </div>
-);
+      <span style={{ textAlign: 'right', color: '#FACC15', fontWeight: 900, fontSize: '14px' }}>{e.points}</span>
+    </div>
+  );
+};
 
 const arcade: React.CSSProperties = {
   background: '#05060F',

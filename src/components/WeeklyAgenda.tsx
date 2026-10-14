@@ -13,7 +13,7 @@ import {
 } from '../sim/scheduleEngine';
 import { FEEDER_EVENTS, FeederEventType, LINE_POSITIONS, MAX_POOL_SIZE, SKILL_POSITIONS, inUserPipeline } from '../sim/feederEngine';
 import { feederEventCost } from '../sim/coachPoints';
-import { isDivisionOne, recruitScore } from '../sim/collegeRecruitingEngine';
+import { recruitScore } from '../sim/collegeRecruitingEngine';
 import { rankedName } from '../sim/newsEngine';
 import { HubHeadlines } from './HubHeadlines';
 import { SeasonCard } from './SeasonCard';
@@ -296,22 +296,29 @@ export const WeeklyAgenda: React.FC<{
     return { id: 'concerns', icon: '📉', title: 'Program concerns', detail: concerns.join(' '), tone: 'info' };
   };
 
-  // College recruiting lives on its own screen (film, calls, camps): the Hub points the way
+  // College recruiting lives on its own screen (film, calls, camps): the Hub points the way. Every senior with an
+  // offer signs somewhere at the banquet, so the seniors who matter are the ones with no offer at all.
   const collegeCard = (seniorsOnly = false): AgendaItem | null => {
     const recruits = team.roster
       .filter((p) => (p.classYear === 'Senior' || (!seniorsOnly && p.classYear === 'Junior')) && !p.recruiting.isNationalLetterOfIntentSigned)
       .sort((a, b) => recruitScore(b) - recruitScore(a));
     if (recruits.length === 0) return null;
-    const seniorsWithoutD1 = recruits.filter((p) => p.classYear === 'Senior' && !p.recruiting.committedCollege && !p.recruiting.offers.some((o) => isDivisionOne(o.tier)));
-    const shown = (seniorsWithoutD1.length > 0 ? seniorsWithoutD1 : recruits).slice(0, TOP_PROSPECTS);
-    return {
-      id: 'college',
-      icon: '🎓',
-      title: seniorsWithoutD1.length > 0 ? `${plural(seniorsWithoutD1.length, 'senior')} without a D-I offer` : 'Help your players get recruited',
-      detail: shown.map((p) => `${p.position} ${shortName(p)}${p.recruiting.starRating ? ` (${p.recruiting.starRating}★)` : ''}`).join(', '),
-      tone: 'todo',
-      actions: [{ label: '🎓 College recruiting ›', onClick: () => onNavigate('COLLEGE') }]
-    };
+    const seniors = recruits.filter((p) => p.classYear === 'Senior');
+    const noOffer = seniors.filter((p) => !p.recruiting.committedCollege && p.recruiting.offers.length === 0);
+    const choosing = seniors.filter((p) => !p.recruiting.committedCollege && p.recruiting.offers.length > 0).length;
+    const line = (players: Player[]) => players.slice(0, TOP_PROSPECTS).map((p) => `${p.position} ${shortName(p)}${p.recruiting.starRating ? ` (${p.recruiting.starRating}★)` : ''}`).join(', ');
+    const action = { label: '🎓 College recruiting ›', onClick: () => onNavigate('COLLEGE') };
+    if (noOffer.length > 0) return { id: 'college', icon: '🎓', title: `${plural(noOffer.length, 'senior')} without a college offer`, detail: line(noOffer), tone: 'todo', actions: [action] };
+    if (seniors.length > 0)
+      return {
+        id: 'college',
+        icon: '🎓',
+        title: "All seniors have offers: they'll sign at the banquet",
+        detail: choosing > 0 ? `${plural(choosing, 'senior')} still choosing. More exposure can bring a bigger school.` : 'Every senior has committed.',
+        tone: 'info',
+        actions: [action]
+      };
+    return { id: 'college', icon: '🎓', title: 'Help your players get recruited', detail: line(recruits), tone: 'todo', actions: [action] };
   };
 
   // Practice: one decision (intensity), with what it does this week; tired starters are called out
@@ -471,9 +478,9 @@ export const WeeklyAgenda: React.FC<{
             id: 'signing-results',
             icon: '🆕',
             title: `Prospect signing day: ${plural(joined.filter((o) => o.outcome === 'JOINED').length, 'newcomer')} joined`,
-            detail: `${joined.filter((o) => o.outcome === 'OTHER_SCHOOL').length} chose another school and ${joined.filter((o) => o.outcome === 'LEFT_AREA').length} moved away. New student enrollment is done: meet them on the roster.`,
+            detail: `${joined.filter((o) => o.outcome === 'OTHER_SCHOOL').length} chose another school and ${joined.filter((o) => o.outcome === 'LEFT_AREA').length} moved away. New student enrollment is done.`,
             tone: 'info',
-            link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
+            actions: [{ label: 'Review Signings ›', onClick: () => onNavigate('FEEDERS') }]
           }
         : { id: 'enrollment', icon: '🏫', title: 'New student enrollment and college camps', detail: 'Summer camps get your juniors and seniors in front of college coaches.', tone: 'info' };
       task = collegeCard();

@@ -5,6 +5,8 @@ import { DIFFICULTY_PRESTIGE, Difficulty, stateSchool } from '../sim/league';
 import { SCENARIOS, ScenarioId } from '../data/scenarios';
 import { SchoolSearch } from './SchoolSearch';
 import { MusicTapHint } from './MusicTapHint';
+import { HallOfFameArcade } from './HallOfFameBoard';
+import { Sheet } from './ui/Sheet';
 import { useScrollTopOnScreenChange } from '../utils/pageScroll';
 import { CAREER_LENGTHS, CareerLength } from '../sim/careerScore';
 
@@ -35,6 +37,9 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   const [saves, setSaves] = useState<SaveEntry[] | null>(null);
   const account = useAccount();
   const [accountSheet, setAccountSheet] = useState<'SIGN_IN' | 'ACCOUNT' | null>(null);
+  // The Hall of Fame, open from the title screen with or without a game loaded (view only)
+  const [hallOfFame, setHallOfFame] = useState<CareerLength | null>(null);
+  const career = useGameStore((s) => s.career);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,6 +141,11 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
       )}
       {accountSheet === 'SIGN_IN' && <SignInSheet onClose={() => setAccountSheet(null)} />}
       {accountSheet === 'ACCOUNT' && <AccountSheet onClose={() => setAccountSheet(null)} onSignIn={() => setAccountSheet('SIGN_IN')} />}
+      {hallOfFame && (
+        <Sheet title="🏆 Hall of Fame" onClose={() => setHallOfFame(null)}>
+          <HallOfFameArcade career={career} length={hallOfFame} onLength={setHallOfFame} />
+        </Sheet>
+      )}
       <div style={{ width: '100%', maxWidth: '760px' }}>
         <div style={{ textAlign: 'center', marginBottom: view === 'MENU' ? '28px' : '16px' }}>
           {/* The logo, under the lights; smaller on New Game and Load Game so their choices stay near the top */}
@@ -144,7 +154,6 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
           </h1>
           {view === 'MENU' && (
             <>
-              <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: '15px', fontStyle: 'italic' }}>Every dynasty starts on a Friday night.</p>
               {/* What the game is, for anyone arriving from a link (the same words are in index.html for search engines) */}
               <p className="title-pitch">The high school football coaching sim. Take over a program and build it into a dynasty. Can you win a national title?</p>
               <ul className="title-chips" aria-label="What you do">
@@ -177,6 +186,9 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             </button>
             <button onClick={() => setView('LOAD')} style={menuBtn('#334155', '#fff')}>
               📂 Load Game
+            </button>
+            <button onClick={() => setHallOfFame(career?.length ?? 3)} style={{ ...menuBtn('#05060F', '#FACC15'), border: '2px solid #FACC15' }}>
+              🏆 Hall of Fame
             </button>
             {account.user && account.options.cloudSaves ? (
               <div style={{ textAlign: 'center', fontSize: '12px', color: '#86EFAC' }}>☁️ Saves sync to your account</div>
