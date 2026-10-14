@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FeederOutcome, Player, PotentialGrade, ProspectSource } from '../types/game';
-import { POTENTIAL_COLORS } from './DepthChartBoard';
+import { POTENTIAL_COLORS } from '../utils/color';
 
 // ---------------------------------------------------------------------------
 // Prospects › Students: the last signing day as a moment. Four count tiles, the newcomers as cards (rating and

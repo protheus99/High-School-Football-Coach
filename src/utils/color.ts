@@ -1,3 +1,4 @@
+import type { PotentialGrade } from '../types/game';
 /** Relative luminance (0 = black, 1 = white) of a #RGB or #RRGGBB color; undefined if unparseable. */
 export function luminance(hex: string): number | undefined {
   const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
@@ -23,3 +24,12 @@ export function readableOnWhite(primary: string, secondary?: string): string {
   if (ok(secondary)) return secondary!;
   return '#0F172A';
 }
+
+/** A potential grade's tag colors (depth chart, signing day board, practice). */
+export const POTENTIAL_COLORS: Record<PotentialGrade, { background: string; color: string }> = {
+  'A+': { background: '#DCFCE7', color: '#166534' },
+  A: { background: '#DCFCE7', color: '#166534' },
+  B: { background: '#DBEAFE', color: '#1E40AF' },
+  C: { background: '#FEF3C7', color: '#92400E' },
+  D: { background: '#F1F5F9', color: '#475569' }
+};

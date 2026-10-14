@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { userTrainingBoosts, useGameStore } from '../store/gameStore';
 import { coachBoosted } from '../sim/training';
 import { Player, Position } from '../types/game';
-import { POTENTIAL_COLORS } from './DepthChartBoard';
+import { POTENTIAL_COLORS } from '../utils/color';
 
 // ---------------------------------------------------------------------------
 // Team › Practice: what practice has added up to this year. The team's totals on top, then one row per position

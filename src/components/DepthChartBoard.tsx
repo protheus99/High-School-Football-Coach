@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Player, Position, PotentialGrade, Team } from '../types/game';
+import { Player, Position, Team } from '../types/game';
 import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
 import { DEPTH_TEMPLATE, SLOT_LABELS, depthGroup, starterRatings } from '../sim/depthChart';
 import { fatigueLevel } from '../sim/training';
 import { FATIGUE_COLORS } from './ui/fatigueColors';
 import { formatPercent } from '../utils/format';
+import { POTENTIAL_COLORS } from '../utils/color';
 import { scroller } from '../utils/pageScroll';
 
 /** A slot on the depth chart: a position and which starter column it is (e.g. OT column 0 = LT). */
@@ -61,14 +62,6 @@ const UNITS: { id: UnitId; title: string; short: string; slots: Slot[] }[] = [
 ];
 
 const CLASS_SHORT: Record<Player['classYear'], string> = { Freshman: 'Fr', Sophomore: 'So', Junior: 'Jr', Senior: 'Sr' };
-
-export const POTENTIAL_COLORS: Record<PotentialGrade, { background: string; color: string }> = {
-  'A+': { background: '#DCFCE7', color: '#166534' },
-  A: { background: '#DCFCE7', color: '#166534' },
-  B: { background: '#DBEAFE', color: '#1E40AF' },
-  C: { background: '#FEF3C7', color: '#92400E' },
-  D: { background: '#F1F5F9', color: '#475569' }
-};
 
 /** Rating colors: green 80+, blue 70s, amber 60s, gray below. */
 const ratingColor = (ovr: number) => (ovr >= 80 ? '#16A34A' : ovr >= 70 ? '#2563EB' : ovr >= 60 ? '#D97706' : '#94A3B8');
