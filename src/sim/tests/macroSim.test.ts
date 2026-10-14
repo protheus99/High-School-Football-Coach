@@ -49,3 +49,17 @@ describe('AI vs. AI macro-sim calibration', () => {
     expect(results.underdogWinRate).toBeLessThanOrEqual(28);
   });
 });
+
+describe('Field goals in simulated games', () => {
+  it('credits every made and missed kick to the starting kicker, about 3 in 4 good', () => {
+    const [home, away] = generateDistrictTeams();
+    const kicker = (t: typeof home) => t.roster.find((p) => p.position === 'K' && p.depthChartTier === 1) ?? t.roster.find((p) => p.position === 'K')!;
+    for (let i = 0; i < 200; i++) simulateMacroMatch(`g${i}`, 8, home, away);
+    const [a, b] = [kicker(home).stats, kicker(away).stats];
+    const made = a.fieldGoalsMade + b.fieldGoalsMade;
+    const tried = a.fieldGoalsAttempted + b.fieldGoalsAttempted;
+    expect(made).toBeGreaterThan(200); // a kick or more a game per team
+    expect(made / tried).toBeGreaterThan(0.6);
+    expect(made / tried).toBeLessThan(0.9);
+  });
+});

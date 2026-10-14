@@ -10,6 +10,16 @@ import { simulateTeamPenalties } from './penalties';
 const HOME_FIELD_RATING = 1;
 const DRIVE_DELTA_SCALE = { td: 2.6, fg: 0.7, turnover: 0.8 };
 const BASE_DRIVE_ODDS = { td: 25, fg: 12, turnover: 15 };
+// A drive that stalls ends in a missed field goal this often (about 3 kicks in 4 are good)
+const MISSED_FG_SHARE = 0.1;
+
+/** The game's kicks, on the team's starting kicker (light teams carry no kicker: nothing to credit). */
+function creditKicks(team: Team, made: number, attempted: number) {
+  const kicker = team.roster.find((p) => p.position === 'K' && p.depthChartTier === 1) ?? team.roster.find((p) => p.position === 'K');
+  if (!kicker || attempted === 0) return;
+  kicker.stats.fieldGoalsMade += made;
+  kicker.stats.fieldGoalsAttempted += attempted;
+}
 // A penalty yard is worth about 0.07 points; a rating point about 4.5 points of margin
 const PENALTY_YARD_RATING = 0.016;
 
@@ -189,6 +199,7 @@ export function simulateMacroMatch(
   let awayScore = 0;
   let homeTDs = 0;
   let awayTDs = 0;
+  const kicks = { home: { made: 0, missed: 0 }, away: { made: 0, missed: 0 } };
 
   let homePassYds = 0;
   let homeRushYds = 0;
@@ -212,6 +223,7 @@ export function simulateMacroMatch(
       homeRushYds += randomInt(15, 35);
     } else if (homeRoll < homeTdProb + homeFgProb) {
       homeScore += 3;
+      kicks.home.made += 1;
       homePassYds += randomInt(15, 30);
       homeRushYds += randomInt(10, 25);
     } else if (homeRoll < homeTdProb + homeFgProb + homeToProb) {
@@ -221,6 +233,7 @@ export function simulateMacroMatch(
     } else {
       homePassYds += randomInt(3, 10);
       homeRushYds += randomInt(3, 8);
+      if (Math.random() < MISSED_FG_SHARE) kicks.home.missed += 1;
     }
 
     // Away drive
@@ -236,6 +249,7 @@ export function simulateMacroMatch(
       awayRushYds += randomInt(15, 35);
     } else if (awayRoll < awayTdProb + awayFgProb) {
       awayScore += 3;
+      kicks.away.made += 1;
       awayPassYds += randomInt(15, 30);
       awayRushYds += randomInt(10, 25);
     } else if (awayRoll < awayTdProb + awayFgProb + awayToProb) {
@@ -245,6 +259,7 @@ export function simulateMacroMatch(
     } else {
       awayPassYds += randomInt(3, 10);
       awayRushYds += randomInt(3, 8);
+      if (Math.random() < MISSED_FG_SHARE) kicks.away.missed += 1;
     }
   }
 
@@ -258,6 +273,8 @@ export function simulateMacroMatch(
     awayScore += awayOT;
     if (homeOT === 7) homeTDs += 1;
     if (awayOT === 7) awayTDs += 1;
+    if (homeOT === 3) kicks.home.made += 1;
+    if (awayOT === 3) kicks.away.made += 1;
   }
 
   // Individual stats (turnovers split ~60% interceptions / 40% fumbles)
@@ -272,6 +289,9 @@ export function simulateMacroMatch(
     passYds: awayPassYds, rushYds: awayRushYds, touchdowns: awayTDs, interceptions: awayINT, fumbles: awayTO - awayINT,
     opponentInterceptions: homeINT, opponentPlays: plays(homePassYds, homeRushYds)
   });
+
+  creditKicks(homeTeam, kicks.home.made, kicks.home.made + kicks.home.missed);
+  creditKicks(awayTeam, kicks.away.made, kicks.away.made + kicks.away.missed);
 
   const homeQb = homeTeam.roster.find((p) => p.position === 'QB') || homeTeam.roster[0];
   const homeRb = homeTeam.roster.find((p) => p.position === 'RB') || homeTeam.roster[0];
