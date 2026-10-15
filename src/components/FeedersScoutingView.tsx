@@ -348,18 +348,17 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                     return (
                       <div
                         key={type}
-                        style={{ background: '#fff', border: '1px solid #E2E8F0', borderLeft: `4px solid ${g.color}`, borderRadius: '10px', padding: '9px 10px', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}
+                        style={{ background: '#fff', border: '1px solid #E2E8F0', borderLeft: `4px solid ${g.color}`, borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px', flexWrap: 'wrap' }}>
-                          <b style={{ fontSize: '13.5px' }}>{program.label}</b>
-                          {program.positions && (
-                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#475569', background: '#F1F5F9', borderRadius: '5px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
-                              {program.positions.join(' ')}
-                            </span>
-                          )}
-                        </div>
+                        {/* Name, then its positions on their own line, then the button pinned to the bottom: every card in a row lines up */}
+                        <b style={{ fontSize: '13.5px', lineHeight: 1.25 }}>{program.label}</b>
+                        {program.positions && (
+                          <span style={{ alignSelf: 'flex-start', fontSize: '11px', fontWeight: 800, color: '#475569', background: '#F1F5F9', borderRadius: '5px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
+                            {program.positions.join(' ')}
+                          </span>
+                        )}
                         {!compact && <div style={{ fontSize: '12px', color: '#475569' }}>{program.description}</div>}
-                        <button onClick={() => handleEvent(type)} disabled={blocked} style={{ ...actionBtn(g.color, blocked), alignSelf: 'flex-start', marginTop: '2px' }}>
+                        <button onClick={() => handleEvent(type)} disabled={blocked} style={{ ...actionBtn(g.color, blocked), alignSelf: 'stretch', marginTop: 'auto', borderRadius: '8px' }}>
                           {label}
                         </button>
                       </div>
