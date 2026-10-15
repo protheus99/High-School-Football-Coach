@@ -29,6 +29,7 @@ import { GameSimulationState, OffensiveScheme } from './types/game';
 import { rulesForState } from './sim/stateRules';
 import { DucatCheckoutSheet } from './components/DucatStore';
 import { returnedFromCheckout } from './services/ducats';
+import { track } from './services/analytics';
 import { AUTOSAVE_ID, loadSaveGame } from './services/db';
 import { loadLiveState } from './services/playedGames';
 import { lockKey } from './sim/gameLock';
@@ -172,6 +173,13 @@ export const App: React.FC = () => {
 
   // The soundtrack plays everywhere but a live game, which has its own sound effects
   useEffect(() => musicPlayer.setInGame(!!activeMatch), [activeMatch]);
+
+  // Game events: each screen the coach opens (the tab and its section), once a game is on
+  const section = tab === 'TEAM' ? teamSection : tab === 'FEEDERS' ? feederSection : tab === 'RANKINGS' ? rankingsSection : undefined;
+  const inMatch = !!activeMatch;
+  useEffect(() => {
+    if (!showMenu && !inMatch) track('open_screen', { screen: tab, section });
+  }, [tab, section, showMenu, inMatch]);
 
   useEffect(() => {
     // Show the season's awards once at the banquet; closing the modal must not re-trigger it

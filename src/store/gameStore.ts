@@ -96,7 +96,8 @@ import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { collectResults } from '../sim/computerRankings';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
-import { HiredCoach, staffBonuses, staffGameDayEdge } from '../sim/coachingStaff';
+import { HiredCoach, coachGrade, staffBonuses, staffGameDayEdge } from '../sim/coachingStaff';
+import { track } from '../services/analytics';
 import { Career, CareerLength, careerPoints, isCareerComplete, scoreSeason, vacateSeason } from '../sim/careerScore';
 import {
   BoosterOffer,
@@ -295,6 +296,16 @@ function punishCaughtProgram(team: Team, bannedSeason: number, week: number): Ne
 
 /** A full save of the current game in a given slot. */
 /** A game's final by its id: a scheduled game (league or out-of-state) or a playoff game ("po_" + its matchup). */
+/** Where the career is, for game events: its season (1 = the first) and the week. */
+const moment = (s: { currentYear: number; currentWeek: number }) => ({ season: s.currentYear - 2025, week: s.currentWeek });
+
+/** The coach's side of a final, for game events. */
+function gameOutcome(userTeamId: string, g: { homeId: string; homeScore: number; awayScore: number }) {
+  const mine = g.homeId === userTeamId ? g.homeScore : g.awayScore;
+  const theirs = g.homeId === userTeamId ? g.awayScore : g.homeScore;
+  return { result: mine > theirs ? 'win' : mine < theirs ? 'loss' : 'tie', margin: mine - theirs };
+}
+
 function matchupResult(
   state: Pick<GameStoreState, 'seasonSchedule' | 'interstateGames' | 'playoffBracket'>,
   gameId: string
@@ -789,6 +800,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const school = pickSchoolForDifficulty(difficulty, state);
     set({ currentYear: 2026, difficulty, career: null, careerHistory: [], careerKey: newCareerKey(), playedGames: {}, lockNotice: null });
     get().startNewSeason(buildStateWorld(state, school));
+    track('new_game', { mode: 'quick', state, difficulty });
     return school;
   },
 
@@ -814,6 +826,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const team = get().leagueTeams.find((t) => t.id === get().userTeamId);
     if (team) team.staff.headCoachName = coachTitle(career.coachName);
     if (team) set({ career: { ...career, startingPrestige: team.prestige } });
+    track('new_game', { mode: 'career', scenario: scenarioId, state, length });
   },
 
   // League saves restore the whole world; older saves get a world built around their district
@@ -904,6 +917,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       get().applyLockedGame();
     });
     whenIdle(() => get().runAhead());
+    track('load_game', moment(get()));
   },
 
   autosave: async () => {
@@ -917,6 +931,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const state = get();
     const userTeam = state.leagueTeams.find((t) => t.id === state.userTeamId);
     const id = `save_${Date.now()}`;
+    track('save_game', moment(state));
     await persistSaveGame(buildSaveRecord(state, id, saveName?.trim() || `${userTeam?.name ?? 'Season'} - ${state.currentYear} Week ${state.currentWeek}`));
     return id;
   },
@@ -933,6 +948,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const nextWeek = currentWeek + 1;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     const phase = getSeasonPhase(currentWeek);
+    track('week_advance', { ...moment(get()), week: nextWeek, phase: getSeasonPhase(nextWeek) });
     if (currentWeek === FEEDER_SIGNING_WEEK && get().currentYear >= get().feederClassYear) get().runFeederSigningDay();
 
     // The coach's game, if it's simmed now: its players' stats before, so its final is written down with their lines
@@ -1190,6 +1206,14 @@ export const useGameStore = create<GameStoreState>((set, get) => {
           ? { ...career, seasons: [...career.seasons, scoreSeason(userTeam, get().playoffBracket, get().currentYear, nationalTitle)] }
           : career;
       if (scored && scored !== career) recordCareer(scored);
+      track('season_end', {
+        season: get().currentYear - 2025,
+        wins: userTeam.record.wins,
+        losses: userTeam.record.losses,
+        state_champion: champions.has(userTeamId),
+        national_rank: nationalRank.get(userTeamId),
+        national_title: nationalTitle
+      });
       // The state's honors: every All-State player and award winner gets a little more college exposure
       const seasonAwards = calculateSeasonAwards(get().currentYear, leagueTeams, get().playoffBracket);
       honoredPlayers(seasonAwards).forEach((p) => (p.recruiting.exposure = (p.recruiting.exposure ?? 0) + 1));
@@ -1296,6 +1320,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       const result = matchupResult(get(), simmed.gameId);
       if (result) {
         const game = finalRecord(get().careerKey!, get().currentYear, currentWeek, userTeamId, { ...result, lines: statLines([simmed.home, simmed.away], simmedBefore) });
+        track('game_played', { mode: 'sim', ...gameOutcome(userTeamId, result), playoff: !!simmed.isPlayoff, season: get().currentYear - 2025, week: currentWeek });
         set({ playedGames: { ...get().playedGames, [game.key]: game } });
         void storeFinal(game);
       }
@@ -1331,12 +1356,14 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       set({ coachPoints: coachPoints - price.amount });
     }
     get().setCoachingStaff([...coachingStaff.filter((c) => c.role !== coach.role), { ...coach, ...contractTerms(currentWeek, currentYear, years) }]);
+    track('coach_hired', { role: coach.role, grade: coachGrade(coach.rating), currency: price.currency === 'DUCATS' ? 'ducats' : 'coach_points', price: price.amount, years });
     return null;
   },
 
   releaseCoach: (role) => {
     if (!staffWindowOpen(get().currentWeek)) return;
     get().setCoachingStaff(get().coachingStaff.filter((c) => c.role !== role));
+    track('coach_released', { role });
   },
 
   // The off-season: pay next season for the coaches kept (renewals add a season at the same price) and let the rest go
@@ -1377,6 +1404,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       }
     );
     set({ currentWeek: LAST_REGULAR_SEASON_WEEK + 1, playoffBracket: bracket });
+    track('playoffs_start', { made: !!findUserNode(bracket, userTeamId), season: get().currentYear - 2025 });
   },
 
   // Records the user's live playoff result; Advance Week finishes the round
@@ -1412,6 +1440,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const team = leagueTeams.find((t) => t.id === userTeamId);
     if (!career || !team) return;
     set({ careerHistory: [...get().careerHistory, career], career: newContract(career, team, length, currentYear + 1, true), careerComplete: false, jobOffers: [], compliance: initialCompliance() });
+    track('contract_extended', { years: length });
     get().transitionToNextYear();
   },
 
@@ -1422,6 +1451,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const team = leagueTeams.find((t) => t.id === teamId);
     if (!career || !oldTeam || !team || !league) return;
     // The old school hires a new coach and recruits like every other program
+    track('job_accepted', { years: length });
     oldTeam.staff.headCoachName = `Coach ${randomSurname(oldTeam.nameProfile)}`;
     oldTeam.feederProfile = initialFeederProfile();
     oldTeam.feederProfile.strategy = chooseFeederStrategy(oldTeam);
@@ -1473,6 +1503,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const career = get().career;
     if (career && isCareerComplete(career)) {
       runFinalReview(career, userTeam);
+      track('career_complete', { seasons: career.length, season: currentYear - 2025 });
       set({
         careerComplete: true,
         jobOffers: jobOffers(career, leagueTeams, userTeamId),
@@ -1616,6 +1647,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const player = team?.roster.find((p) => p.id === playerId);
     if (!team || !player) return;
     const { skill, exposure } = awardGameBall(player, currentYear);
+    track('game_ball', { position: player.position });
     const article: NewsArticle = {
       id: `news_gameball_${player.id}_${currentYear}_${currentWeek}`,
       week: currentWeek,
@@ -1637,6 +1669,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const { fridayEdgeDelta, ...rest } = choice.impact;
     executeDilemmaDecision(team, { ...choice, impact: rest });
     if (fridayEdgeDelta) team.pendingFridayEdge = (team.pendingFridayEdge ?? 0) + fridayEdgeDelta;
+    track('press_answer', { question: question.id, answer: choice.id });
     const quote: NewsArticle = {
       id: `news_press_${question.id}_${currentYear}_${currentWeek}`,
       week: currentWeek,
@@ -1674,6 +1707,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       ...(involved && { playerName: `${involved.firstName} ${involved.lastName}` }),
       ...(Math.random() < EXPOSURE_CHANCE[choice.tier] && { exposureWeek: currentWeek + randomInt(1, 3) })
     };
+    track('dilemma_choice', { dilemma: record.templateId, tier: choice.tier, ...moment(get()) });
     set({
       activeDilemma: null,
       districtTeams: [...districtTeams],
@@ -1682,7 +1716,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     });
   },
 
-  setPracticeIntensity: (mode) => set({ practiceIntensity: mode }),
+  setPracticeIntensity: (mode) => {
+    if (mode !== get().practiceIntensity) track('practice_set', { intensity: mode, ...moment(get()) });
+    set({ practiceIntensity: mode });
+  },
   markNewsSeen: () => set({ newsSeen: get().newsArticles.length }),
   setActiveGame: (game) => set({ activeGame: game }),
 
@@ -1725,6 +1762,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
   markGameFinal: (finalState) => {
     const { careerKey, currentYear, currentWeek, userTeamId } = get();
+    const outcome = gameOutcome(userTeamId, { homeId: finalState.homeTeam.id, homeScore: finalState.homeScore, awayScore: finalState.awayScore });
+    track('game_played', { mode: 'live', ...outcome, playoff: !!get().playoffBracket, ...moment(get()) });
     if (!careerKey) return;
     const game = finalRecord(careerKey, currentYear, currentWeek, userTeamId, {
       homeId: finalState.homeTeam.id,
@@ -1778,6 +1817,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     if (meters && id === 'BOARD_ROOM_SHIELD') meters.schoolBoardTrust = Math.min(100, meters.schoolBoardTrust + 15);
     if (meters && id === 'BOOSTER_BREAKFASTS') meters.boosterApproval = Math.min(100, meters.boosterApproval + 10);
     set({ coachPoints: coachPoints - talent.cost, coachTalents: [...coachTalents, id], districtTeams: [...districtTeams] });
+    track('talent_unlocked', { talent: id, cost: talent.cost });
     return null;
   },
 
@@ -1795,6 +1835,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       feederEventsThisWeek: [...feederEventsThisWeek, type],
       programCooldowns: { ...programCooldowns, [type]: FEEDER_EVENTS[type].every }
     });
+    track('program_run', { program: type, cost, found: result.discovered.length, ...moment(get()) });
     return result.discovered;
   },
 
@@ -1807,12 +1848,14 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     if (!player) return { ok: false, message: 'Player not found' };
     const result = performCollegeAction(player, userTeam, action, currentWeek, currentYear, classCounts(leagueTeams));
     if (result.ok) set({ coachPoints: coachPoints - cost, districtTeams: [...districtTeams], leagueTeams: [...leagueTeams] });
+    if (result.ok) track('college_recruit', { action, cost });
     return result;
   },
 
   scoutFeederProspect: (prospectId) => {
     const { coachPoints, scoutingPool } = get();
     if (coachPoints < PROSPECT_ACTION_COSTS.SCOUT) return;
+    track('prospect_scout');
     set({
       coachPoints: coachPoints - PROSPECT_ACTION_COSTS.SCOUT,
       scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? scoutProspect(p) : p))
@@ -1828,6 +1871,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
   toggleShortlist: (prospectId) => {
     const { shortlist } = get();
+    track('my_list', { list: 'prospects', added: !shortlist.includes(prospectId) });
     set({ shortlist: shortlist.includes(prospectId) ? shortlist.filter((id) => id !== prospectId) : [...shortlist, prospectId] });
   },
 
@@ -1840,12 +1884,14 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const staff = staffBonuses(get().coachingStaff);
     const bonus = staff.feederInterest + (staff.feederInterestByPosition[prospect.projectedPosition] ?? 0);
     const contact = (p: FeederProspect) => (p.id === prospectId ? contactProspect(p, action, bonus) : p);
+    track('prospect_contact', { method: action, cost, pool: prospect.scope ?? 'DISTRICT' });
     set({ coachPoints: coachPoints - cost, ...(prospect.scope ? { widePool: widePool.map(contact) } : { scoutingPool: scoutingPool.map(contact) }) });
   },
 
   visitFeederProspect: (prospectId) => {
     const { coachPoints, scoutingPool } = get();
     if (coachPoints < PROSPECT_ACTION_COSTS.VISIT) return;
+    track('prospect_visit');
     set({
       coachPoints: coachPoints - PROSPECT_ACTION_COSTS.VISIT,
       scoutingPool: scoutingPool.map((p) => (p.id === prospectId ? visitProspect(p) : p))
@@ -1857,6 +1903,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const prospect = scoutingPool.find((p) => p.id === prospectId) ?? widePool.find((p) => p.id === prospectId);
     if (!prospect || prospect.source === 'TRYOUT' || prospect.boosterOffers?.includes(offer) || onProbation(get().userProbationUntil, currentYear)) return;
     const boost = (p: FeederProspect) => (p.id === prospectId ? boostProspect(p, offer) : p);
+    track('booster_offer', { offer });
     const record = compliance.offers.find((r) => r.prospectId === prospectId);
     const offers = record
       ? compliance.offers.map((r) => (r === record ? { ...r, offers: [...r.offers, offer] } : r))
@@ -1875,6 +1922,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   holdComplianceTraining: () => {
     const { compliance, coachPoints, currentYear } = get();
     if (coachPoints < COMPLIANCE_TRAINING.cost || compliance.trainingSeason === currentYear) return;
+    track('compliance_action', { action: 'training' });
     set({
       coachPoints: coachPoints - COMPLIANCE_TRAINING.cost,
       compliance: { ...compliance, suspicion: Math.max(0, compliance.suspicion - COMPLIANCE_TRAINING.suspicion), trainingSeason: currentYear }
@@ -1884,6 +1932,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   cleanUpRecords: () => {
     const { compliance, coachPoints, currentYear } = get();
     if (coachPoints < RECORDS_CLEANUP.cost || compliance.cleanupSeason === currentYear) return;
+    track('compliance_action', { action: 'records_cleanup' });
     set({
       coachPoints: coachPoints - RECORDS_CLEANUP.cost,
       compliance: { ...compliance, evidence: compliance.evidence * RECORDS_CLEANUP.evidenceKept, cleanupSeason: currentYear }
@@ -1896,6 +1945,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const team = leagueTeams.find((t) => t.id === userTeamId);
     if (!team) return;
     const terms = SELF_REPORT[compliance.stage];
+    track('compliance_action', { action: 'self_report', stage: compliance.stage });
     const paid = team.roster.filter((p) => p.improperlyRecruited);
     let ineligible: Player[] = [];
     if (terms.ineligible) ineligible = removeImproperRecruits(team);
@@ -1937,6 +1987,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   pitchFeederStar: (prospectId) => {
     const { coachPoints, scoutingPool, districtTeams, userTeamId } = get();
     if (coachPoints < PROSPECT_ACTION_COSTS.PITCH_STAR || onProbation(get().userProbationUntil, get().currentYear)) return;
+    track('prospect_pitch');
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
     set({
       coachPoints: coachPoints - PROSPECT_ACTION_COSTS.PITCH_STAR,
@@ -1992,6 +2043,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         );
     });
     enforceVarsityRosterLimit(userTeam, feederClass.joined, feederClass.outcomes);
+    track('signing_day', { signees: feederClass.joined.length, season: currentYear - 2025 });
     // Everyone new on the coach's roster (signees and walk-on freshmen) is a newcomer this season
     userTeam.roster.filter((p) => !returning.has(p.id)).forEach((p) => (p.joinedYear = currentYear));
     // The pool is shared across the region: report only on the user's own pipeline (and anyone who chose the user)

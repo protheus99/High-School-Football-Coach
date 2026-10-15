@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { accountState, subscribeAccount } from './account';
-import { DucatPackId } from '../data/ducats';
+import { DUCAT_PACKS, DucatPackId, ducatPack } from '../data/ducats';
+import { track } from './analytics';
 import type { CoachGrade } from '../sim/coachingStaff';
 import { useGameStore } from '../store/gameStore';
 
@@ -67,6 +68,8 @@ export async function buyDucats(pack: DucatPackId): Promise<string> {
     const res = await fetch(`${API}/checkout`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pack }) });
     const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
     if (!res.ok || !body.url) return body.error ?? "Checkout couldn't open. Try again in a minute.";
+    const cents = ducatPack(pack)?.cents ?? 0;
+    track('begin_checkout', { currency: 'USD', value: cents / 100, pack });
     await useGameStore.getState().autosave().catch(() => undefined);
     location.assign(body.url);
     return '';
@@ -105,7 +108,12 @@ async function confirm(session: string): Promise<void> {
   for (let i = 0; i < POLL_TRIES; i++) {
     const store = await fetchStore(session);
     if (store) update({ balance: store.balance });
-    if (store?.checkout?.status === 'paid') return update({ checkout: { phase: 'paid', added: store.checkout.added } });
+    if (store?.checkout?.status === 'paid') {
+      // The pack is known by the ducats it added (a pack's ducats include its bonus)
+      const pack = DUCAT_PACKS.find((p) => p.ducats === store.checkout?.added);
+      track('purchase', { transaction_id: session, currency: 'USD', value: (pack?.cents ?? 0) / 100, pack: pack?.id, ducats: store.checkout.added });
+      return update({ checkout: { phase: 'paid', added: store.checkout.added } });
+    }
     if (store?.checkout?.status === 'blocked') return update({ checkout: { phase: 'blocked' } });
     await new Promise((r) => setTimeout(r, POLL_MS));
   }

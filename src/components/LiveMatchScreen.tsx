@@ -21,6 +21,7 @@ import { OffensiveScheme } from '../types/game';
 import { FlagCall } from './FlagCall';
 import { FLAG_STAGE_MS, FlagStage, flagStages } from '../sim/flagSequence';
 import { PenaltyFlag } from './ui/PenaltyFlag';
+import { track } from '../services/analytics';
 
 interface LiveMatchProps {
   initialState: GameSimulationState;
@@ -327,6 +328,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           onApplySpeech={(talk) => {
             // The message shapes the second half: the worker plays it, the screen's copy records it
             simWorkerBridge.setHalftimeTalk(userTeamId, talk);
+            track('halftime_talk', { talk, score_diff: (gameState.homeTeam.id === userTeamId ? 1 : -1) * (gameState.homeScore - gameState.awayScore) });
             setGameState((s) => ({ ...s, halftimeTalks: { ...s.halftimeTalks, [userTeamId]: talk } }));
             useGameStore.getState().markGameLive({ ...gameState, halftimeTalks: { ...gameState.halftimeTalks, [userTeamId]: talk } }, true);
             setShowHalftimeModal(false);

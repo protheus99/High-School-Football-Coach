@@ -130,7 +130,8 @@ describe('Training', () => {
     const [team] = generateDistrictTeams();
     const boosts = trainingBoosts(team, false, { practiceByPosition: { QB: 1 }, practiceYoung: 1, injuryReduction: 0 });
     const qb = team.roster.find((p) => p.position === 'QB')!;
-    const upperclassman = team.roster.find((p) => p.position === 'LB' && (p.classYear === 'Junior' || p.classYear === 'Senior'))!;
+    // Any position but the QB's (a random roster may have no junior or senior at one given position)
+    const upperclassman = team.roster.find((p) => p.position !== 'QB' && (p.classYear === 'Junior' || p.classYear === 'Senior'))!;
     const freshman = team.roster.find((p) => p.position !== 'QB' && p.classYear === 'Freshman')!;
     expect([coachBoosted(qb, boosts), coachBoosted(upperclassman, boosts), coachBoosted(freshman, boosts)]).toEqual([true, false, true]);
     expect(coachBoosted(qb, NO_BOOSTS)).toBe(false);
