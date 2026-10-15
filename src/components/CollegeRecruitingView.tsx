@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useScrollTopOnScreenChange } from '../utils/pageScroll';
-import { useGameStore } from '../store/gameStore';
-import { collegeActionCost } from '../sim/coachPoints';
-import { Player, Team } from '../types/game';
-import { DataList } from './ui/DataList';
-import { CollegeDirectory } from './CollegeDirectory';
-import { collegeWithConference } from '../data/colleges';
+import React, { useEffect, useMemo, useState } from "react";
+import { useScrollTopOnScreenChange } from "../utils/pageScroll";
+import { useGameStore } from "../store/gameStore";
+import { collegeActionCost } from "../sim/coachPoints";
+import { Player, Team } from "../types/game";
+import { DataList } from "./ui/DataList";
+import { CollegeDirectory } from "./CollegeDirectory";
+import { collegeWithConference } from "../data/colleges";
 import {
   CAMP_WEEKS,
   COLLEGE_ACTION_COSTS,
@@ -17,8 +17,8 @@ import {
   isDivisionOne,
   recruitScore,
   recruitingStatus,
-  sortedOffers
-} from '../sim/collegeRecruitingEngine';
+  sortedOffers,
+} from "../sim/collegeRecruitingEngine";
 
 const ACTIONS: {
   action: CollegeAction;
@@ -27,92 +27,134 @@ const ACTIONS: {
   help: string;
 }[] = [
   {
-    action: 'FILM',
-    label: 'Send Film',
-    color: '#2563EB',
-    help: 'Send a highlight film to college staffs: +15 exposure, once a year.'
+    action: "FILM",
+    label: "Send Film",
+    color: "#2563EB",
+    help: "Send a highlight film to college staffs: +15 exposure, once a year.",
   },
   {
-    action: 'CALL',
-    label: 'Call Coaches',
-    color: '#7C3AED',
-    help: 'Call college coaches on his behalf: more exposure (less each call) and an immediate look.'
+    action: "CALL",
+    label: "Call Coaches",
+    color: "#7C3AED",
+    help: "Call college coaches on his behalf: more exposure (less each call) and an immediate look.",
   },
   {
-    action: 'CAMP',
-    label: 'Take to Camp',
-    color: '#B45309',
-    help: `Take him to a summer camp (weeks 1-${CAMP_WEEKS}): +20 exposure, a chance to impress evaluators, and an immediate look.`
-  }
+    action: "CAMP",
+    label: "Take to Camp",
+    color: "#B45309",
+    help: `Take him to a summer camp (weeks 1-${CAMP_WEEKS}): +20 exposure, a chance to impress evaluators, and an immediate look.`,
+  },
 ];
 
 /** Star rating first (specialists are capped), then evaluation. */
-const byStock = (a: Player, b: Player) => b.recruiting.starRating - a.recruiting.starRating || recruitScore(b) - recruitScore(a);
+const byStock = (a: Player, b: Player) =>
+  b.recruiting.starRating - a.recruiting.starRating ||
+  recruitScore(b) - recruitScore(a);
 
-const stars = (n: number) => (n > 0 ? '★'.repeat(n) : '—');
+const stars = (n: number) => (n > 0 ? "★".repeat(n) : "—");
 
-type Stage = 'NO_OFFERS' | 'UNCOMMITTED' | 'COMMITTED';
+type Stage = "NO_OFFERS" | "UNCOMMITTED" | "COMMITTED";
 /** Where a recruit stands: committed (or signed), offers but still choosing, or no offer yet. */
-const stageOf = (p: Player): Stage => (p.recruiting.committedCollege ? 'COMMITTED' : p.recruiting.offers.length > 0 ? 'UNCOMMITTED' : 'NO_OFFERS');
-const STAGES: [Stage | 'ALL', string][] = [
-  ['ALL', 'All'],
-  ['NO_OFFERS', 'No offers'],
-  ['UNCOMMITTED', 'Uncommitted'],
-  ['COMMITTED', 'Committed']
+const stageOf = (p: Player): Stage =>
+  p.recruiting.committedCollege
+    ? "COMMITTED"
+    : p.recruiting.offers.length > 0
+      ? "UNCOMMITTED"
+      : "NO_OFFERS";
+const STAGES: [Stage | "ALL" | "MY_LIST", string][] = [
+  ["ALL", "All"],
+  ["NO_OFFERS", "No offers"],
+  ["UNCOMMITTED", "Uncommitted"],
+  ["COMMITTED", "Committed"],
+  ["MY_LIST", "My List"],
 ];
 const STAGE_EMPTY: Record<Stage, string> = {
-  NO_OFFERS: 'Every junior and senior has at least one offer.',
-  UNCOMMITTED: 'Every player with an offer has committed.',
-  COMMITTED: 'Nobody has committed yet.'
+  NO_OFFERS: "Every junior and senior has at least one offer.",
+  UNCOMMITTED: "Every player with an offer has committed.",
+  COMMITTED: "Nobody has committed yet.",
 };
 /** Before any offers come in, Uncommitted is empty because nobody has an offer yet: say that instead. */
-const NO_OFFERS_YET = 'None of your juniors or seniors has a college offer yet.';
+const NO_OFFERS_YET =
+  "None of your juniors or seniors has a college offer yet.";
 
 /** College recruiting for the coach's juniors and seniors. `focusPlayerId` (from a player card) opens on that player. */
-export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> = ({ focusPlayerId }) => {
-  const { leagueTeams, userTeamId, coachPoints, currentWeek, currentYear, collegeRecruitAction } = useGameStore();
+export const CollegeRecruitingView: React.FC<{
+  focusPlayerId?: string | null;
+}> = ({ focusPlayerId }) => {
+  const {
+    leagueTeams,
+    userTeamId,
+    coachPoints,
+    currentWeek,
+    currentYear,
+    collegeRecruitAction,
+  } = useGameStore();
   const [message, setMessage] = useState<{
     text: string;
     good: boolean;
   } | null>(null);
-  const [expanded, setExpanded] = useState<string | null>(focusPlayerId ?? null);
+  const [expanded, setExpanded] = useState<string | null>(
+    focusPlayerId ?? null,
+  );
   // Recruiting (your players and the state's top seniors) or the college directory
-  const [mode, setMode] = useState<'RECRUITING' | 'COLLEGES'>('RECRUITING');
+  const [mode, setMode] = useState<"RECRUITING" | "COLLEGES">("RECRUITING");
   // Your players by where they stand: no offer yet, offers but still choosing, or committed (signed included)
-  const [stage, setStage] = useState<Stage | 'ALL'>('ALL');
+  const [stage, setStage] = useState<Stage | "ALL" | "MY_LIST">("ALL");
+  // The coach's list (shared with Prospects): players he wants to follow
+  const shortlist = useGameStore((s) => s.shortlist);
+  const toggleShortlist = useGameStore((s) => s.toggleShortlist);
+  const listed = new Set(shortlist);
+  const inStage = (p: Player, id: Stage | "ALL" | "MY_LIST") =>
+    id === "ALL"
+      ? true
+      : id === "MY_LIST"
+        ? listed.has(p.id)
+        : stageOf(p) === id;
   useScrollTopOnScreenChange(mode);
   // Arriving from a player card: show his row, open
   useEffect(() => {
     if (!focusPlayerId) return;
     setExpanded(focusPlayerId);
-    document.getElementById(`recruit-${focusPlayerId}`)?.scrollIntoView({ block: 'start' });
+    document
+      .getElementById(`recruit-${focusPlayerId}`)
+      ?.scrollIntoView({ block: "start" });
   }, [focusPlayerId]);
   const userTeam = leagueTeams.find((t) => t.id === userTeamId);
 
   const recruits = useMemo(
     () =>
       // leagueTeams is replaced after every action, so the list refreshes with it
-      (leagueTeams.find((t) => t.id === userTeamId)?.roster ?? []).filter((p) => p.classYear === 'Senior' || p.classYear === 'Junior').sort(byStock),
-    [leagueTeams, userTeamId]
+      (leagueTeams.find((t) => t.id === userTeamId)?.roster ?? [])
+        .filter((p) => p.classYear === "Senior" || p.classYear === "Junior")
+        .sort(byStock),
+    [leagueTeams, userTeamId],
   );
 
   const statewide = useMemo(
     () =>
       leagueTeams
-        .flatMap((team) => team.roster.filter((p) => p.classYear === 'Senior').map((player) => ({ player, team })))
+        .flatMap((team) =>
+          team.roster
+            .filter((p) => p.classYear === "Senior")
+            .map((player) => ({ player, team })),
+        )
         .sort((a, b) => byStock(a.player, b.player))
         .slice(0, 25),
-    [leagueTeams]
+    [leagueTeams],
   );
 
   if (!userTeam) return null;
 
-  const committed = recruits.filter((p) => p.recruiting.committedCollege).length;
-  const d1Offers = recruits.filter((p) => p.recruiting.offers.some((o) => isDivisionOne(o.tier))).length;
+  const committed = recruits.filter(
+    (p) => p.recruiting.committedCollege,
+  ).length;
+  const d1Offers = recruits.filter((p) =>
+    p.recruiting.offers.some((o) => isDivisionOne(o.tier)),
+  ).length;
 
   // The recruiting sections scroll into view (switching back from the college directory first)
   const goTo = (id: string) => {
-    setMode('RECRUITING');
+    setMode("RECRUITING");
     setTimeout(() => document.getElementById(id)?.scrollIntoView(), 0);
   };
 
@@ -125,41 +167,52 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
     <div className="ui-screen">
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-          gap: '12px',
-          marginBottom: '12px'
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          flexWrap: "wrap",
+          gap: "12px",
+          marginBottom: "12px",
         }}
       >
         <div>
           <p
             style={{
-              margin: '4px 0 0 0',
-              fontSize: '13px',
-              color: '#64748B',
-              maxWidth: '640px'
+              margin: "4px 0 0 0",
+              fontSize: "13px",
+              color: "#64748B",
+              maxWidth: "640px",
             }}
           >
-            Colleges evaluate juniors and seniors all season: rating, potential, production and position all matter. Your job is to get your players
-            seen. Seniors commit during the year (better offers can flip them) and sign at the banquet.
+            Colleges evaluate juniors and seniors all season: rating, potential,
+            production and position all matter. Your job is to get your players
+            seen. Seniors commit during the year (better offers can flip them)
+            and sign at the banquet.
           </p>
         </div>
         <div
           style={{
-            display: 'flex',
-            gap: '8px',
-            fontSize: '13px',
-            fontWeight: 'bold',
-            flexWrap: 'wrap'
+            display: "flex",
+            gap: "8px",
+            fontSize: "13px",
+            fontWeight: "bold",
+            flexWrap: "wrap",
           }}
         >
-          <span style={pill('#EEF2FF', '#3730A3')}>₡{coachPoints}</span>
-          <span style={pill('#ECFDF5', '#065F46')}>Committed: {committed}</span>
-          <span style={pill('#EFF6FF', '#1E40AF')}>With D-I offers: {d1Offers}</span>
-          <span style={pill(currentWeek <= CAMP_WEEKS ? '#FEF3C7' : '#F1F5F9', currentWeek <= CAMP_WEEKS ? '#92400E' : '#475569')}>
-            {currentWeek <= CAMP_WEEKS ? `Camp season (through week ${CAMP_WEEKS})` : 'Camps closed'}
+          <span style={pill("#EEF2FF", "#3730A3")}>₡{coachPoints}</span>
+          <span style={pill("#ECFDF5", "#065F46")}>Committed: {committed}</span>
+          <span style={pill("#EFF6FF", "#1E40AF")}>
+            With D-I offers: {d1Offers}
+          </span>
+          <span
+            style={pill(
+              currentWeek <= CAMP_WEEKS ? "#FEF3C7" : "#F1F5F9",
+              currentWeek <= CAMP_WEEKS ? "#92400E" : "#475569",
+            )}
+          >
+            {currentWeek <= CAMP_WEEKS
+              ? `Camp season (through week ${CAMP_WEEKS})`
+              : "Camps closed"}
           </span>
         </div>
       </div>
@@ -167,94 +220,179 @@ export const CollegeRecruitingView: React.FC<{ focusPlayerId?: string | null }> 
       {message && (
         <div
           style={{
-            background: message.good ? '#ECFDF5' : '#FEF2F2',
-            border: `1px solid ${message.good ? '#A7F3D0' : '#FECACA'}`,
-            color: message.good ? '#065F46' : '#991B1B',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            fontSize: '13px',
-            marginBottom: '12px'
+            background: message.good ? "#ECFDF5" : "#FEF2F2",
+            border: `1px solid ${message.good ? "#A7F3D0" : "#FECACA"}`,
+            color: message.good ? "#065F46" : "#991B1B",
+            padding: "8px 12px",
+            borderRadius: "6px",
+            fontSize: "13px",
+            marginBottom: "12px",
           }}
         >
           {message.text}
         </div>
       )}
 
-      <div className="ui-sticky-nav" style={{ margin: '0 -16px 10px', padding: '8px 16px' }}>
-        <div className="ui-chip-row ui-chip-row-3" role="navigation" aria-label="College sections">
-          <button className="ui-chip" aria-pressed={mode === 'RECRUITING'} onClick={() => goTo('college-mine')}>
+      <div
+        className="ui-sticky-nav"
+        style={{ margin: "0 -16px 10px", padding: "8px 16px" }}
+      >
+        <div
+          className="ui-chip-row ui-chip-row-3"
+          role="navigation"
+          aria-label="College sections"
+        >
+          <button
+            className="ui-chip"
+            aria-pressed={mode === "RECRUITING"}
+            onClick={() => goTo("college-mine")}
+          >
             Your players ({recruits.length})
           </button>
-          <button className="ui-chip" onClick={() => goTo('college-state')}>
+          <button className="ui-chip" onClick={() => goTo("college-state")}>
             State seniors
           </button>
-          <button className="ui-chip" aria-pressed={mode === 'COLLEGES'} onClick={() => setMode('COLLEGES')}>
+          <button
+            className="ui-chip"
+            aria-pressed={mode === "COLLEGES"}
+            onClick={() => setMode("COLLEGES")}
+          >
             Colleges
           </button>
         </div>
       </div>
-      {mode === 'COLLEGES' ? (
+      {mode === "COLLEGES" ? (
         <CollegeDirectory />
       ) : (
         <>
-      <div id="college-mine" style={{ display: 'flex', flexDirection: 'column', gap: '8px', scrollMarginTop: 'calc(var(--topbar-h) + 64px)' }}>
-        <div className="ui-chip-row" role="group" aria-label="Show players" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
-          {STAGES.map(([id, label]) => (
-            <button key={id} className="ui-chip" aria-pressed={stage === id} onClick={() => setStage(id)}>
-              {label} ({id === 'ALL' ? recruits.length : recruits.filter((p) => stageOf(p) === id).length})
-            </button>
-          ))}
-        </div>
-        {recruits.filter((p) => stage === 'ALL' || stageOf(p) === stage).map((p) => (
-          <RecruitRow
-            key={p.id}
-            player={p}
-            team={userTeam}
-            week={currentWeek}
-            year={currentYear}
-            coachPoints={coachPoints}
-            expanded={expanded === p.id}
-            onToggle={() => setExpanded(expanded === p.id ? null : p.id)}
-            onAction={(a) => act(p, a)}
-          />
-        ))}
-        {recruits.length === 0 && <div style={{ color: '#64748B', fontSize: '13px' }}>No juniors or seniors on the roster.</div>}
-        {recruits.length > 0 && stage !== 'ALL' && !recruits.some((p) => stageOf(p) === stage) && (
-          <div style={{ color: '#64748B', fontSize: '13px' }}>
-            {stage === 'UNCOMMITTED' && recruits.every((p) => stageOf(p) === 'NO_OFFERS') ? NO_OFFERS_YET : STAGE_EMPTY[stage]}
+          <div
+            id="college-mine"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              scrollMarginTop: "calc(var(--topbar-h) + 64px)",
+            }}
+          >
+            <div
+              className="ui-chip-row"
+              role="group"
+              aria-label="Show players"
+              style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
+            >
+              {STAGES.map(([id, label]) => (
+                <button
+                  key={id}
+                  className="ui-chip"
+                  aria-pressed={stage === id}
+                  onClick={() => setStage(id)}
+                  style={
+                    id === "MY_LIST" ? { gridColumn: "1 / -1" } : undefined
+                  }
+                >
+                  {label} ({recruits.filter((p) => inStage(p, id)).length})
+                </button>
+              ))}
+            </div>
+            {recruits
+              .filter((p) => inStage(p, stage))
+              .map((p) => (
+                <RecruitRow
+                  key={p.id}
+                  player={p}
+                  team={userTeam}
+                  week={currentWeek}
+                  year={currentYear}
+                  coachPoints={coachPoints}
+                  expanded={expanded === p.id}
+                  onToggle={() => setExpanded(expanded === p.id ? null : p.id)}
+                  onAction={(a) => act(p, a)}
+                  onList={listed.has(p.id)}
+                  onToggleList={() => toggleShortlist(p.id)}
+                />
+              ))}
+            {recruits.length === 0 && (
+              <div style={{ color: "#64748B", fontSize: "13px" }}>
+                No juniors or seniors on the roster.
+              </div>
+            )}
+            {recruits.length > 0 &&
+              stage !== "ALL" &&
+              !recruits.some((p) => inStage(p, stage)) && (
+                <div style={{ color: "#64748B", fontSize: "13px" }}>
+                  {stage === "MY_LIST"
+                    ? 'Your list is empty. Tap "+ Add to List" on a player to follow him here.'
+                    : stage === "UNCOMMITTED" &&
+                        recruits.every((p) => stageOf(p) === "NO_OFFERS")
+                      ? NO_OFFERS_YET
+                      : STAGE_EMPTY[stage]}
+                </div>
+              )}
           </div>
-        )}
-      </div>
 
-      <h3 id="college-state" style={{ margin: '24px 0 6px 0', scrollMarginTop: 'calc(var(--topbar-h) + 64px)' }}>Top Senior Recruits in the State</h3>
-      <DataList
-        rows={statewide.map((row, i) => ({ ...row, rank: i + 1 }))}
-        rowKey={(r) => r.player.id}
-        rowTone={(r) => (r.team.id === userTeamId ? '#EFF6FF' : undefined)}
-        columns={[
-          { key: 'rank', label: '#', badge: true, render: (r) => `#${r.rank}` },
-          {
-            key: 'player',
-            label: 'Player',
-            primary: true,
-            render: (r) => (
-              <>
-                {r.player.firstName} {r.player.lastName} <span style={{ color: '#64748B', fontWeight: 'normal', fontSize: '13px' }}>{r.player.position}</span>
-              </>
-            )
-          },
-          { key: 'school', label: 'School', render: (r) => r.team.name },
-          { key: 'stars', label: 'Stars', render: (r) => <span style={{ color: '#B45309' }}>{stars(r.player.recruiting.starRating)}</span> },
-          {
-            key: 'status',
-            label: 'Status',
-            render: (r) => {
-              const status = recruitingStatus(r.player);
-              return <span style={{ color: status.color, fontWeight: 'bold' }}>{status.label}</span>;
-            }
-          }
-        ]}
-      />
+          <h3
+            id="college-state"
+            style={{
+              margin: "24px 0 6px 0",
+              scrollMarginTop: "calc(var(--topbar-h) + 64px)",
+            }}
+          >
+            Top Senior Recruits in the State
+          </h3>
+          <DataList
+            rows={statewide.map((row, i) => ({ ...row, rank: i + 1 }))}
+            rowKey={(r) => r.player.id}
+            rowTone={(r) => (r.team.id === userTeamId ? "#EFF6FF" : undefined)}
+            columns={[
+              {
+                key: "rank",
+                label: "#",
+                badge: true,
+                render: (r) => `#${r.rank}`,
+              },
+              {
+                key: "player",
+                label: "Player",
+                primary: true,
+                render: (r) => (
+                  <>
+                    {r.player.firstName} {r.player.lastName}{" "}
+                    <span
+                      style={{
+                        color: "#64748B",
+                        fontWeight: "normal",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {r.player.position}
+                    </span>
+                  </>
+                ),
+              },
+              { key: "school", label: "School", render: (r) => r.team.name },
+              {
+                key: "stars",
+                label: "Stars",
+                render: (r) => (
+                  <span style={{ color: "#B45309" }}>
+                    {stars(r.player.recruiting.starRating)}
+                  </span>
+                ),
+              },
+              {
+                key: "status",
+                label: "Status",
+                render: (r) => {
+                  const status = recruitingStatus(r.player);
+                  return (
+                    <span style={{ color: status.color, fontWeight: "bold" }}>
+                      {status.label}
+                    </span>
+                  );
+                },
+              },
+            ]}
+          />
         </>
       )}
     </div>
@@ -270,7 +408,20 @@ const RecruitRow: React.FC<{
   expanded: boolean;
   onToggle: () => void;
   onAction: (action: CollegeAction) => void;
-}> = ({ player: p, team, week, year, coachPoints, expanded, onToggle, onAction }) => {
+  onList: boolean; // on the coach's list
+  onToggleList: () => void;
+}> = ({
+  player: p,
+  team,
+  week,
+  year,
+  coachPoints,
+  expanded,
+  onToggle,
+  onAction,
+  onList,
+  onToggleList,
+}) => {
   const coachTalents = useGameStore((s) => s.coachTalents);
   const r = p.recruiting;
   const status = recruitingStatus(p);
@@ -281,77 +432,121 @@ const RecruitRow: React.FC<{
     <div
       id={`recruit-${p.id}`}
       style={{
-        background: '#fff',
-        border: '1px solid #E2E8F0',
-        borderRadius: '8px',
-        padding: '10px 12px'
+        background: "#fff",
+        border: "1px solid #E2E8F0",
+        borderRadius: "8px",
+        padding: "10px 12px",
       }}
     >
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '8px'
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "8px",
         }}
       >
-        <div style={{ minWidth: '220px' }}>
-          <div>
-            <strong>
-              {p.firstName} {p.lastName}
-            </strong>{' '}
-            <span style={{ color: '#64748B', fontSize: '12px' }}>
-              {p.position} · {p.classYear} · {p.overallRating} OVR · GPA {p.academics.gpa.toFixed(1)}
-            </span>
+        <div style={{ minWidth: "220px", flex: "1 1 220px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "8px",
+            }}
+          >
+            <div>
+              <strong>
+                {p.firstName} {p.lastName}
+              </strong>{" "}
+              <span style={{ color: "#64748B", fontSize: "12px" }}>
+                {p.position} · {p.classYear} · {p.overallRating} OVR · GPA{" "}
+                {p.academics.gpa.toFixed(1)}
+              </span>
+            </div>
+            <button
+              onClick={onToggleList}
+              aria-pressed={onList}
+              style={{
+                flex: "0 0 auto",
+                minHeight: "32px",
+                padding: "4px 9px",
+                borderRadius: "8px",
+                border: "2px solid #2563EB",
+                background: onList ? "#2563EB" : "#fff",
+                color: onList ? "#fff" : "#1D4ED8",
+                fontWeight: 800,
+                fontSize: "12px",
+                whiteSpace: "nowrap",
+                cursor: "pointer",
+              }}
+            >
+              {onList ? "✓ On List" : "+ Add to List"}
+            </button>
           </div>
-          <div style={{ fontSize: '12px' }}>
-            <span style={{ color: '#B45309', fontWeight: 'bold' }}>{stars(r.starRating)}</span>
+          <div style={{ fontSize: "12px" }}>
+            <span style={{ color: "#B45309", fontWeight: "bold" }}>
+              {stars(r.starRating)}
+            </span>
             <span
               style={{
                 color: status.color,
-                fontWeight: 'bold',
-                marginLeft: '8px'
+                fontWeight: "bold",
+                marginLeft: "8px",
               }}
             >
               {status.label}
             </span>
           </div>
         </div>
-        <div style={{ fontSize: '12px', color: '#475569', minWidth: '140px' }}>
+        <div style={{ fontSize: "12px", color: "#475569", minWidth: "140px" }}>
           Exposure {exposure}
           <div
             style={{
-              height: '6px',
-              background: '#E2E8F0',
-              borderRadius: '3px',
-              marginTop: '3px'
+              height: "6px",
+              background: "#E2E8F0",
+              borderRadius: "3px",
+              marginTop: "3px",
             }}
           >
             <div
               style={{
                 width: `${exposure}%`,
-                height: '100%',
-                background: '#2563EB',
-                borderRadius: '3px'
+                height: "100%",
+                background: "#2563EB",
+                borderRadius: "3px",
               }}
             />
           </div>
-          {top && !r.committedCollege && <div style={{ marginTop: '3px' }}>Top offer: {top.collegeName}</div>}
+          {top && !r.committedCollege && (
+            <div style={{ marginTop: "3px" }}>Top offer: {top.collegeName}</div>
+          )}
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
           {ACTIONS.map(({ action, label, color, help }) => {
-            const cost = collegeActionCost(COLLEGE_ACTION_COSTS[action], coachTalents);
-            const blocker = collegeActionBlocker(p, action, week, year) ?? (coachPoints < cost ? 'Not enough Coach Points' : null);
+            const cost = collegeActionCost(
+              COLLEGE_ACTION_COSTS[action],
+              coachTalents,
+            );
+            const blocker =
+              collegeActionBlocker(p, action, week, year) ??
+              (coachPoints < cost ? "Not enough Coach Points" : null);
             return (
-              <button key={action} onClick={() => onAction(action)} disabled={!!blocker} title={blocker ?? help} style={btn(color, !!blocker)}>
+              <button
+                key={action}
+                onClick={() => onAction(action)}
+                disabled={!!blocker}
+                title={blocker ?? help}
+                style={btn(color, !!blocker)}
+              >
                 {label} (₡{cost})
               </button>
             );
           })}
           {offers.length > 0 && (
-            <button onClick={onToggle} style={btn('#475569', false)}>
-              {expanded ? 'Hide' : 'Offers'}
+            <button onClick={onToggle} style={btn("#475569", false)}>
+              {expanded ? "Hide" : "Offers"}
             </button>
           )}
         </div>
@@ -359,10 +554,10 @@ const RecruitRow: React.FC<{
       {expanded && (
         <div
           style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '6px',
-            marginTop: '8px'
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "6px",
+            marginTop: "8px",
           }}
         >
           {offers.map((o) => {
@@ -371,16 +566,17 @@ const RecruitRow: React.FC<{
               <span
                 key={o.collegeName}
                 style={{
-                  fontSize: '12px',
-                  padding: '3px 8px',
-                  borderRadius: '4px',
-                  background: isCommit ? '#DCFCE7' : '#EFF6FF',
-                  color: isCommit ? '#166534' : '#1E40AF',
-                  border: `1px solid ${isCommit ? '#86EFAC' : '#BFDBFE'}`
+                  fontSize: "12px",
+                  padding: "3px 8px",
+                  borderRadius: "4px",
+                  background: isCommit ? "#DCFCE7" : "#EFF6FF",
+                  color: isCommit ? "#166534" : "#1E40AF",
+                  border: `1px solid ${isCommit ? "#86EFAC" : "#BFDBFE"}`,
                 }}
               >
-                {isCommit ? '✅ ' : ''}
-                {collegeWithConference(o.collegeName, o.collegeId)} · {TIER_LABELS[o.tier]} · wk {o.offerDateWeek}
+                {isCommit ? "✅ " : ""}
+                {collegeWithConference(o.collegeName, o.collegeId)} ·{" "}
+                {TIER_LABELS[o.tier]} · wk {o.offerDateWeek}
               </span>
             );
           })}
@@ -393,17 +589,17 @@ const RecruitRow: React.FC<{
 const pill = (background: string, color: string): React.CSSProperties => ({
   background,
   color,
-  padding: '5px 12px',
-  borderRadius: '6px'
+  padding: "5px 12px",
+  borderRadius: "6px",
 });
 const btn = (color: string, disabled: boolean): React.CSSProperties => ({
-  minHeight: '40px', // comfortable tap target
-  padding: '8px 12px',
-  background: disabled ? '#E2E8F0' : color,
-  color: disabled ? '#475569' : '#fff',
-  border: 'none',
-  borderRadius: '4px',
-  cursor: disabled ? 'default' : 'pointer',
-  fontSize: '12px',
-  fontWeight: 'bold'
+  minHeight: "40px", // comfortable tap target
+  padding: "8px 12px",
+  background: disabled ? "#E2E8F0" : color,
+  color: disabled ? "#475569" : "#fff",
+  border: "none",
+  borderRadius: "4px",
+  cursor: disabled ? "default" : "pointer",
+  fontSize: "12px",
+  fontWeight: "bold",
 });
