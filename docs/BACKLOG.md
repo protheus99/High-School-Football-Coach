@@ -203,7 +203,7 @@ Captured as sent, then built in v1.17.1 through v1.18.3. Every item below is don
   5. Bigger: give each screen its own address (a router). The phone's Back button then works and the browser
      handles the scroll position. More work, and it touches sign-in and Stripe returns.
   **Done (v1.17.1), options 2 and 3:** stop any glide, jump before the new screen draws, and check again shortly
-  after. Not yet confirmed on an iPhone; option 5 (a router) stays an idea if it still happens.
+  after. Closed by the user 2026-10-15.
 - **Practice: show what practice adds up to over the season.** The Practice screen (Team › Practice,
   `src/components/PracticePlan.tsx`) shows this week's choice and "Last week's practice: +8 skill points, 3
   overall" with a list of players. It's hard to tell whether the gains are only for this week or for the whole
