@@ -556,8 +556,9 @@ const ProspectCard: React.FC<{
         boxShadow: '0 1px 2px rgba(15,23,42,.05)'
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-        <div style={{ minWidth: 0 }}>
+      {/* The buttons stay on the name's line: a long name or "North Carolina prospect" wraps instead */}
+      <div style={{ display: 'flex', flexWrap: 'nowrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: '14.5px', lineHeight: 1.25 }}>{p.name}</div>
           {rank && <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#B45309' }}>{rank}</div>}
           <div style={{ fontSize: '12px', color: '#64748B' }}>

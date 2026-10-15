@@ -448,15 +448,17 @@ const RecruitRow: React.FC<{
         }}
       >
         <div style={{ minWidth: "220px", flex: "1 1 220px" }}>
+          {/* The button stays on the name's line; the name and its details wrap instead */}
           <div
             style={{
               display: "flex",
+              flexWrap: "nowrap",
               justifyContent: "space-between",
               alignItems: "flex-start",
               gap: "8px",
             }}
           >
-            <div>
+            <div style={{ flex: "1 1 auto", minWidth: 0 }}>
               <strong>
                 {p.firstName} {p.lastName}
               </strong>{" "}
