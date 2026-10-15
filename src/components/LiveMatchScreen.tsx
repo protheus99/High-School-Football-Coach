@@ -22,6 +22,7 @@ import { FlagCall } from './FlagCall';
 import { FLAG_STAGE_MS, FlagStage, flagStages } from '../sim/flagSequence';
 import { PenaltyFlag } from './ui/PenaltyFlag';
 import { track } from '../services/analytics';
+import { finalWhistleTune, soundsForPlay } from '../utils/playSounds';
 
 interface LiveMatchProps {
   initialState: GameSimulationState;
@@ -114,6 +115,15 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     distance: initialState.distance
   });
   const clearPlayAlert = useCallback(() => setAlertQueue((q) => q.slice(1)), []);
+  // The clock just before the current snap: the quarter buzzer and the two-minute clock sound as a play crosses them
+  const clockBeforeRef = useRef({ quarter: initialState.currentQuarter, seconds: initialState.clockSecondsRemaining });
+
+  // iPhones only start sound inside a tap, and the first sound comes when a play lands: the first touch turns it on
+  useEffect(() => {
+    const unlock = () => soundFx.unlock();
+    window.addEventListener('pointerdown', unlock, { once: true });
+    return () => window.removeEventListener('pointerdown', unlock);
+  }, []);
 
   useEffect(() => {
     simWorkerBridge.initialize();
@@ -132,14 +142,18 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     };
 
     // Shared by both play callbacks: update the screen, queue banners (or play out a flag), and open the halftime locker room
-    const afterSnap = (state: GameSimulationState, event?: PlayEvent) => {
+    const afterSnap = (state: GameSimulationState, event?: PlayEvent, decision = false) => {
       setGameState({ ...state });
+      // The play's sounds, from the coach's side (utils/playSounds.ts)
+      const moments = event ? alertsForPlay(event, preSnapRef.current, state) : [];
+      soundFx.playAll(soundsForPlay(event, moments, userTeamId, clockBeforeRef.current, state, decision));
+      clockBeforeRef.current = { quarter: state.currentQuarter, seconds: state.clockSecondsRemaining };
       useGameStore.getState().markGameLive(state); // a game counts once it kicks off: where it stands is written down
       if (event?.penalty && !simmingToEndRef.current) {
         setAlertQueue([]);
         runFlag(event);
       }
-      const alerts = event && !event.penalty && !simmingToEndRef.current ? alertsForPlay(event, preSnapRef.current, state) : [];
+      const alerts = event && !event.penalty && !simmingToEndRef.current ? moments : [];
       if (alerts.length > 0) setAlertQueue(alerts);
       preSnapRef.current = {
         possessionTeamId: state.possessionTeamId,
@@ -162,24 +176,23 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         setLeveragePrompt(null);
         afterSnap(state, event);
         simmingToEndRef.current = false; // a sim to halftime has landed: banners are back on
-        if (event?.isScore && event.scoreType === 'TOUCHDOWN') soundFx.playTouchdownHorn();
-        else if (event?.isTurnover || event?.penalty) soundFx.playWhistle();
-        else soundFx.playTackleThud();
       },
       // The play that sets up a decision (your touchdown's try, a red-zone or 4th-down call) arrives here instead
       onLeveragePrompt: ({ state, event, leverageType }) => {
-        afterSnap(state, event);
+        afterSnap(state, event, true);
         setLeveragePrompt(leverageType || 'FOURTH_DOWN');
         if (autoPlayRef.current) resumeAutoRef.current = true;
         setAutoPlay(false);
-        if (event?.isScore && event.scoreType === 'TOUCHDOWN') soundFx.playTouchdownHorn();
-        else soundFx.playLeverageAlert();
       },
       onGameOver: ({ state }) => {
         setGameState({ ...state });
         useGameStore.getState().markGameLive(state, true);
         setAutoPlay(false);
+        // The final whistle, then the band: a victory tune or a loss tune (a tie gets the whistle alone)
         soundFx.playWhistle();
+        const tune = finalWhistleTune(state, userTeamId);
+        if (tune === 'VICTORY') soundFx.playVictory(0.5);
+        else if (tune === 'DEFEAT') soundFx.playDefeat(0.5);
         setShowBoxScore(true);
       }
     });
