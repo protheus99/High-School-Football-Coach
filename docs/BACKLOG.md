@@ -2,9 +2,9 @@
 
 Work that's decided but parked. Newest first.
 
-## Next update: notes (sent 2026-10-14, from 2026-10-13's sessions)
+## Notes sent 2026-10-14 (from 2026-10-13's sessions): all done
 
-Captured as sent; to be worked on in today's update (v1.17) when the user says to begin.
+Captured as sent, then built in v1.17.1 through v1.18.3. Every item below is done; each says where it shipped.
 
 - **New Students: needs, interest marks, where he's from, what he wants (done 2026-10-14, v1.17).** Needs rows
   are links to Students at that position; Students shows the needs of the group in view (top needs on All) in
@@ -45,10 +45,13 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   **Done 2026-10-14 (option A, icon strip):** three columns, a big icon over a small uppercase label, thin
   dividers, no box or shadow (`.title-features` in `src/styles/index.css`).
 - **Title screen (home page):** remove the tagline "Every dynasty starts on a Friday night."
+  **Done (v1.17.2):** gone from the screen and from the page text search engines read.
 - **Title screen (home page):** add a link to the Hall of Fame.
+  **Done (v1.17.2):** a Hall of Fame button opens the board, view only, with or without a game loaded.
 - **Hall of Fame board:** add each career's win-loss record to its entry. Mockup shown 2026-10-14 (three layouts;
   recommended: its own "W-L" column next to the points). The server already stores and returns wins and losses
   (wins include playoff wins), so this is a display change only.
+  **Done (v1.17.2):** each row shows the coach, the school with its state, then the record and win %.
 - **Prospects › Students: the "Last year's pipeline" summary needs a redesign.** New prospects joining the team is
   an extremely important moment, and today it's a plain green box of text: the counts (joined, chose not to play,
   moved away, enrolled elsewhere), the newcomers as a comma list ("Name (POS, rating)") and "Lost to rivals" as a
@@ -60,6 +63,7 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
 - **Hub: the "Prospect signing day: N newcomers joined" card has no link to the signing review.** It only offers
   "Roster". Add a link to the review (the "Last year's pipeline" summary above, once redesigned). Code:
   `src/components/WeeklyAgenda.tsx`, the `signing-results` card.
+  **Done (v1.17.2):** the card has a single "Review Signings ›" button (Prospects › Students, the signing day board).
 - **Roster: mark the newcomers.** After signing day there's no way to tell who's new on the roster except by
   spotting the freshmen by name (raised 2026-10-14 with the "Review Signings" button). Mark the new players, for
   example a "NEW" chip for their first season, or a "New this year" filter.
@@ -71,6 +75,8 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   without a D-I offer". D-I is good, but the goal is every senior signed with any school: count and name seniors
   with no offer at all (and not yet committed). Code: `src/components/WeeklyAgenda.tsx`, `collegeCard()`
   (`seniorsWithoutD1`).
+  **Done (v1.17.2):** "N seniors without a college offer" counts seniors with no offer at all, and says so once all
+  have one.
 - **Bug: Hub "Home visits for 3" didn't seem to work** (the "Prospect signing day: last chance to win prospects
   over" card). In the user's screenshot, the flash says "Visited 3 prospects before Prospect signing day", but the card
   still offers "Home visits for 3 (₡60)". Reproduce first. Leads from a first read of the code
@@ -80,6 +86,7 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   - the card picks the top 3 prospects at 30–75 interest, so after a visit it can refill with the next ones, or keep
     ones already visited (the label still says "for 3" while only the unvisited ones are charged). It should say
     clearly what happened and drop or mark the ones already visited.
+  **Done (v1.17.1):** the home-visits button is gone; the signing-week card links to Prospects instead.
 - **Dilemma timing: the Hazing Allegation (about playing time) showed up before any games.** The user saw it in pre
   season week 3 (the summer, called the off season in their note). Its choices are about games: "WR Evans out 2
   wk", "The ringleader plays", "Promise their son more playing time". In weeks with no games, a suspension or a
@@ -87,6 +94,8 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   Fix the timing, or make the suspension count against the first real games. Then review every dilemma that
   sidelines a player, makes him eligible or promises playing time (`sidelinePlayer`, `playerAvailabilityOverride`)
   for the same problem.
+  **Done (v1.17.1):** dilemmas about games, playing time or suspensions only appear from training camp through the
+  playoffs, and a suspension counts games, not weeks ("out 2 games"); medical holds still heal with time.
 - **Recruiting shortlist.** The prospect lists are long (Prospects › Students, by District, Region or State), so
   it's hard to find a player again to keep recruiting him. Add a way to put a prospect on your shortlist (a star or
   "Shortlist" button on his card) and a quick way back to them. A natural fit is a "Shortlist" choice in the List
@@ -95,13 +104,15 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   **Done 2026-10-14 (option A, v1.17):** a "+ Add to List" button on every prospect card ("✓ On List" once added) and
   "My List (n)" in the List menu, showing the listed prospects from every pool whatever the scope; saved with the
   game. The card's ✕ now says "Drop" (from your prospects) so it isn't confused with the list. College recruiting:
-  not done (still an idea).
+  **done (v1.18.1):** a "My List" chip and "+ Add to List" on each recruit in Team › College.
 - **Banquet: mark the graduating seniors who signed with a college.** The "Graduating Senior Class" list
   (`src/components/OffSeasonBanquetView.tsx`) is every senior with an OVR, so the ones going on to college don't
   stand out. Add a symbol next to them, maybe with the school. They're all graduates, so **no graduation cap**.
   Prepare several symbol options in the mockup, for example: ✍️ signed, 📜 letter of intent, 🏛️ college,
   ⭐ signee, a small "SIGNED" chip, or a chip in the college's tier color (D-I, D-II, NAIA). The data is there:
   `recruiting.isNationalLetterOfIntentSigned`, `committedCollege` and `signedTier`.
+  **Done (v1.17.2):** seniors who signed come first, with the college's level and school; the signing line says
+  each signee is a Hall of Fame point and Division I signees also build alumni prestige.
 - **Review how players are ranked for awards and All-State** (the season wrap-up's "Major awards", "All-State",
   and lines like "66th of LBs"). In the user's screenshot, the MVP (RB Tyrell Robinson, IMG Academy 11-2: 1,556
   rush yds, 16 TD) ranks above the Offensive Player of the Year (RB Grant Barnes, Mandarin 12-1: 1,599 rush yds,
@@ -156,6 +167,7 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   game's header). So it may be correct but it's confusing next to the Hub. Verify the numbers against the schedule,
   then show what players expect: the district record, as on the Hub ("2-3 (1-1)"), with the home or away record
   dropped or clearly labeled.
+  **Done (v1.17.1):** each team shows its overall and district record, as on the Hub ("2-3 (1-1)").
 - **Halftime talk: review the four options, and make them do something.** The Halftime Locker Room offers 🔥
   Passionate rally speech (+1 momentum, more 3rd-quarter effort, slightly more penalties), 📐 Tactical adjustments
   (better execution, fewer blown assignments), ⚡ Demand focus and ball security (half the fumble and drop risk,
@@ -164,13 +176,18 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   resumes the game, so none of the promised effects happen (`src/components/HalftimeSpeechModal.tsx`,
   `src/components/LiveMatchScreen.tsx` around `onApplySpeech`). Decide the options (maybe tied to the score: up,
   down, tied), wire each one into the second half, and test that each effect shows up in simulated games.
+  **Done (v1.17.1):** four new talks, each with a gain and a cost shown as chips: "This is OUR house!", "Put points
+  on the board!", "Nobody crosses that goal line!" and "Swing for the fences!". Each is worth about a 3-5 point
+  swing over a second half, measured over thousands of games (`src/sim/halftime.ts`).
 - **Music: the progress bar doesn't restart when you skip a song.** In the Now Playing card, skipping to the next
   song keeps the old bar. Likely cause: the bar (`Progress` in `src/components/NowPlayingPopup.tsx`) reads the
   position once when it first appears, and the card stays open when the song changes. Give the bar the song as
   its key so it starts over for each song.
+  **Done (v1.17.1):** the progress bar was removed from Now Playing.
 - **Live game: rename the "Call the play" panel to "Call the next play".** It's the heading over the play buttons
   (Inside Power, Outside Sweep, Quick Slant, Deep Shot) in `src/components/PlayCallingPanel.tsx`. The title
   screen's "🏈 Call the plays" chip stays as it is.
+  **Done (v1.17.2).**
 - **Links still leave the player halfway down the next screen (raised before).** Example: from the Hub, partway
   down, tapping "🎓 College recruiting ›" opens College recruiting in the middle of the page instead of at the top.
   It's a single-page-app issue: the game never loads a new page, so the browser never scrolls up by itself. What
@@ -185,6 +202,8 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
      player focus, and sections opened from cards).
   5. Bigger: give each screen its own address (a router). The phone's Back button then works and the browser
      handles the scroll position. More work, and it touches sign-in and Stripe returns.
+  **Done (v1.17.1), options 2 and 3:** stop any glide, jump before the new screen draws, and check again shortly
+  after. Not yet confirmed on an iPhone; option 5 (a router) stays an idea if it still happens.
 - **Practice: show what practice adds up to over the season.** The Practice screen (Team › Practice,
   `src/components/PracticePlan.tsx`) shows this week's choice and "Last week's practice: +8 skill points, 3
   overall" with a list of players. It's hard to tell whether the gains are only for this week or for the whole
@@ -273,10 +292,9 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   one-time "This game was already played" sheet), and a game that kicked off but wasn't finished (a closed
   browser, or a reload mid-game) can only be resumed, where it left off. The Load Game list marks saves made
   before games that have since been played. A playoff game against a different opponent is a new game.
-  **Follow-up:** keep the record on the account too (signed in), so loading a cloud save on another device can't
-  replay a game; it needs a sign-in server update and a database change (user deploys).
-  The likely mix is 1 + 2 for everyone, or 3 for Hall of Fame careers. Check how cloud saves and the "Load
-  autosave" button fit in.
+  **Follow-up done (v1.18.2):** signed in, played games are kept on the account too (the `played_games` table,
+  `auth-worker/migrations/0004_played_games.sql`), so loading a cloud save on another device can't replay a game.
+  Options 1, 3 and 4 weren't needed.
 
 ## Title screen backgrounds
 
