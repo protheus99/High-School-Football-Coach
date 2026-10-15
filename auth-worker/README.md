@@ -114,6 +114,16 @@ A player's ledger:
 npx wrangler d1 execute hsfhc-auth --remote --command "SELECT kind, amount, ref, cents, datetime(created_at / 1000, 'unixepoch') FROM ducat_ledger WHERE user_id = (SELECT id FROM users WHERE email = 'player@example.com') ORDER BY id"
 ```
 
+## Played games
+
+A game counts once it kicks off: the game sends each played game (in progress, then final) to the signed-in
+player's account, so loading a save on another device can't replay it. `GET /api/auth/played-games?career=<key>`
+lists a career's games; `PUT /api/auth/played-games` records up to 50 at a time (a final is permanent; a game in
+progress is replaced only by a newer state or its final). Deleting the account removes them.
+
+1. Create the table: `npx wrangler d1 migrations apply hsfhc-auth --remote` (adds `0004_played_games.sql`).
+2. Deploy: `npx wrangler deploy`. Until then the game keeps played games in this browser only.
+
 ## Testing on this computer
 
 1. Copy `.dev.vars.example` to `.dev.vars` (git-ignored) and fill in your own secrets. Local runs use a local

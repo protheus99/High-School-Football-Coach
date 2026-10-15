@@ -158,6 +158,7 @@ async function deleteUser(env: Env, userId: string): Promise<void> {
   const { results } = await env.DB.prepare('SELECT slot_id FROM saves WHERE user_id = ?').bind(userId).all<{ slot_id: string }>();
   if (env.SAVES && results.length) await env.SAVES.delete(results.map((r) => saveKey(userId, r.slot_id)));
   await env.DB.prepare('DELETE FROM saves WHERE user_id = ?').bind(userId).run();
+  await env.DB.prepare('DELETE FROM played_games WHERE user_id = ?').bind(userId).run();
   await env.DB.prepare('DELETE FROM ducat_ledger WHERE user_id = ?').bind(userId).run(); // Stripe keeps the payment records
   await env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(userId).run();
   await env.DB.prepare('DELETE FROM identities WHERE user_id = ?').bind(userId).run();
@@ -238,6 +239,57 @@ async function verifyEmailLink(url: URL, env: Env): Promise<Response> {
   await env.DB.prepare('UPDATE email_tokens SET used_at = ? WHERE token_hash = ?').bind(Date.now(), await sha256Hex(token)).run();
   const userId = await findOrCreateUser(env, 'email', row.email, row.email, null, row.marketing === 1);
   return redirect(landing(env, row.return_to, 'ok'), [await startSession(env, userId)]);
+}
+
+// --- Played games -------------------------------------------------------------
+// A game counts once it kicks off (the game's sim/gameLock.ts): its in-progress marker and its final, kept on the
+// account so a save loaded on another device can't replay it. A final is permanent; a game in progress is replaced
+// only by a newer state of the same game or by its final.
+
+const PLAYED_KEY_PATTERN = /^[A-Za-z0-9_|.-]{1,160}$/;
+const MAX_PLAYED_BODY_BYTES = 256 * 1024; // a batch of finals with every player's line
+const MAX_PLAYED_PER_REQUEST = 50;
+const MAX_PLAYED_PER_PLAYER = 5000;
+
+async function listPlayedGames(url: URL, env: Env, user: UserRow, cors: Record<string, string>): Promise<Response> {
+  const career = url.searchParams.get('career') ?? '';
+  if (!PLAYED_KEY_PATTERN.test(career)) return json({ error: 'Bad career' }, 400, cors);
+  const { results } = await env.DB.prepare('SELECT record FROM played_games WHERE user_id = ? AND career_key = ?').bind(user.id, career).all<{ record: string }>();
+  return json({ games: results.map((r) => JSON.parse(r.record)) }, 200, cors);
+}
+
+async function putPlayedGames(request: Request, env: Env, user: UserRow, cors: Record<string, string>): Promise<Response> {
+  const text = await request.text();
+  if (text.length > MAX_PLAYED_BODY_BYTES) return json({ error: 'Too large' }, 413, cors);
+  let games: unknown;
+  try {
+    games = (JSON.parse(text) as { games?: unknown }).games;
+  } catch {
+    return json({ error: 'Bad request' }, 400, cors);
+  }
+  if (!Array.isArray(games) || games.length === 0 || games.length > MAX_PLAYED_PER_REQUEST) return json({ error: 'Bad request' }, 400, cors);
+  const valid = games.filter(
+    (g): g is { key: string; careerKey: string; status: 'LIVE' | 'FINAL'; updated: number } =>
+      !!g &&
+      typeof g === 'object' &&
+      PLAYED_KEY_PATTERN.test(String((g as { key?: unknown }).key)) &&
+      PLAYED_KEY_PATTERN.test(String((g as { careerKey?: unknown }).careerKey)) &&
+      ['LIVE', 'FINAL'].includes(String((g as { status?: unknown }).status)) &&
+      Number.isFinite((g as { updated?: unknown }).updated)
+  );
+  if (valid.length !== games.length) return json({ error: 'Bad game' }, 400, cors);
+  const count = await env.DB.prepare('SELECT COUNT(*) AS n FROM played_games WHERE user_id = ?').bind(user.id).first<{ n: number }>();
+  if ((count?.n ?? 0) + valid.length > MAX_PLAYED_PER_PLAYER) return json({ error: 'Too many games' }, 409, cors);
+  for (const g of valid) {
+    await env.DB.prepare(
+      `INSERT INTO played_games (user_id, game_key, career_key, status, record, updated_at) VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT (user_id, game_key) DO UPDATE SET status = excluded.status, record = excluded.record, updated_at = excluded.updated_at
+       WHERE played_games.status = 'LIVE' AND (excluded.status = 'FINAL' OR excluded.updated_at >= played_games.updated_at)`
+    )
+      .bind(user.id, g.key, g.careerKey, g.status, JSON.stringify(g), Math.round(g.updated))
+      .run();
+  }
+  return json({ ok: true }, 200, cors);
 }
 
 // --- Cloud saves --------------------------------------------------------------
@@ -338,7 +390,7 @@ export default {
           return json(
             {
               user: user ? await userJson(env, user) : null,
-              options: { google: configured(env, 'google'), facebook: configured(env, 'facebook'), email: !!env.RESEND_API_KEY, cloudSaves: !!env.SAVES, ducats: ducatsOn(env) }
+              options: { google: configured(env, 'google'), facebook: configured(env, 'facebook'), email: !!env.RESEND_API_KEY, cloudSaves: !!env.SAVES, ducats: ducatsOn(env), playedGames: true }
             },
             200,
             cors
@@ -354,6 +406,14 @@ export default {
           const session = url.searchParams.get('session');
           return json({ ...(await storeJson(env, user.id)), ...(session && { checkout: await checkoutStatus(env.DB, user.id, session) }) }, 200, cors);
         }
+      }
+      // Played games: the signed-in player's own, written only from the game's pages
+      if (path === '/played-games') {
+        if (request.method !== 'GET' && !allowedOrigins(env).includes(request.headers.get('Origin') ?? '')) return json({ error: 'Forbidden' }, 403, cors);
+        const user = await currentUser(request, env);
+        if (!user) return json({ error: 'Not signed in' }, 401, cors);
+        if (request.method === 'GET') return await listPlayedGames(url, env, user, cors);
+        if (request.method === 'PUT') return await putPlayedGames(request, env, user, cors);
       }
       // Cloud saves: the signed-in player's own, from the game's pages
       const saveMatch = path.match(/^\/saves(?:\/([^/]+))?$/);

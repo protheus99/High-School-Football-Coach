@@ -14,7 +14,7 @@ const APP = 'https://footballcoachgame.com';
 /** D1 over an in-memory SQLite database with the real migration. */
 function database() {
   const sqlite = new DatabaseSync(':memory:');
-  for (const file of ['0001_accounts.sql', '0002_saves.sql', '0003_ducats.sql']) sqlite.exec(readFileSync(new URL(`../migrations/${file}`, import.meta.url), 'utf8'));
+  for (const file of ['0001_accounts.sql', '0002_saves.sql', '0003_ducats.sql', '0004_played_games.sql']) sqlite.exec(readFileSync(new URL(`../migrations/${file}`, import.meta.url), 'utf8'));
   const clean = (v: unknown) => (v === undefined ? null : typeof v === 'boolean' ? Number(v) : v) as null | number | string;
   const prepare = (sql: string) => {
     let args: (null | number | string)[] = [];
@@ -114,7 +114,7 @@ async function googleSignIn(query = '') {
 
 describe('Sign-in server', () => {
   it('reports no player and which sign-in options are on', async () => {
-    expect(await session()).toEqual({ user: null, options: { google: true, facebook: true, email: true, cloudSaves: true, ducats: true } });
+    expect(await session()).toEqual({ user: null, options: { google: true, facebook: true, email: true, cloudSaves: true, ducats: true, playedGames: true } });
     env.FACEBOOK_APP_SECRET = undefined;
     expect((await session()).options.facebook).toBe(false);
   });
@@ -254,6 +254,34 @@ describe('Sign-in server', () => {
     await post('/api/auth/delete', {}, cookie);
     expect(bucket.size).toBe(0);
     expect((db.sqlite.prepare('SELECT COUNT(*) AS n FROM saves').get() as { n: number }).n).toBe(0);
+  });
+
+  it("keeps the player's played games: a final is permanent, a game in progress only gets newer", async () => {
+    const { cookie } = await googleSignIn();
+    const put = (games: unknown[], withCookie = cookie, origin = APP) =>
+      call('/api/auth/played-games', { method: 'PUT', body: JSON.stringify({ games }), cookie: withCookie, origin, headers: { 'Content-Type': 'application/json' } });
+    const list = async (career = 'ck_1') => ((await (await call(`/api/auth/played-games?career=${career}`, { cookie })).json()) as { games: Record<string, unknown>[] }).games;
+    const game = (status: string, updated: number, homeScore = 0) => ({ key: 'ck_1|2026|8|team_b', careerKey: 'ck_1', year: 2026, week: 8, status, homeId: 'team_a', awayId: 'team_b', homeScore, awayScore: 0, updated });
+
+    expect((await session(cookie)).options.playedGames).toBe(true);
+    expect((await put([game('LIVE', 100, 7)])).status).toBe(200);
+    expect(await list()).toMatchObject([{ status: 'LIVE', homeScore: 7 }]);
+    await put([game('LIVE', 50, 0)]); // an older state of the same game: ignored
+    expect(await list()).toMatchObject([{ homeScore: 7 }]);
+    await put([game('FINAL', 200, 21)]);
+    await put([game('LIVE', 300, 3)]); // after the final: ignored
+    await put([game('FINAL', 400, 0)]); // a second final: the first one stands
+    expect(await list()).toMatchObject([{ status: 'FINAL', homeScore: 21 }]);
+    expect(await list('ck_other')).toEqual([]);
+
+    // Signed in, from the game's pages, and well-formed games only
+    expect((await put([game('LIVE', 1)], '')).status).toBe(401);
+    expect((await put([game('LIVE', 1)], cookie, 'https://evil.example')).status).toBe(403);
+    expect((await put([{ ...game('LIVE', 1), status: 'WON' }])).status).toBe(400);
+    expect((await put([{ ...game('LIVE', 1), key: 'bad key <script>' }])).status).toBe(400);
+    // Deleting the account removes them
+    await post('/api/auth/delete', {}, cookie);
+    expect((db.sqlite.prepare('SELECT COUNT(*) AS n FROM played_games').get() as { n: number }).n).toBe(0);
   });
 
   it('only returns players to pages on the game site', () => {

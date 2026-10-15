@@ -87,6 +87,19 @@ export function statLines(teams: Team[], before: StatSnapshot): Record<string, P
   return lines;
 }
 
+/**
+ * This device's record and the account's, merged: a final beats a game in progress, the first final stands (the
+ * account's, if both have one), and between two games in progress the newer wins.
+ */
+export function mergePlayedGames(local: PlayedGame[], cloud: PlayedGame[]): PlayedGame[] {
+  const merged = new Map(local.map((g) => [g.key, g]));
+  cloud.forEach((c) => {
+    const l = merged.get(c.key);
+    if (!l || (c.status === 'FINAL' && (l.status === 'LIVE' || l.updated >= c.updated)) || (c.status === 'LIVE' && l.status === 'LIVE' && c.updated > l.updated)) merged.set(c.key, c);
+  });
+  return [...merged.values()];
+}
+
 /** Played games of a career from a save's point on (a season and week): what loading that save can't replay. */
 export function gamesSince(games: Iterable<PlayedGame>, careerKey: string, year: number, week: number): PlayedGame[] {
   return [...games].filter((g) => g.careerKey === careerKey && (g.year > year || (g.year === year && g.week >= week)));

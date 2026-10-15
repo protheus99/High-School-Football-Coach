@@ -23,6 +23,7 @@ export interface SignInOptions {
   email: boolean;
   cloudSaves: boolean;
   ducats: boolean; // the ducat store is open (Stripe is set up on the server)
+  playedGames?: boolean; // the server keeps the player's played games (a game counts once it kicks off)
 }
 export type SignInResult = 'ok' | 'failed' | 'expired' | 'unavailable';
 
@@ -56,6 +57,8 @@ export function useAccount(): AccountState {
 export const signInAvailable = (o: SignInOptions) => o.google || o.facebook || o.email;
 /** Cloud saves run for a signed-in player when the server has them on. */
 const cloudOn = () => !!state.user && state.options.cloudSaves;
+/** Played games go to the account for a signed-in player when the server keeps them. */
+export const playedGamesOn = () => !!state.user && !!state.options.playedGames;
 
 /** Asks the server who is signed in. Offline or without the server, the player is simply signed out. */
 export async function refreshAccount(): Promise<void> {

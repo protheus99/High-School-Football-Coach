@@ -5,7 +5,7 @@ const saved: GameSaveRecord[] = [];
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async (record: GameSaveRecord) => void saved.push(JSON.parse(JSON.stringify(record)))) }));
 import { useGameStore } from '../../store/gameStore';
 import { getUserMatchup } from '../userMatchup';
-import { gamesSince, liveClockLabel, lockKey, PlayedGame } from '../gameLock';
+import { gamesSince, liveClockLabel, lockKey, mergePlayedGames, PlayedGame } from '../gameLock';
 import type { GameSimulationState } from '../../types/game';
 
 const store = useGameStore;
@@ -82,5 +82,17 @@ describe('A game counts once it kicks off', () => {
     expect(gamesSince(games, 'a', 2027, 4)).toEqual([]);
     expect(liveClockLabel({ quarter: 3, clockSeconds: 522 })).toBe('3rd Qtr · 8:42');
     expect(liveClockLabel({ quarter: 'OT', clockSeconds: 0 })).toBe('Overtime');
+  });
+
+  it('merges this device with the account: a final beats a game in progress, the first final stands, the newer in-progress wins', () => {
+    const g = (key: string, status: 'LIVE' | 'FINAL', updated: number, homeScore = 0) => ({ key, careerKey: 'c', year: 2026, week: 8, opponentId: 'o', status, homeId: 'h', awayId: 'o', homeScore, awayScore: 0, updated }) as PlayedGame;
+    const local = [g('a', 'LIVE', 100, 7), g('b', 'FINAL', 300, 21), g('c', 'LIVE', 500, 3), g('d', 'FINAL', 100, 14)];
+    const cloud = [g('a', 'FINAL', 50, 10), g('b', 'FINAL', 200, 28), g('c', 'LIVE', 400, 0), g('e', 'LIVE', 100, 0)];
+    const merged = new Map(mergePlayedGames(local, cloud).map((x) => [x.key, x]));
+    expect(merged.get('a')).toMatchObject({ status: 'FINAL', homeScore: 10 }); // the account's final beats this device's game in progress
+    expect(merged.get('b')).toMatchObject({ homeScore: 28 }); // both final: the first (the account's) stands
+    expect(merged.get('c')).toMatchObject({ homeScore: 3 }); // both in progress: the newer
+    expect(merged.get('d')).toMatchObject({ homeScore: 14 }); // only here
+    expect(merged.get('e')).toMatchObject({ status: 'LIVE' }); // only on the account
   });
 });
