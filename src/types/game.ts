@@ -253,7 +253,8 @@ export interface PlayEvent {
   kickerPlayerId?: string;
   punterPlayerId?: string;
   isTurnover: boolean;
-  turnoverType?: 'INTERCEPTION' | 'FUMBLE' | 'DOWNS' | 'MUFFED_PUNT';
+  // KICKOFF_FUMBLE: the kickoff after the play (a score, a try, or the second-half kickoff) was fumbled, not the snap
+  turnoverType?: 'INTERCEPTION' | 'FUMBLE' | 'DOWNS' | 'MUFFED_PUNT' | 'KICKOFF_FUMBLE';
   isScore: boolean;
   scoreType?: 'TOUCHDOWN' | 'FIELD_GOAL' | 'SAFETY' | 'PAT' | 'TWO_POINT';
   textCommentary: string;

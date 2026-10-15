@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { simulateSnap } from '../matchEngine';
-import { alertsForPlay, PlayAlertKind } from '../playAlerts';
+import { alertsForPlay, isSnapTurnover, PlayAlertKind } from '../playAlerts';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { GameSimulationState } from '../../types/game';
 import { PlayAlert } from '../../components/PlayAlert';
@@ -73,6 +73,11 @@ describe('Every game alert, audited against what happened on the play', () => {
           const recoverer = [state.homeTeam, state.awayTeam].find((t) => t.name === name)!;
           expect(alerts.some((a) => a.kind === 'FUMBLE' && a.team.id === recoverer.id), text).toBe(true);
         }
+        // At most one kickoff per play, never once the game is over, and a fumbled one is a turnover on the play
+        expect(text.match(/Kickoff by|returns the kickoff|FUMBLES the kickoff return/g)?.length ?? 0, text).toBeLessThanOrEqual(1);
+        if (state.isGameOver || event.quarter === 'OT') expect(text, text).not.toMatch(/kickoff/i);
+        if (kickoffFumble) expect(event.isTurnover, text).toBe(true);
+        if (event.turnoverType === 'KICKOFF_FUMBLE') expect(kickoffFumble, text).toBe(true);
 
         if (!event.isScore && !event.isTry) {
           if (event.turnoverType === 'INTERCEPTION') expect(team('INTERCEPTION')).toBe(defenseId);
@@ -88,16 +93,16 @@ describe('Every game alert, audited against what happened on the play', () => {
             expect(kinds).toEqual([/BLOCKED/i.test(text) ? 'FG_BLOCKED' : 'FG_MISSED']);
             expect(alerts[0].team.id).toBe(defenseId);
           }
-          if (event.playConcept === 'PUNT' && !event.isTurnover) {
+          if (event.playConcept === 'PUNT' && !isSnapTurnover(event)) {
             expect(kinds[0]).toBe('PUNT');
             expect(team('PUNT')).toBe(defenseId);
           }
-          if (/FIRST DOWN/i.test(text) && !event.isTurnover) {
+          if (/FIRST DOWN/i.test(text) && !isSnapTurnover(event)) {
             expect(kinds[0]).toBe('FIRST_DOWN');
             expect(team('FIRST_DOWN')).toBe(offenseId);
           }
           // Routine plays stay quiet
-          if (!event.isTurnover && event.playConcept !== 'PUNT' && !/FIRST DOWN/i.test(text) && event.yardsGained < before.distance)
+          if (!isSnapTurnover(event) && event.playConcept !== 'PUNT' && !/FIRST DOWN/i.test(text) && event.yardsGained < before.distance)
             expect(kinds.filter((k) => !(k === 'FUMBLE' && kickoffFumble))).toEqual([]);
         }
       }

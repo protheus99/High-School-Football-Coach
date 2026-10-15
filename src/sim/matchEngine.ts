@@ -541,14 +541,19 @@ export function simulateSnap(
   let penalty: PlayEvent['penalty'];
   let timeElapsed = state.isMercyRuleActive ? MERCY_RULE_RUNOFF : randomInt(PLAY_CLOCK_RUNOFF.min, PLAY_CLOCK_RUNOFF.max);
 
-  // No kickoffs in overtime; possession is reset by the overtime rules below
-  const kickoffUnlessOvertime = (kicking: Team, receiving: Team, kickSpot = 40) => {
+  // The kickoff after a score or a try. None in overtime (possession is reset by the overtime rules below), and none
+  // when time runs out on the play at the end of a half: the half is over (NFHS), and the halftime kickoff or the
+  // end of regulation below takes over. After the 1st and 3rd quarters play carries on, so the kickoff still comes.
+  // Reads the play's final runoff (tries are untimed), since the clock only runs down further below.
+  const kickoffAfterScore = (kicking: Team, receiving: Team, kickSpot = 40) => {
     if (isOvertime) return;
+    const halfOver = (state.currentQuarter === 2 || state.currentQuarter === 4) && state.clockSecondsRemaining - timeElapsed <= 0;
+    if (halfOver) return;
     const kick = resolveKickoff(state, kicking, receiving, kickSpot);
     commentary += kick.text;
     if (kick.isTurnover) {
       isTurnover = true;
-      turnoverType = 'FUMBLE';
+      turnoverType = 'KICKOFF_FUMBLE';
     }
   };
 
@@ -577,7 +582,7 @@ export function simulateSnap(
         commentary = `Two-point try FAILS! ${defense.name} holds at the goal line.`;
       }
     }
-    kickoffUnlessOvertime(offense, defense);
+    kickoffAfterScore(offense, defense);
   }
   // Field Goal execution
   else if (concept === 'FIELD_GOAL') {
@@ -591,7 +596,7 @@ export function simulateSnap(
       isScore = true;
       scoreType = 'FIELD_GOAL';
       addPoints(offense, 3);
-      kickoffUnlessOvertime(offense, defense);
+      kickoffAfterScore(offense, defense);
     } else {
       // Opponent takes over at the spot of the kick (or their 20 if the kick was inside the 20)
       isTurnover = true;
@@ -779,7 +784,7 @@ export function simulateSnap(
         scoreType = 'SAFETY';
         addPoints(defense, 2);
         commentary += ` SAFETY! Tackled in end zone.`;
-        kickoffUnlessOvertime(offense, defense, 20);
+        kickoffAfterScore(offense, defense, 20);
       }
       // Check Touchdown: scoring team keeps the ball for the try from the 3
       else if (state.yardLine >= 100) {
@@ -863,6 +868,12 @@ export function simulateSnap(
           openedHome ? state.awayTeam : state.homeTeam
         );
         commentary += ` HALFTIME.${kick.text}`;
+        // A fumbled return is a turnover on this play too, unless the last snap of the half had its own (an
+        // interception, a fumble, a muff or a turnover on downs), which keeps the play's one turnover type
+        if (kick.isTurnover && !isTurnover) {
+          isTurnover = true;
+          turnoverType = 'KICKOFF_FUMBLE';
+        }
       }
     }
   }

@@ -1,5 +1,6 @@
 import { DilemmaChoice, GameSimulationState, Player, ScheduledGame, Team } from '../types/game';
 import { lineScore } from './lineScore';
+import { isSnapTurnover } from './playAlerts';
 import { PlayoffBracketState, findUserNode } from './playoffEngine';
 import { FIRST_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 import { NewsArticle } from './newsEngine';
@@ -355,7 +356,7 @@ export function buildPressContext(args: {
   const attempts = game.eventLog.filter((e) => e.snapTeamId === userTeamId && e.snapDown === 4 && !e.isTry && !e.penalty && e.playConcept !== 'PUNT' && e.playConcept !== 'FIELD_GOAL');
   const last = attempts[attempts.length - 1];
   const fourthDown = last
-    ? { converted: last.turnoverType !== 'DOWNS' && !last.isTurnover && (last.isScore || last.down === 1), spot: spotLabel(last.snapDistance, last.snapYardLine) }
+    ? { converted: !isSnapTurnover(last) && (last.isScore || last.down === 1), spot: spotLabel(last.snapDistance, last.snapYardLine) }
     : undefined;
 
   // The halftime score from the line score; second-half leads from each play's score

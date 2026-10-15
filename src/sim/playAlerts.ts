@@ -27,6 +27,9 @@ export interface PreSnap {
   distance: number;
 }
 
+/** The snap itself lost the ball (not just the kickoff that followed it). */
+export const isSnapTurnover = (event: PlayEvent): boolean => event.isTurnover && event.turnoverType !== 'KICKOFF_FUMBLE';
+
 /**
  * Which alert (if any) a resolved play deserves, comparing the game before the snap with `after`.
  * Credit is decided from the state change rather than the event's possession field, which already
@@ -64,7 +67,9 @@ export function alertsForPlay(event: PlayEvent, before: PreSnap, after: GameSimu
     // PATs and two-point tries get no banner of their own
     return withKickoffFumble(alerts);
   }
-  if (event.isTurnover) {
+  // A fumbled halftime kickoff marks the play a turnover (KICKOFF_FUMBLE), but the snap itself still gets its own
+  // banner (a first down, a punt) and the fumble gets the kickoff banner
+  if (isSnapTurnover(event)) {
     // The defense takes it away, except a muffed punt, which the punting (snapping) team recovers. Decided from
     // the pre-snap offense, since a half can end on the play and the kickoff then changes possession. (A fumble
     // here is always from scrimmage: kickoffs after scores and tries were handled above, and a fumbled halftime
