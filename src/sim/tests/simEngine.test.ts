@@ -84,7 +84,7 @@ export function runStatisticalCalibrationTest(iterations = 1000): {
     totalYardsAccum += scrimmage.reduce((sum, e) => sum + e.yardsGained, 0);
     totalPointsAccum += gameState.homeScore + gameState.awayScore;
     totalTurnoversAccum += gameState.eventLog.filter(
-      (e) => e.turnoverType === 'INTERCEPTION' || e.turnoverType === 'FUMBLE'
+      (e) => e.turnoverType === 'INTERCEPTION' || e.turnoverType === 'FUMBLE' || e.turnoverType === 'MUFFED_PUNT'
     ).length;
     scrimmagePlaysAccum += scrimmage.length;
     passAttempts += passes.filter((e) => !e.textCommentary.startsWith('SACKED')).length;

@@ -616,7 +616,7 @@ export function simulateSnap(
       const muffChance = clamp(8 - returner.attributes.catching * 0.08 + (state.weather === 'HEAVY_RAIN' ? 4 : 0), 1, 15) / 100;
       if (Math.random() < muffChance && Math.random() < 0.5) {
         isTurnover = true;
-        turnoverType = 'FUMBLE';
+        turnoverType = 'MUFFED_PUNT'; // the punting team gets it back
         setFirstDown(state, offense.id, landing);
         commentary = `P #${punter.lastName} punts ${gross} yds... MUFFED by #${returner.lastName}! ${offense.name} recovers!`;
       } else {

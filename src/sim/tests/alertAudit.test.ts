@@ -66,17 +66,22 @@ describe('Every game alert, audited against what happened on the play', () => {
         }
         // Tries get no banner of their own
         if (event.scoreType === 'PAT' || event.scoreType === 'TWO_POINT') expect(kinds.filter((k) => k !== 'FUMBLE')).toEqual([]);
-        // A fumbled kickoff (after a score, a try, or at halftime) is a FUMBLE banner for the team that recovered
+        // A fumbled kickoff (after a score, a try, or at halftime) is a FUMBLE banner for the team that recovered it,
+        // even when the play also holds a muffed punt's "recovers!"
         const kickoffFumble = /FUMBLES the kickoff return/i.test(text);
-        if (kickoffFumble) {
-          const recoverer = [state.homeTeam, state.awayTeam].find((t) => text.includes(`${t.name} recovers!`))!;
-          expect(alerts.some((a) => a.kind === 'FUMBLE' && a.team.id === recoverer.id)).toBe(true);
+        for (const [, name] of text.matchAll(/FUMBLES the kickoff return! (.+?) recovers!/g)) {
+          const recoverer = [state.homeTeam, state.awayTeam].find((t) => t.name === name)!;
+          expect(alerts.some((a) => a.kind === 'FUMBLE' && a.team.id === recoverer.id), text).toBe(true);
         }
 
         if (!event.isScore && !event.isTry) {
           if (event.turnoverType === 'INTERCEPTION') expect(team('INTERCEPTION')).toBe(defenseId);
-          if (event.turnoverType === 'FUMBLE' && !kickoffFumble) expect(team('FUMBLE')).toBe(defenseId);
-          if (event.turnoverType === 'MUFFED_PUNT') expect(team('FUMBLE')).toBe(offenseId);
+          if (event.turnoverType === 'FUMBLE') expect(alerts.some((a) => a.kind === 'FUMBLE' && a.team.id === defenseId), text).toBe(true);
+          // A muffed punt is the punting team's recovery
+          if (/MUFFED/.test(text)) {
+            expect(event.turnoverType).toBe('MUFFED_PUNT');
+            expect(alerts.some((a) => a.kind === 'FUMBLE' && a.team.id === offenseId), text).toBe(true);
+          }
           if (event.turnoverType === 'DOWNS' && event.playConcept !== 'FIELD_GOAL') expect(team('TURNOVER_ON_DOWNS')).toBe(defenseId);
           // Missed and blocked field goals say so (the engine records them as a turnover on downs)
           if (event.playConcept === 'FIELD_GOAL' && event.turnoverType === 'DOWNS') {

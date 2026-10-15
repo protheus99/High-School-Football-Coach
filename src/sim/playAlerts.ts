@@ -37,22 +37,22 @@ export function alertsForPlay(event: PlayEvent, before: PreSnap, after: GameSimu
   const teamOf = (id: string) => (id === after.homeTeam.id ? after.homeTeam : after.awayTeam);
   const offense = teamOf(before.possessionTeamId);
   const defense = offense.id === after.homeTeam.id ? after.awayTeam : after.homeTeam;
-  const make = (kind: PlayAlertKind, team: Team): PlayAlertData => ({ id: `${event.playId}_${kind}`, kind, team });
+  const make = (kind: PlayAlertKind, team: Team): PlayAlertData => ({ id: `${event.playId}_${kind}_${team.id}`, kind, team });
   const alerts: PlayAlertData[] = [];
 
-  // Kickoffs happen on the same play as a field goal, a try, or the snap that ends the half; a fumbled return is
-  // an extra moment for the team the commentary says recovered ("Westlake recovers!")
-  const kickoffRecoverer = (): Team | undefined => {
-    if (!/FUMBLES the kickoff return/i.test(event.textCommentary)) return undefined;
-    // Longest name first, so "Spring Westfield recovers!" isn't read as "Westfield recovers!"
-    return [after.homeTeam, after.awayTeam]
-      .sort((a, b) => b.name.length - a.name.length)
-      .find((t) => event.textCommentary.includes(`${t.name} recovers!`));
-  };
-  const withKickoffFumble = (list: PlayAlertData[]): PlayAlertData[] => {
-    const recoverer = kickoffRecoverer();
-    return recoverer && !list.some((a) => a.kind === 'FUMBLE' && a.team.id === recoverer.id) ? [...list, make('FUMBLE', recoverer)] : list;
-  };
+  // Kickoffs happen on the same play as a field goal, a try, or the snap that ends the half; each fumbled return is
+  // an extra moment for the team the commentary says recovered it ("FUMBLES the kickoff return! Westlake recovers!").
+  // Read the name right after the kickoff fumble: the same play can also hold a muffed punt's "recovers!", and the
+  // whole name must match, so "Spring Westfield recovers!" isn't read as "Westfield recovers!"
+  const kickoffRecoverers = (): Team[] =>
+    [...event.textCommentary.matchAll(/FUMBLES the kickoff return! (.+?) recovers!/g)]
+      .map((m) => [after.homeTeam, after.awayTeam].find((t) => t.name === m[1]))
+      .filter((t): t is Team => t !== undefined);
+  const withKickoffFumble = (list: PlayAlertData[]): PlayAlertData[] =>
+    kickoffRecoverers().reduce(
+      (acc, recoverer) => (acc.some((a) => a.kind === 'FUMBLE' && a.team.id === recoverer.id) ? acc : [...acc, make('FUMBLE', recoverer)]),
+      list
+    );
 
   if (event.isScore || event.isTry) {
     const homeScored = after.homeScore > before.homeScore;
@@ -66,9 +66,11 @@ export function alertsForPlay(event: PlayEvent, before: PreSnap, after: GameSimu
   }
   if (event.isTurnover) {
     // The defense takes it away, except a muffed punt, which the punting (snapping) team recovers. Decided from
-    // the pre-snap offense, since a half can end on the play and the kickoff then changes possession.
+    // the pre-snap offense, since a half can end on the play and the kickoff then changes possession. (A fumble
+    // here is always from scrimmage: kickoffs after scores and tries were handled above, and a fumbled halftime
+    // kickoff gets its own banner below.)
     if (event.turnoverType === 'INTERCEPTION') alerts.push(make('INTERCEPTION', defense));
-    else if (event.turnoverType === 'FUMBLE' && !kickoffRecoverer()) alerts.push(make('FUMBLE', defense));
+    else if (event.turnoverType === 'FUMBLE') alerts.push(make('FUMBLE', defense));
     else if (event.turnoverType === 'MUFFED_PUNT') alerts.push(make('FUMBLE', offense));
     else if (event.turnoverType === 'DOWNS') {
       // A missed or blocked field goal is recorded as a turnover on downs; say what actually happened

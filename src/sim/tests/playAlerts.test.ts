@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { simulateSnap } from '../matchEngine';
-import { alertForPlay, PlayAlertKind } from '../playAlerts';
+import { alertForPlay, alertsForPlay, PlayAlertKind } from '../playAlerts';
+import { PlayEvent } from '../../types/game';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { GameSimulationState } from '../../types/game';
 
@@ -76,5 +77,62 @@ describe('Game alerts', () => {
       expect(event.snapDistance).toBe(before.distance);
       expect(event.snapYardLine).toBe(before.yardLine);
     }
+  });
+
+  it('a muffed punt on the last play of the half, then a fumbled halftime kickoff: one banner for each recovery', () => {
+    // Caught in a 3,000-game run: the punting team gets its muff back, then the other team recovers the kickoff
+    const state = freshGame();
+    state.homeTeam.name = 'Westlake';
+    state.awayTeam.name = 'Lake Travis';
+    const before = { possessionTeamId: state.awayTeam.id, homeScore: 3, awayScore: 10, down: 4, distance: 3 };
+    Object.assign(state, { homeScore: 3, awayScore: 10, currentQuarter: 3, possessionTeamId: state.homeTeam.id });
+    const event: PlayEvent = {
+      playId: 'p1',
+      quarter: 3,
+      clockTimeRemainingSeconds: 720,
+      down: 1,
+      distance: 10,
+      yardLine: 40,
+      possessionTeamId: state.homeTeam.id,
+      playConcept: 'PUNT',
+      yardsGained: 0,
+      isTurnover: true,
+      turnoverType: 'MUFFED_PUNT',
+      isScore: false,
+      isLeverageMoment: false,
+      textCommentary: 'P #Lewis punts 41 yds... MUFFED by #Edwards! Lake Travis recovers! HALFTIME. #Pruett FUMBLES the kickoff return! Westlake recovers!'
+    };
+    const alerts = alertsForPlay(event, before, state);
+    expect(alerts.map((a) => `${a.kind} ${a.team.name}`)).toEqual(['FUMBLE Lake Travis', 'FUMBLE Westlake']);
+    expect(new Set(alerts.map((a) => a.id)).size).toBe(2);
+
+    // A fumble from scrimmage on the last play of the half keeps its banner when the kickoff is fumbled too
+    const scrimmage = alertsForPlay(
+      {
+        ...event,
+        playConcept: 'INSIDE_RUN',
+        turnoverType: 'FUMBLE',
+        textCommentary: 'FUMBLE! RB #Ruiz coughs up the football! Recovered by LB #Ochoa. HALFTIME. #Pruett FUMBLES the kickoff return! Lake Travis recovers!'
+      },
+      before,
+      state
+    );
+    expect(scrimmage.map((a) => `${a.kind} ${a.team.name}`)).toEqual(['FUMBLE Westlake', 'FUMBLE Lake Travis']);
+  });
+
+  it('records a muffed punt as a recovery by the punting team', () => {
+    let muffs = 0;
+    for (let g = 0; g < 40 && muffs === 0; g++) {
+      const state = freshGame();
+      for (let snap = 0; snap < 400 && !state.isGameOver; snap++) {
+        const before = { possessionTeamId: state.possessionTeamId, homeScore: state.homeScore, awayScore: state.awayScore, down: state.down, distance: state.distance };
+        const { event } = simulateSnap(state);
+        if (!/MUFFED/.test(event.textCommentary)) continue;
+        muffs++;
+        expect(event.turnoverType).toBe('MUFFED_PUNT');
+        expect(alertsForPlay(event, before, state)[0]).toMatchObject({ kind: 'FUMBLE', team: { id: before.possessionTeamId } });
+      }
+    }
+    expect(muffs).toBeGreaterThan(0);
   });
 });
