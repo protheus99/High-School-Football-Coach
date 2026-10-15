@@ -6,6 +6,7 @@ import {
   CoachGrade,
   coachGameDayEdge,
   coachGrade,
+  effectLevel,
   CoachRole,
   generateCandidates,
   HiredCoach,
@@ -220,18 +221,36 @@ const GradeBadge: React.FC<{ grade: CoachGrade; large?: boolean }> = ({ grade, l
   </span>
 );
 
-/** A coach's effects, in words. */
+/** A coach's effects: each at its level (+1 to +5, with a meter); game-day effects stop at +2. */
 const EffectList: React.FC<{ coach: HiredCoach }> = ({ coach }) => {
   const info = COACH_ROLES.find((r) => r.role === coach.role)!;
+  const color = GRADE_COLORS[coachGrade(coach.rating)];
   return (
-    <ul style={{ margin: 0, paddingLeft: '18px', color: '#334155', fontSize: '12px' }}>
+    <ul style={{ margin: 0, padding: 0, listStyle: 'none', color: '#334155', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
       {info.effects
         .filter((e) => coach.effectIds.includes(e.id))
-        .map((e) => (
-          <li key={e.id}>
-            <strong>{e.name}</strong>: {e.description}
-          </li>
-        ))}
+        .map((e) => {
+          const level = effectLevel(e, coach.rating);
+          return (
+            <li key={e.id}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                <span>
+                  <strong>{e.name}</strong>{' '}
+                  <span style={{ display: 'inline-block', minWidth: '22px', textAlign: 'center', borderRadius: '5px', padding: '0 5px', fontWeight: 900, fontSize: '11px', color: '#fff', background: color }}>+{level}</span>
+                </span>
+                <span aria-label={`Level ${level} of 5`} style={{ display: 'flex', gap: '2px', flex: '0 0 auto' }}>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <i key={n} style={{ width: '9px', height: '9px', borderRadius: '2px', background: n <= level ? color : '#E2E8F0' }} />
+                  ))}
+                </span>
+              </div>
+              <div style={{ color: '#64748B' }}>
+                {e.description}
+                {e.kind === 'GAME_DAY' && ' · game day, max +2'}
+              </div>
+            </li>
+          );
+        })}
     </ul>
   );
 };

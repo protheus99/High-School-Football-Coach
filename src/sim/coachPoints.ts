@@ -100,7 +100,9 @@ export const winBonus = (playoff: boolean, owned: TalentId[]) => (playoff ? PLAY
 /** Weekly CP: the allowance, Bigger Budget, and the school board's support (see programMeters). */
 export const weeklyCpIncome = (week: number, owned: TalentId[], boardTrust = 70) =>
   Math.max(0, weeklyCoachPoints(week) + (owned.includes('BIGGER_BUDGET') ? 10 : 0) + boardCpModifier(boardTrust));
-export const feederEventCost = (base: number, owned: TalentId[]) => Math.round(base * (owned.includes('RECRUITING_NETWORK') ? 0.8 : 1));
+/** A program's price: the Recruiting Network talent takes 20% off, the staff's Camp Directors their share. */
+export const feederEventCost = (base: number, owned: TalentId[], staffDiscount = 0) =>
+  Math.round(base * (owned.includes('RECRUITING_NETWORK') ? 0.8 : 1) * (1 - staffDiscount));
 export const collegeActionCost = (base: number, owned: TalentId[]) => Math.max(1, Math.round(base * (owned.includes('COLLEGE_CONNECTIONS') ? 0.6 : 1)));
 /** Strength-and-conditioning boost applied to the user's off-season progression. */
 export const offseasonConditioningBonus = (owned: TalentId[]) => (owned.includes('WEIGHT_ROOM_FANATIC') ? 15 : 0);

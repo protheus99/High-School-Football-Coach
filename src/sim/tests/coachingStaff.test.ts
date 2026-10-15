@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { COACH_ROLES, COACH_WEEKLY_CP, coachGrade, eliteStaff, HiredCoach, staffBonuses, staffGameDayEdge, staffGrade } from '../coachingStaff';
+import { COACH_ROLES, COACH_WEEKLY_CP, coachGrade, coachLevel, effectSlots, eliteStaff, HiredCoach, staffBonuses, staffGameDayEdge, staffGrade } from '../coachingStaff';
 import { contactGain } from '../feederEngine';
 import { buildStateWorld } from '../league';
 import { simulateMacroMatch } from '../macroSim';
@@ -14,14 +14,16 @@ describe('Coaching staff', () => {
     COACH_ROLES.forEach((r) => r.effects.forEach((e) => expect(e.kind === 'GAME_DAY' ? (e.gameDayEdge ?? 0) > 0 : true).toBe(true)));
   });
 
-  it('caps the game-day edge at +2.0, with diminishing returns past +1.0', () => {
+  it('levels by grade (D 1 to S 5), effects by grade (a plus grade adds one), game day stops at level 2', () => {
+    expect([55, 63, 73, 83, 93].map(coachLevel)).toEqual([1, 2, 3, 4, 5]);
+    expect([55, 58, 63, 68, 73, 78, 83, 88, 93, 98].map(effectSlots)).toEqual([1, 2, 1, 2, 2, 3, 2, 3, 3, 4]);
     expect(staffGameDayEdge([])).toBe(0);
-    expect(staffGameDayEdge(eliteStaff())).toBeGreaterThan(1.99);
-    expect(staffGameDayEdge(eliteStaff())).toBeLessThanOrEqual(2);
     const oc: HiredCoach = { role: 'OFFENSIVE_COORDINATOR', name: 'OC', rating: 99, effectIds: ['play_caller'] };
-    expect(staffGameDayEdge([oc])).toBeCloseTo(0.4, 5);
-    expect(staffGameDayEdge([{ ...oc, rating: 50 }])).toBe(0); // rating 50 adds nothing
-    expect(staffGameDayEdge([{ ...oc, rating: 74.5 }])).toBeCloseTo(0.2, 5); // half strength
+    const free: HiredCoach = { ...oc, rating: 68 }; // C+, level 2
+    expect(staffGameDayEdge([free])).toBeCloseTo(0.4 * 0.16, 5);
+    expect(staffGameDayEdge([oc])).toBeCloseTo(staffGameDayEdge([free]), 5); // an S+ adds no more game-day power per effect
+    expect(staffGameDayEdge([{ ...oc, rating: 55 }])).toBeCloseTo(0.4 * 0.08, 5); // level 1: half
+    expect(staffGameDayEdge(eliteStaff())).toBeLessThan(1);
   });
 
   it('the best staff helps but never guarantees a win against an equal team', () => {
@@ -39,16 +41,20 @@ describe('Coaching staff', () => {
       const box = home ? simulateMacroMatch('g', 9, a, b) : simulateMacroMatch('g', 9, b, a);
       if (home ? box.homeScore > box.awayScore : box.awayScore > box.homeScore) wins++;
     }
-    expect(wins / games).toBeGreaterThan(0.6);
-    expect(wins / games).toBeLessThan(0.8); // about 73%: still loses about a quarter of the time
+    expect(wins / games).toBeGreaterThan(0.52);
+    expect(wins / games).toBeLessThan(0.7); // a game-day edge only: development is where paying shows
   });
 
   it('a full staff adds Coach Points every week and speeds development', () => {
     const bonus = staffBonuses(eliteStaff());
     expect(bonus.coachPointMultiplier).toBeCloseTo(1.3, 5);
-    expect(bonus.weeklyCoachPoints).toBe(17 * COACH_WEEKLY_CP);
-    expect(bonus.developmentByPosition.QB).toBeCloseTo(1, 5);
+    expect(bonus.weeklyCoachPoints).toBe(17 * COACH_WEEKLY_CP + 15); // and the Fundraiser
+    expect(bonus.developmentByPosition.QB).toBeCloseTo(0.05, 5); // S: +0.01 a level in the off season
+    expect(bonus.practiceByPosition.QB).toBeCloseTo(5 / 12, 5); // and a practice boost by level
     expect(bonus.injuryReduction).toBeCloseTo(0.2, 5);
+    expect(bonus.feederInterestByPosition.QB).toBeGreaterThan(0.19); // the QB recruiter (and the JV offense recruiter)
+    expect(bonus.programDiscount).toBeGreaterThan(0);
+    expect(bonus.recovery).toBeCloseTo(2, 5);
   });
 
   it('live games feel the same edge as simulated ones (+2: about 71% against an equal team)', () => {
@@ -82,7 +88,7 @@ describe('Coaching staff', () => {
     const bonus = staffBonuses([dfo, jv]);
     expect(bonus.boosterDrift).toBeCloseTo(1, 5);
     expect(bonus.complianceDrift).toBeCloseTo(1, 5);
-    expect(bonus.feederInterest).toBeCloseTo(0.1, 5);
+    expect(bonus.feederInterest).toBeCloseTo(0.2, 5);
     const prospect = { scope: undefined, source: 'FEEDER_MIDDLE_SCHOOL', interestScore: 30 } as unknown as Parameters<typeof contactGain>[0];
     expect(contactGain(prospect, 'WINE_AND_DINE', bonus.feederInterest)).toBeGreaterThan(contactGain(prospect, 'WINE_AND_DINE'));
   });

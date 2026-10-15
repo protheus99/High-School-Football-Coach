@@ -101,7 +101,7 @@ describe('Training', () => {
   it('lets coaches boost practice: talent and position coaches add gain, the strength coach cuts injuries', () => {
     const [team] = generateDistrictTeams();
     const base = previewPractice(team, 'FULL', 'DISTRICT_PLAY', true);
-    const boosts = trainingBoosts(team, true, { developmentByPosition: { QB: 1 }, freshmanDevelopment: 0, injuryReduction: 0.2 });
+    const boosts = trainingBoosts(team, true, { practiceByPosition: { QB: 1 }, practiceYoung: 0, injuryReduction: 0.2 });
     const boosted = previewPractice(team, 'FULL', 'DISTRICT_PLAY', true, boosts);
     expect(boosted.skillPoints).toBeGreaterThan(base.skillPoints * 1.2);
     expect(boosted.injuryRisk).toBeLessThan(base.injuryRisk);
@@ -128,7 +128,7 @@ describe('Training', () => {
 
   it('marks players whose training a coach adds to: their position coach, or the JV staff for freshmen and sophomores', () => {
     const [team] = generateDistrictTeams();
-    const boosts = trainingBoosts(team, false, { developmentByPosition: { QB: 1 }, freshmanDevelopment: 1, injuryReduction: 0 });
+    const boosts = trainingBoosts(team, false, { practiceByPosition: { QB: 1 }, practiceYoung: 1, injuryReduction: 0 });
     const qb = team.roster.find((p) => p.position === 'QB')!;
     const upperclassman = team.roster.find((p) => p.position === 'LB' && (p.classYear === 'Junior' || p.classYear === 'Senior'))!;
     const freshman = team.roster.find((p) => p.position !== 'QB' && p.classYear === 'Freshman')!;

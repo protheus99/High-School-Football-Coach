@@ -99,22 +99,26 @@ const POSITION_COACH_GAIN = 0.25; // a 99-rated position coach with a developmen
 export function trainingBoosts(
   team: Team,
   assistantUpgrade: boolean,
-  staff?: { developmentByPosition: Partial<Record<Position, number>>; freshmanDevelopment: number; injuryReduction: number }
+  staff?: { practiceByPosition: Partial<Record<Position, number>>; practiceYoung: number; injuryReduction: number; recovery?: number }
 ): TrainingBoosts {
   const sources: string[] = [];
   const byPosition: Partial<Record<Position, number>> = {};
-  Object.entries(staff?.developmentByPosition ?? {}).forEach(([pos, amount]) => {
-    if ((amount ?? 0) > 0) byPosition[pos as Position] = POSITION_COACH_GAIN * Math.min(1, amount ?? 0);
+  // A development effect's share (its coach's level / 5) of the most a position coach adds
+  Object.entries(staff?.practiceByPosition ?? {}).forEach(([pos, share]) => {
+    if ((share ?? 0) > 0) byPosition[pos as Position] = POSITION_COACH_GAIN * Math.min(1, share ?? 0);
   });
-  const young = POSITION_COACH_GAIN * Math.min(1, staff?.freshmanDevelopment ?? 0);
+  const young = POSITION_COACH_GAIN * Math.min(1, staff?.practiceYoung ?? 0);
   const positions = Object.keys(byPosition);
   if (assistantUpgrade) sources.push(`+${ASSISTANT_UPGRADE_GAIN * 100}% gain · Assistant Upgrade`);
   if (positions.length) sources.push(`+gain for ${positions.join('/')} · position coaches`);
   if (young > 0) sources.push('+gain for Fr/So · JV staff');
   const injuryReduction = staff?.injuryReduction ?? 0;
   if (injuryReduction > 0) sources.push(`−${Math.round(injuryReduction * 100)}% practice injuries · S&C`);
-  const recovery = team.staff.strengthCoach.conditioningRating >= CONDITIONING_RECOVERY_RATING ? 1 : 0;
-  if (recovery) sources.push('+1% recovery a week · conditioning');
+  const conditioning = team.staff.strengthCoach.conditioningRating >= CONDITIONING_RECOVERY_RATING ? 1 : 0;
+  if (conditioning) sources.push('+1% recovery a week · conditioning');
+  const science = Math.round((staff?.recovery ?? 0) * 10) / 10;
+  if (science > 0) sources.push(`+${science}% recovery a week · Recovery Science`);
+  const recovery = conditioning + science;
   return { gain: assistantUpgrade ? 1 + ASSISTANT_UPGRADE_GAIN : 1, byPosition, young, injuryReduction, recovery, sources };
 }
 

@@ -426,7 +426,8 @@ export function runFeederEvent(
   pool: FeederProspect[],
   type: FeederEventType,
   team: Team,
-  ctx?: RecruitingContext
+  ctx?: RecruitingContext,
+  interestFactor: (p: FeederProspect) => number = () => 1 // the staff's recruiters and Family Ties
 ): { pool: FeederProspect[]; discovered: FeederProspect[] } {
   const room = () => MAX_POOL_SIZE - pool.filter((p) => !p.homeTeamId).length - discovered.length;
   const discovered: FeederProspect[] = [];
@@ -438,7 +439,7 @@ export function runFeederEvent(
     }
   };
   const warm = (match: (p: FeederProspect) => boolean, min: number, max: number) => {
-    pool = pool.map((p) => (match(p) ? { ...p, interestScore: clamp(p.interestScore + randomInt(min, max), 0, 100) } : p));
+    pool = pool.map((p) => (match(p) ? { ...p, interestScore: clamp(p.interestScore + Math.round(randomInt(min, max) * interestFactor(p)), 0, 100) } : p));
   };
 
   // A rating point from coaching, up to MAX_PROGRAM_BOOST per prospect

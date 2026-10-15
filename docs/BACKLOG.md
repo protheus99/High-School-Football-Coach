@@ -243,6 +243,15 @@ Captured as sent; to be worked on in today's update (v1.17) when the user says t
   add more effects in development, recruiting, Coach Points and compliance, with the same game-day ceiling as a
   strong free coach. Next: draft level values per effect, prices, then measure win
   rates and title turnover over many seasons before building.
+  **Done 2026-10-15 (v1.18), plan approved the same day:** levels D 1 … S 5; effects D/C 1, B/A 2, S 3, a plus
+  grade one more; game-day effects count up to level 2 (0.08 of the effect's weight a level); development adds
+  practice gains (level / 12 of the position coach boost) and +0.01 overall a level in the off season (JV practice
+  boost doesn't stack past one strong coach); injuries, Coach Points, recruiting and program effects scale with
+  level. New effects: a recruiter for each position coach, Blocking Tight Ends, Specialist Recruiter, Recovery
+  Science, Fundraiser, Camp Director, Family Ties, Scout Team and JV recruiters. Prices unchanged; hired coaches keep
+  their effects. Measured: best free (all C+) game day +0.55, best paid (all S+) +0.70; with two seasons of
+  development the best paid staff beats the best free one 57.5% head to head (target 55–58%); five-season careers
+  show no lock-in (0–1 titles in 30 seasons for no staff, free and paid alike).
 - **Save-scumming: reloading to replay a big game until it's won.** Settings › Saves has "Save game" and "Load
   autosave", so a player can save before an important game and reload after a loss. That's less a cheat than the
   price of a single-player game, but consider options to stop it (raised before in the 2026-10-13 security

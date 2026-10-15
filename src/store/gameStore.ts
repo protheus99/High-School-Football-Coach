@@ -1783,10 +1783,12 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
   runFeederEvent: (type) => {
     const { coachPoints, feederEventsThisWeek, scoutingPool, districtTeams, userTeamId, programCooldowns } = get();
-    const cost = feederEventCost(FEEDER_EVENTS[type].cost, get().coachTalents);
+    const staff = staffBonuses(get().coachingStaff);
+    const cost = feederEventCost(FEEDER_EVENTS[type].cost, get().coachTalents, staff.programDiscount);
     if (coachPoints < cost || (programCooldowns[type] ?? 0) > 0 || !feederEventsOpen(get())) return [];
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
-    const result = runFeederEvent(scoutingPool, type, userTeam, recruitingContext(get()));
+    const family = type === 'FAMILY_NIGHT' || type === 'TRYOUT_DAY' ? staff.familyBoost : 0;
+    const result = runFeederEvent(scoutingPool, type, userTeam, recruitingContext(get()), (p) => 1 + (staff.feederInterestByPosition[p.projectedPosition] ?? 0) + family);
     set({
       coachPoints: coachPoints - cost,
       scoutingPool: result.pool,
@@ -1835,7 +1837,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const { cost } = CONTACT_ACTIONS[action];
     if (!prospect || coachPoints < cost || prospect.actionsThisWeek?.includes(action)) return;
     if (onProbation(get().userProbationUntil, get().currentYear) && restrictedOnProbation(prospect)) return;
-    const bonus = staffBonuses(get().coachingStaff).feederInterest;
+    const staff = staffBonuses(get().coachingStaff);
+    const bonus = staff.feederInterest + (staff.feederInterestByPosition[prospect.projectedPosition] ?? 0);
     const contact = (p: FeederProspect) => (p.id === prospectId ? contactProspect(p, action, bonus) : p);
     set({ coachPoints: coachPoints - cost, ...(prospect.scope ? { widePool: widePool.map(contact) } : { scoutingPool: scoutingPool.map(contact) }) });
   },

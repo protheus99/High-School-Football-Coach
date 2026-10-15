@@ -114,7 +114,8 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
   // The pool scopes in the state's words; a one-region league's "region" pool is the whole state class
   const districtWord = rulesForState(league?.state).districtLabel;
-  const interestBonus = staffBonuses(coachingStaff).feederInterest;
+  const staff = staffBonuses(coachingStaff);
+  const interestBonus = staff.feederInterest;
   const multiRegion = !!league && league.regions.length > 1;
   const regionWord = !multiRegion ? 'State' : districtWord === 'Region' ? 'Area' : 'Region';
   const [scope, setScopeState] = useState<PoolScope>('DISTRICT');
@@ -153,7 +154,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   if (!userTeam) return null;
 
   const weeklyIncome = weeklyCpIncome(currentWeek, coachTalents, userTeam.programMeters.schoolBoardTrust);
-  const eventCost = (type: FeederEventType) => feederEventCost(FEEDER_EVENTS[type].cost, coachTalents);
+  const eventCost = (type: FeederEventType) => feederEventCost(FEEDER_EVENTS[type].cost, coachTalents, staff.programDiscount);
   const eventsOpen = feederEventsOpen({ currentWeek, league });
   const pipelineCount = scoutingPool.filter((p) => !p.homeTeamId).length;
   const pipelineFull = pipelineCount >= MAX_POOL_SIZE;
@@ -428,7 +429,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
                 onBooster={(offer) => makeBoosterOffer(p.id, offer)}
                 boostersLocked={probation}
                 locked={probation && restrictedOnProbation(p)}
-                interestBonus={interestBonus}
+                interestBonus={interestBonus + (staff.feederInterestByPosition[p.projectedPosition] ?? 0)}
                 rank={rankLabel(p)}
                 schools={schoolInterest(p, userTeamId).slice(0, 3).map((e) => ({ name: schoolName(e.teamId, p), interest: e.interest, isYou: e.teamId === userTeamId }))}
                 commitment={(() => {
