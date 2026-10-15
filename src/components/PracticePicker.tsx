@@ -37,14 +37,18 @@ export const PracticePicker: React.FC<{ compact?: boolean }> = ({ compact = fals
         <p style={{ fontSize: '13px', color: '#475569', margin: '8px 0 0' }}>No practice in the post season. Training picks up again in the off season.</p>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '4px', marginTop: '8px' }}>
-            {PRACTICE_OPTIONS.map((o) => (
-              <button key={o.id} onClick={() => setPracticeIntensity(o.id)} aria-pressed={practiceIntensity === o.id} title={o.help} style={optionBtn(practiceIntensity === o.id)}>
-                {o.label}
-              </button>
-            ))}
-          </div>
-          {compact ? <ChosenEffects preview={chosen} /> : <CompareTable previews={previews} chosen={practiceIntensity} />}
+          {compact ? (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '4px', marginTop: '8px' }}>
+                {PRACTICE_OPTIONS.map((o) => (
+                  <OptionButton key={o.id} id={o.id} chosen={practiceIntensity} onPick={setPracticeIntensity} />
+                ))}
+              </div>
+              <ChosenEffects preview={chosen} />
+            </>
+          ) : (
+            <CompareTable previews={previews} chosen={practiceIntensity} onPick={setPracticeIntensity} />
+          )}
           {!compact && (
             <>
               <p style={{ fontSize: '12px', color: '#475569', margin: '8px 0 0' }}>
@@ -79,11 +83,31 @@ const ChosenEffects: React.FC<{ preview: PracticePreview }> = ({ preview }) => (
   </div>
 );
 
-/** All four options side by side (Team › Practice). */
-const CompareTable: React.FC<{ previews: PracticePreview[]; chosen: PracticeIntensity }> = ({ previews, chosen }) => {
-  const cell = (p: PracticePreview): React.CSSProperties => ({ ...td, ...(p.intensity === chosen ? { background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700 } : {}) });
+const OptionButton: React.FC<{ id: PracticeIntensity; chosen: PracticeIntensity; onPick: (id: PracticeIntensity) => void }> = ({ id, chosen, onPick }) => {
+  const option = PRACTICE_OPTIONS.find((o) => o.id === id);
+  return (
+    <button onClick={() => onPick(id)} aria-pressed={chosen === id} title={option?.help} style={optionBtn(chosen === id)}>
+      {option?.label}
+    </button>
+  );
+};
+
+/** All four options side by side (Team › Practice): each option's button heads its own column, the chosen one tinted. */
+const CompareTable: React.FC<{ previews: PracticePreview[]; chosen: PracticeIntensity; onPick: (id: PracticeIntensity) => void }> = ({ previews, chosen, onPick }) => {
+  const tint = (p: PracticePreview): React.CSSProperties => (p.intensity === chosen ? { background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700 } : {});
+  const cell = (p: PracticePreview): React.CSSProperties => ({ ...td, ...tint(p) });
   return (
     <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', fontSize: '12px', marginTop: '8px' }}>
+      <thead>
+        <tr>
+          <th style={{ ...headTh, ...labelTd }} />
+          {previews.map((p) => (
+            <th key={p.intensity} style={{ ...headTh, ...tint(p) }}>
+              <OptionButton id={p.intensity} chosen={chosen} onPick={onPick} />
+            </th>
+          ))}
+        </tr>
+      </thead>
       <tbody>
         <tr>
           <td style={{ ...td, ...labelTd }}>Attribute gain</td>
@@ -120,6 +144,7 @@ const NEUTRAL: React.CSSProperties = { background: '#F1F5F9', color: '#475569' }
 const chip: React.CSSProperties = { fontSize: '12px', fontWeight: 700, borderRadius: '999px', padding: '2px 8px' };
 const td: React.CSSProperties = { padding: '6px 2px', textAlign: 'center', borderTop: '1px solid #E2E8F0' };
 const labelTd: React.CSSProperties = { textAlign: 'left', color: '#475569', width: '68px', lineHeight: 1.2 };
+const headTh: React.CSSProperties = { padding: '4px 2px 6px', fontWeight: 400, borderRadius: '8px 8px 0 0' };
 
 const multiplierPill = (multiplier: number): React.CSSProperties => ({
   ...chip,
@@ -128,6 +153,7 @@ const multiplierPill = (multiplier: number): React.CSSProperties => ({
 });
 
 const optionBtn = (active: boolean): React.CSSProperties => ({
+  width: '100%',
   minHeight: '44px',
   padding: '4px 2px',
   borderRadius: '8px',

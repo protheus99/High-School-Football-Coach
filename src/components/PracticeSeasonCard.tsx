@@ -34,7 +34,7 @@ export const PracticeSeasonCard: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={card}>
-        <div style={{ fontWeight: 800, fontSize: '15px' }}>📈 This season&apos;s practice</div>
+        <div style={{ fontWeight: 800, fontSize: '15px' }}>📈 This year&apos;s progression</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px' }}>
           <Tile value={`+${thisYear?.points ?? 0}`} label="ATTRIBUTE PTS" background="#DBEAFE" color="#1E40AF" />
           <Tile value={`+${thisYear?.overall ?? 0}`} label="OVERALL" background="#DCFCE7" color="#166534" />

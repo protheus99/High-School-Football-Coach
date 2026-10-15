@@ -177,7 +177,7 @@ export interface TrainingReport {
   players?: { id: string; points: number; overall: number }[]; // each player who gained: attribute points and overall
 }
 
-/** What practice has added up to this year (Team › Practice, "This season's practice"). */
+/** What practice has added up to this year (Team › Practice, "This year's progression"). */
 export interface PracticeSeason {
   year: number;
   weeks: number; // weeks with practice

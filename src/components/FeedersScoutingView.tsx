@@ -32,6 +32,7 @@ import { wideJoinProbability } from '../sim/widePool';
 import { BOOSTER_OFFERS, BOOSTER_ORDER, BoosterOffer } from '../sim/compliance';
 import { staffBonuses } from '../sim/coachingStaff';
 import { pageScrollTop, scrollPageTo } from '../utils/pageScroll';
+import { OFFENSE_GROUPS, POSITION_GROUPS } from '../data/positionGroups';
 
 function outlook(chance: number): { label: string; color: string; background: string } {
   if (chance >= 0.65) return { label: 'Likely', color: '#166534', background: '#DCFCE7' };
@@ -44,22 +45,6 @@ export type FeederSection = 'STUDENTS' | 'PROGRAMS' | 'NEEDS';
 type PoolScope = 'DISTRICT' | 'REGION' | 'STATE' | 'NATIONAL';
 type PoolFilter = 'ALL' | 'TOP10' | 'COMMITTED' | 'MY_LIST';
 const PAGE_SIZE = 20; // prospect cards shown at a time (the State and National lists run to 100+)
-
-/** Position tabs above the prospect list (lines and the secondary grouped). */
-// Two rows in the sticky bar: everyone and the offense, then the defense and the specialists
-const OFFENSE_GROUPS = ['ALL', 'QB', 'RB', 'WR', 'TE', 'OL'];
-const POSITION_GROUPS: { id: string; label: string; positions?: Position[] }[] = [
-  { id: 'ALL', label: 'All' },
-  { id: 'QB', label: 'QB', positions: ['QB'] },
-  { id: 'RB', label: 'RB', positions: ['RB'] },
-  { id: 'WR', label: 'WR', positions: ['WR'] },
-  { id: 'TE', label: 'TE', positions: ['TE'] },
-  { id: 'OL', label: 'OL', positions: ['OT', 'OG', 'C'] },
-  { id: 'DL', label: 'DL', positions: ['DE', 'DT'] },
-  { id: 'LB', label: 'LB', positions: ['LB'] },
-  { id: 'DB', label: 'DB', positions: ['CB', 'S'] },
-  { id: 'K', label: 'K/P', positions: ['K', 'P'] }
-];
 
 /** The Programs screen's groups, in order. */
 const PROGRAM_GROUPS: { id: ProgramGroup; label: string; note: string; color: string }[] = [

@@ -7,12 +7,21 @@ import { DataList } from './ui/DataList';
 import { DEFENSE_POSITIONS, OFFENSE_POSITIONS, starterRatings } from '../sim/depthChart';
 import { FatigueChip } from './ui/FatigueChip';
 import type { Player } from '../types/game';
+import { POTENTIAL_COLORS } from '../utils/color';
+import { DEFENSE_GROUPS, OFFENSE_GROUPS, POSITION_GROUPS } from '../data/positionGroups';
 
 export const RosterDepthChartView: React.FC = () => {
   const { districtTeams, userTeamId, moveDepthChartPlayer, openPlayerCard, currentYear } = useGameStore();
   const [view, setView] = useState<'CHART' | 'ROSTER'>('CHART');
   useScrollTopOnScreenChange(view);
-  const [filter, setFilter] = useState<'ALL' | 'OFF' | 'DEF' | 'NEW'>('ALL');
+  const [filter, setFilterState] = useState<'ALL' | 'OFF' | 'DEF' | 'NEW'>('ALL');
+  const [positionGroup, setPositionGroup] = useState('ALL');
+  // Offense and Defense keep only their own position chips (a group from the other side goes back to All)
+  const groupsFor = (f: typeof filter) => POSITION_GROUPS.filter((g) => (f === 'OFF' ? OFFENSE_GROUPS : f === 'DEF' ? DEFENSE_GROUPS : [g.id]).includes(g.id));
+  const setFilter = (f: typeof filter) => {
+    setFilterState(f);
+    if (!groupsFor(f).some((g) => g.id === positionGroup)) setPositionGroup('ALL');
+  };
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   if (!userTeam) return null;
@@ -20,12 +29,15 @@ export const RosterDepthChartView: React.FC = () => {
   // Newcomers: players who joined the program this year (signing day or a transfer)
   const isNew = (p: Player) => p.joinedYear !== undefined && p.joinedYear === currentYear;
   const newcomers = userTeam.roster.filter(isNew).length;
-  const filtered = userTeam.roster.filter((p) => {
+  const bySide = userTeam.roster.filter((p) => {
     if (filter === 'OFF') return OFFENSE_POSITIONS.includes(p.position);
     if (filter === 'DEF') return DEFENSE_POSITIONS.includes(p.position);
     if (filter === 'NEW') return isNew(p);
     return true;
   });
+  const inGroup = (p: Player, positions?: Player['position'][]) => !positions || positions.includes(p.position);
+  const groupPositions = POSITION_GROUPS.find((g) => g.id === positionGroup)?.positions;
+  const filtered = bySide.filter((p) => inGroup(p, groupPositions));
   const ratings = starterRatings(userTeam.roster);
 
   const STRING_LABEL = { 1: '1st', 2: '2nd', 3: '3rd' } as const;
@@ -66,6 +78,14 @@ export const RosterDepthChartView: React.FC = () => {
               New ({newcomers})
             </button>
           </div>
+          <div className="ui-chips" role="group" aria-label="Position" style={{ marginBottom: '10px' }}>
+            {groupsFor(filter).map((g) => (
+              <button key={g.id} className="ui-chip" aria-pressed={positionGroup === g.id} onClick={() => setPositionGroup(g.id)}>
+                {g.label}
+                <span className="ui-chip-count">{bySide.filter((p) => inGroup(p, g.positions)).length}</span>
+              </button>
+            ))}
+          </div>
           <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
             Tap a player for his card: stats, grades, recruiting and his depth chart string.
           </p>
@@ -97,7 +117,15 @@ export const RosterDepthChartView: React.FC = () => {
                 )
               },
               { key: 'ovr', label: 'OVR', badge: true, render: (p) => p.overallRating },
-              { key: 'pos', label: 'Pos', desktopOnly: true, render: (p) => p.position },
+              {
+                key: 'pot',
+                label: 'Pot',
+                render: (p) => (
+                  <span className="depth-tag depth-potential" style={POTENTIAL_COLORS[p.potential]} aria-label={`Potential ${p.potential}`}>
+                    {p.potential}
+                  </span>
+                )
+              },
               { key: 'class', label: 'Class', render: (p) => p.classYear },
               { key: 'string', label: 'String', render: (p) => STRING_LABEL[p.depthChartTier] },
               { key: 'stamina', label: 'Stamina', desktopOnly: true, render: (p) => formatPercent(p.condition.inGameStamina) },
