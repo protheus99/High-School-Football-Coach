@@ -16,7 +16,6 @@ import {
   CONTACT_ORDER,
   ContactAction,
   contactGain,
-  SOURCE_LABELS,
   COMMIT_THRESHOLD,
   currentCommitment,
   EVALUATION_INTEREST,
@@ -34,20 +33,11 @@ import { BOOSTER_OFFERS, BOOSTER_ORDER, BoosterOffer } from '../sim/compliance';
 import { staffBonuses } from '../sim/coachingStaff';
 import { pageScrollTop, scrollPageTo } from '../utils/pageScroll';
 
-const SOURCE_COLORS: Record<ProspectSource, string> = {
-  FEEDER_MIDDLE_SCHOOL: '#2563EB',
-  SEVEN_ON_SEVEN: '#7C3AED',
-  MOVE_IN: '#0F766E',
-  STAR_RECRUIT: '#D97706',
-  OUT_OF_DISTRICT: '#BE123C',
-  TRYOUT: '#64748B'
-};
-
-function outlook(chance: number): { label: string; color: string } {
-  if (chance >= 0.65) return { label: 'Likely', color: '#15803D' };
-  if (chance >= 0.4) return { label: 'Possible', color: '#2563EB' };
-  if (chance >= 0.15) return { label: 'Unlikely', color: '#B45309' };
-  return { label: 'Long shot', color: '#DC2626' };
+function outlook(chance: number): { label: string; color: string; background: string } {
+  if (chance >= 0.65) return { label: 'Likely', color: '#166534', background: '#DCFCE7' };
+  if (chance >= 0.4) return { label: 'Possible', color: '#1E40AF', background: '#DBEAFE' };
+  if (chance >= 0.15) return { label: 'Unlikely', color: '#92400E', background: '#FEF3C7' };
+  return { label: 'Long shot', color: '#475569', background: '#F1F5F9' };
 }
 
 export type FeederSection = 'STUDENTS' | 'PROGRAMS' | 'NEEDS';
@@ -478,10 +468,10 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
 
 /** Where a prospect lives, and how much harder that makes him to get. */
 function whereFrom(p: FeederProspect, userTeamId: string, homeName?: string): { kind: 'HOME' | 'ZONED' | 'STATE' | 'NATIONAL'; text: string } {
-  if (p.scope === 'NATIONAL') return { kind: 'NATIONAL', text: `✈️ Out of state (${p.homeState}) · hardest: his family must move` };
-  if (p.scope === 'STATE') return { kind: 'STATE', text: `🚗 Elsewhere in the state${homeName ? ` (${homeName})` : ''} · hard: his family must move` };
+  if (p.scope === 'NATIONAL') return { kind: 'NATIONAL', text: `✈️ Out of state (${p.homeState}) · hardest` };
+  if (p.scope === 'STATE') return { kind: 'STATE', text: `🚗 Elsewhere in the state${homeName ? ` (${homeName})` : ''} · hard` };
   if (p.source === 'STAR_RECRUIT') return { kind: 'STATE', text: '🚗 Out of area · a long shot' };
-  if (!p.homeTeamId || p.homeTeamId === userTeamId) return { kind: 'HOME', text: '🏠 Your district' };
+  if (!p.homeTeamId || p.homeTeamId === userTeamId) return { kind: 'HOME', text: `🏠 Your district · ${SOURCE_SHORT[p.source] ?? p.middleSchool}` };
   return { kind: 'ZONED', text: `🏫 Zoned to ${homeName ?? 'another school'} · harder` };
 }
 
@@ -489,10 +479,15 @@ const WHERE_STYLES: Record<'HOME' | 'ZONED' | 'STATE' | 'NATIONAL', React.CSSPro
   HOME: { background: '#DCFCE7', color: '#166534' },
   ZONED: { background: '#FEF3C7', color: '#92400E' },
   STATE: { background: '#FFEDD5', color: '#9A3412' },
-  NATIONAL: { background: '#FEE2E2', color: '#991B1B' }
+  NATIONAL: { background: '#E0E7FF', color: '#3730A3' }
 };
-const whereTag: React.CSSProperties = { display: 'inline-block', alignSelf: 'flex-start', fontSize: '11.5px', fontWeight: 800, borderRadius: '6px', padding: '2px 7px', margin: '4px 0 2px' };
-const FIT_COLORS = { good: '#15803D', fair: '#B45309', poor: '#B91C1C' } as const;
+const WHERE_EDGE: Record<'HOME' | 'ZONED' | 'STATE' | 'NATIONAL', string> = { HOME: '#22C55E', ZONED: '#F59E0B', STATE: '#FB923C', NATIONAL: '#6366F1' };
+/** Where a district prospect comes from, when it isn't his middle school. */
+const SOURCE_SHORT: Partial<Record<ProspectSource, string>> = { SEVEN_ON_SEVEN: '7-on-7 athlete', MOVE_IN: 'move-in', TRYOUT: 'walk-on' };
+/** The interest bar: gray while he's cold, blue once he's warm (50+), green at a commitment (80+). */
+const interestFill = (interest: number) => (interest >= COMMIT_THRESHOLD ? '#16A34A' : interest >= EVALUATION_INTEREST ? '#3B82F6' : '#94A3B8');
+const whereTag: React.CSSProperties = { display: 'inline-block', alignSelf: 'flex-start', fontSize: '11.5px', fontWeight: 700, borderRadius: '999px', padding: '2px 9px' };
+const FIT_COLORS = { good: '#15803D', fair: '#B45309', poor: '#64748B' } as const;
 const barMark: React.CSSProperties = { position: 'absolute', top: '-3px', width: '2px', height: '14px', borderRadius: '1px', transform: 'translateX(-1px)' };
 const legendMark: React.CSSProperties = { display: 'inline-block', width: '2px', height: '12px', verticalAlign: 'middle', marginRight: '5px', borderRadius: '1px' };
 
@@ -557,20 +552,34 @@ const ProspectCard: React.FC<{
   const where = whereFrom(p, userTeam.id, homeName);
   const notes: string[] = [];
   if (p.source === 'SEVEN_ON_SEVEN') notes.push("Doesn't play tackle yet");
-  if (p.source === 'STAR_RECRUIT') notes.push('Long shot: elite talent from out of area');
   if (p.source === 'TRYOUT') notes.push('General student trying out');
   if (p.isTransferRisk) notes.push('Family may relocate');
   if (positionFilled) notes.push(`${p.projectedPosition} is already filled for next season`);
 
   return (
-    <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderLeft: `4px solid ${SOURCE_COLORS[p.source]}`, borderRadius: '8px', padding: '12px', fontSize: '13px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-        <strong style={{ fontSize: '14px' }}>
-          {p.name}
-          {rank && <span style={{ marginLeft: '6px', fontSize: '12px', color: '#B45309' }}>{rank}</span>}
-        </strong>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontWeight: 'bold' }}>{p.projectedPosition}</span>
+    <div
+      style={{
+        background: '#fff',
+        border: '1px solid #E2E8F0',
+        borderLeft: `4px solid ${WHERE_EDGE[where.kind]}`,
+        borderRadius: '12px',
+        padding: '12px',
+        fontSize: '13px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        boxShadow: '0 1px 2px rgba(15,23,42,.05)'
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 800, fontSize: '14.5px', lineHeight: 1.25 }}>{p.name}</div>
+          {rank && <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#B45309' }}>{rank}</div>}
+          <div style={{ fontSize: '12px', color: '#64748B' }}>
+            {p.projectedPosition} · {p.incomingClass}
+          </div>
+        </div>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto' }}>
           <button onClick={onToggleList} aria-pressed={onList} style={listBtn(onList)}>
             {onList ? '✓ On List' : '+ Add to List'}
           </button>
@@ -593,10 +602,7 @@ const ProspectCard: React.FC<{
         </div>
       )}
       <span style={{ ...whereTag, ...WHERE_STYLES[where.kind] }}>{where.text}</span>
-      <div style={{ color: '#6B7280', fontSize: '12px' }}>
-        {SOURCE_LABELS[p.source]}{p.middleSchool.startsWith('Zoned to') ? '' : ` · ${p.middleSchool}`} · Incoming {p.incomingClass}
-      </div>
-      <div style={{ margin: '6px 0', fontSize: '12px' }}>
+      <div style={{ fontSize: '12px', color: '#475569' }}>
         {scouted ? (
           <>Potential <strong>{seen.revealedPotential}</strong> · Speed {seen.scoutedSpeed} · Strength {seen.scoutedStrength}</>
         ) : (
@@ -605,59 +611,72 @@ const ProspectCard: React.FC<{
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
         <div style={{ position: 'relative', flex: 1, background: '#E5E7EB', height: '8px', borderRadius: '4px' }}>
-          <div style={{ width: `${p.interestScore}%`, background: SOURCE_COLORS[p.source], height: '100%', borderRadius: '4px' }} />
+          <div style={{ width: `${p.interestScore}%`, background: interestFill(p.interestScore), height: '100%', borderRadius: '4px' }} />
           <i aria-hidden="true" style={{ ...barMark, left: `${EVALUATION_INTEREST}%`, background: '#334155' }} />
           <i aria-hidden="true" style={{ ...barMark, left: `${COMMIT_THRESHOLD}%`, background: '#B45309' }} />
         </div>
-        <span>Interest: {interestLabel(p.interestScore)} ({p.interestScore})</span>
-        <span style={{ color: look.color, fontWeight: 'bold' }}>{look.label}</span>
+        <span style={{ whiteSpace: 'nowrap' }}>
+          {interestLabel(p.interestScore)} ({p.interestScore})
+        </span>
+        <span style={{ color: look.color, background: look.background, fontWeight: 800, fontSize: '11px', borderRadius: '999px', padding: '1px 8px', whiteSpace: 'nowrap' }}>{look.label}</span>
       </div>
-      {wants.length > 0 && (
-        <div style={{ fontSize: '12px', color: '#334155', marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '2px 8px' }}>
-          <span>Wants:</span>
-          {wants.map((w, i) => (
-            <span key={w.label}>
-              {i > 0 && '· '}
-              {w.label} <b style={{ color: FIT_COLORS[w.tone] }}>{w.text}</b>
-            </span>
+      <dl style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', gap: '4px 10px', fontSize: '12px', margin: 0, alignItems: 'baseline' }}>
+        <dt style={{ color: '#64748B' }}>Wants</dt>
+        <dd style={{ margin: 0, color: '#0F172A' }}>
+          {wants.map((w) => (
+            <div key={w.label}>
+              {w.label} · <b style={{ color: FIT_COLORS[w.tone] }}>{w.text}</b>
+            </div>
           ))}
-        </div>
-      )}
+        </dd>
+        <dt style={{ color: '#64748B' }}>Schools</dt>
+        <dd style={{ margin: 0 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+            {schools.map((sc) => (
+              <span
+                key={sc.name}
+                style={{
+                  fontSize: '11.5px',
+                  borderRadius: '6px',
+                  padding: '1px 7px',
+                  background: sc.isYou ? '#DBEAFE' : '#F1F5F9',
+                  color: sc.isYou ? '#1E40AF' : sc.interest >= COMMIT_THRESHOLD ? '#92400E' : '#334155',
+                  fontWeight: sc.isYou || sc.interest >= COMMIT_THRESHOLD ? 800 : 500
+                }}
+              >
+                {sc.name} {sc.interest}
+              </span>
+            ))}
+          </div>
+          {p.suitors.some((sc) => sc.inducement) && <div style={{ fontSize: '11.5px', color: '#9F1239', marginTop: '2px' }}>🚩 rumored booster money</div>}
+        </dd>
+      </dl>
       {commitment && (
         <div
           style={{
             fontSize: '12px',
             fontWeight: 'bold',
-            marginTop: '4px',
             padding: '4px 8px',
-            borderRadius: '6px',
-            background: commitment.isYou ? '#DCFCE7' : '#FEE2E2',
-            color: commitment.isYou ? '#166534' : '#991B1B'
+            borderRadius: '8px',
+            background: commitment.isYou ? '#DCFCE7' : '#FFF1F2',
+            color: commitment.isYou ? '#166534' : '#9F1239'
           }}
         >
           {commitment.isYou ? '✅ Committed to you' : `🔒 Committed to ${commitment.name}`} ({commitment.interest})
           {commitment.tied ? ' · tied at the top: a coin flip on Prospect signing day' : !commitment.isYou ? ` · pass ${commitment.interest} to win him` : ''}
         </div>
       )}
-      <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>
-        Interested schools:{' '}
-        {schools.map((s, i) => (
-          <span key={s.name} style={{ fontWeight: s.isYou ? 'bold' : 'normal', color: s.interest >= COMMIT_THRESHOLD ? '#B45309' : undefined }}>
-            {i > 0 && ' · '}
-            {s.name} {s.interest}
-          </span>
-        ))}
-        {p.suitors.some((s) => s.inducement) && <span style={{ color: '#9F1239' }}> · 🚩 rumored booster money</span>}
-      </div>
-      {notes.length > 0 && <div style={{ fontSize: '12px', color: '#92400E', marginTop: '4px' }}>{notes.join(' · ')}</div>}
+      {notes.length > 0 && <div style={{ fontSize: '12px', color: '#92400E' }}>{notes.join(' · ')}</div>}
+      {/* The buttons sit at the bottom, so they line up across a row of cards */}
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {/* Recruiting contacts: each once a week */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', marginTop: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px' }}>
         {CONTACT_ORDER.map((action) => {
           const { label, cost } = CONTACT_ACTIONS[action];
           const done = p.actionsThisWeek?.includes(action);
           const disabled = done || coachPoints < cost || !!locked;
           return (
-            <button key={action} onClick={() => onContact(action)} disabled={disabled} style={{ ...actionBtn('#2563EB', disabled), padding: '6px 4px', lineHeight: 1.2 }}>
+            <button key={action} onClick={() => onContact(action)} disabled={disabled} style={{ ...actionBtn('#2563EB', disabled), padding: '6px 4px', lineHeight: 1.2, borderRadius: '8px' }}>
               {done ? `✓ ${label}` : label}
               <span style={{ display: 'block', fontSize: '12px', fontWeight: 'normal' }}>
                 {locked ? 'probation' : done ? 'this week' : `₡${cost} · +${contactGain(p, action, interestBonus)}`}
@@ -668,10 +687,10 @@ const ProspectCard: React.FC<{
       </div>
       {/* Boosters: free interest now, evidence for later (each offer once per player; not for tryouts or on probation) */}
       {p.source !== 'TRYOUT' && (
-        <div style={{ marginTop: '10px', border: '1px dashed #E11D48', borderRadius: '8px', padding: '8px', background: '#FFF1F2' }}>
-          <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#9F1239' }}>🚩 Boosters</div>
+        <div style={{ borderTop: '1px dashed #FDA4AF', paddingTop: '7px' }}>
+          <div style={{ fontSize: '11.5px', fontWeight: 'bold', color: '#9F1239' }}>🚩 Boosters</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', marginTop: '6px' }}>
-            {BOOSTER_ORDER.map((offer, i) => {
+            {BOOSTER_ORDER.map((offer) => {
               const made = p.boosterOffers?.includes(offer);
               const disabled = made || !!boostersLocked;
               return (
@@ -679,7 +698,13 @@ const ProspectCard: React.FC<{
                   key={offer}
                   onClick={() => setBoosterAsk(offer)}
                   disabled={disabled}
-                  style={{ ...actionBtn(['#E11D48', '#DC2626', '#B91C1C'][i], disabled), padding: '6px 4px', lineHeight: 1.2 }}
+                  style={{
+                    ...actionBtn('#FFF1F2', disabled),
+                    padding: '5px 4px',
+                    lineHeight: 1.2,
+                    borderRadius: '8px',
+                    ...(!disabled && { color: '#9F1239', border: '1px solid #FECDD3' })
+                  }}
                 >
                   {BOOSTER_OFFERS[offer].label}
                   <span style={{ display: 'block', fontSize: '12px', fontWeight: 'normal' }}>{boostersLocked ? 'probation' : made ? 'done' : `Free · +${BOOSTER_OFFERS[offer].interest}`}</span>
@@ -712,6 +737,7 @@ const ProspectCard: React.FC<{
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };
