@@ -43,8 +43,9 @@ describe('Weekly dilemma selection', () => {
     }
 
     expect(seen.size).toBeGreaterThanOrEqual(40);
-    expect(quietWeeks / weeks).toBeGreaterThan(0.2);
-    expect(quietWeeks / weeks).toBeLessThan(0.6);
+    // About 3 weeks in 10 bring a dilemma (plus report-card weeks with a failing starter)
+    expect(quietWeeks / weeks).toBeGreaterThan(0.55);
+    expect(quietWeeks / weeks).toBeLessThan(0.8);
   });
 });
 

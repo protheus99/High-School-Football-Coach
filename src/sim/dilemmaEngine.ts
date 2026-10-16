@@ -6,12 +6,12 @@ import { rulesForState } from './stateRules';
 import { gameBallSkill } from './postGame';
 
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices (library in dilemmaTemplates.ts)
-const DILEMMA_CHANCE = 0.6; // not every week brings a crisis
+const DILEMMA_CHANCE = 0.3; // not every week brings a crisis: about 3 weeks in 10
 export const DILEMMA_COOLDOWN_WEEKS = 28; // with dozens of scenarios, none repeats within a season
 export const EXPOSURE_CHANCE: Record<DilemmaChoice['tier'], number> = { GOOD: 0, COMPROMISE: 0, RISKY: 0.15, CORRUPT: 0.3 };
 
 /**
- * Picks this week's dilemma (if any): about 60% of weeks, never repeating a scenario used earlier
+ * Picks this week's dilemma (if any): about 30% of weeks, never repeating a scenario used earlier
  * in the season. The academic check (every third week) takes priority when a starter is failing.
  */
 export function generateWeeklyDilemma(week: number, userTeam: Team, recentTemplateIds: string[] = []): NarrativeDilemma | null {
