@@ -457,6 +457,10 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
           <a href={sitePage('/terms')} target="_blank" rel="noopener">
             Terms
           </a>{' '}
+          ·{' '}
+          <a href={sitePage('/about')} target="_blank" rel="noopener">
+            About
+          </a>{' '}
           · <button onClick={reopenCookieBanner}>Cookies</button>
         </nav>
         {/* The build the coach is playing (package.json), for bug reports */}

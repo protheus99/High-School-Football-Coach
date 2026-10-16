@@ -1,7 +1,42 @@
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import { readdirSync, rmSync } from 'fs';
+import { readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
+
+// The About page (public/about.html) shows the game's version: written in from package.json at build time, and served
+// the same way by the dev server, so the page never shows an old one
+const VERSION_MARK = '__GAME_VERSION__';
+function aboutPageVersion(): Plugin {
+  let root = process.cwd();
+  let outDir = 'dist';
+  const withVersion = (html: string) => {
+    const { version } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { version: string };
+    return html.split(VERSION_MARK).join(version);
+  };
+  return {
+    name: 'about-page-version',
+    configResolved(config) {
+      root = config.root;
+      outDir = resolve(config.root, config.build.outDir);
+    },
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const path = (req.url ?? '').split('?')[0];
+        if (path !== '/about' && path !== '/about.html') return next();
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.end(withVersion(readFileSync(join(root, 'public', 'about.html'), 'utf8')));
+      });
+    },
+    closeBundle() {
+      const file = join(outDir, 'about.html');
+      try {
+        writeFileSync(file, withVersion(readFileSync(file, 'utf8')));
+      } catch {
+        // no About page in this build
+      }
+    }
+  };
+}
 
 // The licensed MP3s in public/music are for the dev server only: the live game streams them from the music Worker,
 // so they're removed from every build and can never be deployed with the site
@@ -60,7 +95,7 @@ function googleTag(): Plugin {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), dropLicensedMusic(), googleTag()],
+  plugins: [react(), dropLicensedMusic(), googleTag(), aboutPageVersion()],
   worker: {
     format: 'es'
   },
