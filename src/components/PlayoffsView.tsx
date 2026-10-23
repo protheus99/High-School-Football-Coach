@@ -18,7 +18,7 @@ export const PlayoffsView: React.FC<{ onGoToGame: () => void; onStandings: () =>
       <div className="ui-screen">
         <div style={{ ...card, ...statusCard('#94A3B8') }}>
           <div style={{ ...kicker, color: '#475569' }}>PLAYOFFS</div>
-          <div style={statusTitle}>The bracket is set after the regular season</div>
+          <div style={statusTitle}>The playoff field is set after the regular season</div>
           <div style={statusDetail}>
             {playoffQualifyText(rules)}
             {me ? ` You're ${me.record.wins}-${me.record.losses}.` : ''}

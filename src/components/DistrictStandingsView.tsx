@@ -17,7 +17,7 @@ export const DistrictStandingsView: React.FC = () => {
   const qualifyText = playoffs.format !== 'DISTRICT_FINISH'
     ? playoffQualifyText(rulesForState(league?.state))
     : split
-    ? `Top ${playoffs.qualifiersPerDistrict} teams qualify; they are split by enrollment into the ${playoffs.divisionNames.join(' and ')} ${bracketSize}-team state brackets.`
+    ? `Top ${playoffs.qualifiersPerDistrict} teams qualify; they are split by enrollment into the ${playoffs.divisionNames.join(' and ')} state playoffs, ${bracketSize} teams each.`
     : `Top ${playoffs.qualifiersPerDistrict} teams qualify for the ${bracketSize}-team state tournament.`;
 
   if (showAll) return <AllDistrictsStandingsView onBack={() => setShowAll(false)} />;

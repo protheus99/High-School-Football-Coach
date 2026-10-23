@@ -703,7 +703,7 @@ export function playoffQualifyText(rules: StateRules): string {
   const { playoffs, districtLabel } = rules;
   const label = districtLabel.toLowerCase();
   if (playoffs.format === 'STATEWIDE_RANKING')
-    return `${districtLabel} champions are guaranteed a playoff spot and a top-${playoffs.bracketSize / 2} seed; the rest of the ${playoffs.bracketSize}-team bracket is filled by the statewide power ranking.`;
+    return `${districtLabel} champions are guaranteed a playoff spot and a top-${playoffs.bracketSize / 2} seed; the statewide power ranking fills the rest of the ${playoffs.bracketSize}-team field.`;
   const r = playoffs.regional;
   if (playoffs.format === 'REGIONAL_SEEDED' && r) {
     const byes = r.regionBracketSize - r.qualifiersPerRegion;
@@ -714,7 +714,7 @@ export function playoffQualifyText(rules: StateRules): string {
       return `The top ${r.statewideQualifiers} in the power ranking make the playoffs, split ${r.regions.map((g) => g.name).join(' and ')}.${byeText}`;
     if (r.selection === 'DISTRICT_FINISH') return `The top ${finishSpotsPerDistrict(r)} in each ${label} make the playoffs.${byeText}`;
     if (r.championsSeededFirst)
-      return `${districtLabel} champions qualify and take the top seeds in their playoff region; the power ranking fills the rest of each ${r.regionBracketSize}-team region bracket.`;
+      return `${districtLabel} champions qualify and take the top seeds in their playoff region; the power ranking fills the rest of each region's ${r.regionBracketSize}-team field.`;
     // Ohio: each playoff region holds several leagues
     const group = r.regions.every((g) => g.districts.length === 1) ? label : regionWord;
     return `The top ${r.qualifiersPerRegion} in each ${group} by the power ranking make the playoffs.${byeText}`;

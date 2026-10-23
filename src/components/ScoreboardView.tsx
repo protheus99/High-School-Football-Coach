@@ -128,7 +128,7 @@ export const ScoreboardView: React.FC = () => {
             </h3>
             {rows.length === 0 ? (
               <div className="ui-muted">
-                {section.week > LAST_REGULAR_SEASON_WEEK && !playoffBracket ? 'The playoff bracket is set after the regular season.' : 'No games to show.'}
+                {section.week > LAST_REGULAR_SEASON_WEEK && !playoffBracket ? 'The playoff field is set after the regular season.' : 'No games to show.'}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
