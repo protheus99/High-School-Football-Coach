@@ -1,6 +1,6 @@
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import { readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 
 // The About page (public/about.html) shows the game's version: written in from package.json at build time, and served
@@ -93,9 +93,32 @@ function googleTag(): Plugin {
   };
 }
 
+// The team pages (public/texas/duncanville/index.html, written by scripts/team-pages/build.mjs) are folders with an
+// index.html. Cloudflare serves them at /texas/duncanville/; the dev server would hand that address to the game, so
+// it serves the folder's page itself
+function teamPages(): Plugin {
+  let root = process.cwd();
+  return {
+    name: 'team-pages',
+    configResolved(config) {
+      root = config.root;
+    },
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const path = decodeURIComponent((req.url ?? '').split('?')[0]);
+        if (!/^\/[a-z0-9-]+\/[a-z0-9-]+\/(start\/)?$/.test(path)) return next();
+        const file = join(root, 'public', path, 'index.html');
+        if (!existsSync(file)) return next();
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.end(readFileSync(file, 'utf8'));
+      });
+    }
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), dropLicensedMusic(), googleTag(), aboutPageVersion()],
+  plugins: [react(), dropLicensedMusic(), googleTag(), aboutPageVersion(), teamPages()],
   worker: {
     format: 'es'
   },

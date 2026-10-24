@@ -17,6 +17,13 @@ declare global {
 
 const devLog = import.meta.env.DEV && import.meta.env.MODE !== 'test';
 
+// Where this visit came from when it arrived through a link into New Game (a team page): new_game carries it
+let entry: { source?: string; variant?: string } = {};
+export function setEntrySource(source: string | undefined, variant?: string): void {
+  entry = { source, variant };
+}
+export const entrySource = () => entry;
+
 /** Sends one game event (snake_case name, up to 40 characters; values are ids, counts or results). */
 export function track(event: string, params: EventParams = {}): void {
   const clean = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined));

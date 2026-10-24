@@ -16,6 +16,8 @@ import { deleteAnySave, listAllSaves, loadAnySave, SaveEntry, signInAvailable, u
 import { loadAllPlayedGames } from '../services/playedGames';
 import { gamesSince, PlayedGame } from '../sim/gameLock';
 import { reopenCookieBanner } from '../services/consent';
+import { setEntrySource } from '../services/analytics';
+import { parseTeamLink } from '../sim/teamLink';
 import { AccountSheet, SignInResult, SignInSheet } from './AccountPanels';
 import { version } from '../../package.json';
 import { assetUrl, sitePage } from '../utils/site';
@@ -81,6 +83,21 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   const [showClassic, setShowClassic] = useState(false);
   // Pick any program: search every school in the state instead of the featured programs
   const [anyProgram, setAnyProgram] = useState(false);
+  // A link from a team page (/?state=texas&school=duncanville) opens New Game with that school and 10 seasons picked,
+  // ready for the coach's name; the address is cleaned up so a refresh shows the title screen
+  const [teamLink] = useState(() => parseTeamLink(window.location.search));
+  useEffect(() => {
+    if (!teamLink) return;
+    setEntrySource(teamLink.source, teamLink.variant);
+    setView('NEW');
+    setState(teamLink.state);
+    setPick({ scenario: teamLink.scenario, school: teamLink.school });
+    setAnyProgram(teamLink.scenario === 'OPEN');
+    setLength(10);
+    window.history.replaceState(null, '', window.location.pathname);
+    const focus = setTimeout(() => document.getElementById('coach-name')?.focus(), 250);
+    return () => clearTimeout(focus);
+  }, [teamLink]);
   const chooseState = (st: string) => {
     setState(st);
     setPick(null);
@@ -255,7 +272,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             </button>
             {anyProgram ? (
               <div style={{ marginBottom: '18px' }}>
-                <SchoolSearch state={state} selected={pick?.scenario === 'OPEN' ? pick.school : null} onSelect={(s) => setPick({ scenario: 'OPEN', school: s.name })} disabled={busy} />
+                <SchoolSearch state={state} initialQuery={teamLink?.scenario === 'OPEN' && teamLink.state === state ? teamLink.school : undefined} selected={pick?.scenario === 'OPEN' ? pick.school : null} onSelect={(s) => setPick({ scenario: 'OPEN', school: s.name })} disabled={busy} />
                 <div style={{ textAlign: 'center' }}>
                   <button
                     onClick={() => {

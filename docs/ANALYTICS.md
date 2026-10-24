@@ -9,7 +9,7 @@ Most events carry `season` (1 = the career's first) and `week`.
 
 | Event | When | Parameters |
 | --- | --- | --- |
-| `new_game` | A career (or quick game) starts | `mode` (career / quick), `scenario`, `state`, `length` or `difficulty` |
+| `new_game` | A career (or quick game) starts | `mode` (career / quick), `scenario`, `state`, `length` or `difficulty`; `source` (team_page) and `variant` (page / direct) when it came through a team page |
 | `load_game` | A save is loaded | `season`, `week` |
 | `save_game` | A manual save | `season`, `week` |
 | `open_screen` | A tab or section opens | `screen`, `section` |
@@ -36,6 +36,14 @@ Most events carry `season` (1 = the career's first) and `week`.
 | `talent_unlocked` | A coach talent | `talent`, `cost` |
 | `begin_checkout` | Off to Stripe for a ducat pack | `currency`, `value`, `pack` |
 | `purchase` | A ducat pack paid | `transaction_id`, `currency`, `value`, `pack`, `ducats` |
+| `team_page_view` / `team_page_click` | A team page opens / its "Coach [team] now" button is tapped | `state`, `school` (the page's slug), `scenario`, `flow` |
+| `start_page_view` / `start_page_click` | The team's "what to expect" page opens / "Let's go" is tapped | the same |
+
+**Team pages** (footballcoachgame.com/texas/duncanville/ and its start/ page, written by `scripts/team-pages/build.mjs`)
+send their events from `public/team-pages/team.js`, with the same cookie question and consent as the game. `flow` is
+the test version: `page` (the button opens the start page) or `direct` (straight to New Game), picked at random on the
+first visit and kept in the browser (`?flow=page` or `?flow=direct` shows one on purpose). The game's `new_game`
+carries `source` and `variant`, so a funnel can run from `team_page_view` to a career started, per version.
 
 **In Google Analytics:** event counts show up on their own (Reports, Engagement, Events; Realtime within a minute).
 To break reports down by a parameter (for example `result` or `program`), register it once under Admin, Custom

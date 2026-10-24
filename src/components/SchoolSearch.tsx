@@ -19,13 +19,14 @@ const prestigeBadge = (p: number): [string, string] => (p >= 90 ? ['#FEF3C7', '#
  * New Game › Pick any program: search the state's schools by name. Nothing is listed until a couple of letters
  * are typed, and only schools whose name matches are shown, best prestige first.
  */
-export const SchoolSearch: React.FC<{ state: string; selected: string | null; onSelect: (school: StateSchoolEntry) => void; disabled?: boolean }> = ({
+export const SchoolSearch: React.FC<{ state: string; selected: string | null; onSelect: (school: StateSchoolEntry) => void; disabled?: boolean; initialQuery?: string }> = ({
   state,
   selected,
+  initialQuery,
   onSelect,
   disabled
 }) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery ?? '');
   const schools = useMemo(() => stateSchools(state), [state]);
   const results = searchSchools(schools, query);
   const typed = query.trim().length >= SEARCH_MIN_LETTERS;

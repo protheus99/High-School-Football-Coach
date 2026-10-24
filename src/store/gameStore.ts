@@ -97,7 +97,7 @@ import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { collectResults } from '../sim/computerRankings';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
 import { HiredCoach, coachGrade, staffBonuses, staffGameDayEdge } from '../sim/coachingStaff';
-import { track } from '../services/analytics';
+import { entrySource, track } from '../services/analytics';
 import { Career, CareerLength, careerPoints, isCareerComplete, scoreSeason, vacateSeason } from '../sim/careerScore';
 import {
   BoosterOffer,
@@ -826,7 +826,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const team = get().leagueTeams.find((t) => t.id === get().userTeamId);
     if (team) team.staff.headCoachName = coachTitle(career.coachName);
     if (team) set({ career: { ...career, startingPrestige: team.prestige } });
-    track('new_game', { mode: 'career', scenario: scenarioId, state, length });
+    track('new_game', { mode: 'career', scenario: scenarioId, state, length, ...entrySource() });
   },
 
   // League saves restore the whole world; older saves get a world built around their district
