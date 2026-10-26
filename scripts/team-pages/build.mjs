@@ -65,6 +65,13 @@ function schoolData(state, name) {
   throw new Error(`${name} is not in the ${state} data`);
 }
 
+// The field behind the page: the school's color darkened (72% of it, like a night game), so white text always reads
+function darken(hex, keep = 0.72) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(v * keep));
+  return '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
 // The school's second color names it in the headline when it reads on the darkened field; gold otherwise
 function luminance(hex) {
   const n = parseInt(hex.slice(1), 16);
@@ -110,11 +117,11 @@ for (const t of TEAMS) {
   const field = s.primaryColor;
   const edge = luminance(field) < 0.08 ? '#FBBF24' : field; // a black school color would vanish as a thin edge
   const data = `data-state="${esc(t.state)}" data-school="${esc(schoolSlug)}" data-scenario="${t.scenario}" data-game="${esc(game)}"`;
-  const style = `--sc:${field};--accent:${accent};--edge:${edge}`;
+  const style = `--sc:${field};--field:${darken(field)};--accent:${accent};--edge:${edge}`;
   const title = `Can you help ${t.full} ${goal}?`;
   const description = `Can you help the ${t.short} ${s.mascot} ${goal}? Take over the program in Football Coach High School Edition.`;
 
-  const teamPage = `${head(t, title, description, path, field)}
+  const teamPage = `${head(t, title, description, path, darken(field))}
 <body ${data} data-page="team" style="${style}">
 <main>
   <section class="hero">
@@ -144,7 +151,7 @@ for (const t of TEAMS) {
     ['Take the field', 'Call the plays on Friday night.'],
     ['Lead them to glory', t.goal ? `Win state at ${t.venue}, then win it again.` : `Win the playoffs and lift the trophy at ${t.venue}.`]
   ];
-  const startPage = `${head(t, `Welcome to ${t.full}, Coach`, description, `${path}start/`, field)}
+  const startPage = `${head(t, `Welcome to ${t.full}, Coach`, description, `${path}start/`, darken(field))}
 <body ${data} data-page="start" class="start" style="${style}">
 <main>
   <section class="hero">

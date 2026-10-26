@@ -1,38 +1,39 @@
 /* The team pages (footballcoachgame.com/texas/duncanville/ and its start/ page), written by scripts/team-pages/build.mjs.
-   One team per page: the logo and the challenge on a football field in the school's color, the team's story, then
-   "You can do it." and one button. Phone first (375px); the start page fits an iPhone SE in Safari with no scrolling. */
+   One team per page, all on a football field in the school's color: the logo and the challenge, then the team's story
+   and "You can do it." with one button as cards on the field. Phone first (375px); the start page fits an iPhone SE in Safari with no scrolling. */
 :root { color-scheme: light; --navy: #0F172A; --navy2: #1E3A8A; --ink: #0F172A; --muted: #475569; --line: #E2E8F0; --paper: #F8FAFC; --gold: #FBBF24; --gold-dk: #B45309; --gold-ink: #422006; }
 * { box-sizing: border-box; }
-html, body { min-height: 100%; }
-body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-main { max-width: 480px; margin: 0 auto; background: var(--paper); min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
-a:focus-visible, button:focus-visible { outline: 3px solid #F59E0B; outline-offset: 2px; }
-
-/* The hero: a football field in the school's color, darkened so the logo's white lettering always reads */
-.hero {
-  --field: color-mix(in srgb, var(--sc) 72%, #000);
+html { min-height: 100%; background: var(--navy); }
+/* The field: the school's color darkened (--field, worked out by the build so the logo's white lettering always reads),
+   with yard lines and sidelines, behind the whole page at every width */
+body {
+  margin: 0; min-height: 100vh; min-height: 100dvh; color: var(--ink); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background:
     repeating-linear-gradient(180deg, transparent 0 58px, rgba(255,255,255,.13) 58px 60px),
     linear-gradient(90deg, transparent 0 22px, rgba(255,255,255,.10) 22px 24px, transparent 24px calc(100% - 24px), rgba(255,255,255,.10) calc(100% - 24px) calc(100% - 22px), transparent 0),
-    var(--field);
-  color: #fff; padding: calc(18px + env(safe-area-inset-top)) 22px 34px; text-align: center;
+    var(--field, var(--navy));
 }
+main { max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+a:focus-visible, button:focus-visible { outline: 3px solid #F59E0B; outline-offset: 2px; }
+
+.hero { color: #fff; padding: calc(18px + env(safe-area-inset-top)) 22px 30px; text-align: center; }
 .hero a.logo { display: block; width: 210px; max-width: 70%; margin: 4px auto 0; }
 .hero img { display: block; width: 100%; height: auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,.35)); }
 .hero h1 { margin: 18px 0 0; font-size: 34px; line-height: 1.08; font-weight: 900; letter-spacing: -.02em; text-wrap: balance; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
 .hero h1 em { font-style: normal; color: var(--accent); }
 
-.story { padding: 28px 22px; }
+/* The story and the call to action: cards on the field */
+.story { padding: 24px 20px; margin: -6px 14px 0; background: #fff; border-radius: 18px; border-top: 6px solid var(--accent); box-shadow: 0 14px 30px rgba(0,0,0,.35); }
 .story h2 { margin: 0; font-size: 26px; line-height: 1.12; font-weight: 900; letter-spacing: -.01em; text-wrap: balance; }
 .story .legacy { margin: 10px 0 0; font-size: 16px; line-height: 1.55; color: #1E293B; border-left: 4px solid var(--edge); padding-left: 12px; }
 .story .push { margin: 12px 0 0; font-size: 18px; font-weight: 800; line-height: 1.35; }
 
-.go { background: linear-gradient(160deg, var(--navy), var(--navy2)); color: #fff; text-align: center; padding: 30px 22px 26px; }
+.go { margin: 16px 14px 0; background: linear-gradient(160deg, var(--navy), var(--navy2)); color: #fff; text-align: center; padding: 28px 20px 24px; border-radius: 18px; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 14px 30px rgba(0,0,0,.35); }
 .go h2 { margin: 0; font-size: 36px; line-height: 1.05; font-weight: 900; letter-spacing: -.02em; }
 .go p { margin: 12px auto 0; color: #CBD5E1; font-size: 16px; line-height: 1.5; max-width: 32ch; }
 .play { margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; padding: 12px 18px; border-radius: 14px; background: var(--gold); color: var(--gold-ink); font-weight: 900; font-size: 18px; line-height: 1.2; text-decoration: none; box-shadow: 0 5px 0 var(--gold-dk); text-align: center; }
 .play:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--gold-dk); }
-.fine { margin: 0; padding: 14px 20px calc(20px + env(safe-area-inset-bottom)); font-size: 11px; line-height: 1.5; color: #64748B; text-align: center; }
+.fine { margin: 0; padding: 16px 20px calc(20px + env(safe-area-inset-bottom)); font-size: 11px; line-height: 1.5; color: rgba(255,255,255,.72); text-align: center; }
 
 /* The start page: one screen, no scrolling */
 .start .hero { padding: calc(10px + env(safe-area-inset-top)) 20px 12px; }
@@ -45,7 +46,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid #F59E0B; outline-offs
 .season b { display: block; font-size: 15.5px; line-height: 1.25; }
 .season span.t { display: block; font-size: 13.5px; line-height: 1.35; color: var(--muted); }
 .steps .play { margin-top: 4px; }
-.next { margin: 4px 0 0; text-align: center; font-size: 13.5px; color: var(--muted); }
+.next { margin: 4px 0 0; text-align: center; font-size: 13.5px; color: rgba(255,255,255,.8); }
 
 /* The cookie question, the same words and choices as the game's banner */
 .cookie-banner { position: fixed; left: 10px; right: 10px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 10; max-width: 520px; margin: 0 auto; background: #fff; color: #0F172A; border-radius: 12px; padding: 12px 14px; font-size: 14px; box-shadow: 0 10px 30px rgba(15,23,42,.35); }
