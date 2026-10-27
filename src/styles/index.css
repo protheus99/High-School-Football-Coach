@@ -1639,6 +1639,33 @@ body:has(.app-tabbar) .cookie-banner {
   min-width: 32px;
   min-height: 32px;
 }
+/* The line about the team pages, just above the policy links and in their quiet grey */
+.title-teams {
+  margin: 22px auto 0;
+  max-width: 330px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #64748b;
+  text-align: center;
+}
+@media (min-width: 768px) {
+  .title-teams {
+    max-width: 640px;
+  }
+}
+.title-teams a {
+  color: #94a3b8;
+  text-decoration: underline;
+  text-decoration-color: rgba(148, 163, 184, 0.45);
+  text-underline-offset: 2px;
+}
+.title-teams a:hover,
+.title-teams a:focus-visible {
+  color: #e2e8f0;
+}
+.title-teams + .title-links {
+  margin-top: 10px;
+}
 .title-links {
   margin-top: 20px;
   font-size: 12px;

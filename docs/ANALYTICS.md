@@ -36,6 +36,7 @@ Most events carry `season` (1 = the career's first) and `week`.
 | `talent_unlocked` | A coach talent | `talent`, `cost` |
 | `begin_checkout` | Off to Stripe for a ducat pack | `currency`, `value`, `pack` |
 | `purchase` | A ducat pack paid | `transaction_id`, `currency`, `value`, `pack`, `ducats` |
+| `title_team_link` | A school in the title screen's team page line is tapped | `state`, `school` (the page's slug) |
 | `team_page_view` / `team_page_click` | A team page opens / its "Coach [team] now" button is tapped | `state`, `school` (the page's slug), `scenario`, `flow` |
 | `start_page_view` / `start_page_click` | The team's "what to expect" page opens / "Let's go" is tapped | the same |
 

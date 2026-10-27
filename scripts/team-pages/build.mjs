@@ -105,6 +105,8 @@ function head(t, title, description, path, color) {
 const FINE = 'Football Coach High School Edition is an independent game, not affiliated with or endorsed by any school or athletic association. All players, games and results are fictional.';
 const LOGO = '<a class="logo" href="/"><img src="/logo/football-coach-logo.webp" alt="Football Coach High School Edition" width="840" height="459" /></a>';
 
+// The list the game reads for the title screen's line about the team pages (src/data/teamPages.json)
+const links = [];
 for (const t of TEAMS) {
   const s = schoolData(t.state, t.school);
   if (t.short.length > 16) throw new Error(`${t.short}: the button name is over 16 letters`);
@@ -176,4 +178,7 @@ ${steps.map(([b, line], i) => `      <li><span class="n">${i + 1}</span><div><b>
   writeFileSync(join(dir, 'index.html'), teamPage);
   writeFileSync(join(dir, 'start', 'index.html'), startPage);
   console.log(`${path}  (${t.scenario})`);
+  links.push({ state: t.state, school: schoolSlug, short: t.short, full: t.full, path });
 }
+writeFileSync(join(root, 'src', 'data', 'teamPages.json'), JSON.stringify(links, null, 2) + '\n');
+console.log(`src/data/teamPages.json  (${links.length} teams)`);

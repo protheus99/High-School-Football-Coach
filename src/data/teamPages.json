@@ -1,0 +1,37 @@
+[
+  {
+    "state": "Alabama",
+    "school": "thompson",
+    "short": "Thompson",
+    "full": "Thompson High School",
+    "path": "/alabama/thompson/"
+  },
+  {
+    "state": "Georgia",
+    "school": "valdosta",
+    "short": "Valdosta",
+    "full": "Valdosta High School",
+    "path": "/georgia/valdosta/"
+  },
+  {
+    "state": "California",
+    "school": "folsom",
+    "short": "Folsom",
+    "full": "Folsom High School",
+    "path": "/california/folsom/"
+  },
+  {
+    "state": "Florida",
+    "school": "jupiter",
+    "short": "Jupiter",
+    "full": "Jupiter High School",
+    "path": "/florida/jupiter/"
+  },
+  {
+    "state": "Texas",
+    "school": "cypress-lakes",
+    "short": "Cypress Lakes",
+    "full": "Cypress Lakes High School",
+    "path": "/texas/cypress-lakes/"
+  }
+]

@@ -16,7 +16,8 @@ import { deleteAnySave, listAllSaves, loadAnySave, SaveEntry, signInAvailable, u
 import { loadAllPlayedGames } from '../services/playedGames';
 import { gamesSince, PlayedGame } from '../sim/gameLock';
 import { reopenCookieBanner } from '../services/consent';
-import { setEntrySource } from '../services/analytics';
+import { setEntrySource, track } from '../services/analytics';
+import TEAM_PAGES from '../data/teamPages.json';
 import { parseTeamLink } from '../sim/teamLink';
 import { AccountSheet, SignInResult, SignInSheet } from './AccountPanels';
 import { version } from '../../package.json';
@@ -465,6 +466,22 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             </div>
             <BackButton onClick={() => setView('MENU')} />
           </div>
+        )}
+        {/* The team pages (scripts/team-pages/build.mjs writes the list): a quiet line, for fans and search engines */}
+        {view === 'MENU' && TEAM_PAGES.length > 0 && (
+          <p className="title-teams">
+            Real high school football: Friday nights under the lights, district rivals, the playoffs and one state title on the line. Can you win state
+            with{' '}
+            {TEAM_PAGES.map((t, i) => (
+              <React.Fragment key={t.path}>
+                {i > 0 && (i === TEAM_PAGES.length - 1 ? ' or ' : ', ')}
+                <a href={sitePage(t.path)} aria-label={`${t.full}, ${t.state}`} onClick={() => track('title_team_link', { state: t.state, school: t.school })}>
+                  {t.short}
+                </a>
+              </React.Fragment>
+            ))}
+            ? Or take your own school there.
+          </p>
         )}
         <nav className="title-links" aria-label="Policies">
           <a href={sitePage('/privacy')} target="_blank" rel="noopener">
