@@ -19,7 +19,6 @@ import { TeamProfileSheet } from './components/TeamProfileSheet';
 import { LiveMatchScreen } from './components/LiveMatchScreen';
 import { SaveLoadManagerModal } from './components/SaveLoadManagerModal';
 import { CoachRPGSkillTreeModal } from './components/CoachRPGSkillTreeModal';
-import { formatCP } from './sim/coachPoints';
 import { programRating } from './sim/programMeters';
 import { SplashScreen } from './components/SplashScreen';
 import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
@@ -35,6 +34,7 @@ import { AUTOSAVE_ID, loadSaveGame } from './services/db';
 import { loadLiveState } from './services/playedGames';
 import { lockKey } from './sim/gameLock';
 import { Sheet } from './components/ui/Sheet';
+import { CoachPointsBadge, DucatChip } from './components/CurrencyFloats';
 
 type AppTab = 'DASHBOARD' | 'TEAM' | 'RANKINGS' | 'LEADERS' | 'FEEDERS' | 'NEWS';
 
@@ -91,7 +91,8 @@ export const App: React.FC = () => {
     markGameFinal,
     lockNotice,
     dismissLockNotice,
-    markNewsSeen
+    markNewsSeen,
+    careerKey
   } = useGameStore();
   // Every new screen opens at the top (a tab, a section, the menu, a game, the wrap-up pages)
   useScrollTopOnScreenChange(
@@ -339,26 +340,25 @@ export const App: React.FC = () => {
       {/* Top Navigation Bar */}
       <div className="app-topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-          {/* Coach Points: the one currency */}
-          <span
-            aria-label={`Coach Points: ${coachPoints}`}
-            title={`Coach Points: ${formatCP(coachPoints)}`}
+          {/* Coach Points: a spend floats up in red and the badge squeezes and counts down (CurrencyFloats) */}
+          <CoachPointsBadge
+            coachPoints={coachPoints}
+            resetKey={careerKey ?? ''}
             style={{ ...topBtn(coachPoints < 0 ? '#DC2626' : '#FACC15'), ...statStack, color: coachPoints < 0 ? '#fff' : '#0F172A', padding: '2px 5px', cursor: 'default' }}
-          >
-            {/* Five figures shorten (₡12.3k) so the bar stays one line on the narrowest phones */}
-            {coachPoints >= 10000 ? `₡${(coachPoints / 1000).toFixed(1)}k` : formatCP(coachPoints)}
-            <span style={statLabel}>Coach PTS</span>
-          </span>
+            labelStyle={statLabel}
+          />
           {userTeam && (
-            <span title="Program prestige" aria-label={`Prestige ${userTeam.prestige}`} style={{ ...topPill, ...statStack }}>
-              ⭐ {userTeam.prestige}
-              <span style={statLabel}>Prestige</span>
-            </span>
-          )}
-          {userTeam && (
-            <span title="Program rating" aria-label={`Rating ${programRating(userTeam)}`} style={{ ...topPill, ...statStack }}>
-              📊 {programRating(userTeam)}
-              <span style={statLabel}>Rating</span>
+            // Ducats have no badge: one slides in over Prestige and Rating while they're spent
+            <span className="ducat-chip-slot">
+              <span title="Program prestige" aria-label={`Prestige ${userTeam.prestige}`} style={{ ...topPill, ...statStack }}>
+                ⭐ {userTeam.prestige}
+                <span style={statLabel}>Prestige</span>
+              </span>
+              <span title="Program rating" aria-label={`Rating ${programRating(userTeam)}`} style={{ ...topPill, ...statStack }}>
+                📊 {programRating(userTeam)}
+                <span style={statLabel}>Rating</span>
+              </span>
+              <DucatChip />
             </span>
           )}
         </div>

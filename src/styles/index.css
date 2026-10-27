@@ -1696,3 +1696,110 @@ body:has(.app-tabbar) .cookie-banner {
 @media (prefers-reduced-motion: reduce) {
   .agenda-flash { animation: none; outline: 3px solid #F59E0B; }
 }
+
+/* Spending, made visible (CurrencyFloats.tsx): a red "−₡20" floats up from the tapped button (a gain, green, from the
+   balance) and the balance squeezes, then springs back to its own size */
+.currency-float {
+  position: fixed;
+  z-index: 3000;
+  pointer-events: none;
+  transform: translate(-50%, 0);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 #fff, 0 2px 6px rgba(15, 23, 42, 0.35);
+  animation: currency-rise 1s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+.currency-float-spend { color: #DC2626; }
+.currency-float-gain { color: #16A34A; }
+.currency-float-big { font-size: 30px; }
+/* No tap to start from: it drops out of the balance and rises back into it */
+.currency-float-badge {
+  animation-name: currency-drop-rise;
+  animation-duration: 1.1s;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+@keyframes currency-rise {
+  0% { opacity: 0; transform: translate(-50%, 6px) scale(0.8); }
+  15% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  30% { transform: translate(-50%, -8px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -48px) scale(1); }
+}
+@keyframes currency-drop-rise {
+  0% { opacity: 0; transform: translate(-50%, -6px) scale(0.8); }
+  20% { opacity: 1; transform: translate(-50%, 10px) scale(1.08); }
+  100% { opacity: 0; transform: translate(-50%, -14px) scale(1); }
+}
+.currency-hit { animation: currency-hit 0.55s ease-out; }
+.currency-got { animation: currency-got 0.55s ease-out; }
+@keyframes currency-hit {
+  0% { transform: scale(1); background: #DC2626; color: #fff; }
+  25% { transform: scale(0.82); background: #DC2626; color: #fff; }
+  60% { transform: scale(1.04); background: #DC2626; color: #fff; }
+  100% { transform: scale(1); }
+}
+@keyframes currency-got {
+  0% { transform: scale(1); background: #16A34A; color: #fff; }
+  25% { transform: scale(1.12); background: #16A34A; color: #fff; }
+  60% { background: #16A34A; color: #fff; }
+  100% { transform: scale(1); }
+}
+
+/* Ducats have no badge: one slides down over Prestige and Rating (its slot) while they change */
+.ducat-chip-slot {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.ducat-chip {
+  position: absolute;
+  inset: 0;
+  transform: translateY(-110%);
+  transition: transform 0.25s ease;
+}
+.ducat-chip.is-shown { transform: none; }
+.ducat-chip-face {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 6px;
+  background: #F59E0B;
+  color: #451A03;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.ducat-chip-coin {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #FEF3C7;
+  border: 2px solid #B45309;
+  color: #B45309;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ducat-chip-label {
+  display: block;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .currency-float, .currency-float-badge { animation: currency-fade 1s forwards; }
+  .currency-hit, .currency-got { animation: none; }
+  .ducat-chip { transition: none; }
+}
+@keyframes currency-fade {
+  0% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
+}
