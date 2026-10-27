@@ -52,8 +52,9 @@ export const HubHeadlines: React.FC<{ onNavigate: (tab: AgendaTab) => void }> = 
             </button>
           );
         })}
+        {/* News lives here now (not in the top bar): with how many stories the coach hasn't seen */}
         <button onClick={() => onNavigate('NEWS')} style={allNews}>
-          All news ›
+          All news{unread.size > 0 ? ` · ${unread.size} new` : ''} ›
         </button>
       </div>
     </section>

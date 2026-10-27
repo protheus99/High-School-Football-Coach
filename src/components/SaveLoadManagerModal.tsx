@@ -4,8 +4,8 @@ import { Sheet } from './ui/Sheet';
 import { MusicSettingsPanel } from './MusicSettingsPanel';
 import { AccountCard, CookiesCard, SignInSheet } from './AccountPanels';
 
-export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { saveGame } = useGameStore();
+export const SaveLoadManagerModal: React.FC<{ onClose: () => void; onMainMenu?: () => void }> = ({ onClose, onMainMenu }) => {
+  const { saveGame, autosave } = useGameStore();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
 
@@ -33,6 +33,24 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void }> = ({ onClos
       <button className="ui-btn ui-btn-primary" style={{ width: '100%' }} onClick={handleSaveToBrowser}>
         💾 Save game
       </button>
+      {/* Back to the title screen, saved first: Continue picks up right here */}
+      {onMainMenu && (
+        <>
+          <button
+            className="ui-btn"
+            style={{ width: '100%', marginTop: '8px', background: '#1E293B', borderColor: '#1E293B', color: '#fff' }}
+            onClick={async () => {
+              await autosave().catch(() => undefined);
+              onMainMenu();
+            }}
+          >
+            🏠 Main menu
+          </button>
+          <p className="ui-muted" style={{ margin: '6px 0 0', fontSize: '12px' }}>
+            Your game is saved when you leave: Continue picks up right here.
+          </p>
+        </>
+      )}
     </Sheet>
   );
 };

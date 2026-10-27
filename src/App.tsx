@@ -29,6 +29,7 @@ import { GameSimulationState, OffensiveScheme } from './types/game';
 import { rulesForState } from './sim/stateRules';
 import { DucatCheckoutSheet } from './components/DucatStore';
 import { returnedFromCheckout } from './services/ducats';
+import { ADVANCE_LABEL, advanceBlocker } from './sim/advanceGate';
 import { track } from './services/analytics';
 import { AUTOSAVE_ID, loadSaveGame } from './services/db';
 import { loadLiveState } from './services/playedGames';
@@ -58,6 +59,8 @@ export const App: React.FC = () => {
   const [awardsRecord, setAwardsRecord] = useState<SeasonAwardsRecord | null>(null);
   const [awardsShownForYear, setAwardsShownForYear] = useState<number | null>(null);
   const [showMenu, setShowMenu] = useState(true); // title screen until a game is started or loaded
+  // Advance from the top bar while something blocks the week: the Hub takes over (the decision, or the game's choice)
+  const [advanceRequest, setAdvanceRequest] = useState(0);
 
   const {
     league,
@@ -88,14 +91,12 @@ export const App: React.FC = () => {
     markGameFinal,
     lockNotice,
     dismissLockNotice,
-    newsSeen,
     markNewsSeen
   } = useGameStore();
   // Every new screen opens at the top (a tab, a section, the menu, a game, the wrap-up pages)
   useScrollTopOnScreenChange(
     [showMenu, tab, teamSection, rankingsSection, feederSection, !!activeMatch, isBanquetActive, !!awardsRecord, careerComplete, firedFrom].join('|')
   );
-  const unreadNews = Math.max(0, newsArticles.length - newsSeen);
   const openNews = () => {
     markNewsSeen();
     setTab('NEWS');
@@ -146,6 +147,19 @@ export const App: React.FC = () => {
     // A game counts once it kicks off: it's written down outside the saves right away
     useGameStore.getState().markGameLive(newGame, true);
     setActiveMatch(newGame);
+  };
+
+  // Advance from any screen: straight on when nothing blocks the week; otherwise the Hub, which shows the decision or
+  // the game's choice (play it, auto-sim it, or resume it)
+  const blocker = advanceBlocker(useGameStore.getState());
+  const advanceFace = ADVANCE_LABEL[blocker ?? 'CLEAR'];
+  const handleTopAdvance = () => {
+    if (!blocker) {
+      useGameStore.getState().advanceWeek();
+      return;
+    }
+    setTab('DASHBOARD');
+    setAdvanceRequest((n) => n + 1);
   };
 
   // A game that kicked off before this save was loaded (or before the browser closed): back where it left off
@@ -280,7 +294,15 @@ export const App: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
-      {showSaveLoadModal && <SaveLoadManagerModal onClose={() => setShowSaveLoadModal(false)} />}
+      {showSaveLoadModal && (
+        <SaveLoadManagerModal
+          onClose={() => setShowSaveLoadModal(false)}
+          onMainMenu={() => {
+            setShowSaveLoadModal(false);
+            setShowMenu(true);
+          }}
+        />
+      )}
       {viewedTeamId && <TeamProfileSheet teamId={viewedTeamId} onClose={() => openTeamProfile(null)} onOpenPlayer={(p) => openPlayerCard(p.id)} />}
       {viewedPlayer && (
         <PlayerDetailModal
@@ -340,27 +362,17 @@ export const App: React.FC = () => {
             </span>
           )}
         </div>
-        {/* Narrow icon buttons (full height for thumbs) keep the bar to one line, even with the playoff bracket */}
-        <div style={{ display: 'flex', gap: '3px', flexWrap: 'nowrap', flex: '0 0 auto' }}>
+        {/* Narrow icon buttons (full height for thumbs) keep the bar to one line; Advance, in the corner, on every screen */}
+        <div style={{ display: 'flex', gap: '3px', flexWrap: 'nowrap', flex: '0 0 auto', alignItems: 'center' }}>
           {/* Music: brings up the Now Playing pop-up (mute and next song) */}
           <button onClick={showNowPlaying} aria-label="Music" title="Music: mute or next song" style={iconBtn('#334155')}>
             🎵 <span className="hide-sm">Music</span>
           </button>
-          {/* News, with a count of the stories the coach hasn't seen */}
-          <button
-            onClick={openNews}
-            aria-label={unreadNews > 0 ? `News: ${unreadNews} unread` : 'News'}
-            title="News"
-            style={{ ...iconBtn(tab === 'NEWS' ? '#2563EB' : '#334155'), position: 'relative' }}
-          >
-            📰 <span className="hide-sm">News</span>
-            {unreadNews > 0 && tab !== 'NEWS' && <span style={unreadBadge}>{unreadNews > 9 ? '9+' : unreadNews}</span>}
-          </button>
-          <button onClick={() => setShowSaveLoadModal(true)} aria-label="Settings" title="Settings: music, saves" style={iconBtn('#334155')}>
+          <button onClick={() => setShowSaveLoadModal(true)} aria-label="Settings" title="Settings: music, saves, main menu" style={iconBtn('#334155')}>
             ⚙️ <span className="hide-sm">Settings</span>
           </button>
-          <button onClick={() => setShowMenu(true)} aria-label="Main Menu" title="Main Menu" style={{ ...iconBtn('#1E293B'), border: '1px solid #475569' }}>
-            🏠 <span className="hide-sm">Menu</span>
+          <button onClick={handleTopAdvance} aria-label={advanceFace.title} title={advanceFace.title} style={advanceBtn(blocker)}>
+            {advanceFace.label}
           </button>
         </div>
       </div>
@@ -371,6 +383,8 @@ export const App: React.FC = () => {
           <DashboardView
             onLaunchGame={handleLaunchMatch}
             onResumeGame={() => void handleResumeMatch()}
+            advanceRequest={advanceRequest}
+            onAdvanceHandled={() => setAdvanceRequest(0)}
             onNavigate={(target) => {
               if (target === 'FEEDERS' || target === 'FEEDER_PROGRAMS' || target === 'FEEDER_NEEDS') {
                 setFeederSection(target === 'FEEDER_PROGRAMS' ? 'PROGRAMS' : target === 'FEEDER_NEEDS' ? 'NEEDS' : 'STUDENTS');
@@ -485,19 +499,21 @@ const navBtnStyle = (active: boolean): React.CSSProperties => ({
   cursor: 'pointer'
 });
 
-const unreadBadge: React.CSSProperties = {
-  position: 'absolute',
-  top: '-4px',
-  right: '-5px',
-  minWidth: '16px',
-  height: '16px',
-  borderRadius: '999px',
-  background: '#DC2626',
-  color: '#fff',
-  fontSize: '10px',
-  fontWeight: 'bold',
-  lineHeight: '16px',
-  textAlign: 'center',
-  padding: '0 4px',
-  boxSizing: 'border-box'
+// The Advance button: green when the week can move on, amber for a decision, blue for this week's game
+const advanceBtn = (blocker: ReturnType<typeof advanceBlocker>): React.CSSProperties => {
+  const [background, color, edge] =
+    blocker === 'DECISION' ? ['#F59E0B', '#422006', '#92400E'] : blocker === 'GAME' || blocker === 'LIVE' ? ['#2563EB', '#fff', '#1E3A8A'] : ['#16A34A', '#fff', '#14532D'];
+  return {
+    minHeight: '40px',
+    padding: '0 10px',
+    background,
+    color,
+    border: 'none',
+    borderRadius: '8px',
+    boxShadow: `0 2px 0 ${edge}`,
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: 800,
+    whiteSpace: 'nowrap'
+  };
 };

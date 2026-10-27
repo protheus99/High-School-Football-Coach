@@ -1682,3 +1682,17 @@ body:has(.app-tabbar) .cookie-banner {
   cursor: pointer;
   padding: 4px;
 }
+
+/* The decision card, lit up for a moment when Advance (top bar or Hub) brings the coach to it */
+@keyframes agenda-flash {
+  0%, 40% { box-shadow: 0 0 0 3px #F59E0B, 0 0 18px rgba(245, 158, 11, 0.55); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+.agenda-flash {
+  animation: agenda-flash 1.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agenda-flash { animation: none; outline: 3px solid #F59E0B; }
+}

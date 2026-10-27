@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { rulesForState } from '../sim/stateRules';
 import { OffensiveScheme } from '../types/game';
@@ -18,7 +18,9 @@ export const DashboardView: React.FC<{
   onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
   onResumeGame: () => void;
   onNavigate: (tab: AgendaTab) => void;
-}> = ({ onLaunchGame, onResumeGame, onNavigate }) => {
+  advanceRequest?: number; // the top bar's Advance, while something blocks the week: this screen takes it from here
+  onAdvanceHandled?: () => void;
+}> = ({ onLaunchGame, onResumeGame, onNavigate, advanceRequest = 0, onAdvanceHandled }) => {
   const { currentWeek, currentYear, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, advanceWeek, nationalLeagues, activeDilemma, coachingStaff, careerKey, playedGames, lockNotice } =
     useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
@@ -39,17 +41,36 @@ export const DashboardView: React.FC<{
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
 
+  // No moving on with a decision open: every way forward takes the coach to the dilemma instead (lit up for a moment)
+  const goToDecision = () => {
+    const card = document.getElementById('agenda-dilemma');
+    if (!card) return;
+    card.scrollIntoView({ block: 'start' });
+    card.classList.remove('agenda-flash');
+    void card.offsetWidth; // restart the glow if it's still running
+    card.classList.add('agenda-flash');
+  };
+  // The top bar's Advance on another screen, with something blocking: the same as Advance here. A moment later, so
+  // the new screen's jump to the top (checked again at 150 ms) doesn't scroll the decision back out of sight
+  useEffect(() => {
+    if (!advanceRequest) return;
+    const t = setTimeout(() => {
+      onAdvanceHandled?.();
+      handleAdvanceWeek();
+    }, 200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [advanceRequest]);
+
   if (!userTeam) return <div>Loading Program Dashboard...</div>;
   const staffDue = coachingStaff.some((c) => needsSettling(c, currentWeek, currentYear));
 
-  // No moving on with a decision open: every way forward takes the coach to the dilemma instead
-  const goToDecision = () => document.getElementById('agenda-dilemma')?.scrollIntoView({ block: 'start' });
   // Skipping an unplayed game auto-simulates it, so confirm first
-  const handleAdvanceWeek = () => {
+  function handleAdvanceWeek() {
     if (activeDilemma) goToDecision();
     else if (game && opponent && !isPlayed) setShowSimWarning(true);
     else advanceWeek();
-  };
+  }
   const handleSimGame = () => (activeDilemma ? goToDecision() : advanceWeek());
 
   return (
@@ -131,28 +152,15 @@ export const DashboardView: React.FC<{
         />
       )}
 
-      {/* Header Banner */}
-      {/* Team name (wrapping to a second line when long) with Advance Week always on the right */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '12px', marginBottom: '20px' }}>
-        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-          <h1 className="ui-page-title" style={{ overflowWrap: 'anywhere' }} title={`${userTeam.name} ${userTeam.mascot}`}>
-            {userTeam.name} {userTeam.mascot}
-          </h1>
-          <div style={{ color: '#6B7280', marginTop: '2px' }}>
-            {district?.name ?? 'Class 6A'}
-            {region ? ` · ${region.name}` : ''}
-          </div>
+      {/* Header Banner: the team (Advance is in the top bar, on every screen) */}
+      <div style={{ marginBottom: '20px' }}>
+        <h1 className="ui-page-title" style={{ overflowWrap: 'anywhere' }} title={`${userTeam.name} ${userTeam.mascot}`}>
+          {userTeam.name} {userTeam.mascot}
+        </h1>
+        <div style={{ color: '#6B7280', marginTop: '2px' }}>
+          {district?.name ?? 'Class 6A'}
+          {region ? ` · ${region.name}` : ''}
         </div>
-        {activeDilemma ? (
-          <button className="ui-btn" style={{ flex: '0 0 auto', whiteSpace: 'nowrap', borderColor: '#F59E0B', color: '#92400E' }} onClick={goToDecision} aria-label="Review needed before advancing">
-            ⚠️ Review first
-          </button>
-        ) : (
-          <button className="ui-btn ui-btn-dark" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} onClick={handleAdvanceWeek} aria-label="Advance Week">
-            ⏭️ <span className="hide-sm">Advance Week</span>
-            <span className="show-sm">Advance</span>
-          </button>
-        )}
       </div>
 
       {/* Staff contracts waiting on the coach come first; otherwise the staff's status follows the week's to-do list */}
