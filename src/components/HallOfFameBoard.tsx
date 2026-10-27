@@ -72,6 +72,13 @@ export const HallOfFameBoard: React.FC = () => {
                     {s.stateTitle && <StatePennant state={career.state} />}
                     {s.nationalTitle && <UsFlag width={17} />}
                     {s.collegeSignees > 0 && ` · ${s.collegeSignees} signed`}
+                    {(career.reckonings ?? [])
+                      .filter((r) => r.year === s.year)
+                      .map((r, i) => (
+                        <span key={i} style={{ color: '#B91C1C', fontWeight: 800, fontSize: '12px' }}>
+                          ☠️ {r.title} came to light
+                        </span>
+                      ))}
                   </span>
                   <strong style={{ flex: '0 0 auto' }}>+{s.points}</strong>
                 </div>
@@ -83,6 +90,11 @@ export const HallOfFameBoard: React.FC = () => {
                 </span>
                 <strong>{careerPoints(career)}</strong>
               </div>
+            </div>
+          )}
+          {(career.reckonings?.length ?? 0) > 0 && (
+            <div style={{ marginTop: '8px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderLeft: '5px solid #DC2626', borderRadius: '8px', padding: '8px 10px', color: '#7F1D1D', fontSize: '12.5px', lineHeight: 1.45 }}>
+              ☠️ <strong>Invalid playthrough.</strong> A shady call came to light in {career.reckonings![0].year}, so this career is listed under &quot;Invalid playthroughs&quot;, not ranked.
             </div>
           )}
         </section>
@@ -116,9 +128,25 @@ export const HallOfFameBoard: React.FC = () => {
   );
 };
 
+// The board shows the top 10 careers of each length
+const HALL_OF_FAME_TOP = 10;
+// Whether the board lists invalid playthroughs, remembered on this device
+const INVALID_KEY = 'fc.hofShowInvalid';
+const invalidShown = () => {
+  try {
+    return localStorage.getItem(INVALID_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+/** A career with a reckoning (a shady call that came to light): not ranked. */
+const isInvalid = (e: LeaderboardEntry) => (e.reckonings ?? 0) > 0;
+
 /**
- * The arcade board itself: every career of one length (3, 5 or 10 years), ranked. The coach's own career is
- * highlighted when there is one; the title screen shows it with no game loaded.
+ * The arcade board itself: the top 10 clean careers of one length (3, 5 or 10 years), ranked. The coach's own career
+ * is highlighted when there is one, and shown after the top 10 with its rank when it's lower. Invalid playthroughs
+ * (☠️, a shady call came to light) aren't ranked: the "Invalid playthroughs" switch lists them under the board. The
+ * title screen shows the board with no game loaded.
  */
 export const HallOfFameArcade: React.FC<{ career: Career | null; length: CareerLength; onLength: (length: CareerLength) => void; deviceOnly?: boolean }> = ({
   career,
@@ -126,7 +154,21 @@ export const HallOfFameArcade: React.FC<{ career: Career | null; length: CareerL
   onLength,
   deviceOnly = false
 }) => {
-  const board = useHallOfFame(length, career);
+  const all = useHallOfFame(length, career);
+  const board = all.filter((e) => !isInvalid(e));
+  const invalid = all.filter(isInvalid);
+  const mineAt = career ? board.findIndex((e) => e.careerId === career.id) : -1;
+  const mineInvalid = !!career && invalid.some((e) => e.careerId === career.id);
+  const [showInvalid, setShowInvalid] = useState(invalidShown);
+  const toggleInvalid = () => {
+    const next = !showInvalid;
+    setShowInvalid(next);
+    try {
+      localStorage.setItem(INVALID_KEY, next ? '1' : '0');
+    } catch {
+      // storage unavailable: the switch still works for this visit
+    }
+  };
   return (
     <section aria-label="Hall of Fame" style={arcade}>
       <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 900, letterSpacing: '0.16em', color: '#FACC15', textShadow: '0 0 6px rgba(250,204,21,.6)' }}>HALL OF FAME</div>
@@ -153,13 +195,65 @@ export const HallOfFameArcade: React.FC<{ career: Career | null; length: CareerL
           </button>
         ))}
       </div>
+      <button
+        aria-pressed={showInvalid}
+        onClick={toggleInvalid}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '10px',
+          width: '100%',
+          minHeight: '40px',
+          background: 'transparent',
+          border: `1px solid ${showInvalid ? '#F87171' : '#334155'}`,
+          borderRadius: '8px',
+          color: showInvalid ? '#FCA5A5' : '#CBD5E1',
+          fontFamily: 'inherit',
+          fontSize: '12px',
+          fontWeight: 900,
+          letterSpacing: '0.06em',
+          padding: '0 10px',
+          cursor: 'pointer',
+          marginBottom: '8px'
+        }}
+      >
+        <span>☠️ INVALID PLAYTHROUGHS</span>
+        <span aria-hidden="true" style={{ width: '38px', height: '22px', borderRadius: '999px', background: showInvalid ? '#DC2626' : '#334155', position: 'relative', flex: '0 0 auto' }}>
+          <span style={{ position: 'absolute', top: '3px', left: showInvalid ? '19px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#E2E8F0' }} />
+        </span>
+      </button>
       {board.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '14px 0' }}>NO {length}-YEAR CAREERS YET</p>
       ) : (
         <div>
-          {board.map((e, i) => (
+          {board.slice(0, HALL_OF_FAME_TOP).map((e, i) => (
             <BoardRow key={e.careerId} entry={e} rank={i + 1} mine={e.careerId === career?.id} deviceOnly={deviceOnly && e.careerId === career?.id} />
           ))}
+          {/* The coach's own career, when it ranks below the top 10 */}
+          {mineAt >= HALL_OF_FAME_TOP && (
+            <>
+              <div aria-hidden="true" style={{ textAlign: 'center', color: '#94A3B8', letterSpacing: '0.4em', fontSize: '14px', fontWeight: 900, margin: '2px 0' }}>
+                · · ·
+              </div>
+              <BoardRow entry={board[mineAt]} rank={mineAt + 1} mine deviceOnly={deviceOnly} />
+            </>
+          )}
+        </div>
+      )}
+      {showInvalid && invalid.length > 0 && (
+        <div aria-label="Invalid playthroughs">
+          <div style={{ margin: '10px 0 4px', paddingTop: '8px', borderTop: '1px dashed #7F1D1D', color: '#FCA5A5', fontSize: '11px', fontWeight: 900, letterSpacing: '0.1em' }}>
+            ☠️ INVALID PLAYTHROUGHS · NOT RANKED
+          </div>
+          {invalid.map((e) => (
+            <BoardRow key={e.careerId} entry={e} mine={e.careerId === career?.id} deviceOnly={deviceOnly && e.careerId === career?.id} />
+          ))}
+        </div>
+      )}
+      {mineInvalid && !showInvalid && (
+        <div style={{ marginTop: '8px', background: 'rgba(127,29,29,.25)', border: '1px solid #7F1D1D', borderRadius: '8px', padding: '8px 10px', fontSize: '11.5px', color: '#FECACA', lineHeight: 1.45 }}>
+          ☠️ Your career had a reckoning, so it&apos;s an invalid playthrough and isn&apos;t ranked. Turn on &quot;Invalid playthroughs&quot; to see it.
         </div>
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', marginTop: '12px', fontSize: '11px', color: '#94A3B8' }} aria-label="Scoring">
@@ -169,13 +263,15 @@ export const HallOfFameArcade: React.FC<{ career: Career | null; length: CareerL
           </span>
         ))}
         <span>× START BONUS: LOWER PRESTIGE SCORES MORE</span>
+        <span>☠️ INVALID PLAYTHROUGH: A SHADY CALL CAME TO LIGHT. NOT RANKED.</span>
       </div>
     </section>
   );
 };
 
-const BoardRow: React.FC<{ entry: LeaderboardEntry; rank: number; mine: boolean; deviceOnly?: boolean }> = ({ entry: e, rank, mine, deviceOnly }) => {
+const BoardRow: React.FC<{ entry: LeaderboardEntry; rank?: number; mine: boolean; deviceOnly?: boolean }> = ({ entry: e, rank, mine, deviceOnly }) => {
   const games = e.wins + e.losses;
+  const reckonings = e.reckonings ?? 0;
   const sub: React.CSSProperties = { display: 'block', color: '#94A3B8', fontSize: '11px' };
   return (
     <div
@@ -187,10 +283,17 @@ const BoardRow: React.FC<{ entry: LeaderboardEntry; rank: number; mine: boolean;
         fontSize: '12.5px',
         padding: '6px',
         borderRadius: '6px',
+        ...(rank === undefined ? { background: 'rgba(127,29,29,.18)' } : {}),
         ...(mine ? { background: 'rgba(250,204,21,.18)', outline: '1px solid #FACC15' } : {})
       }}
     >
-      <span style={{ color: rank === 1 ? '#FACC15' : '#22D3EE', fontWeight: 900 }}>{ordinal(rank).toUpperCase()}</span>
+      {rank === undefined ? (
+        <span aria-label="Invalid playthrough" style={{ fontSize: '15px' }}>
+          ☠️
+        </span>
+      ) : (
+        <span style={{ color: rank === 1 ? '#FACC15' : '#22D3EE', fontWeight: 900 }}>{ordinal(rank).toUpperCase()}</span>
+      )}
       <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
         <span style={{ display: 'block', fontWeight: 700 }}>{coachTitle(e.coachName)}</span>
         <span style={sub}>
@@ -207,8 +310,22 @@ const BoardRow: React.FC<{ entry: LeaderboardEntry; rank: number; mine: boolean;
             <TitleCounts state={e.state} titles={e.titles} nationalTitles={e.nationalTitles} />
           </span>
         )}
+        {reckonings > 0 && (
+          <span style={{ display: 'block', color: '#FCA5A5', fontSize: '10.5px', fontWeight: 900, letterSpacing: '0.04em' }}>
+            {reckonings} {reckonings === 1 ? 'RECKONING' : 'RECKONINGS'}
+          </span>
+        )}
       </span>
-      <span style={{ textAlign: 'right', color: '#FACC15', fontWeight: 900, fontSize: '14px' }}>{e.points}</span>
+      <span
+        style={{
+          textAlign: 'right',
+          fontWeight: 900,
+          fontSize: '14px',
+          ...(rank === undefined ? { color: '#94A3B8', textDecoration: 'line-through', textDecorationColor: '#F87171' } : { color: '#FACC15' })
+        }}
+      >
+        {e.points}
+      </span>
     </div>
   );
 };

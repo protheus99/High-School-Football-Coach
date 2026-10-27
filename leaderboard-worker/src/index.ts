@@ -34,6 +34,7 @@ export interface Env {
 }
 
 const TOP = 50;
+const INVALID_LISTED = 25; // invalid playthroughs served after the ranked board
 const MAX_BODY_BYTES = 4096;
 const SESSION_COOKIE = 'fc_session';
 const MIN_SEASON_MS = 60 * 1000; // a season can't be played faster than this
@@ -77,6 +78,7 @@ interface Row {
   college_signees: number;
   points: number;
   updated_at: number;
+  reckonings: number;
 }
 
 const toEntry = (r: Row) => ({
@@ -96,7 +98,8 @@ const toEntry = (r: Row) => ({
   startingPrestige: r.starting_prestige,
   collegeSignees: r.college_signees,
   points: r.points,
-  updatedAt: r.updated_at
+  updatedAt: r.updated_at,
+  reckonings: r.reckonings ?? 0
 });
 
 async function sha256(text: string): Promise<string> {
@@ -163,10 +166,11 @@ async function submit(request: Request, env: Env, cors: Record<string, string>):
     // A career posted before sign-in was required joins the player who now posts it with its token
     await env.DB.prepare(
       `UPDATE careers SET coach_name = ?, seasons = ?, wins = ?, losses = ?, playoff_wins = ?, titles = ?, college_signees = ?, points = ?, updated_at = ?,
-         national_titles = ?, user_id = ?
+         national_titles = ?, user_id = ?, reckonings = MAX(reckonings, ?)
        WHERE career_id = ?`
     )
-      .bind(c.coachName, c.seasons, c.wins, c.losses, c.playoffWins, c.titles, c.collegeSignees, c.points, now, c.nationalTitles, userId, c.careerId)
+      // A reckoning never goes away: the count only goes up, whatever is sent later
+      .bind(c.coachName, c.seasons, c.wins, c.losses, c.playoffWins, c.titles, c.collegeSignees, c.points, now, c.nationalTitles, userId, c.reckonings, c.careerId)
       .run();
   } else {
     // A new career arrives after its first season (or two), not finished
@@ -180,11 +184,11 @@ async function submit(request: Request, env: Env, cors: Record<string, string>):
     if ((today?.n ?? 0) >= NEW_CAREERS_PER_DAY) return json({ error: 'Too many new careers today' }, 429, cors);
     await env.DB.prepare(
       `INSERT INTO careers (career_id, token_hash, coach_name, scenario, state, starting_school, starting_program, length, seasons, wins, losses,
-         playoff_wins, titles, college_signees, points, created_at, updated_at, national_titles, starting_prestige, user_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         playoff_wins, titles, college_signees, points, created_at, updated_at, national_titles, starting_prestige, user_id, reckonings)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
       .bind(c.careerId, tokenHash, c.coachName, c.scenario, c.state, c.startingSchool, c.startingProgram, c.length, c.seasons, c.wins, c.losses,
-        c.playoffWins, c.titles, c.collegeSignees, c.points, now, now, c.nationalTitles, c.startingPrestige, userId)
+        c.playoffWins, c.titles, c.collegeSignees, c.points, now, now, c.nationalTitles, c.startingPrestige, userId, c.reckonings)
       .run();
   }
   return json({ ok: true }, 200, cors);
@@ -204,11 +208,17 @@ async function leaderboard(url: URL, env: Env, cors: Record<string, string>): Pr
     where.push('length = ?');
     params.push(length);
   }
-  const { results } = await env.DB.prepare(
-    `SELECT * FROM careers ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY points DESC, titles DESC, seasons ASC LIMIT ${TOP}`
-  )
-    .bind(...params)
-    .all<Row>();
+  // The ranked board counts clean careers only; invalid playthroughs (a reckoning) follow, best first, for the game to
+  // show apart. Both lists keep the same order.
+  const list = async (clean: boolean, limit: number) =>
+    (
+      await env.DB.prepare(
+        `SELECT * FROM careers WHERE ${[...where, clean ? 'reckonings = 0' : 'reckonings > 0'].join(' AND ')} ORDER BY points DESC, titles DESC, seasons ASC LIMIT ${limit}`
+      )
+        .bind(...params)
+        .all<Row>()
+    ).results;
+  const results = [...(await list(true, TOP)), ...(await list(false, INVALID_LISTED))];
   return json(results.map(toEntry), 200, { ...cors, 'Cache-Control': 'public, max-age=30' });
 }
 

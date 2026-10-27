@@ -9,6 +9,7 @@ import { DilemmaChoice } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
 import { useGameStore } from '../../store/gameStore';
+import { toEntry } from '../../services/leaderboard';
 
 const choice = (impact: Partial<DilemmaChoice['impact']>): DilemmaChoice => ({
   id: 'c',
@@ -237,6 +238,31 @@ describe('Whistleblower exposure', () => {
     const story = useGameStore.getState().newsArticles.find((a) => a.id.startsWith('news_exposed_FILM_ROOM_GIFT'))!;
     expect(story.headline).toBe(`Off-the-Books Gifts Found in ${team().name} Film Room`);
     expect(story.content).toMatch(/Auditors are tracing the money\. The Week 5 decision: Take the Cash and Gear Directly\.$/);
+  });
+
+  it("marks the career with the reckoning: an invalid playthrough on the Hall of Fame", () => {
+    const store = useGameStore.getState();
+    store.startNewSeason();
+    const { currentYear } = useGameStore.getState();
+    const career = { id: 'career_test_reckon', coachName: 'Claude', scenario: 'OPEN', state: 'Texas', startingSchool: 'X', startingProgram: 'X', startedYear: currentYear, length: 3, seasons: [] } as const;
+    useGameStore.setState({
+      career: { ...career, seasons: [] },
+      careerComplete: false,
+      currentWeek: 6,
+      dilemmaLog: [
+        { templateId: 'FILM_ROOM_GIFT', title: "Booster's Film Room Offer", year: currentYear, week: 5, tier: 'CORRUPT', exposureWeek: 7, choiceLabel: 'Take the Cash and Gear Directly' },
+        { templateId: 'GRADE_CRISIS', title: 'Midterm Grade Crisis', year: currentYear, week: 5, tier: 'GOOD' } // never exposed
+      ]
+    });
+
+    useGameStore.getState().advanceWeek();
+
+    const marked = useGameStore.getState().career!;
+    expect(marked.reckonings).toEqual([{ year: currentYear, week: 7, title: "Booster's Film Room Offer" }]);
+    expect(toEntry(marked).reckonings).toBe(1);
+    // A quiet week adds nothing
+    useGameStore.getState().advanceWeek();
+    expect(useGameStore.getState().career!.reckonings).toHaveLength(1);
   });
 
   it('gives every dilemma its own story, naming the player only when there is one', () => {

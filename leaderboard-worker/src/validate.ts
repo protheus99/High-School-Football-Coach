@@ -18,6 +18,7 @@ export const LENGTHS = [3, 5, 10];
 const MAX_REGULAR_GAMES = 10; // weeks 8-17, the out-of-state game included
 const MAX_PLAYOFF_GAMES = 6; // Ohio's six rounds are the most
 const MAX_SIGNEES = 25; // seniors signing with colleges in one season (a whole senior class, above what the game produces)
+const MAX_RECKONINGS = 20; // a season's shady calls that came to light (at most one dilemma a week)
 
 export interface Submission {
   careerId: string;
@@ -37,6 +38,7 @@ export interface Submission {
   startingPrestige: number; // the program's prestige when the contract began (older games don't send it: 99, no bonus)
   collegeSignees: number;
   points: number;
+  reckonings: number; // shady dilemma calls that came to light: any makes it an invalid playthrough (older games: 0)
 }
 
 const PROGRAMS = new Map<string, string>(SCENARIOS.flatMap((s) => s.programs.map((p) => [`${s.id}|${p.state}|${p.school}`, p.displayName] as const)));
@@ -88,6 +90,9 @@ export function validate(body: unknown): { ok: true; value: Submission } | { ok:
   const startingPrestige = b.startingPrestige ?? 99;
   if (!isCount(startingPrestige, 99) || startingPrestige < MIN_PRESTIGE) return { ok: false, error: 'Bad startingPrestige' };
   if (!isCount(b.collegeSignees, seasons * MAX_SIGNEES)) return { ok: false, error: 'Bad collegeSignees' };
+  // The season being played counts too: a reckoning can land before that season is scored
+  const reckonings = b.reckonings ?? 0;
+  if (!isCount(reckonings, (seasons + 1) * MAX_RECKONINGS)) return { ok: false, error: 'Bad reckonings' };
   const base =
     (b.wins - b.playoffWins) * POINTS.win +
     b.losses * POINTS.loss +
@@ -116,7 +121,8 @@ export function validate(body: unknown): { ok: true; value: Submission } | { ok:
       nationalTitles,
       startingPrestige,
       collegeSignees: b.collegeSignees,
-      points: expected
+      points: expected,
+      reckonings
     }
   };
 }

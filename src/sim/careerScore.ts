@@ -46,6 +46,9 @@ export interface Career {
   coachId?: string; // the coach across contracts in one save (Team › Career lists them together)
   token?: string; // the career's secret for the global leaderboard (only this device can update it)
   seasons: CareerSeason[];
+  // Shady dilemma calls that came to light (their "future reckoning"): any makes the career an invalid playthrough,
+  // listed apart on the Hall of Fame
+  reckonings?: { year: number; week: number; title: string }[];
 }
 
 /** One season's points: wins 5, losses 1, playoff wins 8, a state title 10, a national title 15, each college signee 1. */

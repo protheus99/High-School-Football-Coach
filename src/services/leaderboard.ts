@@ -28,6 +28,7 @@ export interface LeaderboardEntry {
   points: number;
   updatedAt: number;
   isLocal?: boolean; // played on this device
+  reckonings?: number; // shady calls that came to light: any makes it an invalid playthrough
 }
 
 export function toEntry(career: Career): LeaderboardEntry {
@@ -50,7 +51,8 @@ export function toEntry(career: Career): LeaderboardEntry {
     collegeSignees: sum('collegeSignees'),
     points: careerPoints(career),
     updatedAt: Date.now(),
-    isLocal: true
+    isLocal: true,
+    reckonings: career.reckonings?.length ?? 0
   };
 }
 

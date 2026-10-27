@@ -28,7 +28,7 @@ const sha256 = async (t: string) => [...new Uint8Array(await crypto.subtle.diges
 
 /** A Hall of Fame database, a sign-in database with two signed-in players, and the worker's settings. */
 async function world() {
-  const hof = d1('leaderboard-worker', ['0001_careers.sql', '0002_hall_of_fame.sql', '0003_owner.sql']);
+  const hof = d1('leaderboard-worker', ['0001_careers.sql', '0002_hall_of_fame.sql', '0003_owner.sql', '0004_reckonings.sql']);
   const auth = d1('auth-worker', ['0001_accounts.sql', '0002_saves.sql']);
   for (const [user, token] of [['u1', 'session-one'], ['u2', 'session-two']]) {
     auth.sqlite.prepare('INSERT INTO users (id, email, name, marketing_opt_in, created_at, updated_at) VALUES (?, ?, ?, 0, 0, 0)').run(user, `${user}@example.com`, user);
@@ -82,7 +82,9 @@ describe('Leaderboard submissions', () => {
     ['a title without a playoff win', { titles: 1, playoffWins: 0, wins: 15, points: 75 + 3 + 10 + 6 }],
     ['more college signees than a senior class', { collegeSignees: 60, points: 15 * 5 + 3 + 4 * 8 + 10 + 60 }],
     ['an empty coach name', { coachName: '<<>>' }],
-    ['a short token', { token: 'abc' }]
+    ['a short token', { token: 'abc' }],
+    ['a negative reckoning count', { reckonings: -1 }],
+    ['more reckonings than the seasons allow', { reckonings: 999 }]
   ])('rejects %s', (_, overrides) => {
     expect(validate(career(overrides)).ok).toBe(false);
   });
@@ -230,5 +232,23 @@ describe('Leaderboard worker', () => {
 
     const other = await worker.fetch(new Request('https://api.example/leaderboard', { headers: { Origin: 'https://evil.example' } }), env);
     expect(other.headers.get('Access-Control-Allow-Origin')).toBeNull();
+  });
+  it('lists invalid playthroughs (a reckoning) after the ranked board, and a reckoning never goes away', async () => {
+    const { hof, env } = await world();
+    // The best career had a shady call come to light; the other two are clean
+    await post(env, first({ coachName: 'Shady', wins: 24, losses: 1, playoffWins: 6, titles: 2, reckonings: 1 }));
+    await post(env, first({ careerId: 'career_2_clean1', token: 'b'.repeat(32), coachName: 'Clean One' }));
+    await post(env, first({ careerId: 'career_3_clean2', token: 'c'.repeat(32), coachName: 'Clean Two', titles: 0 }));
+    const res = await worker.fetch(new Request('https://footballcoachgame.com/api/hof/leaderboard?length=5', { headers: { Origin: 'https://game.example' } }), env);
+    const board = (await res.json()) as { coachName: string; reckonings: number }[];
+    expect(board.map((e) => [e.coachName, e.reckonings])).toEqual([
+      ['Clean One', 0],
+      ['Clean Two', 0],
+      ['Shady', 1]
+    ]);
+    // Sending the career again without its reckoning doesn't clear it
+    tick(2 * MINUTE);
+    expect((await post(env, first({ coachName: 'Shady', seasons: 3, wins: 33, losses: 2, playoffWins: 6, titles: 2, reckonings: 0 }))).status).toBe(200);
+    expect((hof.sqlite.prepare("SELECT reckonings FROM careers WHERE coach_name = 'Shady'").get() as { reckonings: number }).reckonings).toBe(1);
   });
 });

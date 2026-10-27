@@ -1128,6 +1128,12 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       };
     });
     if (exposureArticles.length > 0) set({ newsArticles: [...exposureArticles, ...get().newsArticles] });
+    // Each one marks the career: an invalid playthrough on the Hall of Fame
+    const reckoningCareer = get().career;
+    if (exposures.length > 0 && reckoningCareer && !get().careerComplete) {
+      const marks = exposures.map((r) => ({ year: currentYear, week: nextWeek, title: r.title }));
+      set({ career: { ...reckoningCareer, reckonings: [...(reckoningCareer.reckonings ?? []), ...marks] } });
+    }
 
     // The Director of Football Operations works the boosters and the compliance office every week
     // (meters stay whole numbers: a fraction of a point lands as a full point that often)
