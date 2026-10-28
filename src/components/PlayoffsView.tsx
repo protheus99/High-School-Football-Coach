@@ -54,7 +54,9 @@ const Bracket: React.FC<{
   const lastGame = [...myGames].reverse().find((g) => g !== undefined);
   const lastIndex = lastGame ? myGames.lastIndexOf(lastGame) : -1;
   const eliminated = !!lastGame?.winnerTeamId && lastGame.winnerTeamId !== userTeamId;
-  const champion = myDivision !== undefined && divisions[myDivision].championTeamId === userTeamId;
+  // Champions as soon as the final is won (the division's champion is only written when the week advances)
+  const wonFinal = lastIndex === roundNames.length - 1 && lastGame?.winnerTeamId === userTeamId;
+  const champion = myDivision !== undefined && (divisions[myDivision].championTeamId === userTeamId || wonFinal);
   // The coach's region (from his first game): it opens by default in every round of his division
   const myRegion = myDivision === undefined ? undefined : divisions[myDivision].rounds[0]?.find(involves)?.region;
   const opponentOf = (n: BracketNode) => (n.team1.id === userTeamId ? n.team2 : n.team1);
