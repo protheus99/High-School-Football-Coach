@@ -9,7 +9,6 @@ import { DilemmaChoice } from '../../types/game';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
 import { useGameStore } from '../../store/gameStore';
-import { toEntry } from '../../services/leaderboard';
 
 const choice = (impact: Partial<DilemmaChoice['impact']>): DilemmaChoice => ({
   id: 'c',
@@ -218,53 +217,7 @@ describe('Friday edge from dilemmas', () => {
 });
 
 describe('Whistleblower exposure', () => {
-  it('applies penalties and runs a news story in the exposure week', () => {
-    const store = useGameStore.getState();
-    store.startNewSeason();
-    const { userTeamId, currentYear } = useGameStore.getState();
-    useGameStore.setState({
-      currentWeek: 6,
-      dilemmaLog: [
-        { templateId: 'FILM_ROOM_GIFT', title: "Booster's Film Room Offer", year: currentYear, week: 5, tier: 'CORRUPT', exposureWeek: 7, choiceLabel: 'Take the Cash and Gear Directly' }
-      ]
-    });
-    const team = () => useGameStore.getState().districtTeams.find((t) => t.id === userTeamId)!;
-    const complianceBefore = team().programMeters.complianceScore;
-
-    useGameStore.getState().advanceWeek();
-
-    expect(team().programMeters.complianceScore).toBe(Math.max(0, complianceBefore - 15));
-    // The dilemma's own story, then the call that was made
-    const story = useGameStore.getState().newsArticles.find((a) => a.id.startsWith('news_exposed_FILM_ROOM_GIFT'))!;
-    expect(story.headline).toBe(`Off-the-Books Gifts Found in ${team().name} Film Room`);
-    expect(story.content).toMatch(/Auditors are tracing the money\. The Week 5 decision: Take the Cash and Gear Directly\.$/);
-  });
-
-  it("marks the career with the reckoning: an invalid playthrough on the Hall of Fame", () => {
-    const store = useGameStore.getState();
-    store.startNewSeason();
-    const { currentYear } = useGameStore.getState();
-    const career = { id: 'career_test_reckon', coachName: 'Claude', scenario: 'OPEN', state: 'Texas', startingSchool: 'X', startingProgram: 'X', startedYear: currentYear, length: 3, seasons: [] } as const;
-    useGameStore.setState({
-      career: { ...career, seasons: [] },
-      careerComplete: false,
-      currentWeek: 6,
-      dilemmaLog: [
-        { templateId: 'FILM_ROOM_GIFT', title: "Booster's Film Room Offer", year: currentYear, week: 5, tier: 'CORRUPT', exposureWeek: 7, choiceLabel: 'Take the Cash and Gear Directly' },
-        { templateId: 'GRADE_CRISIS', title: 'Midterm Grade Crisis', year: currentYear, week: 5, tier: 'GOOD' } // never exposed
-      ]
-    });
-
-    useGameStore.getState().advanceWeek();
-
-    const marked = useGameStore.getState().career!;
-    expect(marked.reckonings).toEqual([{ year: currentYear, week: 7, title: "Booster's Film Room Offer" }]);
-    expect(toEntry(marked).reckonings).toBe(1);
-    // A quiet week adds nothing
-    useGameStore.getState().advanceWeek();
-    expect(useGameStore.getState().career!.reckonings).toHaveLength(1);
-  });
-
+  // How a risky or corrupt call comes back now: src/sim/tests/billyMartin.test.ts (the Billy Martin rule)
   it('gives every dilemma its own story, naming the player only when there is one', () => {
     const [team] = generateDistrictTeams();
     team.roster.slice(0, 3).forEach((p) => (p.academics.gpa = 2.1));

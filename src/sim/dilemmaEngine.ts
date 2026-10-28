@@ -8,7 +8,6 @@ import { gameBallSkill } from './postGame';
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices (library in dilemmaTemplates.ts)
 const DILEMMA_CHANCE = 0.3; // not every week brings a crisis: about 3 weeks in 10
 export const DILEMMA_COOLDOWN_WEEKS = 28; // with dozens of scenarios, none repeats within a season
-export const EXPOSURE_CHANCE: Record<DilemmaChoice['tier'], number> = { GOOD: 0, COMPROMISE: 0, RISKY: 0.15, CORRUPT: 0.3 };
 
 /**
  * Picks this week's dilemma (if any): about 30% of weeks, never repeating a scenario used earlier
@@ -88,6 +87,8 @@ export function dilemmaChoiceEffects(choice: DilemmaChoice, userTeam: Team): Cho
   }
   if (impact.removePlayerId) losses.push(`${name(impact.removePlayerId)} leaves the program`);
   if (impact.injuryRisk) losses.push(`${Math.round(impact.injuryRisk.chance * 100)}% chance a starter is hurt ${impact.injuryRisk.weeks} wk`);
+  if (impact.coachGamesOut) losses.push(`You miss ${impact.coachGamesOut} ${impact.coachGamesOut === 1 ? 'game' : 'games'}`);
+  losses.push(...(impact.plainLosses ?? []));
   const investigationRisk = impact.complianceScoreDelta <= -10;
   if (investigationRisk) losses.push('⚠ Investigation risk');
   return { rating, ratingLevel: chevronLevel(rating), coachPoints: impact.coachPointsDelta ?? 0, fridayEdge: impact.fridayEdgeDelta ?? 0, gains, losses, investigationRisk };

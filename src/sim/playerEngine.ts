@@ -87,10 +87,15 @@ export function isAcademicallyAtRisk(player: Player, rules: StateRules = TEXAS_R
 }
 
 export function evaluateAcademicReport(player: Player, support = 0, rules: StateRules = TEXAS_RULES): void {
-  let gpaDelta = (Math.random() * 0.6 - 0.3) + support; // support: AI programs keep struggling players in study hall
+  // support: AI programs keep struggling players in study hall; the coach books a fix (sim/grades.ts)
+  let gpaDelta = (Math.random() * 0.6 - 0.3) + support;
   if (player.attributes.footballIQ > 75) gpaDelta += 0.1;
 
+  const before = player.academics.gpa;
   player.academics.gpa = clamp(Number((player.academics.gpa + gpaDelta).toFixed(2)), 1.2, 4.0);
+  // The trend the Grades screen shows: the last few report cards (older saves start from the GPA they had)
+  const history = player.academics.gpaHistory?.length ? player.academics.gpaHistory : [before];
+  player.academics.gpaHistory = [...history, player.academics.gpa].slice(-4);
 
   if (player.academics.gpa < rules.academics.minimumGpa) {
     player.academics.isEligible = false;

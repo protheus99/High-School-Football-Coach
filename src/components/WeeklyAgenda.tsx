@@ -32,11 +32,14 @@ import { nationalTeams } from '../sim/nationalWorld';
 import { bracketRoundForWeek, findUserNode, powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
+import { GRADE_FIXES, gradeWatchActive, nextReportCardWeek, startersAtRisk } from '../sim/grades';
+import { gradesNeedReview } from '../sim/advanceGate';
 
 /** Screens the Hub can send the coach to. */
 export type AgendaTab =
   | 'ROSTER'
   | 'INJURIES'
+  | 'GRADES'
   | 'PRACTICE'
   | 'COLLEGE'
   | 'STAFF'
@@ -62,6 +65,7 @@ export interface HubGame {
   isPlayoff: boolean;
   resultStands?: boolean; // played before an older save was loaded: its final was put back
   inProgress?: { userScore: number; opponentScore: number; clock: string }; // kicked off, not finished: resume only
+  benched?: string; // the coach is suspended: his coordinator coaches it (sim only), and why
 }
 
 interface AgendaAction {
@@ -117,6 +121,8 @@ const accentFor = (item: AgendaItem): [string, string] => {
 const TOP_PROSPECTS = 3;
 const TIRED = 55; // fatigue at which a starter is flagged (Tired and Exhausted, sim/training)
 
+const CLASS_SHORT: Record<Player['classYear'], string> = { Freshman: 'Fr', Sophomore: 'So', Junior: 'Jr', Senior: 'Sr' };
+const posChip: React.CSSProperties = { flex: '0 0 auto', fontWeight: 900, fontSize: '11px', color: '#fff', background: '#334155', borderRadius: '5px', padding: '2px 6px' };
 const shortName = (p: Player) => `${p.firstName.charAt(0)}. ${p.lastName}`;
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -254,6 +260,44 @@ export const WeeklyAgenda: React.FC<{
           <div style={{ fontSize: '12px', color: '#64748B', marginTop: '6px' }}>Tap an option to decide.</div>
         </div>
       )
+    };
+  };
+
+  // Starters who could be ineligible at the next report card: reviewed on Team › Grades before the week moves on
+  const gradesBlocked = gradesNeedReview(store);
+  const gradesCard = (): AgendaItem | null => {
+    if (!gradeWatchActive(currentWeek, playoffBracket, userTeamId)) return null;
+    const watch = startersAtRisk(team, stateRules);
+    if (watch.length === 0) return null;
+    const weeks = nextReportCardWeek(currentWeek) - currentWeek;
+    return {
+      id: 'grades',
+      icon: '📚',
+      kicker: `NEEDS YOUR REVIEW · REPORT CARDS IN ${weeks === 1 ? '1 WEEK' : `${weeks} WEEKS`}`,
+      title: `${plural(watch.length, 'starter')} could be ineligible`,
+      tone: gradesBlocked ? 'urgent' : 'done',
+      accent: 'school',
+      counted: true,
+      content: (
+        <div style={{ marginTop: '6px' }}>
+          {watch.map((p, i) => (
+            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', borderTop: i === 0 ? 'none' : '1px solid #F1F5F9' }}>
+              <span style={posChip}>{p.position}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 800, fontSize: '13.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {p.firstName} {p.lastName} · {p.overallRating}
+                </div>
+                <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                  {CLASS_SHORT[p.classYear]}
+                  {!p.academics.isEligible && ' · Ineligible'} · {p.academics.gradeFix ? `${GRADE_FIXES[p.academics.gradeFix].label} booked` : 'No fix yet'}
+                </div>
+              </div>
+              <div style={{ flex: '0 0 auto', fontWeight: 900, fontSize: '15px', color: '#9A3412', fontVariantNumeric: 'tabular-nums' }}>GPA {p.academics.gpa.toFixed(2)}</div>
+            </div>
+          ))}
+        </div>
+      ),
+      actions: [{ label: '📚 Review grades', primary: true, onClick: () => onNavigate('GRADES') }]
     };
   };
 
@@ -437,11 +481,14 @@ export const WeeklyAgenda: React.FC<{
       counted: true,
       // The film study, right here: no extra tap before choosing to play or sim
       content: <ScoutingReport opponent={opp} />,
-      actions: [
-        { label: '🏈 Play Game', primary: true, onClick: onPlayGame },
-        { label: '⏩ Sim Game', onClick: onAutoSim }
-      ],
-      note: 'Play: you set the game plan next. Sim: your staff picks it.'
+      // A suspended coach watches: his coordinator coaches it, so it can only be simulated
+      actions: game.benched
+        ? [{ label: '⏩ Sim Game', primary: true, onClick: onAutoSim }]
+        : [
+            { label: '🏈 Play Game', primary: true, onClick: onPlayGame },
+            { label: '⏩ Sim Game', onClick: onAutoSim }
+          ],
+      note: game.benched ?? 'Play: you set the game plan next. Sim: your staff picks it.'
     };
   } else if (game?.isPlayed && game.result) {
     headline = {
@@ -602,8 +649,9 @@ export const WeeklyAgenda: React.FC<{
     const needsCard = teamNeedsCard();
     if (needsCard) extras.push(needsCard);
   }
-  // Report cards come out every third week
-  if (isGamePhase && currentWeek % 3 === 0) {
+  // Report cards come out every third week (the starters' own card covers them while it shows)
+  const grades = gradesCard();
+  if (isGamePhase && currentWeek % 3 === 0 && !grades) {
     const ineligible = team.roster.filter((p) => !p.academics.isEligible).length;
     const atRisk = team.roster.filter((p) => p.academics.isEligible && isAcademicallyAtRisk(p, stateRules)).length;
     if (ineligible + atRisk > 0) {
@@ -613,7 +661,7 @@ export const WeeklyAgenda: React.FC<{
         title: `Report cards: ${plural(ineligible, 'player')} ineligible`,
         detail: `${plural(atRisk, 'more player')} close to the line (${stateRules.academics.ruleName}). Anyone below it sits until his grades recover.`,
         tone: ineligible > 0 ? 'urgent' : 'info',
-        link: { label: 'Roster', onClick: () => onNavigate('ROSTER') }
+        link: { label: 'Grades', onClick: () => onNavigate('GRADES') }
       });
     }
   }
@@ -671,11 +719,11 @@ export const WeeklyAgenda: React.FC<{
   );
 
   // ---------------------------------------------------------------- the list
-  // The decision first, then this week's headline (usually the game), anything else that needs the coach,
+  // The decision first (then the grades to review), then this week's headline (usually the game), anything else that needs the coach,
   // the week's task (usually practice), then the rest; background notes fold under "More this week"
   const [decision, ...otherNeeds] = needs[0]?.id === 'dilemma' ? needs : [dilemmaCard(), ...needs];
   const college = task?.id === 'college' ? null : collegeCard();
-  const visible = [decision, headline, ...otherNeeds, ...(task ? [task] : []), ...extras, college].filter((c): c is AgendaItem => !!c);
+  const visible = [decision, grades, headline, ...otherNeeds, ...(task ? [task] : []), ...extras, college].filter((c): c is AgendaItem => !!c);
   const folded: AgendaItem[] = [];
   const concerns = concernsCard();
   if (concerns) folded.push(concerns);
@@ -763,7 +811,7 @@ export const WeeklyAgenda: React.FC<{
       <button
         onClick={onAdvanceWeek}
         style={
-          activeDilemma
+          activeDilemma || gradesBlocked
             ? { ...advanceBtn, background: '#FEF3C7', color: '#92400E', border: '2px solid #F59E0B' }
             : left > 0
               ? advanceBtn
@@ -772,6 +820,8 @@ export const WeeklyAgenda: React.FC<{
       >
         {activeDilemma ? (
           '⚠️ Review needed before you advance ↑'
+        ) : gradesBlocked ? (
+          '📚 Review grades before you advance'
         ) : left > 0 ? (
           <>
             ⏭️ Advance Week{' '}

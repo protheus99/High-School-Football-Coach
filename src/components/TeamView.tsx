@@ -7,15 +7,17 @@ import { StaffView } from './StaffView';
 import { ScheduleView } from './ScheduleView';
 import { HallOfFameView } from './HallOfFameView';
 import { InjuryReportView } from './InjuryReportView';
+import { GradesView } from './GradesView';
 import { CoachCareerView } from './CoachCareerView';
 import { ComplianceView } from './ComplianceView';
 import { useGameStore } from '../store/gameStore';
 
-export type TeamSection = 'ROSTER' | 'INJURIES' | 'PRACTICE' | 'COLLEGE' | 'STAFF' | 'SCHEDULE' | 'COMPLIANCE' | 'HALL_OF_FAME' | 'CAREER';
+export type TeamSection = 'ROSTER' | 'INJURIES' | 'GRADES' | 'PRACTICE' | 'COLLEGE' | 'STAFF' | 'SCHEDULE' | 'COMPLIANCE' | 'HALL_OF_FAME' | 'CAREER';
 
 const SECTIONS: { id: TeamSection; label: string; short: string }[] = [
   { id: 'ROSTER', label: '📋 Roster', short: 'Roster' },
   { id: 'INJURIES', label: '🩹 Health', short: 'Health' },
+  { id: 'GRADES', label: '📚 Grades', short: 'Grades' },
   { id: 'PRACTICE', label: '🏋️ Practice', short: 'Practice' },
   { id: 'COLLEGE', label: '🎓 College', short: 'College' },
   { id: 'STAFF', label: '🧑‍🏫 Staff', short: 'Staff' },
@@ -28,6 +30,7 @@ const SECTIONS: { id: TeamSection; label: string; short: string }[] = [
 const SUBTITLES: Record<TeamSection, string> = {
   ROSTER: 'Roster and depth chart',
   INJURIES: "Health: the team's fatigue, who needs rest, and who's out",
+  GRADES: 'Grades: who could be ineligible at the next report card',
   PRACTICE: 'Practice: how hard the team trains this week',
   COLLEGE: 'College recruiting for your juniors and seniors',
   STAFF: 'Your coaching staff: assistants who give the program an edge',
@@ -37,7 +40,7 @@ const SUBTITLES: Record<TeamSection, string> = {
   CAREER: 'Every school you have coached'
 };
 
-/** Team: roster and depth chart, health (fatigue and injuries), practice, college recruiting, the coaching staff, the schedule, the Hall of Fame and the coach's career. */
+/** Team: roster and depth chart, health (fatigue and injuries), grades, practice, college recruiting, the coaching staff, the schedule, the Hall of Fame and the coach's career. */
 export const TeamView: React.FC<{ section: TeamSection; onSection: (section: TeamSection) => void; collegeFocusId?: string | null }> = ({
   section,
   onSection,
@@ -51,6 +54,7 @@ export const TeamView: React.FC<{ section: TeamSection; onSection: (section: Tea
     <PageHeader title="Team" subtitle={SUBTITLES[section]} tabs={tabs} active={section} onTab={onSection} />
     {section === 'ROSTER' && <RosterDepthChartView />}
     {section === 'INJURIES' && <InjuryReportView />}
+    {section === 'GRADES' && <GradesView />}
     {section === 'PRACTICE' && (
       <div className="ui-screen" style={{ maxWidth: '900px' }}>
         <PracticePlan />

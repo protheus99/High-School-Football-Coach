@@ -74,10 +74,16 @@ export interface PlayerCondition {
   isCold: boolean;
 }
 
+/** The coach's help before a report card: study hall, a tutor, or a talk with the teacher (sim/grades.ts). */
+export type GradeFix = 'STUDY_HALL' | 'TUTOR' | 'TEACHER';
+
 export interface PlayerAcademics {
   gpa: number;
   isEligible: boolean;
   consecutiveFailingWeeks: number;
+  gpaHistory?: number[]; // the last report cards' GPAs, oldest first (older saves: none yet)
+  gradeFix?: GradeFix; // booked for the next report card
+  teacherYear?: number; // the season the teacher's help was used (once a season)
 }
 
 export interface PlayerStats {
@@ -370,9 +376,31 @@ export interface DilemmaRecord {
   year: number;
   week: number;
   tier: DilemmaChoice['tier'];
-  exposureWeek?: number;
+  exposureWeek?: number; // older saves: when the call came out (now a thread of warnings, MisconductThread)
   choiceLabel?: string; // the call that was made (quoted if it comes out)
   playerName?: string; // the player the dilemma was about
+  threadStep?: 1 | 2 | 3; // a Billy Martin warning answered (not a dilemma of its own)
+}
+
+/** How bad a dilemma's shady call is: how long it takes to come back, and how it ends if it's never made right. */
+export type DilemmaSeverity = 'MINOR' | 'SERIOUS' | 'MAJOR';
+
+/**
+ * The Billy Martin rule: a risky or corrupt call can come back in up to three steps (a warning, a second warning,
+ * then the end), and every step offers a way to make it right. It follows the choice, not the player.
+ */
+export interface MisconductThread {
+  id: string;
+  templateId: string; // the dilemma the call was made in
+  title: string;
+  choiceLabel?: string;
+  playerId?: string;
+  playerName?: string;
+  severity: DilemmaSeverity;
+  year: number; // when the call was made
+  week: number;
+  step: 1 | 2 | 3; // the next step to show
+  weeksLeft: number; // weeks until it does
 }
 
 export interface DilemmaChoice {
@@ -396,7 +424,11 @@ export interface DilemmaChoice {
     fridayEdgeDelta?: number; // team-rating points for the next game: scouting, preparation, practice time lost or won
     exposurePlayerIds?: string[]; // college exposure +1 (the coach talks a player up)
     skillBoostPlayerIds?: string[]; // +1 to a key skill for each
+    coachGamesOut?: number; // the coach sits this many games (his coordinator coaches; the games are simulated)
+    plainLosses?: string[]; // losses shown as written ("Suspended: rest of the season")
+    reckoning?: 'SEASON' | 'NEXT_SEASON' | 'BAN' | 'FIRED'; // a reckoning's penalty (sim/billyMartin.ts)
   };
+  thread?: 'RESOLVE' | 'IGNORE' | 'ACCEPT'; // a Billy Martin step: make it right, let it ride, or take the outcome
 }
 
 export interface NarrativeDilemma {
@@ -407,6 +439,8 @@ export interface NarrativeDilemma {
   scenario: string;
   involvedPlayerId?: string;
   choices: DilemmaChoice[];
+  threadId?: string; // a Billy Martin step (MisconductThread), not a dilemma of its own
+  threadStep?: 1 | 2 | 3;
 }
 
 /** Where a prospect comes from (feeder pipeline). */

@@ -29,6 +29,7 @@ import { rulesForState } from './sim/stateRules';
 import { DucatCheckoutSheet } from './components/DucatStore';
 import { returnedFromCheckout } from './services/ducats';
 import { ADVANCE_LABEL, advanceBlocker } from './sim/advanceGate';
+import { isCoachBenched } from './sim/billyMartin';
 import { track } from './services/analytics';
 import { AUTOSAVE_ID, loadSaveGame } from './services/db';
 import { loadLiveState } from './services/playedGames';
@@ -77,6 +78,7 @@ export const App: React.FC = () => {
     playoffBracket,
     isBanquetActive,
     firedFrom,
+    firedForMisconduct,
     careerComplete,
     career,
     viewedTeamId,
@@ -116,6 +118,8 @@ export const App: React.FC = () => {
 
   const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED', offensiveScheme?: OffensiveScheme) => {
     if (!userTeam) return;
+    // A suspended coach doesn't coach: his coordinator's games are simulated
+    if (isCoachBenched(useGameStore.getState().coachBench, currentYear)) return;
     // This week's game: the scheduled game, or the current playoff game
     const matchup = getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket, nationalLeagues });
     if (!matchup || matchup.isPlayed) return;
@@ -158,6 +162,12 @@ export const App: React.FC = () => {
   const handleTopAdvance = () => {
     if (!blocker) {
       useGameStore.getState().advanceWeek();
+      return;
+    }
+    // Starters who could be ineligible: straight to Team › Grades (opening it is the week's review)
+    if (blocker === 'GRADES') {
+      setTeamSection('GRADES');
+      setTab('TEAM');
       return;
     }
     setTab('DASHBOARD');
@@ -232,7 +242,9 @@ export const App: React.FC = () => {
         <div style={{ fontSize: '48px' }}>📉</div>
         <h1 style={{ margin: '8px 0', fontSize: '26px' }}>You&apos;ve been fired</h1>
         <p style={{ color: '#475569', fontSize: '15px' }}>
-          After a second straight season without the board's confidence, the {firedFrom} school board has decided to make a change. Thank you for your service, Coach.
+          {firedForMisconduct
+            ? `After a third scandal, the ${firedFrom} school board has terminated your contract. Thank you for your service, Coach.`
+            : `After a second straight season without the board's confidence, the ${firedFrom} school board has decided to make a change. Thank you for your service, Coach.`}
         </p>
         <button className="ui-btn ui-btn-primary ui-btn-block" style={{ marginTop: '16px', minHeight: '50px' }} onClick={() => setShowMenu(true)}>
           Back to the main menu
@@ -503,7 +515,7 @@ const navBtnStyle = (active: boolean): React.CSSProperties => ({
 // The Advance button: green when the week can move on, amber for a decision, blue for this week's game
 const advanceBtn = (blocker: ReturnType<typeof advanceBlocker>): React.CSSProperties => {
   const [background, color, edge] =
-    blocker === 'DECISION' ? ['#F59E0B', '#422006', '#92400E'] : blocker === 'GAME' || blocker === 'LIVE' ? ['#2563EB', '#fff', '#1E3A8A'] : ['#16A34A', '#fff', '#14532D'];
+    blocker === 'DECISION' || blocker === 'GRADES' ? ['#F59E0B', '#422006', '#92400E'] : blocker === 'GAME' || blocker === 'LIVE' ? ['#2563EB', '#fff', '#1E3A8A'] : ['#16A34A', '#fff', '#14532D'];
   return {
     minHeight: '40px',
     padding: '0 10px',

@@ -46,10 +46,14 @@ export interface Career {
   coachId?: string; // the coach across contracts in one save (Team › Career lists them together)
   token?: string; // the career's secret for the global leaderboard (only this device can update it)
   seasons: CareerSeason[];
-  // Shady dilemma calls that came to light (their "future reckoning"): any makes the career an invalid playthrough,
-  // listed apart on the Hall of Fame
-  reckonings?: { year: number; week: number; title: string }[];
+  // Shady dilemma calls that came to light (their "future reckoning"). The coach's 1st is his Billy Martin chance
+  // (invalidates: false); from the 2nd on, the career is an invalid playthrough, listed apart on the Hall of Fame.
+  // Older saves' reckonings have no flag: each one invalidates, as it did then.
+  reckonings?: { year: number; week: number; title: string; invalidates?: boolean }[];
 }
+
+/** The reckonings that make a career an invalid playthrough. */
+export const invalidReckonings = (career: Pick<Career, 'reckonings'>) => (career.reckonings ?? []).filter((r) => r.invalidates !== false);
 
 /** One season's points: wins 5, losses 1, playoff wins 8, a state title 10, a national title 15, each college signee 1. */
 export function seasonPoints(s: Omit<CareerSeason, 'year' | 'school' | 'points'>): number {

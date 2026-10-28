@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { coachTitle, useGameStore } from '../store/gameStore';
-import { CAREER_LENGTHS, CAREER_POINTS, Career, CareerLength, careerBasePoints, careerPoints, prestigeMultiplier } from '../sim/careerScore';
+import { CAREER_LENGTHS, CAREER_POINTS, Career, CareerLength, careerBasePoints, careerPoints, invalidReckonings, prestigeMultiplier } from '../sim/careerScore';
 import { hasRemoteLeaderboard, LeaderboardEntry } from '../services/leaderboard';
 import { ordinal, schoolWithState } from '../utils/format';
 import { useHallOfFame } from '../utils/useHallOfFame';
@@ -72,7 +72,7 @@ export const HallOfFameBoard: React.FC = () => {
                     {s.stateTitle && <StatePennant state={career.state} />}
                     {s.nationalTitle && <UsFlag width={17} />}
                     {s.collegeSignees > 0 && ` · ${s.collegeSignees} signed`}
-                    {(career.reckonings ?? [])
+                    {invalidReckonings(career)
                       .filter((r) => r.year === s.year)
                       .map((r, i) => (
                         <span key={i} style={{ color: '#B91C1C', fontWeight: 800, fontSize: '12px' }}>
@@ -92,9 +92,9 @@ export const HallOfFameBoard: React.FC = () => {
               </div>
             </div>
           )}
-          {(career.reckonings?.length ?? 0) > 0 && (
+          {invalidReckonings(career).length > 0 && (
             <div style={{ marginTop: '8px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderLeft: '5px solid #DC2626', borderRadius: '8px', padding: '8px 10px', color: '#7F1D1D', fontSize: '12.5px', lineHeight: 1.45 }}>
-              ☠️ <strong>Invalid playthrough.</strong> A shady call came to light in {career.reckonings![0].year}, so this career is listed under &quot;Invalid playthroughs&quot;, not ranked.
+              ☠️ <strong>Invalid playthrough.</strong> A shady call came to light in {invalidReckonings(career)[0].year}, so this career is listed under &quot;Invalid playthroughs&quot;, not ranked.
             </div>
           )}
         </section>

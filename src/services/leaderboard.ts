@@ -1,4 +1,4 @@
-import { Career, careerNationalTitles, careerPoints, careerTitles } from '../sim/careerScore';
+import { Career, careerNationalTitles, careerPoints, careerTitles, invalidReckonings } from '../sim/careerScore';
 import { accountState } from './account';
 
 // ---------------------------------------------------------------------------
@@ -28,7 +28,7 @@ export interface LeaderboardEntry {
   points: number;
   updatedAt: number;
   isLocal?: boolean; // played on this device
-  reckonings?: number; // shady calls that came to light: any makes it an invalid playthrough
+  reckonings?: number; // reckonings that make it an invalid playthrough (the coach's 2nd onward): any makes it invalid
 }
 
 export function toEntry(career: Career): LeaderboardEntry {
@@ -52,7 +52,7 @@ export function toEntry(career: Career): LeaderboardEntry {
     points: careerPoints(career),
     updatedAt: Date.now(),
     isLocal: true,
-    reckonings: career.reckonings?.length ?? 0
+    reckonings: invalidReckonings(career).length
   };
 }
 

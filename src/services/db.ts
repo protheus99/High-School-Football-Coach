@@ -45,6 +45,10 @@ export interface GameSaveRecord {
   seasonSchedule?: ScheduledGame[];
   nationalLeagues?: import('../sim/nationalWorld').LightLeague[]; // the other states' light leagues
   dilemmaLog?: DilemmaRecord[];
+  misconductThreads?: import('../types/game').MisconductThread[]; // calls that can still come back (the Billy Martin rule)
+  coachBench?: import('../sim/billyMartin').CoachBench; // games and seasons the coach sits out
+  coachReckonings?: number; // reckonings in the coach's career so far
+  gradesReviewed?: string; // the week the coach last opened Team › Grades
   pressLog?: { questionId: string; year: number; week: number; phrasing?: number }[];
   difficulty?: Difficulty;
   feederClassYear?: number;

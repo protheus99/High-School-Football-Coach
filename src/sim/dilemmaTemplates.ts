@@ -1,5 +1,5 @@
 import { rulesForState } from './stateRules';
-import { NarrativeDilemma, Team, DilemmaChoice, Player, Position } from '../types/game';
+import { NarrativeDilemma, Team, DilemmaChoice, DilemmaSeverity, Player, Position } from '../types/game';
 import { isAcademicallyAtRisk } from './playerEngine';
 import { FIRST_DISTRICT_WEEK, FIRST_NON_DISTRICT_WEEK, FIRST_TRAINING_CAMP_WEEK, LAST_REGULAR_SEASON_WEEK, LAST_TRAINING_CAMP_WEEK } from './scheduleEngine';
 import { randomPlayerName } from '../generators/names';
@@ -22,6 +22,8 @@ const impact = (board: number, booster: number, discipline: number, compliance: 
 
 export interface DilemmaTemplate {
   id: string;
+  /** How bad its risky call is (a corrupt call is one level worse): see sim/billyMartin.ts. */
+  severity: DilemmaSeverity;
   /** Returns the player the scenario is about (or true when none is needed), or null if it cannot occur. */
   appliesTo: (team: Team, week: number) => Player | true | null;
   build: (team: Team, week: number, player?: Player) => Omit<NarrativeDilemma, 'id' | 'weekTriggered' | 'templateId'>;
@@ -59,6 +61,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'GRADE_CRISIS',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => (isReportCardWeek(week) ? starters(team).find((p) => p.academics.gpa < 2.3) ?? null : null),
     build: (_team, _week, player) => ({
       title: 'Midterm Grade Crisis',
@@ -78,6 +81,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'TEAM_GRADES',
+    severity: 'SERIOUS',
     // Between report cards, when several players are close to the "No Pass, No Play" line
     appliesTo: (team, week) => when(isGameWeek(week) && week % 3 === 1 && team.roster.filter((p) => isAcademicallyAtRisk(p, rulesForState(team.state))).length >= 3),
     build: (team) => {
@@ -102,6 +106,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'PLAGIARISM',
+    severity: 'MAJOR',
     appliesTo: (team, week) => whenPlayer(isRegularSeason(week), pickStarter(team, SKILL)),
     build: (_team, _week, player) => ({
       title: 'Plagiarized Term Paper',
@@ -121,6 +126,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'TRUANCY',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pick(team.roster.filter((p) => p.academics.gpa < 2.6))),
     build: (_team, _week, player) => ({
       title: 'Skipping First Period',
@@ -140,6 +146,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'SAT_CONFLICT',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isRegularSeason(week), pick(team.roster.filter((p) => p.classYear === 'Junior' && p.depthChartTier === 1))),
     build: (_team, _week, player) => ({
       title: 'SAT Date Clashes With a Road Game',
@@ -159,6 +166,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'ELIGIBILITY_PAPERWORK',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isPreseasonOrCamp(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Missing Physical Paperwork',
@@ -182,6 +190,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'BOOSTER_HEADSETS',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), team.roster.find((p) => p.parent.archetype === 'DEMANDING_BOOSTER' && p.depthChartTier !== 1)),
     build: (_team, _week, player) => ({
       title: 'Booster Headset Funding Threat',
@@ -201,6 +210,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'FILM_ROOM_GIFT',
+    severity: 'SERIOUS',
     appliesTo: () => true,
     build: () => ({
       title: "Booster's Film Room Offer",
@@ -219,6 +229,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'BOOSTER_PLAYCALLING',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => when(isRegularSeason(week) && team.programMeters.boosterApproval >= 60),
     build: () => ({
       title: 'Booster President Wants a Say in Play-Calling',
@@ -237,6 +248,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'ENERGY_DRINK_SPONSOR',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(week >= 2 && week <= 13),
     build: () => ({
       title: 'Energy Drink Sponsorship',
@@ -255,6 +267,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'SUPPLEMENT_SPONSOR',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(week <= 12),
     build: () => ({
       title: 'Supplement Shop Partnership',
@@ -273,6 +286,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'BOOSTER_CASH_HANDSHAKE',
+    severity: 'MAJOR',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week), bestStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Cash Handshakes After the Game',
@@ -296,6 +310,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'TRASH_TALK',
+    severity: 'MINOR',
     appliesTo: (team, week) => (isDistrictPlay(week) ? starters(team).filter((p) => p.overallRating >= 70).sort((a, b) => b.overallRating - a.overallRating)[0] ?? null : null),
     build: (_team, _week, player) => ({
       title: 'Trash Talk Before a Rivalry Game',
@@ -315,6 +330,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'PARTY_PHOTOS',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Photos From a Weekend Party',
@@ -334,6 +350,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'HALLWAY_FIGHT',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pickStarter(team, ['DE', 'DT', 'LB', 'OT', 'OG', 'RB'])),
     build: (_team, _week, player) => ({
       title: 'Fight in the Hallway',
@@ -353,6 +370,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'HAZING_REPORT',
+    severity: 'MAJOR',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week) && week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.classYear === 'Senior' && p.depthChartTier === 1))),
     build: (_team, _week, player) => ({
       title: 'Hazing Allegation',
@@ -372,6 +390,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'MASCOT_PRANK',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isDistrictPlay(week), pick(team.roster.filter((p) => p.classYear === 'Senior'))),
     build: (_team, _week, player) => ({
       title: 'Rival Mascot Prank',
@@ -391,6 +410,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'SHOPLIFTING_ARREST',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Arrested for Shoplifting',
@@ -410,6 +430,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'SKIPPED_PRACTICE',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week), bestStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Star Skips Practice',
@@ -429,6 +450,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'RECRUITING_TAMPERING',
+    severity: 'MAJOR',
     appliesTo: (team, week) => whenPlayer(week >= 2, pick(team.roster.filter((p) => p.classYear === 'Senior' && p.depthChartTier === 1))),
     build: (_team, _week, player) => ({
       title: 'Players Recruiting Middle Schoolers',
@@ -452,6 +474,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'CONCUSSION_PROTOCOL',
+    severity: 'MAJOR',
     appliesTo: (team, week) => (isGameWeek(week) ? pick(starters(team).filter((p) => p.position !== 'K' && p.position !== 'P')) ?? null : null),
     build: (_team, _week, player) => ({
       title: 'Concussion Protocol',
@@ -471,6 +494,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'HEAT_ADVISORY',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => (isCamp(week) || week === FIRST_NON_DISTRICT_WEEK ? true : null),
     build: () => ({
       title: 'Heat Advisory at Two-a-Days',
@@ -489,6 +513,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'PAINKILLERS',
+    severity: 'MAJOR',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team, ['RB', 'LB', 'DE', 'DT', 'OT', 'OG', 'C'])),
     build: (_team, _week, player) => ({
       title: 'Painkillers in the Locker Room',
@@ -508,6 +533,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'STEROID_RUMOR',
+    severity: 'MAJOR',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pick(team.roster.filter((p) => p.attributes.strength >= 75 && p.depthChartTier === 1))),
     build: (_team, _week, player) => ({
       title: 'Steroid Rumors',
@@ -527,6 +553,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'HIDDEN_INJURY',
+    severity: 'MAJOR',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team, SKILL)),
     build: (_team, _week, player) => ({
       title: 'Playing Through a Hidden Injury',
@@ -546,6 +573,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'MENTAL_HEALTH',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Player Struggling With Anxiety',
@@ -565,6 +593,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'UNSAFE_FIELD',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(week >= FIRST_TRAINING_CAMP_WEEK && week <= 15),
     build: () => ({
       title: 'Worn-Out Practice Field',
@@ -587,6 +616,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'STOLEN_SIGNALS',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isGameWeek(week)),
     build: () => ({
       title: "Opponent's Signal Sheet",
@@ -605,6 +635,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'FILM_EXCHANGE',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isGameWeek(week)),
     build: () => ({
       title: 'Game Film Exchange',
@@ -623,6 +654,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'PRACTICE_DRONE',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isCamp(week) || isGameWeek(week)),
     build: () => ({
       title: 'Drone Over Practice',
@@ -641,6 +673,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'REF_CONNECTION',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isGameWeek(week)),
     build: () => ({
       title: 'Friendly Referee Assignment',
@@ -663,6 +696,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'ASSISTANT_CONTACT',
+    severity: 'MAJOR',
     appliesTo: (_team, week) => when(week >= 2 && week <= 15),
     build: () => ({
       title: 'Assistant Coach Contacting Prospects',
@@ -681,6 +715,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'COORDINATOR_POACHED',
+    severity: 'MAJOR',
     appliesTo: (team, week) => when(week >= 3 && team.prestige >= 65),
     build: (team) => ({
       title: 'Rival Tries to Poach Your Coordinator',
@@ -699,6 +734,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'ASSISTANT_DUI',
+    severity: 'MAJOR',
     appliesTo: (_team, week) => when(week >= 2),
     build: () => ({
       title: 'Assistant Coach Arrested for DUI',
@@ -717,6 +753,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'STAFF_STIPEND',
+    severity: 'MAJOR',
     appliesTo: (team, week) => when(week >= 2 && team.programMeters.boosterApproval >= 50),
     build: () => ({
       title: 'Under-the-Table Staff Bonuses',
@@ -739,6 +776,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'RESIDENCY_TRANSFER',
+    severity: 'MAJOR',
     appliesTo: (_team, week) => (week >= 2 && week <= FIRST_NON_DISTRICT_WEEK + 2 ? true : null),
     build: () => {
       const positions: Position[] = ['QB', 'RB', 'WR', 'LB', 'CB', 'DE'];
@@ -765,6 +803,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'HELICOPTER_PARENT',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), team.roster.find((p) => p.parent.archetype === 'HELICOPTER' && p.depthChartTier !== 1)),
     build: (_team, _week, player) => ({
       title: 'Helicopter Parent Conference',
@@ -784,6 +823,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'REPORTER_LEAK',
+    severity: 'MINOR',
     appliesTo: (team, week) => when(isGameWeek(week) && team.programMeters.lockerRoomDiscipline < 85),
     build: () => ({
       title: 'Locker Room Leak to the Press',
@@ -802,6 +842,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'CHARITY_GAME',
+    severity: 'MINOR',
     appliesTo: (_team, week) => when(isRegularSeason(week) && week <= FIRST_DISTRICT_WEEK + 2),
     build: () => ({
       title: 'Pediatric Cancer Awareness Night',
@@ -820,6 +861,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'YOUTH_CAMP_FEES',
+    severity: 'MAJOR',
     appliesTo: (_team, week) => when(isPreseasonOrCamp(week)),
     build: () => ({
       title: 'Youth Camp Profits',
@@ -838,6 +880,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'STAR_TRANSFER_REQUEST',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week) && week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.overallRating >= 72 && p.classYear !== 'Senior'))),
     build: (_team, _week, player) => ({
       title: 'Star Wants to Transfer to a Rival',
@@ -857,6 +900,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'COLLEGE_COACH_VISIT',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isRegularSeason(week), pick(team.roster.filter((p) => p.recruiting.starRating >= 4))),
     build: (_team, _week, player) => ({
       title: 'College Coach Wants Practice Access',
@@ -876,6 +920,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'FAMILY_HARDSHIP',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(week >= 2, pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Working Nights to Support His Family',
@@ -895,6 +940,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'PLAYOFF_TICKET_SCALPING',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isPlayoffs(week)),
     build: () => ({
       title: 'Playoff Ticket Allocation',
@@ -913,6 +959,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'PLAYOFF_PRACTICE_HOURS',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isPlayoffs(week)),
     build: () => ({
       title: 'Exceeding Practice Hour Limits',
@@ -935,6 +982,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'QB_CONTROVERSY',
+    severity: 'MINOR',
     appliesTo: (team, week) =>
       whenPlayer(
         week >= FIRST_TRAINING_CAMP_WEEK && week <= 15,
@@ -963,6 +1011,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'FRESHMAN_PHENOM',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week) && week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.classYear === 'Freshman' && p.overallRating >= 65 && p.depthChartTier !== 1))),
     build: (_team, _week, player) => ({
       title: 'Freshman Phenom',
@@ -982,6 +1031,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'SENIOR_NIGHT_WALKON',
+    severity: 'MINOR',
     appliesTo: (team, week) =>
       whenPlayer(
         inWeeks(week, LAST_REGULAR_SEASON_WEEK - 2, LAST_REGULAR_SEASON_WEEK),
@@ -1005,6 +1055,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'TEAM_CAPTAIN_VOTE',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isPreseasonOrCamp(week), bestStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Captain Vote Goes Sideways',
@@ -1027,6 +1078,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
   {
     id: 'WATER_CRISIS',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isRegularSeason(week)),
     build: () => ({
       title: 'Boil-Water Notice on Game Day',
@@ -1045,6 +1097,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'RIVAL_BAND_BUS',
+    severity: 'MINOR',
     appliesTo: (_team, week) => when(isRegularSeason(week)),
     build: () => ({
       title: 'The Band Bus Breaks Down',
@@ -1063,6 +1116,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'NEWSPAPER_CORRECTION',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(week >= 3, pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Student Paper Gets It Wrong',
@@ -1082,6 +1136,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'STADIUM_RENAMING',
+    severity: 'MINOR',
     appliesTo: (_team, week) => when(week >= 2 && week <= 15),
     build: () => ({
       title: 'Stadium Renaming Debate',
@@ -1100,6 +1155,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'RIVAL_LOST_DOG',
+    severity: 'MINOR',
     appliesTo: (_team, week) => when(isDistrictPlay(week)),
     build: () => ({
       title: 'Lost Dog Before Kickoff',
@@ -1118,6 +1174,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'SCHOLARSHIP_CEREMONY',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(inWeeks(week, LAST_REGULAR_SEASON_WEEK - 1, LAST_REGULAR_SEASON_WEEK + 6), pick(starters(team).filter((p) => p.classYear === 'Senior'))),
     build: (_team, _week, player) => ({
       title: 'Scholarship Ceremony vs. Practice',
@@ -1137,6 +1194,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'EMPTY_TROPHY_CASE',
+    severity: 'MINOR',
     appliesTo: (_team, week) => when(isPreseasonOrCamp(week)),
     build: () => ({
       title: 'The Empty Trophy Case',
@@ -1155,6 +1213,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'RIVAL_MEMORIAL',
+    severity: 'MINOR',
     appliesTo: (_team, week) => when(isRegularSeason(week)),
     build: () => ({
       title: "A Rival Player's Memorial",
@@ -1173,6 +1232,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'COACH_JOB_OFFER',
+    severity: 'MINOR',
     appliesTo: (_team, week) => when(inWeeks(week, FIRST_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK)),
     build: () => ({
       title: 'A College Job Offer',
@@ -1191,6 +1251,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'SISTER_HARASSMENT',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(week >= 3, pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'His Sister Is Being Harassed',
@@ -1210,6 +1271,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'ALUMNUS_ACCUSED',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(week >= 3),
     build: () => ({
       title: 'Beloved Booster Accused',
@@ -1228,6 +1290,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'TRIP_FEE',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isPlayoffs(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: "Can't Afford the Playoff Trip",
@@ -1247,6 +1310,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'OLD_INJURY_COACH',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isPreseasonOrCamp(week)),
     build: () => ({
       title: 'An Injured Former Star Wants to Coach',
@@ -1265,6 +1329,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'PARENT_TRUTH',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(week >= 3, pick(starters(team).filter((p) => p.academics.gpa < 2.6 && (p.classYear === 'Junior' || p.classYear === 'Senior')))),
     build: (_team, _week, player) => ({
       title: 'A Parent Wants the Truth',
@@ -1284,6 +1349,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'TOWN_WANTS_WINNER',
+    severity: 'MINOR',
     appliesTo: (team, week) => when(isRegularSeason(week) && team.record.losses >= 3 && team.record.losses > team.record.wins),
     build: () => ({
       title: 'The Town Wants a Winner',
@@ -1302,6 +1368,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'LEAKED_PLAYBOOK',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Leaked Playbook',
@@ -1321,6 +1388,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'WRONG_JERSEY',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(week >= 2 && week <= 15, pick(team.roster.filter((p) => p.classYear === 'Senior' && p.depthChartTier === 1))),
     build: (_team, _week, player) => ({
       title: 'The Wrong Jersey Number',
@@ -1340,6 +1408,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'BUS_BREAKDOWN',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isGameWeek(week)),
     build: () => ({
       title: 'Team Bus Breaks Down',
@@ -1358,6 +1427,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'ANONYMOUS_TIP',
+    severity: 'MAJOR',
     appliesTo: (_team, week) => when(isDistrictPlay(week) || isPlayoffs(week)),
     build: () => ({
       title: 'Anonymous Age Tip',
@@ -1376,6 +1446,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'MISSING_EQUIPMENT',
+    severity: 'MAJOR',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team, ['QB', 'RB', 'WR', 'TE', 'LB', 'CB', 'S', 'DE', 'DT', 'OT', 'OG', 'C'])),
     build: (_team, _week, player) => ({
       title: 'Damaged Helmets',
@@ -1395,6 +1466,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'ASSISTANTS_SON',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week) && week <= 15, pick(backups(team).filter((p) => p.position !== 'K' && p.position !== 'P'))),
     build: (_team, _week, player) => ({
       title: "The Assistant Coach's Son",
@@ -1414,6 +1486,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'SIDELINE_VIDEO',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Sideline Video Goes Viral',
@@ -1433,6 +1506,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'INJURED_RIVAL',
+    severity: 'SERIOUS',
     appliesTo: (_team, week) => when(isGameWeek(week) && week > FIRST_NON_DISTRICT_WEEK),
     build: () => ({
       title: 'Injured Rival Left Alone',
@@ -1451,6 +1525,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'WRONGFUL_EJECTION',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week) && week > FIRST_NON_DISTRICT_WEEK, bestStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Captain Wrongly Ejected',
@@ -1470,6 +1545,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'RIVALRY_BANNER',
+    severity: 'MINOR',
     appliesTo: (_team, week) => when(isDistrictPlay(week)),
     build: () => ({
       title: 'Rivalry Banner Goes Too Far',
@@ -1488,6 +1564,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'LATE_HIT',
+    severity: 'SERIOUS',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week) && week > FIRST_NON_DISTRICT_WEEK, pickStarter(team, ['DE', 'DT', 'LB', 'CB', 'S'])),
     build: (_team, _week, player) => ({
       title: 'Late Hit on Film',
@@ -1507,6 +1584,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'EMPTY_CLASSROOM',
+    severity: 'MAJOR',
     appliesTo: (_team, week) => when(isRegularSeason(week)),
     build: () => ({
       title: 'Players Pulled From Class',
@@ -1525,6 +1603,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'MISPRINTED_PROGRAM',
+    severity: 'MINOR',
     appliesTo: (_team, week) => when(isRegularSeason(week)),
     build: () => ({
       title: 'Misprinted Game Program',
@@ -1543,6 +1622,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
   },
   {
     id: 'PARENT_ON_FIELD',
+    severity: 'MINOR',
     appliesTo: (team, week) => whenPlayer(isGameWeek(week) && week > FIRST_NON_DISTRICT_WEEK, pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'A Parent Rushes the Field',

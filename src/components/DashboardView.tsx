@@ -11,6 +11,8 @@ import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
 import { getUserMatchup } from '../sim/userMatchup';
 import { findDistrict, findRegion } from '../sim/league';
 import { liveClockLabel, lockKey } from '../sim/gameLock';
+import { gradesNeedReview } from '../sim/advanceGate';
+import { benchNote, isCoachBenched } from '../sim/billyMartin';
 
 import type { DefensiveFocus } from '../sim/gamePlan';
 
@@ -25,6 +27,10 @@ export const DashboardView: React.FC<{
     useGameStore();
   const [showPreGameModal, setShowPreGameModal] = useState(false);
   const [showSimWarning, setShowSimWarning] = useState(false);
+  // A suspended coach's games are coached by his coordinator: simulated only
+  const coachBench = useGameStore((s) => s.coachBench);
+  const benched = isCoachBenched(coachBench, currentYear) ? benchNote(coachBench, currentYear) : undefined;
+  const gradesBlocked = gradesNeedReview(useGameStore.getState());
 
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   const game = getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket, nationalLeagues });
@@ -66,12 +72,14 @@ export const DashboardView: React.FC<{
   const staffDue = coachingStaff.some((c) => needsSettling(c, currentWeek, currentYear));
 
   // Skipping an unplayed game auto-simulates it, so confirm first
+  // Starters who could be ineligible: Team › Grades first (opening it is the week's review)
   function handleAdvanceWeek() {
     if (activeDilemma) goToDecision();
+    else if (gradesBlocked) onNavigate('GRADES');
     else if (game && opponent && !isPlayed) setShowSimWarning(true);
     else advanceWeek();
   }
-  const handleSimGame = () => (activeDilemma ? goToDecision() : advanceWeek());
+  const handleSimGame = () => (activeDilemma ? goToDecision() : gradesBlocked ? onNavigate('GRADES') : advanceWeek());
 
   return (
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
@@ -108,15 +116,17 @@ export const DashboardView: React.FC<{
           onClose={() => setShowSimWarning(false)}
           footer={
             <div className="ui-stack">
-              <button
-                className="ui-btn ui-btn-primary"
-                onClick={() => {
-                  setShowSimWarning(false);
-                  setShowPreGameModal(true);
-                }}
-              >
-                🏈 Play the Game
-              </button>
+              {!benched && (
+                <button
+                  className="ui-btn ui-btn-primary"
+                  onClick={() => {
+                    setShowSimWarning(false);
+                    setShowPreGameModal(true);
+                  }}
+                >
+                  🏈 Play the Game
+                </button>
+              )}
               <button
                 className="ui-btn ui-btn-dark"
                 onClick={() => {
@@ -139,7 +149,7 @@ export const DashboardView: React.FC<{
         </Sheet>
       )}
 
-      {showPreGameModal && opponent && (
+      {showPreGameModal && opponent && !benched && (
         <PreGameStrategyModal
           userTeam={userTeam}
           opponentTeam={opponent}
@@ -178,6 +188,7 @@ export const DashboardView: React.FC<{
                 label: game.isPlayoff ? game.label : undefined,
                 result: isPlayed ? `${userScore! > opponentScore! ? 'Won' : 'Lost'} ${userScore}-${opponentScore} ${isHome ? 'vs' : 'at'} ${opponent.name}` : undefined,
                 resultStands,
+                benched,
                 inProgress: inProgress && {
                   userScore: isHome ? inProgress.homeScore : inProgress.awayScore,
                   opponentScore: isHome ? inProgress.awayScore : inProgress.homeScore,

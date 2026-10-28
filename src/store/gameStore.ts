@@ -11,7 +11,9 @@ import {
   PlayerRankingsAndStatsState,
   ScheduledGame,
   DilemmaRecord,
-  FeederOutcome
+  FeederOutcome,
+  GradeFix,
+  MisconductThread
 } from '../types/game';
 import { buildCustomLeague, buildTexasLeague, Difficulty, findDistrict, GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, seasonLength, buildStateWorld, stateSchool, difficultyForPrestige } from '../sim/league';
 import {
@@ -24,11 +26,13 @@ import {
   getTeamGameForWeek,
   LAST_REGULAR_SEASON_WEEK
 } from '../sim/scheduleEngine';
-import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS, EXPOSURE_CHANCE } from '../sim/dilemmaEngine';
+import { generateWeeklyDilemma, executeDilemmaDecision, DILEMMA_COOLDOWN_WEEKS } from '../sim/dilemmaEngine';
 import { exposureNews } from '../sim/dilemmaExposures';
+import { TEMPLATES } from '../sim/dilemmaTemplates';
+import { afterThreadChoice, buildThreadStep, CoachBench, maybeStartThread, NO_BENCH, reckoningInvalidates, threadSeverity } from '../sim/billyMartin';
+import { canBookFix, GRADE_FIXES, isReportCardWeek, reviewKey } from '../sim/grades';
 import { attributeLabel, awardGameBall } from '../sim/postGame';
 import { NO_COMMENT, PressQuestion, PressRecord } from '../sim/pressConference';
-import { randomInt } from '../sim/math/variance';
 import {
   COLLEGE_ACTION_COSTS,
   CollegeAction,
@@ -355,6 +359,10 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     seasonSchedule: state.seasonSchedule,
     nationalLeagues: state.nationalLeagues.map((l) => ({ ...l, bracket: l.bracket && compactBracket(l.bracket) })),
     dilemmaLog: state.dilemmaLog,
+    misconductThreads: state.misconductThreads,
+    coachBench: state.coachBench,
+    coachReckonings: state.coachReckonings,
+    ...(state.gradesReviewed && { gradesReviewed: state.gradesReviewed }),
     pressLog: state.pressLog,
     playoffBracket: state.playoffBracket && compactBracket(state.playoffBracket),
     sanctionLevel: state.sanctionLevel,
@@ -459,6 +467,13 @@ interface GameStoreState {
   activeGame: GameSimulationState | null;
   activeDilemma: NarrativeDilemma | null;
   dilemmaLog: DilemmaRecord[];
+  misconductThreads: MisconductThread[]; // shady calls that can still come back (the Billy Martin rule, sim/billyMartin.ts)
+  coachBench: CoachBench; // games and seasons the coach sits out (his coordinator coaches them)
+  coachReckonings: number; // reckonings in this coach's career: each one's penalty is bigger
+  firedForMisconduct: boolean; // fired at the 3rd reckoning, not by the board's review
+  gradesReviewed: string | null; // the week the coach last opened Team › Grades (sim/grades reviewKey)
+  markGradesReviewed: () => void;
+  bookGradeFix: (playerId: string, fix: GradeFix) => void; // books a fix for the next report card, or cancels it for a refund
   pressLog: PressRecord[]; // post-game press questions asked (rotation and cooldowns)
   shortlist: string[]; // prospects the coach put on his list (Prospects › List › My List)
   careerKey: string | null; // this playthrough, across its saves: its played games are written down (sim/gameLock.ts)
@@ -524,6 +539,7 @@ interface GameStoreState {
   autosave: () => Promise<void>; // the autosave slot, now (before leaving the page, e.g. to sign in)
   advanceWeek: () => void;
   resolveDilemma: (choice: DilemmaChoice) => void;
+  applyReckoning: (reckoning: NonNullable<DilemmaChoice['impact']['reckoning']>, thread: MisconductThread) => void; // a major call ignored to the end
   awardGameBall: (playerId: string, summary: { opponentName: string; won: boolean; score: string; line: string }) => void;
   answerPress: (question: PressQuestion, choice: DilemmaChoice) => void;
   setPracticeIntensity: (mode: PracticeIntensity) => void;
@@ -570,6 +586,33 @@ const tickCooldowns = (cooldowns: Partial<Record<FeederEventType, number>>) =>
       .map(([type, weeks]) => [type, (weeks ?? 0) - 1] as const)
       .filter(([, weeks]) => weeks > 0)
   ) as Partial<Record<FeederEventType, number>>;
+
+/** Whether the coach's team still has games this season in a week: the regular season, or a playoff run. */
+const gamesLeftThisSeason = (week: number, bracket: PlayoffBracketState | null, userTeamId: string) =>
+  week <= LAST_REGULAR_SEASON_WEEK || (!!bracket?.isPlayoffsActive && !!findUserNode(bracket, userTeamId));
+
+/** Older saves: calls due to come out in the next few weeks become a first warning instead (the Billy Martin rule). */
+function pendingExposureThreads(log: DilemmaRecord[], year: number, week: number, team: Team): MisconductThread[] {
+  return log
+    .filter((r) => r.year === year && r.exposureWeek !== undefined && r.exposureWeek > week)
+    .map((r) => {
+      const base = TEMPLATES.find((t) => t.id === r.templateId)?.severity ?? 'SERIOUS';
+      const player = r.playerName ? team.roster.find((p) => `${p.firstName} ${p.lastName}` === r.playerName) : undefined;
+      return {
+        id: `bm_${r.templateId.toLowerCase()}_${r.year}_${r.week}`,
+        templateId: r.templateId,
+        title: r.title,
+        ...(r.choiceLabel && { choiceLabel: r.choiceLabel }),
+        ...(player && { playerId: player.id }),
+        ...(r.playerName && { playerName: r.playerName }),
+        severity: threadSeverity(base, r.tier),
+        year: r.year,
+        week: r.week,
+        step: 1 as const,
+        weeksLeft: r.exposureWeek! - week
+      };
+    });
+}
 
 /** The last season of a probation that starts now: this season if its regular season isn't over, else the next. */
 const probationEnd = (year: number, week: number, seasons: number) => (week <= LAST_REGULAR_SEASON_WEEK ? year + seasons - 1 : year + seasons);
@@ -702,6 +745,11 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   activeGame: null,
   activeDilemma: null,
   dilemmaLog: [],
+  misconductThreads: [],
+  coachBench: NO_BENCH,
+  coachReckonings: 0,
+  firedForMisconduct: false,
+  gradesReviewed: null,
   pressLog: [],
   shortlist: [],
   careerKey: null,
@@ -803,6 +851,11 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       activeGame: null,
       activeDilemma: null,
       dilemmaLog: [],
+      misconductThreads: [],
+      coachBench: NO_BENCH,
+      coachReckonings: 0,
+      firedForMisconduct: false,
+      gradesReviewed: null,
       pressLog: [],
       sanctionLevel: 0,
       playoffBracket: null,
@@ -894,6 +947,12 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       userProbationUntil: save.userProbationUntil ?? null,
       lightCalibration: save.lightCalibration ?? null,
       dilemmaLog: save.dilemmaLog ?? [],
+      misconductThreads: save.misconductThreads ?? pendingExposureThreads(save.dilemmaLog ?? [], year, save.currentWeek, userTeam),
+      coachBench: save.coachBench ?? NO_BENCH,
+      // Older saves: the reckonings their careers recorded (each one made the career invalid, and still does)
+      coachReckonings: save.coachReckonings ?? [...(save.careerHistory ?? []), ...(save.career ? [save.career] : [])].reduce((n, c) => n + (c.reckonings?.length ?? 0), 0),
+      firedForMisconduct: false,
+      gradesReviewed: save.gradesReviewed ?? null,
       pressLog: save.pressLog ?? [],
       shortlist: save.shortlist ?? [],
       programCooldowns: save.programCooldowns ?? {},
@@ -957,6 +1016,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const { currentWeek, districtTeams, leagueTeams, seasonSchedule, userTeamId, practiceIntensity, polls, league } = get();
     // Everything reported from here on is next week's news (the Hub's headlines)
     set({ newsMark: get().newsArticles.length });
+    // A week closer to each open warning (they carry across seasons)
+    if (get().misconductThreads.length > 0) set({ misconductThreads: get().misconductThreads.map((t) => ({ ...t, weeksLeft: t.weeksLeft - 1 })) });
     // Advancing out of the off-season week starts next year
     if (league && currentWeek >= seasonLength(league)) {
       get().transitionToNextYear();
@@ -967,6 +1028,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const phase = getSeasonPhase(currentWeek);
     track('week_advance', { ...moment(get()), week: nextWeek, phase: getSeasonPhase(nextWeek) });
     if (currentWeek === FEEDER_SIGNING_WEEK && get().currentYear >= get().feederClassYear) get().runFeederSigningDay();
+
+    // A suspended coach serves a game each time his team plays one
+    const bench = get().coachBench;
+    if (bench.gamesLeft > 0 && getUserMatchup(get())) set({ coachBench: { ...bench, gamesLeft: bench.gamesLeft - 1 } });
 
     // The coach's game, if it's simmed now: its players' stats before, so its final is written down with their lines
     const simmed = get().careerKey ? getUserMatchup(get()) : undefined;
@@ -1124,34 +1189,6 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       userTeam.pendingFridayEdge = 0;
     }
 
-    // Whistleblowers: risky/corrupt decisions can surface in a later week (design spec 12.1)
-    const { dilemmaLog, currentYear } = get();
-    const exposures = dilemmaLog.filter((r) => r.year === currentYear && r.exposureWeek === nextWeek);
-    const exposureArticles: NewsArticle[] = exposures.map((r) => {
-      const meters = userTeam.programMeters;
-      meters.complianceScore = Math.max(0, meters.complianceScore - 15);
-      meters.schoolBoardTrust = Math.max(0, meters.schoolBoardTrust - 10);
-      meters.boosterApproval = Math.max(0, meters.boosterApproval - 5);
-      // The dilemma's own story (its "future reckoning"), then the call that was made
-      const story = exposureNews(r, userTeam.name);
-      return {
-        id: `news_exposed_${r.templateId}_${nextWeek}`,
-        week: nextWeek,
-        outlet: 'TOWN_JOURNAL',
-        headline: story.headline,
-        content: story.content,
-        impactSentiment: 'NEGATIVE',
-        featuredTeamName: userTeam.name
-      };
-    });
-    if (exposureArticles.length > 0) set({ newsArticles: [...exposureArticles, ...get().newsArticles] });
-    // Each one marks the career: an invalid playthrough on the Hall of Fame
-    const reckoningCareer = get().career;
-    if (exposures.length > 0 && reckoningCareer && !get().careerComplete) {
-      const marks = exposures.map((r) => ({ year: currentYear, week: nextWeek, title: r.title }));
-      set({ career: { ...reckoningCareer, reckonings: [...(reckoningCareer.reckonings ?? []), ...marks] } });
-    }
-
     // The Director of Football Operations works the boosters and the compliance office every week
     // (meters stay whole numbers: a fraction of a point lands as a full point that often)
     const programStaff = staffBonuses(get().coachingStaff);
@@ -1256,7 +1293,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
     // 1. Weekly triage for every program: injuries heal, and every third week brings
     // report cards ("No Pass, No Play"). AI programs keep their struggling students in study hall; the
-    // user handles grades through dilemmas.
+    // coach books fixes on Team › Grades (sim/grades.ts), and some dilemmas touch grades too.
     const stateRules = rulesForState(league?.state);
     const inCamp = phase === 'SUMMER_CAMP';
     // Suspensions count games: they run down only for teams that played this week (any playoff week counts)
@@ -1266,8 +1303,12 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       const playedGame = phase === 'STATE_PLAYOFFS' || getTeamGameForWeek(weekGames, currentWeek, team.id) !== undefined;
       team.roster.forEach((p) => {
         processWeeklyInjuryHealing(p, currentWeek, playedGame);
-        // Report cards every third week once the school year and season are under way
-        if (nextWeek % 3 === 0 && nextWeek >= FIRST_NON_DISTRICT_WEEK) evaluateAcademicReport(p, !isUser && isAcademicallyAtRisk(p, stateRules) ? 0.1 : 0, stateRules);
+        // Report cards every third week once the school year and season are under way; a booked fix counts now
+        if (isReportCardWeek(nextWeek)) {
+          const fix = isUser ? p.academics.gradeFix : undefined;
+          evaluateAcademicReport(p, (!isUser && isAcademicallyAtRisk(p, stateRules) ? 0.1 : 0) + (fix ? GRADE_FIXES[fix].gain : 0), stateRules);
+          delete p.academics.gradeFix;
+        }
       });
     });
     // Morale: training camp brings the team together. Below 50, starters get suspended.
@@ -1313,6 +1354,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const updatedPlayerRankings = generatePlayerRankingsAndLeaderboards(everyone, nextWeek);
 
     // 4. College recruiting statewide (offers, commitments, flips) & Weekly Dilemma
+    const { dilemmaLog, currentYear } = get();
     if (nextWeek === MID_SEASON_STAR_UPDATE_WEEK) updateStarRatings(nationalTeams(leagueTeams, get().nationalLeagues), true);
     const collegeNews = collegeRecruitingNews(advanceCollegeRecruiting(leagueTeams, nextWeek, currentYear), userTeamId, nextWeek, currentYear);
     const recentTemplates = dilemmaLog
@@ -1321,11 +1363,25 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     // Once the user's season is over (eliminated or not in the playoffs), program dilemmas stop until next year
     const bracket = get().playoffBracket;
     const seasonOver = !!bracket?.isPlayoffsActive && !findUserNode(bracket, userTeamId);
-    const dilemma = seasonOver ? null : generateWeeklyDilemma(nextWeek, userTeam, recentTemplates);
+    // A warning that's due comes before the week's dilemma (it waits for a week the Hub can show it); otherwise the dilemma
+    const due = get().careerComplete ? undefined : get().misconductThreads.find((t) => t.weeksLeft <= 0);
+    const warning = due && { ...buildThreadStep(due, userTeam, get().coachReckonings, gamesLeftThisSeason(nextWeek, get().playoffBracket, userTeamId)), weekTriggered: nextWeek };
+    const dilemma = warning || (seasonOver ? null : generateWeeklyDilemma(nextWeek, userTeam, recentTemplates));
+    // The second warning is the story going public: the Town Journal runs it
+    if (due?.step === 2) {
+      const story = exposureNews({ templateId: due.templateId, title: due.title, year: due.year, week: due.week, tier: 'RISKY', choiceLabel: due.choiceLabel, playerName: due.playerName }, userTeam.name);
+      set({
+        newsArticles: [
+          { id: `news_exposed_${due.id}`, week: nextWeek, outlet: 'TOWN_JOURNAL', headline: story.headline, content: story.content, impactSentiment: 'NEGATIVE', featuredTeamName: userTeam.name },
+          ...get().newsArticles
+        ]
+      });
+    }
 
 
     // 5. Generate Weekly Press Articles
-    const newArticles = generateWeeklyNewsStream(nextWeek, userTeam, undefined, dilemma?.title);
+    // (a warning isn't news until it goes public: the second one runs its own story above)
+    const newArticles = generateWeeklyNewsStream(nextWeek, userTeam, undefined, warning ? undefined : dilemma?.title);
 
     const updatedState = {
       currentWeek: nextWeek,
@@ -1531,6 +1587,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       track('career_complete', { seasons: career.length, season: currentYear - 2025 });
       set({
         careerComplete: true,
+        misconductThreads: [], // a career that ends drops the warnings still open
         jobOffers: jobOffers(career, leagueTeams, userTeamId),
         contractRenewable: boardReview(userTeam.programMeters.schoolBoardTrust, get().onHotSeat) !== 'FIRED'
       });
@@ -1539,7 +1596,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     // The school board's season-end review
     const review = boardReview(userTeam.programMeters.schoolBoardTrust, get().onHotSeat);
     if (review === 'FIRED') {
-      set({ firedFrom: userTeam.name });
+      set({ firedFrom: userTeam.name, misconductThreads: [] });
       return;
     }
     // Assistants nobody paid for next season leave the staff
@@ -1729,7 +1786,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       tier: choice.tier,
       choiceLabel: choice.label,
       ...(involved && { playerName: `${involved.firstName} ${involved.lastName}` }),
-      ...(Math.random() < EXPOSURE_CHANCE[choice.tier] && { exposureWeek: currentWeek + randomInt(1, 3) })
+      ...(activeDilemma?.threadStep && { threadStep: activeDilemma.threadStep })
     };
     track('dilemma_choice', { dilemma: record.templateId, tier: choice.tier, ...moment(get()) });
     set({
@@ -1738,6 +1795,83 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       dilemmaLog: [...dilemmaLog, record],
       coachPoints: Math.max(0, get().coachPoints + (choice.impact.coachPointsDelta ?? 0)) // a booster's thanks, or tutors paid for
     });
+    // Sitting out games: the coach's own choice, or the end of a warning let ride
+    if (choice.impact.coachGamesOut) set({ coachBench: { ...get().coachBench, gamesLeft: get().coachBench.gamesLeft + choice.impact.coachGamesOut } });
+
+    const thread = activeDilemma?.threadId ? get().misconductThreads.find((t) => t.id === activeDilemma.threadId) : undefined;
+    if (thread) {
+      // A warning answered: made right, let ride (the next step comes later), or taken
+      const next = afterThreadChoice(thread, choice);
+      set({ misconductThreads: get().misconductThreads.flatMap((t) => (t.id !== thread.id ? [t] : next ? [next] : [])) });
+      if (choice.impact.reckoning) get().applyReckoning(choice.impact.reckoning, thread);
+      return;
+    }
+    // A risky or corrupt call can come back (the Billy Martin rule)
+    const started = maybeStartThread(record, TEMPLATES.find((t) => t.id === record.templateId)?.severity, involved?.id);
+    if (started) set({ misconductThreads: [...get().misconductThreads, started] });
+  },
+
+  applyReckoning: (reckoning, thread) => {
+    const { currentYear, currentWeek, userTeamId, districtTeams } = get();
+    const team = districtTeams.find((t) => t.id === userTeamId)!;
+    // The career is marked: from the 2nd reckoning on, an invalid playthrough on the Hall of Fame
+    const career = get().career;
+    if (career && !get().careerComplete) {
+      const marked = { ...career, reckonings: [...(career.reckonings ?? []), { year: currentYear, week: currentWeek, title: thread.title, invalidates: reckoningInvalidates(reckoning) }] };
+      set({ career: marked });
+      if (marked.seasons.length > 0) recordCareer(marked);
+    }
+    const headline: Record<typeof reckoning, string> = {
+      SEASON: `${team.name} Coach Suspended for the Rest of the Season`,
+      NEXT_SEASON: `${team.name} Coach Suspended for Next Season`,
+      BAN: `State Bans ${team.name} Coach for a Year`,
+      FIRED: `${team.name} Fires Its Football Coach`
+    };
+    const bench = get().coachBench;
+    set({
+      coachReckonings: get().coachReckonings + 1,
+      newsArticles: [
+        {
+          id: `news_reckoning_${thread.id}`,
+          week: currentWeek,
+          outlet: 'TOWN_JOURNAL',
+          headline: headline[reckoning],
+          content: `The decision follows months of questions about "${thread.title}". ${reckoning === 'FIRED' ? 'The coordinator takes over the program.' : 'The coordinator will coach the team on game day.'}`,
+          impactSentiment: 'NEGATIVE',
+          featuredTeamName: team.name
+        },
+        ...get().newsArticles
+      ],
+      // The season he sits: this one (the 1st), or the next (the 1st with no games left, or the 2nd)
+      ...(reckoning !== 'FIRED' && { coachBench: { ...bench, seasons: [...bench.seasons, reckoning === 'SEASON' ? currentYear : currentYear + 1] } })
+    });
+    // The 3rd: the career at this school is over (open warnings go with it)
+    if (reckoning === 'FIRED') set({ firedFrom: team.name, firedForMisconduct: true, misconductThreads: [] });
+  },
+
+  markGradesReviewed: () => {
+    const key = reviewKey(get().currentYear, get().currentWeek);
+    if (get().gradesReviewed !== key) set({ gradesReviewed: key });
+  },
+
+  bookGradeFix: (playerId, fix) => {
+    const { districtTeams, userTeamId, currentYear, coachPoints } = get();
+    const player = districtTeams.find((t) => t.id === userTeamId)?.roster.find((p) => p.id === playerId);
+    if (!player || !canBookFix(player, fix, currentYear)) return;
+    const { cost } = GRADE_FIXES[fix];
+    const academics = player.academics;
+    if (academics.gradeFix === fix) {
+      // Cancelled before the report card: the money comes back (and so does the teacher's help this season)
+      delete academics.gradeFix;
+      if (fix === 'TEACHER') delete academics.teacherYear;
+      set({ coachPoints: coachPoints + cost, districtTeams: [...districtTeams] });
+      return;
+    }
+    if (coachPoints < cost) return;
+    academics.gradeFix = fix;
+    if (fix === 'TEACHER') academics.teacherYear = currentYear;
+    track('grade_fix', { fix, ...moment(get()) });
+    set({ coachPoints: coachPoints - cost, districtTeams: [...districtTeams] });
   },
 
   setSecondStringLead: (lead) => set({ secondStringLead: lead }),
