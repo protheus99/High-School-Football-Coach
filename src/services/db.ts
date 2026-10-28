@@ -1,3 +1,4 @@
+import { fullRecord } from '../sim/seasonRecord';
 import type { ComplianceState } from '../sim/compliance';
 import Dexie, { Table } from 'dexie';
 import type { Difficulty, LeagueStructure } from '../sim/league';
@@ -78,8 +79,8 @@ export function summarizeSave(record: GameSaveRecord): SaveSummary {
     saveName: record.saveName,
     timestamp: record.timestamp,
     teamName: team?.name ?? 'Unknown team',
-    wins: team?.record.wins ?? 0,
-    losses: team?.record.losses ?? 0,
+    wins: team ? fullRecord(team, record.playoffBracket).wins : 0,
+    losses: team ? fullRecord(team, record.playoffBracket).losses : 0,
     currentWeek: record.currentWeek,
     currentYear: record.currentYear ?? 2026,
     ...(record.difficulty && { difficulty: record.difficulty }),

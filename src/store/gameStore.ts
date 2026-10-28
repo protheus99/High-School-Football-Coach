@@ -148,6 +148,7 @@ import { randomSurname } from '../generators/names';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { moveInDepthChart, normalizeDepthChart, setDepthTier } from '../sim/depthChart';
 import { REST_STARTERS_LEAD } from '../sim/matchEngine';
+import { fullRecord, recordText } from '../sim/seasonRecord';
 import { NO_BOOSTS, PHASE_TRAINING, PracticeIntensity, PracticeSeason, TrainingBoosts, TrainingReport, addPracticeWeek, aiIntensity, migrateIntensity, runTrainingWeek, trainingBoosts } from '../sim/training';
 import {
   COACH_TALENTS,
@@ -1295,16 +1296,17 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const updatedPolls = generateNationalAndStatePolls(everyone, polls, nextWeek, collectResults(get()), league?.state ?? 'Texas');
     // The coach's result and any real move in the polls lead next week's headlines
     const headlineNews: NewsArticle[] = [];
+    const userRecord = recordText(userTeam, get().playoffBracket);
     if (userGame?.homeScore !== undefined && userGame.awayScore !== undefined) {
       const home = userGame.homeTeamId === userTeamId;
       const opponent = everyone.find((t) => t.id === (home ? userGame.awayTeamId : userGame.homeTeamId));
-      if (opponent) headlineNews.push(gameResultNews(nextWeek, userTeam, opponent, home ? userGame.homeScore : userGame.awayScore, home ? userGame.awayScore : userGame.homeScore, polls));
+      if (opponent) headlineNews.push(gameResultNews(nextWeek, userTeam, opponent, home ? userGame.homeScore : userGame.awayScore, home ? userGame.awayScore : userGame.homeScore, polls, userRecord));
     } else if (playoffResult) {
       const { node, label } = playoffResult;
       const first = node.team1.id === userTeamId;
-      headlineNews.push(gameResultNews(nextWeek, userTeam, first ? node.team2 : node.team1, (first ? node.team1Score : node.team2Score) ?? 0, (first ? node.team2Score : node.team1Score) ?? 0, polls, label));
+      headlineNews.push(gameResultNews(nextWeek, userTeam, first ? node.team2 : node.team1, (first ? node.team1Score : node.team2Score) ?? 0, (first ? node.team2Score : node.team1Score) ?? 0, polls, userRecord, label));
     }
-    const pollStory = rankingNews(polls, updatedPolls, userTeam, league?.state ?? 'Texas', nextWeek);
+    const pollStory = rankingNews(polls, updatedPolls, userTeam, league?.state ?? 'Texas', nextWeek, userRecord);
     if (pollStory) headlineNews.push(pollStory);
 
     // 3. Recalculate Player Stats Leaderboards & Positional Prospect Rankings
@@ -1572,8 +1574,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         : [];
     const seasonRecap: SeasonRecap = {
       year: currentYear,
-      wins: userTeam.record.wins,
-      losses: userTeam.record.losses,
+      ...fullRecord(userTeam, get().playoffBracket), // the whole season, playoffs included
       districtFinish: calculateDistrictStandings(districtTeams).findIndex((r) => r.teamId === userTeamId) + 1,
       graduated: userTeam.roster.filter((p) => p.classYear === 'Senior').length,
       returningStarters: userTeam.roster.filter((p) => p.depthChartTier === 1 && p.classYear !== 'Senior').length

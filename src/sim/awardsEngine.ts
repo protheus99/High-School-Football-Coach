@@ -1,5 +1,6 @@
 import { Player, Position, Team } from '../types/game';
 import type { PlayoffBracketState } from './playoffEngine';
+import { playoffRecord, recordText } from './seasonRecord';
 
 // ---------------------------------------------------------------------------
 // End-of-season honors for the state: Mr. Football, the Offensive and Defensive Players of the Year (three
@@ -56,17 +57,8 @@ interface Candidate {
   impact: number;
 }
 
-/** Wins for the whole season: the regular season plus playoff wins on the field. */
-function playoffWins(team: Team, bracket?: PlayoffBracketState | null): { wins: number; losses: number; champion: boolean } {
-  const games = (bracket?.divisions ?? []).flatMap((d) => d.rounds.flat()).filter((n) => !n.isBye && n.winnerTeamId && (n.team1.id === team.id || n.team2.id === team.id));
-  const wins = games.filter((n) => n.winnerTeamId === team.id).length;
-  return { wins, losses: games.length - wins, champion: !!bracket?.divisions.some((d) => d.championTeamId === team.id) };
-}
-
-const fullRecord = (team: Team, bracket?: PlayoffBracketState | null) => {
-  const p = playoffWins(team, bracket);
-  return `${team.record.wins + p.wins}-${team.record.losses + p.losses}`;
-};
+const playoffWins = (team: Team, bracket?: PlayoffBracketState | null) => playoffRecord(team.id, bracket);
+const fullRecord = recordText;
 
 /** How much a player did this season, on one scale across positions. */
 export function seasonImpact(p: Player, teamWins: number): number {

@@ -1,6 +1,8 @@
 import React from 'react';
 import { readableOnWhite } from '../utils/color';
 import { useGameStore } from '../store/gameStore';
+import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
+import { recordText } from '../sim/seasonRecord';
 import { FEEDER_SIGNING_WEEK, getSeasonPhase, getTeamGameForWeek, LAST_REGULAR_SEASON_WEEK, LAST_TRAINING_CAMP_WEEK, SEASON_PHASE_LABELS, SeasonPhase, firstPlayoffWeek } from '../sim/scheduleEngine';
 
 /** What happens in a week without a game. */
@@ -30,6 +32,7 @@ import { Team } from '../types/game';
 
 export const ScheduleView: React.FC = () => {
   const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, currentYear, feederClassYear, openTeamProfile, nationalLeagues } = useGameStore();
+  const playoffs = usePlayoffRecords();
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
   if (!userTeam) return null;
@@ -135,7 +138,7 @@ export const ScheduleView: React.FC = () => {
                     </strong>
                   </button>
                   <div style={{ fontSize: '12px', color: '#475569' }}>
-                    {game.opponent.record.wins}-{game.opponent.record.losses} · {game.opponent.schemeOffense.replace(/_/g, ' ')} offense
+                    {recordText(game.opponent, playoffs)} · {game.opponent.schemeOffense.replace(/_/g, ' ')} offense
                   </div>
                 </div>
               ) : (

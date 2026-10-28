@@ -157,6 +157,7 @@ export function gameResultNews(
   userScore: number,
   opponentScore: number,
   polls: StateAndNationalPolls | null,
+  record: string, // the season so far, playoffs included (this game too)
   label?: string
 ): NewsArticle {
   const won = userScore > opponentScore;
@@ -166,7 +167,7 @@ export function gameResultNews(
     week,
     outlet: 'TOWN_JOURNAL',
     headline: won ? `${userTeam.name} Beats ${opp} ${userScore}-${opponentScore}` : `${userTeam.name} Falls to ${opp} ${opponentScore}-${userScore}`,
-    content: `${label ? `${label}: ` : ''}${userTeam.name} ${won ? 'won' : 'lost'} ${userScore}-${opponentScore} and is now ${userTeam.record.wins}-${userTeam.record.losses}.`,
+    content: `${label ? `${label}: ` : ''}${userTeam.name} ${won ? 'won' : 'lost'} ${userScore}-${opponentScore} and is now ${record}.`,
     impactSentiment: won ? 'POSITIVE' : 'NEGATIVE',
     featuredTeamName: userTeam.name
   };
@@ -183,7 +184,14 @@ function pollMove(before: number | undefined, after: number | undefined, where: 
 }
 
 /** The coach's team moving in the state or national polls: only real changes make the news. */
-export function rankingNews(before: StateAndNationalPolls | null, after: StateAndNationalPolls, userTeam: Team, state: string, week: number): NewsArticle | null {
+export function rankingNews(
+  before: StateAndNationalPolls | null,
+  after: StateAndNationalPolls,
+  userTeam: Team,
+  state: string,
+  week: number,
+  record = `${userTeam.record.wins}-${userTeam.record.losses}` // the season so far, playoffs included
+): NewsArticle | null {
   const rankIn = (polls: StateAndNationalPolls | null, list: 'state' | 'national') =>
     (list === 'state' ? polls?.stateRankings[state] : polls?.nationalTop25)?.find((e) => e.teamId === userTeam.id)?.rank;
   if (!before) return null; // the first poll of a save: nothing to compare
@@ -197,7 +205,7 @@ export function rankingNews(before: StateAndNationalPolls | null, after: StateAn
     week,
     outlet: 'STATE_SPORTS_CENTRAL',
     headline: `${userTeam.name} ${moves.join(' and ')}`,
-    content: `${userTeam.name} (${userTeam.record.wins}-${userTeam.record.losses}) ${moves.join('; ')}.`,
+    content: `${userTeam.name} (${record}) ${moves.join('; ')}.`,
     impactSentiment: up ? 'POSITIVE' : 'NEGATIVE',
     featuredTeamName: userTeam.name
   };

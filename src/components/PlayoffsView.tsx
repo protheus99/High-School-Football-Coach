@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
+import { recordText } from '../sim/seasonRecord';
 import { BracketNode, PlayoffBracketState, userDivisionIndex } from '../sim/playoffEngine';
 import { playoffQualifyText, rulesForState } from '../sim/stateRules';
 import { rankedName } from '../sim/newsEngine';
@@ -11,6 +13,7 @@ import { StateAndNationalPolls, Team } from '../types/game';
  */
 export const PlayoffsView: React.FC<{ onGoToGame: () => void; onStandings: () => void }> = ({ onGoToGame, onStandings }) => {
   const { playoffBracket, userTeamId, league, polls, leagueTeams } = useGameStore();
+  const playoffs = usePlayoffRecords();
   const rules = rulesForState(league?.state);
   if (!playoffBracket) {
     const me = leagueTeams.find((t) => t.id === userTeamId);
@@ -21,7 +24,7 @@ export const PlayoffsView: React.FC<{ onGoToGame: () => void; onStandings: () =>
           <div style={statusTitle}>The playoff field is set after the regular season</div>
           <div style={statusDetail}>
             {playoffQualifyText(rules)}
-            {me ? ` You're ${me.record.wins}-${me.record.losses}.` : ''}
+            {me ? ` You're ${recordText(me, playoffs)}.` : ''}
           </div>
           <button onClick={onStandings} style={{ ...button, ...secondaryButton }}>
             Standings ›
@@ -83,7 +86,7 @@ const Bracket: React.FC<{
       accent: '#2563EB',
       tone: '#1E40AF',
       kicker: `THIS WEEK · ${roundLabels[roundNames[lastIndex]].toUpperCase()}`,
-      title: `${lastGame.team1.id === userTeamId ? 'vs' : 'at'} ${name(opp)} (${opp.record.wins}-${opp.record.losses})`,
+      title: `${lastGame.team1.id === userTeamId ? 'vs' : 'at'} ${name(opp)} (${recordText(opp, bracket)})`,
       detail: roundNames[lastIndex + 1] ? `Win and advance to the ${roundLabels[roundNames[lastIndex + 1]]}.` : 'Win the state championship.',
       goToGame: true
     };
@@ -231,7 +234,7 @@ const Bracket: React.FC<{
                         <span style={{ fontWeight: won ? 800 : 600, color: won ? '#15803D' : n.winnerTeamId ? '#94A3B8' : '#0F172A', minWidth: 0 }}>
                           {name(t)}{' '}
                           <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 400 }}>
-                            ({t.record.wins}-{t.record.losses})
+                            ({recordText(t, bracket)})
                           </span>
                         </span>
                         <span style={{ marginLeft: 'auto', fontWeight: 800 }}>{score ?? ''}</span>

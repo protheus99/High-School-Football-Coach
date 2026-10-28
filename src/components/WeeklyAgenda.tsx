@@ -16,6 +16,8 @@ import { recruitScore } from '../sim/collegeRecruitingEngine';
 import { rankedName } from '../sim/newsEngine';
 import { HubHeadlines } from './HubHeadlines';
 import { SeasonCard } from './SeasonCard';
+import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
+import { recordText } from '../sim/seasonRecord';
 import { PracticePicker } from './PracticePicker';
 import { PRACTICE_OPTIONS } from '../sim/training';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
@@ -134,6 +136,7 @@ export const WeeklyAgenda: React.FC<{
   phaseLabel: string; // e.g. Pre Season, Regular Season District
 }> = ({ game, onPlayGame, onResumeGame, onAutoSim, onAdvanceWeek, onNavigate, phaseLabel }) => {
   const store = useGameStore();
+  const playoffs = usePlayoffRecords();
   const {
     leagueTeams,
     nationalLeagues,
@@ -397,7 +400,7 @@ export const WeeklyAgenda: React.FC<{
       id: 'game',
       icon: game.isPlayoff ? '🏆' : '🏈',
       kicker: 'GAME IN PROGRESS',
-      title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${rankedName(opp, polls)} (${opp.record.wins}-${opp.record.losses})`,
+      title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${rankedName(opp, polls)} (${recordText(opp, playoffs)})`,
       detail: "This game already kicked off and wasn't finished. It picks up where it left off.",
       tone: 'todo',
       counted: true,
@@ -428,7 +431,7 @@ export const WeeklyAgenda: React.FC<{
       id: 'game',
       icon: game.isPlayoff ? '🏆' : '🏈',
       // A nationally ranked opponent carries its rank: "vs #18 Midland Legacy"
-      title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${rankedName(opp, polls)} (${opp.record.wins}-${opp.record.losses})`,
+      title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${rankedName(opp, polls)} (${recordText(opp, playoffs)})`,
       detail: note,
       tone: 'todo',
       counted: true,
@@ -546,7 +549,7 @@ export const WeeklyAgenda: React.FC<{
       detail: mine
         ? mine.isBye
           ? `You have a first-round bye. Rest up: injuries heal and the ${ROUND_LABELS[playoffBracket.roundNames[1]] ?? 'next round'} is in two weeks.`
-          : `${ROUND_LABELS[playoffBracket.roundNames[0]]} next week ${mine.team1.id === userTeamId ? 'vs' : 'at'} ${opponent!.name} (${opponent!.record.wins}-${opponent!.record.losses}). No game this week: rest, heal and study film.`
+          : `${ROUND_LABELS[playoffBracket.roundNames[0]]} next week ${mine.team1.id === userTeamId ? 'vs' : 'at'} ${opponent!.name} (${recordText(opponent!, playoffs)}). No game this week: rest, heal and study film.`
         : "You didn't make the field. The season ends at the banquet: use the time for college recruiting.",
       tone: 'info',
       link: { label: 'Playoffs', onClick: () => onNavigate('PLAYOFFS') }
@@ -555,7 +558,7 @@ export const WeeklyAgenda: React.FC<{
     headline = {
       id: 'season-over',
       icon: '🏁',
-      title: `Season over: ${team.record.wins}-${team.record.losses}${myRow ? `, ${ordinal(myRow.rank)} in ${districtName}` : ''}`,
+      title: `Season over: ${recordText(team, playoffs)}${myRow ? `, ${ordinal(myRow.rank)} in ${districtName}` : ''}`,
       detail: 'The playoffs go on without you. The season ends at the banquet: use the time for college recruiting.',
       tone: 'info',
       link: { label: 'Playoffs', onClick: () => onNavigate('PLAYOFFS') }

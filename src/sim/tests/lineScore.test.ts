@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { simulateSnap } from '../matchEngine';
-import { lineScore, recordLine, teamAbbreviation } from '../lineScore';
+import { lineScore, recordAfter, recordLine, teamAbbreviation } from '../lineScore';
+import type { PlayoffBracketState } from '../playoffEngine';
 import { GameSimulationState, ScheduledGame } from '../../types/game';
 
 function playGame(): GameSimulationState {
@@ -83,10 +84,15 @@ describe('Box score line score', () => {
     const recorded = schedule.map((g) => (g.gameId === game.gameId ? { ...g, homeScore: 15, awayScore: 14 } : g));
     Object.assign(home.record, { wins: 2, losses: 3, districtWins: 1, districtLosses: 1 });
     expect(recordLine(home, 'home', game, recorded)).toBe('2-3 (1-1)');
-    // A non-district game moves only the overall record; playoff games move neither
+    // A non-district game moves only the overall record, and so does a playoff game
     const nonDistrict = schedule.map((g) => (g.gameId === game.gameId ? { ...g, isDistrictGame: false } : g));
     Object.assign(home.record, { wins: 1, losses: 3, districtWins: 0, districtLosses: 1 });
     expect(recordLine(home, 'home', game, nonDistrict)).toBe('2-3 (0-1)');
-    expect(recordLine(home, 'home', { ...game, gameId: 'po_m1' }, schedule)).toBe('1-3 (0-1)');
+    expect(recordLine(home, 'home', { ...game, gameId: 'po_m1' }, schedule)).toBe('2-3 (0-1)');
+    // Once the playoff game is in the bracket, the season already counts it (and earlier playoff wins)
+    const node = (id: string, winner: boolean) => ({ matchupId: id, team1: home, team2: away, winnerTeamId: winner ? home.id : undefined });
+    const bracket = { divisions: [{ name: 'State', rounds: [[node('m0', true)], [node('m1', true)]] }] } as unknown as PlayoffBracketState;
+    expect(recordLine(home, 'home', { ...game, gameId: 'po_m1' }, schedule, bracket)).toBe('3-3 (0-1)');
+    expect(recordAfter(away, 'away', { ...game, gameId: 'po_m1' }, schedule, bracket)).toEqual({ wins: 4, losses: 2 });
   });
 });

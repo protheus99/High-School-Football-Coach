@@ -1,6 +1,8 @@
 import React from 'react';
 import { Sheet } from './ui/Sheet';
 import { useGameStore } from '../store/gameStore';
+import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
+import { recordText } from '../sim/seasonRecord';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, leagueRegionTeams } from '../sim/league';
 import { bracketRoundWeek } from '../sim/playoffEngine';
@@ -27,6 +29,7 @@ const LEADERS: { stat: keyof PlayerStats; label: string; unit: string }[] = [
  */
 export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; onOpenPlayer: (player: Player) => void }> = ({ teamId, onClose, onOpenPlayer }) => {
   const { leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, polls, openTeamProfile, nationalLeagues } = useGameStore();
+  const playoffs = usePlayoffRecords();
   const team = leagueTeams.find((t) => t.id === teamId);
   if (!team) return null;
   const isUser = team.id === userTeamId;
@@ -93,7 +96,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
       title={`${team.name} ${team.mascot}`}
       subtitle={
         <>
-          {team.record.wins}-{team.record.losses}
+          {recordText(team, playoffs)}
           {standing && ` · ${ordinal(standing.rank)} in ${district?.name ?? `the ${districtLabel.toLowerCase()}`} (${standing.districtRecord})`}
           {nationalRank ? ` · #${nationalRank} nationally` : stateRank ? ` · #${stateRank} in ${team.state}` : ''}
         </>

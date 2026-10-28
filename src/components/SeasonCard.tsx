@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { Team } from '../types/game';
+import { recordText } from '../sim/seasonRecord';
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 
@@ -13,20 +14,19 @@ function movement(now: number, before: number | undefined): { text: string; colo
 }
 
 /**
- * The Hub's season at a glance: the record (district record in parentheses) and district standing, then the
+ * The Hub's season at a glance: the record (playoffs included) and district standing, then the
  * state and national ranks with this week's movement.
  */
 export const SeasonCard: React.FC<{ team: Team; standingRank?: number; districtName: string }> = ({ team, standingRank, districtName }) => {
-  const { polls, league } = useGameStore();
+  const { polls, league, playoffBracket } = useGameStore();
   const state = league?.state ?? 'Texas';
   const ranks = polls?.teamRanks?.[team.id];
   const before = polls?.previousTeamRanks?.[team.id];
-  const { wins, losses, districtWins, districtLosses } = team.record;
   return (
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
         <b style={{ fontSize: '22px', fontWeight: 800 }}>
-          {wins}-{losses} ({districtWins}-{districtLosses})
+          {recordText(team, playoffBracket)}
         </b>
         {standingRank !== undefined && (
           <span style={{ fontSize: '13px', color: '#475569' }}>

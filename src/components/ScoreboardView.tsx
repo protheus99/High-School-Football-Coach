@@ -5,6 +5,8 @@ import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK, STATE_FINAL_WEEK } f
 import { bracketRoundForWeek } from '../sim/playoffEngine';
 import { rulesForState } from '../sim/stateRules';
 import { nationalTeams } from '../sim/nationalWorld';
+import { recordText } from '../sim/seasonRecord';
+import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
 
 type Scope = 'DISTRICT' | 'REGION' | 'ALL';
 
@@ -28,8 +30,9 @@ export const ScoreboardView: React.FC = () => {
   // Out-of-state opponents play in other states' leagues
   const allTeams = useMemo(() => nationalTeams(leagueTeams, nationalLeagues), [leagueTeams, nationalLeagues]);
   const names = useMemo(() => new Map(allTeams.map((t) => [t.id, t.name])), [allTeams]);
-  // Current overall record (regular season), shown next to every team
-  const records = useMemo(() => new Map(allTeams.map((t) => [t.id, `${t.record.wins}-${t.record.losses}`])), [allTeams]);
+  // The season so far (playoffs included), shown next to every team
+  const playoffs = usePlayoffRecords();
+  const records = useMemo(() => new Map(allTeams.map((t) => [t.id, recordText(t, playoffs)])), [allTeams, playoffs]);
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
   const lastGameWeek = STATE_FINAL_WEEK;

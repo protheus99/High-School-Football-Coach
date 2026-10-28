@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { AwardWinner, SeasonAwardsRecord, TopPerformer } from '../sim/awardsEngine';
 import { Team } from '../types/game';
+import { useGameStore } from '../store/gameStore';
+import { recordText } from '../sim/seasonRecord';
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 const CLASS_SHORT: Record<string, string> = { Freshman: 'Fr.', Sophomore: 'So.', Junior: 'Jr.', Senior: 'Sr.' };
@@ -17,6 +19,7 @@ export const AllStateHonorsPage: React.FC<{
   performers: TopPerformer[];
   onContinue: () => void;
 }> = ({ awards, userTeam, stateName, performers, onContinue }) => {
+  const playoffBracket = useGameStore((s) => s.playoffBracket);
   const [side, setSide] = useState<'OFFENSE' | 'DEFENSE'>('OFFENSE');
   const mine = (w: { teamId: string }) => w.teamId === userTeam.id;
   const majors = [awards.mrFootballStateMVP, awards.offensivePlayerOfTheYear, awards.defensivePlayerOfTheYear];
@@ -24,7 +27,7 @@ export const AllStateHonorsPage: React.FC<{
   const myMajors = majors.filter(mine).map((w) => w.awardTitle);
   const coachIsMine = awards.coachOfTheYear.teamId === userTeam.id;
   const extras = [...myMajors.map((t) => `the ${t}`), ...(coachIsMine ? ['Coach of the Year'] : [])];
-  const record = `${userTeam.record.wins}-${userTeam.record.losses}`;
+  const record = recordText(userTeam, playoffBracket);
   const honored = allStateCount > 0 || extras.length > 0;
   const returning = performers.filter((p) => p.player.classYear !== 'Senior').length;
   const list = side === 'OFFENSE' ? awards.allStateOffense : awards.allStateDefense;

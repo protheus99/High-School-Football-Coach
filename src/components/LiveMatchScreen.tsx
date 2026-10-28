@@ -18,6 +18,8 @@ import { PressQuestion, buildPressContext, pickPressQuestion } from '../sim/pres
 import { DilemmaChoice } from '../types/game';
 import { DefensiveFocus, FOCUS_CALL, focusFromCall } from '../sim/gamePlan';
 import { secondStringLead } from '../sim/matchEngine';
+import { recordAfter } from '../sim/lineScore';
+import { fullRecord } from '../sim/seasonRecord';
 import { OffensiveScheme } from '../types/game';
 import { FlagCall } from './FlagCall';
 import { FLAG_STAGE_MS, FlagStage, flagStages } from '../sim/flagSequence';
@@ -331,6 +333,16 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     finishPostGame();
   };
 
+  // Each team's season (playoffs included): coming into the game, then with this game once it's over
+  const seasonSchedule = useGameStore((s) => s.seasonSchedule);
+  const interstateGames = useGameStore((s) => s.interstateGames);
+  const playoffBracket = useGameStore((s) => s.playoffBracket);
+  const seasonOf = (side: 'home' | 'away') => {
+    const team = side === 'home' ? gameState.homeTeam : gameState.awayTeam;
+    const r = gameState.isGameOver ? recordAfter(team, side, gameState, [...seasonSchedule, ...interstateGames], playoffBracket) : fullRecord(team, playoffBracket);
+    return `${r.wins}-${r.losses}`;
+  };
+
   const isHomePoss = gameState.possessionTeamId === gameState.homeTeam.id;
   const currentPossTeam = isHomePoss ? gameState.homeTeam : gameState.awayTeam;
 
@@ -395,10 +407,8 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
                   <span style={teamNameStyle(readableOnWhite(team.primaryColor, team.secondaryColor))}>{team.name}</span>
                   {i === 0 && gameState.possessionTeamId === team.id && <span style={{ flex: '0 0 auto' }} aria-label="has the ball">🏈</span>}
                 </div>
-                {/* Record coming into the game */}
-                <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>
-                  ({team.record.wins}-{team.record.losses})
-                </div>
+                {/* Record coming into the game (with this game at the final whistle) */}
+                <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>({seasonOf(i === 0 ? 'away' : 'home')})</div>
                 <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1, color: '#0F172A' }}>{i === 0 ? gameState.awayScore : gameState.homeScore}</div>
               </div>
             ) : (

@@ -1,4 +1,6 @@
 import { GameSimulationState, ScheduledGame, Team } from '../types/game';
+import type { PlayoffBracketState } from './playoffEngine';
+import { WinLoss, fullRecord } from './seasonRecord';
 
 export interface LineScore {
   periods: string[]; // '1'-'4', then 'OT' when the game went to overtime
@@ -35,20 +37,36 @@ export function teamAbbreviation(name: string): string {
   return (words.length >= 2 ? words.map((w) => w.replace(/[^A-Za-z]/g, '')[0]).join('').slice(0, 4) : name.replace(/[^A-Za-z]/g, '').slice(0, 4)).toUpperCase();
 }
 
-/**
- * A team's record after this game, the way the Hub shows it: overall, then the district record in brackets
- * ("2-3 (1-1)"). It starts from the team's own record (which already counts forfeits) and adds this game when it
- * counts and isn't on the books yet (playoff games don't count). Schools from another state show their overall
- * record only.
- */
-export function recordLine(team: Team, side: 'home' | 'away', game: GameSimulationState, schedule: ScheduledGame[]): string {
+/** Whether this game is still to be put on the books (a playoff game: until its bracket game has a winner). */
+function notRecordedYet(game: GameSimulationState, schedule: ScheduledGame[], bracket?: PlayoffBracketState | null): boolean {
+  if (game.gameId.startsWith('po_')) {
+    const node = bracket?.divisions.flatMap((d) => d.rounds.flat()).find((n) => `po_${n.matchupId}` === game.gameId);
+    return !node?.winnerTeamId;
+  }
   const scheduled = schedule.find((g) => g.gameId === game.gameId);
-  const counts = !game.gameId.startsWith('po_') && scheduled !== undefined && scheduled.homeScore === undefined;
+  return scheduled !== undefined && scheduled.homeScore === undefined;
+}
+
+/** A team's season after this game, playoffs included: its record plus this game when it isn't on the books yet. */
+export function recordAfter(team: Team, side: 'home' | 'away', game: GameSimulationState, schedule: ScheduledGame[], bracket?: PlayoffBracketState | null): WinLoss {
+  const counts = notRecordedYet(game, schedule, bracket);
   const won = side === 'home' ? game.homeScore > game.awayScore : game.awayScore > game.homeScore;
-  const wins = team.record.wins + (counts && won ? 1 : 0);
-  const losses = team.record.losses + (counts && !won ? 1 : 0);
+  const full = fullRecord(team, bracket);
+  return { wins: full.wins + (counts && won ? 1 : 0), losses: full.losses + (counts && !won ? 1 : 0) };
+}
+
+/**
+ * A team's record after this game, the way the box score shows it: the season (playoffs included), then the
+ * district record in brackets ("2-3 (1-1)"). It starts from the team's own record (which already counts forfeits)
+ * and adds this game when it isn't on the books yet (playoff games move only the season). Schools from another
+ * state show their season only.
+ */
+export function recordLine(team: Team, side: 'home' | 'away', game: GameSimulationState, schedule: ScheduledGame[], bracket?: PlayoffBracketState | null): string {
+  const { wins, losses } = recordAfter(team, side, game, schedule, bracket);
   if (!schedule.some((g) => g.homeTeamId === team.id || g.awayTeamId === team.id)) return `${wins}-${losses}`;
-  const district = counts && scheduled!.isDistrictGame;
+  const scheduled = schedule.find((g) => g.gameId === game.gameId);
+  const won = side === 'home' ? game.homeScore > game.awayScore : game.awayScore > game.homeScore;
+  const district = !game.gameId.startsWith('po_') && notRecordedYet(game, schedule, bracket) && !!scheduled?.isDistrictGame;
   const districtWins = team.record.districtWins + (district && won ? 1 : 0);
   const districtLosses = team.record.districtLosses + (district && !won ? 1 : 0);
   return `${wins}-${losses} (${districtWins}-${districtLosses})`;
