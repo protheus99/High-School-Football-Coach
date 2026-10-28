@@ -10,6 +10,7 @@ import { PlayAlertData, PreSnap, alertsForPlay } from '../sim/playAlerts';
 import { readableOnWhite } from '../utils/color';
 import { PlayCallingPanel } from './PlayCallingPanel';
 import { AroundTheLeague } from './AroundTheLeague';
+import { AroundTheState } from './AroundTheState';
 import { GamePlanBar, GamePlanSheet } from './GamePlanSheet';
 import { GameBallSheet, PressConferenceSheet } from './PostGameSheets';
 import { useGameStore } from '../store/gameStore';
@@ -349,7 +350,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   return (
     <div style={{ padding: '16px', maxWidth: '840px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       {showBoxScore && (
-        <PostGameBoxScoreModal gameState={gameState} closeLabel="Continue" onClose={() => { setShowBoxScore(false); setPostStep('GAME_BALL'); }} />
+        <PostGameBoxScoreModal gameState={gameState} closeLabel="Continue" aroundTheState onClose={() => { setShowBoxScore(false); setPostStep('GAME_BALL'); }} />
       )}
 
       {showHalftimeModal && (
@@ -508,8 +509,8 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       {/* The game plan: below the boxes that pop up, above the scoreboard and the play-by-play */}
       {!gameState.isGameOver && <GamePlanBar offense={planOffense} focus={planFocus} bench={planBench} onUpdate={openPlan} />}
 
-      {/* Other games this week, at this game's clock */}
-      <AroundTheLeague quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={gameState.isGameOver} />
+      {/* Other games this week, at this game's clock; at the final whistle, the week's top games (all final) */}
+      {gameState.isGameOver ? <AroundTheState /> : <AroundTheLeague quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={false} />}
 
       {/* Play-by-Play Stream (collapsible) */}
       <button

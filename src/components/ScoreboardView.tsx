@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { findDistrict, findRegion } from '../sim/league';
 import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK, STATE_FINAL_WEEK } from '../sim/scheduleEngine';
@@ -7,6 +7,8 @@ import { rulesForState } from '../sim/stateRules';
 import { nationalTeams } from '../sim/nationalWorld';
 import { recordText } from '../sim/seasonRecord';
 import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
+import { getUserMatchup } from '../sim/userMatchup';
+import { gameKey, playoffKey } from '../sim/runAhead';
 
 type Scope = 'DISTRICT' | 'REGION' | 'ALL';
 
@@ -23,7 +25,7 @@ interface ScoreRow {
 
 /** Last week's results and this week's games around the league (regular season and playoffs). */
 export const ScoreboardView: React.FC = () => {
-  const { league, leagueTeams, seasonSchedule, playoffBracket, currentWeek, userTeamId, openTeamProfile, nationalLeagues } = useGameStore();
+  const { league, leagueTeams, seasonSchedule, playoffBracket, currentWeek, userTeamId, openTeamProfile, nationalLeagues, weekResults, runAhead } = useGameStore();
   const [scope, setScope] = useState<Scope>('DISTRICT');
   const [search, setSearch] = useState('');
 
@@ -38,36 +40,56 @@ export const ScoreboardView: React.FC = () => {
   const lastGameWeek = STATE_FINAL_WEEK;
   const ROUND_LABELS = rulesForState(league?.state).playoffs.roundLabels;
 
+  // Once the coach's game is over, this week's other games show their finals: the results simulated ahead, the same
+  // ones Advance Week applies
+  const userGameOver = !!getUserMatchup({ currentWeek, seasonSchedule, leagueTeams, userTeamId, playoffBracket, nationalLeagues })?.isPlayed;
+  useEffect(() => {
+    if (userGameOver && weekResults?.week !== currentWeek) runAhead();
+  }, [userGameOver, weekResults, currentWeek, runAhead]);
+  const finals = userGameOver && weekResults?.week === currentWeek ? weekResults.games : null;
+  /** A row of this week with its run-ahead final, when the row has none yet. */
+  const withFinal = (row: ScoreRow, key: string): ScoreRow => {
+    const ahead = finals?.[gameKey(league?.state ?? 'Texas', key)];
+    if (row.homeScore !== undefined || !ahead || ahead.homeId !== row.homeId || ahead.awayId !== row.awayId) return row;
+    return { ...row, homeScore: ahead.homeScore, awayScore: ahead.awayScore };
+  };
+
   const rowsForWeek = (week: number): ScoreRow[] => {
     if (week > LAST_REGULAR_SEASON_WEEK) {
       if (!playoffBracket) return [];
       const roundIndex = bracketRoundForWeek(playoffBracket, week);
       if (roundIndex < 0) return []; // open week
-      return playoffBracket.divisions.flatMap((d) =>
-        (d.rounds[roundIndex] ?? []).filter((n) => !n.isBye).map((n) => ({
-          id: n.matchupId,
-          homeId: n.team1.id,
-          awayId: n.team2.id,
-          homeName: n.team1.name,
-          awayName: n.team2.name,
-          homeScore: n.team1Score,
-          awayScore: n.team2Score,
-          tag: playoffBracket.divisions.length > 1 ? d.name : n.region
-        }))
+      return playoffBracket.divisions.flatMap((d, divisionIndex) =>
+        (d.rounds[roundIndex] ?? []).filter((n) => !n.isBye).map((n) => {
+          const row: ScoreRow = {
+            id: n.matchupId,
+            homeId: n.team1.id,
+            awayId: n.team2.id,
+            homeName: n.team1.name,
+            awayName: n.team2.name,
+            homeScore: n.team1Score,
+            awayScore: n.team2Score,
+            tag: playoffBracket.divisions.length > 1 ? d.name : n.region
+          };
+          return week === currentWeek ? withFinal(row, playoffKey(divisionIndex, n.matchupId)) : row;
+        })
       );
     }
     return seasonSchedule
       .filter((g) => g.week === week)
-      .map((g) => ({
-        id: g.gameId,
-        homeId: g.homeTeamId,
-        awayId: g.awayTeamId,
-        homeName: names.get(g.homeTeamId) ?? 'Unknown',
-        awayName: names.get(g.awayTeamId) ?? 'Unknown',
-        homeScore: g.homeScore,
-        awayScore: g.awayScore,
-        tag: g.forfeitedByTeamId ? 'Forfeit' : g.isDistrictGame ? rulesForState(league?.state).districtLabel : undefined
-      }));
+      .map((g) => {
+        const row: ScoreRow = {
+          id: g.gameId,
+          homeId: g.homeTeamId,
+          awayId: g.awayTeamId,
+          homeName: names.get(g.homeTeamId) ?? 'Unknown',
+          awayName: names.get(g.awayTeamId) ?? 'Unknown',
+          homeScore: g.homeScore,
+          awayScore: g.awayScore,
+          tag: g.forfeitedByTeamId ? 'Forfeit' : g.isDistrictGame ? rulesForState(league?.state).districtLabel : undefined
+        };
+        return week === currentWeek ? withFinal(row, g.gameId) : row;
+      });
   };
 
   const inScope = (id: string) =>

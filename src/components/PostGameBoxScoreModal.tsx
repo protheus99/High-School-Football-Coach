@@ -6,14 +6,16 @@ import { Sheet } from './ui/Sheet';
 import { GameScoreHeader } from './ui/GameScoreHeader';
 import { recordLine } from '../sim/lineScore';
 import { useGameStore } from '../store/gameStore';
+import { AroundTheState } from './AroundTheState';
 
 interface BoxScoreProps {
   gameState: GameSimulationState;
   onClose: () => void;
   closeLabel?: string;
+  aroundTheState?: boolean; // the week's top games under the final (the coach's own game, just over)
 }
 
-export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onClose, closeLabel = 'Back to Hub' }) => {
+export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onClose, closeLabel = 'Back to Hub', aroundTheState = false }) => {
   const { homeTeam, awayTeam } = gameState;
   const gameStats = gameState.playerGameStats ?? {};
   const { seasonSchedule, interstateGames, playoffBracket } = useGameStore();
@@ -60,6 +62,9 @@ export const PostGameBoxScoreModal: React.FC<BoxScoreProps> = ({ gameState, onCl
         awayRecord={recordLine(awayTeam, 'away', gameState, schedule, playoffBracket)}
         homeRecord={recordLine(homeTeam, 'home', gameState, schedule, playoffBracket)}
       />
+
+      {/* The other games are already over: the week's top games, before the stats */}
+      {aroundTheState && <AroundTheState />}
 
       {/* Team comparison: metric in the middle, each team on its side */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', rowGap: '6px', columnGap: '10px', fontSize: '14px', marginBottom: '18px' }}>
