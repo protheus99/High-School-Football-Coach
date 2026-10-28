@@ -8,6 +8,16 @@ import {
   schemeCounterBonus
 } from './matchEngine';
 
+/** "Play second string when leading by": the leads a coach can pick (null: never). */
+export const SECOND_STRING_LEADS: (number | null)[] = [28, 35, 42, null];
+/** The plan bar's value: "+35", or "Never". */
+export const secondStringLabel = (lead: number | null) => (lead === null ? 'Never' : `+${lead}`);
+/** The note under the choice. */
+export const secondStringNote = (lead: number | null) =>
+  lead === null
+    ? 'Your starters play the whole game, whatever the score.'
+    : `The backups come in once you lead by ${lead}. If the lead falls under ${lead}, the starters come back on automatically.`;
+
 /** The coach's defensive plan for a game: Balanced lets the staff call it by down and distance. */
 export type DefensiveFocus = 'BALANCED' | 'STOP_RUN' | 'STOP_PASS' | 'BLITZ';
 

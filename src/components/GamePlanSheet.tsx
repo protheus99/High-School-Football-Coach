@@ -2,13 +2,18 @@ import React, { useState } from 'react';
 import { OffensiveScheme, Team, WeatherType } from '../types/game';
 import { Sheet } from './ui/Sheet';
 import { GamePlanPicker } from './GamePlanPicker';
-import { DefensiveFocus, FOCUS_NAMES, OFFENSE_NAMES } from '../sim/gamePlan';
+import { DefensiveFocus, FOCUS_NAMES, OFFENSE_NAMES, secondStringLabel } from '../sim/gamePlan';
 
 /**
  * "Current Gameplan · Update" over "Offense [Power I] | Defense [Balanced]": the plan a game is running, one tap from
  * changing. Update sits on the title line so the plan itself never has to be cut short on a phone.
  */
-export const GamePlanBar: React.FC<{ offense: OffensiveScheme; focus: DefensiveFocus; onUpdate: () => void }> = ({ offense, focus, onUpdate }) => (
+export const GamePlanBar: React.FC<{ offense: OffensiveScheme; focus: DefensiveFocus; bench: number | null; onUpdate: () => void }> = ({
+  offense,
+  focus,
+  bench,
+  onUpdate
+}) => (
   <div style={{ background: '#fff', border: '1px solid #CBD5E1', borderRadius: '10px', padding: '4px 4px 8px 10px', marginBottom: '10px' }}>
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Current Gameplan</span>
@@ -26,6 +31,12 @@ export const GamePlanBar: React.FC<{ offense: OffensiveScheme; focus: DefensiveF
       <span style={{ whiteSpace: 'nowrap' }}>
         Defense <b style={planValue}>{FOCUS_NAMES[focus]}</b>
       </span>
+      <span aria-hidden="true" style={{ color: '#CBD5E1' }}>
+        |
+      </span>
+      <span style={{ whiteSpace: 'nowrap' }}>
+        2nd string <b style={planValue}>{secondStringLabel(bench)}</b>
+      </span>
     </div>
   </div>
 );
@@ -34,22 +45,24 @@ export const GamePlanBar: React.FC<{ offense: OffensiveScheme; focus: DefensiveF
 export const GamePlanSheet: React.FC<{
   offense: OffensiveScheme;
   focus: DefensiveFocus;
+  bench: number | null;
   opponent: Team;
   usualOffense: OffensiveScheme;
   weather: WeatherType;
   when: string;
-  onDone: (offense: OffensiveScheme, focus: DefensiveFocus) => void;
+  onDone: (offense: OffensiveScheme, focus: DefensiveFocus, bench: number | null) => void;
   onCancel: () => void;
-}> = ({ offense, focus, opponent, usualOffense, weather, when, onDone, onCancel }) => {
+}> = ({ offense, focus, bench, opponent, usualOffense, weather, when, onDone, onCancel }) => {
   const [pickedOffense, setPickedOffense] = useState(offense);
   const [pickedFocus, setPickedFocus] = useState(focus);
+  const [pickedBench, setPickedBench] = useState(bench);
   return (
     <Sheet
       title="Game Plan"
       subtitle={`${when} · applies from the next snap`}
       onClose={onCancel}
       footer={
-        <button className="ui-btn ui-btn-block" style={{ background: '#047857', borderColor: '#047857', color: '#fff', minHeight: '50px', fontSize: '15px' }} onClick={() => onDone(pickedOffense, pickedFocus)}>
+        <button className="ui-btn ui-btn-block" style={{ background: '#047857', borderColor: '#047857', color: '#fff', minHeight: '50px', fontSize: '15px' }} onClick={() => onDone(pickedOffense, pickedFocus, pickedBench)}>
           Done
         </button>
       }
@@ -63,6 +76,8 @@ export const GamePlanSheet: React.FC<{
         opponent={opponent}
         usualOffense={usualOffense}
         weather={weather}
+        bench={pickedBench}
+        onBench={setPickedBench}
       />
     </Sheet>
   );

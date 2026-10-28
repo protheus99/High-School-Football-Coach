@@ -17,6 +17,7 @@ import { GameBallCandidate, gameBallCandidates } from '../sim/postGame';
 import { PressQuestion, buildPressContext, pickPressQuestion } from '../sim/pressConference';
 import { DilemmaChoice } from '../types/game';
 import { DefensiveFocus, FOCUS_CALL, focusFromCall } from '../sim/gamePlan';
+import { secondStringLead } from '../sim/matchEngine';
 import { OffensiveScheme } from '../types/game';
 import { FlagCall } from './FlagCall';
 import { FLAG_STAGE_MS, FlagStage, flagStages } from '../sim/flagSequence';
@@ -257,6 +258,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   const opponent = gameState.homeTeam.id === userTeamId ? gameState.awayTeam : gameState.homeTeam;
   const planOffense = gameState.offensiveGamePlan?.[userTeamId] ?? userTeam.schemeOffense;
   const planFocus = focusFromCall(gameState.defensiveGamePlan?.[userTeamId]);
+  const planBench = secondStringLead(gameState, userTeamId);
   const openPlan = () => {
     // Auto-sim waits while the coach changes the plan, then carries on
     if (autoPlay) resumeAutoRef.current = true;
@@ -268,15 +270,21 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     // At halftime the speech restarts the game (and auto-sim with it)
     if (!showHalftimeModal) resumeAutoSim();
   };
-  const applyPlan = (offense: OffensiveScheme, focus: DefensiveFocus) => {
+  const applyPlan = (offense: OffensiveScheme, focus: DefensiveFocus, bench: number | null) => {
     if (showHalftimeModal) changedPlanAtHalftimeRef.current = true; // the press may ask about it
     const call = FOCUS_CALL[focus];
-    simWorkerBridge.setGamePlan(userTeamId, offense, call);
+    simWorkerBridge.setGamePlan(userTeamId, offense, call, bench);
+    useGameStore.getState().setSecondStringLead(bench); // the bench line carries over to the next game
     setGameState((s) => {
       const defense = { ...s.defensiveGamePlan };
       if (call) defense[userTeamId] = call;
       else delete defense[userTeamId];
-      return { ...s, offensiveGamePlan: { ...s.offensiveGamePlan, [userTeamId]: offense }, defensiveGamePlan: defense };
+      return {
+        ...s,
+        offensiveGamePlan: { ...s.offensiveGamePlan, [userTeamId]: offense },
+        defensiveGamePlan: defense,
+        secondStringLead: { ...s.secondStringLead, [userTeamId]: bench }
+      };
     });
     closePlan();
   };
@@ -336,7 +344,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         <HalftimeSpeechModal
           gameState={gameState}
           userTeamId={userTeamId}
-          plan={{ offense: planOffense, focus: planFocus }}
+          plan={{ offense: planOffense, focus: planFocus, bench: planBench }}
           onUpdatePlan={() => setPlanOpen(true)}
           onApplySpeech={(talk) => {
             // The message shapes the second half: the worker plays it, the screen's copy records it
@@ -365,6 +373,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         <GamePlanSheet
           offense={planOffense}
           focus={planFocus}
+          bench={planBench}
           opponent={opponent}
           usualOffense={userTeam.schemeOffense}
           weather={gameState.weather}
@@ -487,7 +496,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       )}
 
       {/* The game plan: below the boxes that pop up, above the scoreboard and the play-by-play */}
-      {!gameState.isGameOver && <GamePlanBar offense={planOffense} focus={planFocus} onUpdate={openPlan} />}
+      {!gameState.isGameOver && <GamePlanBar offense={planOffense} focus={planFocus} bench={planBench} onUpdate={openPlan} />}
 
       {/* Other games this week, at this game's clock */}
       <AroundTheLeague quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={gameState.isGameOver} />
@@ -518,23 +527,38 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         }}
       >
         {gameState.eventLog.map((ev, i) => (
-          <div
-            key={i}
-            style={{
-              marginBottom: '8px',
-              fontSize: '13px',
-              lineHeight: '1.4',
-              ...(ev.penalty ? { background: '#FEF9C3', borderLeft: '4px solid #EAB308', borderRadius: '4px', padding: '3px 6px' } : {})
-            }}
-          >
-            {ev.penalty && <PenaltyFlag size={14} />}{' '}
-            <span style={{ fontWeight: 'bold', color: ev.penalty ? '#854D0E' : '#4B5563' }}>
-              [{ev.quarter === 'OT'
-                ? 'OT'
-                : `Q${ev.quarter} - ${Math.floor(ev.clockTimeRemainingSeconds / 60)}:${(ev.clockTimeRemainingSeconds % 60).toString().padStart(2, '0')}`}]
-            </span>{' '}
-            {snapLabel(ev) && <strong style={{ color: '#1D4ED8' }}>{snapLabel(ev)}</strong>} {ev.textCommentary}
-          </div>
+          <React.Fragment key={i}>
+            <div
+              style={{
+                marginBottom: '8px',
+                fontSize: '13px',
+                lineHeight: '1.4',
+                ...(ev.penalty ? { background: '#FEF9C3', borderLeft: '4px solid #EAB308', borderRadius: '4px', padding: '3px 6px' } : {})
+              }}
+            >
+              {ev.penalty && <PenaltyFlag size={14} />}{' '}
+              <span style={{ fontWeight: 'bold', color: ev.penalty ? '#854D0E' : '#4B5563' }}>
+                [{ev.quarter === 'OT'
+                  ? 'OT'
+                  : `Q${ev.quarter} - ${Math.floor(ev.clockTimeRemainingSeconds / 60)}:${(ev.clockTimeRemainingSeconds % 60).toString().padStart(2, '0')}`}]
+              </span>{' '}
+              {snapLabel(ev) && <strong style={{ color: '#1D4ED8' }}>{snapLabel(ev)}</strong>} {ev.textCommentary}
+            </div>
+            {ev.substitution && (
+              <div
+                style={{
+                  marginBottom: '8px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  borderRadius: '4px',
+                  padding: '3px 6px',
+                  ...(ev.substitution.in ? { background: '#FEF3C7', color: '#78350F' } : { background: '#DCFCE7', color: '#14532D' })
+                }}
+              >
+                {substitutionLine(ev.substitution, ev.substitution.teamId === userTeamId ? null : opponent.name)}
+              </div>
+            )}
+          </React.Fragment>
         ))}
       </div>
       )}
@@ -615,6 +639,14 @@ const ORDINAL: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
 const CONFIRM_END_MS = 3000;
 const dimmed: React.CSSProperties = { opacity: 0.5, cursor: 'default' };
 const LOG_OPEN_KEY = 'hsfhc.playByPlayOpen';
+
+/** "🔄 Second string in: up 35" / "🔁 Starters back in: lead cut to 28" (the opponent's, with its name). */
+function substitutionLine(sub: NonNullable<PlayEvent['substitution']>, teamName: string | null): string {
+  const who = teamName ? `${teamName} ` : '';
+  return sub.in
+    ? `🔄 ${who}${teamName ? 'second' : 'Second'} string in: up ${sub.lead}`
+    : `🔁 ${who}${teamName ? 'starters' : 'Starters'} back in: lead cut to ${sub.lead}`;
+}
 
 /** "1st & 10", "3rd & Goal", or "Try" for a PAT / two-point attempt (blank for events saved before this was recorded). */
 function snapLabel(ev: PlayEvent): string {

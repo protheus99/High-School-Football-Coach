@@ -10,7 +10,7 @@ interface HalftimeSpeechModalProps {
   gameState: GameSimulationState;
   userTeamId: string;
   onApplySpeech: (talk: HalftimeTalk) => void;
-  plan?: { offense: OffensiveScheme; focus: DefensiveFocus }; // the game plan, adjustable for the second half
+  plan?: { offense: OffensiveScheme; focus: DefensiveFocus; bench: number | null }; // the game plan, adjustable for the second half
   onUpdatePlan?: () => void;
 }
 
@@ -55,7 +55,7 @@ export const HalftimeSpeechModal: React.FC<HalftimeSpeechModalProps> = ({
       </div>
       {plan && onUpdatePlan && (
         <div style={{ marginTop: '14px' }}>
-          <GamePlanBar offense={plan.offense} focus={plan.focus} onUpdate={onUpdatePlan} />
+          <GamePlanBar offense={plan.offense} focus={plan.focus} bench={plan.bench} onUpdate={onUpdatePlan} />
         </div>
       )}
     </Sheet>

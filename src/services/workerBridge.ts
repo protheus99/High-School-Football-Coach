@@ -37,8 +37,8 @@ class WorkerBridge {
     this.worker?.postMessage({ type: 'SIMULATE_NEXT_PLAY', payload: { chosenConcept: concept, defensiveCall } });
   }
 
-  public setGamePlan(teamId: string, offense: OffensiveScheme, defensiveCall?: DefensiveCall): void {
-    this.worker?.postMessage({ type: 'SET_GAME_PLAN', payload: { teamId, offense, defensiveCall } });
+  public setGamePlan(teamId: string, offense: OffensiveScheme, defensiveCall: DefensiveCall | undefined, secondStringLead: number | null): void {
+    this.worker?.postMessage({ type: 'SET_GAME_PLAN', payload: { teamId, offense, defensiveCall, secondStringLead } });
   }
 
   public setHalftimeTalk(teamId: string, talk: HalftimeTalk): void {

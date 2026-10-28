@@ -12,7 +12,9 @@ import {
   defenseFocusArrows,
   fitsTheirOffense,
   offenseMatchup,
-  offenseNote
+  offenseNote,
+  SECOND_STRING_LEADS,
+  secondStringNote
 } from '../sim/gamePlan';
 
 const OFFENSES: OffensiveScheme[] = ['TRIPLE_OPTION', 'POWER_I', 'SPREAD', 'AIR_RAID'];
@@ -30,7 +32,9 @@ export const GamePlanPicker: React.FC<{
   opponent: Team;
   usualOffense: OffensiveScheme;
   weather: WeatherType;
-}> = ({ offense, onOffense, focus, onFocus, opponent, usualOffense, weather }) => {
+  bench: number | null;
+  onBench: (lead: number | null) => void;
+}> = ({ offense, onOffense, focus, onFocus, opponent, usualOffense, weather, bench, onBench }) => {
   const theirDefense = opponent.schemeDefense;
   const best = bestOffense(theirDefense, weather);
   const fits = fitsTheirOffense(opponent.schemeOffense);
@@ -64,14 +68,42 @@ export const GamePlanPicker: React.FC<{
         })}
       </div>
       <div style={note}>{DEFENSE_FOCUS_NOTES[focus]}</div>
+
+      <GroupLabel title="Play second string when leading by" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px' }}>
+        {SECOND_STRING_LEADS.map((lead) => {
+          const selected = bench === lead;
+          return (
+            <button
+              key={lead ?? 'never'}
+              onClick={() => onBench(lead)}
+              aria-pressed={selected}
+              style={{
+                minHeight: '44px',
+                borderRadius: '10px',
+                border: selected ? '2px solid #0F172A' : '1px solid #CBD5E1',
+                background: selected ? '#F1F5F9' : '#fff',
+                color: '#0F172A',
+                cursor: 'pointer',
+                font: 'inherit',
+                fontWeight: 800,
+                fontSize: '15px'
+              }}
+            >
+              {lead ?? 'Never'}
+            </button>
+          );
+        })}
+      </div>
+      <div style={note}>{secondStringNote(bench)}</div>
     </>
   );
 };
 
-const GroupLabel: React.FC<{ title: string; keyText: string }> = ({ title, keyText }) => (
+const GroupLabel: React.FC<{ title: string; keyText?: string }> = ({ title, keyText }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '10px 0 6px' }}>
     <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>{title}</span>
-    <span style={{ fontSize: '12px', color: '#475569', fontWeight: 600 }}>{keyText}</span>
+    {keyText && <span style={{ fontSize: '12px', color: '#475569', fontWeight: 600 }}>{keyText}</span>}
   </div>
 );
 

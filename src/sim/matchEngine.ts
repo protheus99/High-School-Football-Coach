@@ -240,7 +240,7 @@ const PLAY_CLOCK_RUNOFF = { min: 21, max: 30 }; // running plays & completions
 const INCOMPLETE_RUNOFF = 6;
 const MERCY_RULE_RUNOFF = 45;
 const MAX_FIELD_GOAL_ATTEMPT_YARDS = 47;
-const REST_STARTERS_LEAD = 35; // second-half lead at which a coach pulls his starters (five scores)
+export const REST_STARTERS_LEAD = 35; // lead at which a coach pulls his starters (five scores), unless he picks another
 const KILL_CLOCK_LEAD = 21; // second-half lead at which the offense keeps the ball on the ground
 const BAD_SNAP_OR_BLOCK_CHANCE = 0.03;
 
@@ -477,6 +477,27 @@ function flaggedPlayText(offense: Team, concept: PlayConcept, byOffense: boolean
   return `${label(pickRusher(offense))} runs for ${gain} yds.`;
 }
 
+/** The lead at which a team's backups go in: the coach's choice (null: never), 35 for everyone else. */
+export function secondStringLead(state: GameSimulationState, teamId: string): number | null {
+  const chosen = state.secondStringLead?.[teamId];
+  return chosen === undefined ? REST_STARTERS_LEAD : chosen;
+}
+
+/**
+ * The team playing its second string right now, if any: the leader, once its lead reaches its bench line. Computer
+ * teams also empty the bench under the mercy-rule running clock (a 30-point margin in some states) while the lead
+ * holds; the coach's own choice is never overruled.
+ */
+export function restingTeamId(state: GameSimulationState): string | null {
+  const margin = state.homeScore - state.awayScore;
+  if (margin === 0) return null;
+  const leaderId = margin > 0 ? state.homeTeam.id : state.awayTeam.id;
+  const line = secondStringLead(state, leaderId);
+  if (line === null) return null;
+  const mercyMargin = state.isMercyRuleActive && state.secondStringLead?.[leaderId] === undefined ? rulesForState(state.homeTeam.state).mercyRuleMargin : null;
+  return Math.abs(margin) >= (mercyMargin !== null ? Math.min(line, mercyMargin) : line) ? leaderId : null;
+}
+
 /**
  * Resolves a single play of football and updates state
  */
@@ -489,10 +510,9 @@ export function simulateSnap(
   if (!state.openingPossessionTeamId) {
     state.openingPossessionTeamId = state.possessionTeamId;
   }
-  // Coaches empty the bench in second-half blowouts (and under the mercy-rule running clock)
-  const margin = state.homeScore - state.awayScore;
-  const secondHalfBlowout = typeof state.currentQuarter === 'number' && state.currentQuarter >= 3 && Math.abs(margin) >= REST_STARTERS_LEAD;
-  restingTeamIds = new Set(secondHalfBlowout || state.isMercyRuleActive ? [margin > 0 ? state.homeTeam.id : state.awayTeam.id] : []);
+  // Coaches empty the bench in blowouts, any time in the game, and put the starters back once the lead shrinks
+  const restingBefore = restingTeamId(state);
+  restingTeamIds = new Set(restingBefore ? [restingBefore] : []);
 
   state.gameDayForm ??= {
     [state.homeTeam.id]: calculateGaussianVariance(0, GAME_DAY_FORM_STDEV),
@@ -889,6 +909,14 @@ export function simulateSnap(
     commentary += ` [vs. ${defensiveCall.replace('_', ' ')}]`;
   }
 
+  // The lead crossed the bench line on this play: the backups go in (or the starters come back) from the next snap
+  const restingAfter = restingTeamId(state);
+  const benchTeamId = restingAfter ?? restingBefore;
+  const substitution =
+    restingAfter !== restingBefore && benchTeamId && !state.isGameOver
+      ? { teamId: benchTeamId, in: restingAfter === benchTeamId, lead: (benchTeamId === state.homeTeam.id ? 1 : -1) * (state.homeScore - state.awayScore) }
+      : undefined;
+
   const event: PlayEvent = {
     playId,
     quarter: state.currentQuarter,
@@ -913,6 +941,7 @@ export function simulateSnap(
     isLeverageMoment: false,
     ...(defensiveCall && { defensiveCall }),
     ...(penalty && { penalty }),
+    ...(substitution && { substitution }),
     homeScoreAfter: state.homeScore,
     awayScoreAfter: state.awayScore
   };

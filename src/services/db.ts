@@ -16,6 +16,7 @@ export interface GameSaveRecord {
   coachingAP?: number; // legacy action points
   coachTalents?: TalentId[];
   practiceIntensity: string; // sim/training PracticeIntensity (older saves: WALKTHROUGH / STANDARD / CONTACT)
+  secondStringLead?: number | null; // the coach's bench line (null: never); older saves: 35
   districtTeams: Team[];
   activeDilemma: NarrativeDilemma | null;
   scoutingPool: FeederProspect[];

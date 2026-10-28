@@ -142,7 +142,8 @@ export const App: React.FC = () => {
       eventLog: [],
       // Balanced: the staff calls the defense by down and distance (no fixed call)
       ...(FOCUS_CALL[focus] && { defensiveGamePlan: { [userTeam.id]: FOCUS_CALL[focus]! } }),
-      offensiveGamePlan: { [userTeam.id]: offensiveScheme ?? userTeam.schemeOffense }
+      offensiveGamePlan: { [userTeam.id]: offensiveScheme ?? userTeam.schemeOffense },
+      secondStringLead: { [userTeam.id]: useGameStore.getState().secondStringLead }
     };
 
     // A game counts once it kicks off: it's written down outside the saves right away

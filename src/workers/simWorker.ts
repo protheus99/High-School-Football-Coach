@@ -18,8 +18,14 @@ self.onmessage = (e: MessageEvent) => {
     // The coach changes the game plan mid-game: it applies from the next snap (Balanced clears the fixed call)
     case 'SET_GAME_PLAN': {
       if (!activeGameState) return;
-      const { teamId, offense, defensiveCall } = payload as { teamId: string; offense: OffensiveScheme; defensiveCall?: DefensiveCall };
+      const { teamId, offense, defensiveCall, secondStringLead } = payload as {
+        teamId: string;
+        offense: OffensiveScheme;
+        defensiveCall?: DefensiveCall;
+        secondStringLead: number | null;
+      };
       activeGameState.offensiveGamePlan = { ...activeGameState.offensiveGamePlan, [teamId]: offense };
+      activeGameState.secondStringLead = { ...activeGameState.secondStringLead, [teamId]: secondStringLead };
       const defense = { ...activeGameState.defensiveGamePlan };
       if (defensiveCall) defense[teamId] = defensiveCall;
       else delete defense[teamId];

@@ -262,6 +262,7 @@ export interface PlayEvent {
   defensiveCall?: DefensiveCall;
   leverageType?: LeverageType;
   penalty?: PenaltyCall; // a flag: the snap is blown dead or called back (sim/penalties)
+  substitution?: { teamId: string; in: boolean; lead: number }; // after this play the team's second string goes in (or its starters come back)
 }
 
 export interface PenaltyCall {
@@ -340,6 +341,7 @@ export interface GameSimulationState {
   playerGameStats?: Record<string, PlayerStats>; // playerId -> this game's stat line
   gameDayForm?: Record<string, number>; // teamId -> 'Any Given Friday' play-quality offset for this game
   halftimeTalks?: Record<string, HalftimeTalk>; // teamId -> the halftime message, for the second half
+  secondStringLead?: Record<string, number | null>; // teamId -> the lead that sends in the backups (null: never; default 35)
 }
 
 /** Kansas Plan overtime: one possession per team per period from the opponent's 10. */

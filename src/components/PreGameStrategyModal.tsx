@@ -3,6 +3,7 @@ import { Team, OffensiveScheme, DefensiveScheme, WeatherType } from '../types/ga
 import { Sheet } from './ui/Sheet';
 import { GamePlanPicker } from './GamePlanPicker';
 import { DEFENSE_NAMES, DEFENSE_STYLES, DefensiveFocus, OFFENSE_NAMES, OFFENSE_STYLES } from '../sim/gamePlan';
+import { useGameStore } from '../store/gameStore';
 
 interface PreGameStrategyModalProps {
   userTeam: Team;
@@ -22,6 +23,8 @@ const WEATHER_NAMES: Record<WeatherType, string> = { CLEAR: 'Clear', HEAVY_RAIN:
 export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({ userTeam, opponentTeam, forecast, onKickoff, onCancel }) => {
   const [offScheme, setOffScheme] = useState<OffensiveScheme>(userTeam.schemeOffense);
   const [focus, setFocus] = useState<DefensiveFocus>('BALANCED');
+  // The bench line is the coach's standing choice: it carries over from game to game
+  const [bench, setBench] = useState<number | null>(() => useGameStore.getState().secondStringLead);
   const theirDefense = opponentTeam.schemeDefense;
   const passFirst = OFFENSE_STYLES[opponentTeam.schemeOffense].toLowerCase();
 
@@ -34,7 +37,10 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({ user
         <button
           className="ui-btn ui-btn-block"
           style={{ background: '#047857', borderColor: '#047857', color: '#fff', minHeight: '50px', fontSize: '15px' }}
-          onClick={() => onKickoff({ selectedOffScheme: offScheme, selectedDefScheme: userTeam.schemeDefense, focusTarget: focus })}
+          onClick={() => {
+            useGameStore.getState().setSecondStringLead(bench);
+            onKickoff({ selectedOffScheme: offScheme, selectedDefScheme: userTeam.schemeDefense, focusTarget: focus });
+          }}
         >
           🏈 Take the Field
         </button>
@@ -64,6 +70,8 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({ user
         opponent={opponentTeam}
         usualOffense={userTeam.schemeOffense}
         weather={forecast.weather}
+        bench={bench}
+        onBench={setBench}
       />
     </Sheet>
   );
