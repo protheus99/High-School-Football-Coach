@@ -356,7 +356,7 @@ export const WeeklyAgenda: React.FC<{
           id: 'programs',
           icon: '🏟️',
           title: 'Which programs should we run this week, Coach?',
-          detail: 'Programs grow your pool: camps find new prospects, the combine reveals potential, and interest programs win them over.',
+          detail: 'Programs find and scout prospects. Texts, calls and visits win them over.',
           tone: 'info',
           accent: 'feeder',
           counted: false,
