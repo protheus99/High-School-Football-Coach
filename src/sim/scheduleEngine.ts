@@ -17,6 +17,15 @@ export const OFF_SEASON_WEEKS = 4;
 export const MAX_PLAYOFF_ROUNDS = 6;
 export const STATE_FINAL_WEEK = LAST_REGULAR_SEASON_WEEK + MAX_PLAYOFF_ROUNDS;
 export const firstPlayoffWeek = (rounds: number) => STATE_FINAL_WEEK - rounds + 1;
+/** Weeks in a year of the game: the season, the banquet week and the off season. */
+const YEAR_WEEKS = STATE_FINAL_WEEK + 1 + OFF_SEASON_WEEKS;
+
+/** Weeks until registrations close (pre season week 2 of the class's year): 0 is this week. */
+export function weeksUntilRegistrationsClose(currentYear: number, currentWeek: number, classYear: number): number {
+  if (currentYear >= classYear && currentWeek <= FEEDER_SIGNING_WEEK) return FEEDER_SIGNING_WEEK - currentWeek;
+  const yearsAhead = Math.max(1, classYear - currentYear);
+  return YEAR_WEEKS - currentWeek + (yearsAhead - 1) * YEAR_WEEKS + FEEDER_SIGNING_WEEK;
+}
 const DISTRICT_POINT_DIFFERENTIAL_CAP = 17;
 const SHOWCASE_PRESTIGE = 88; // programs this strong meet each other in the first in-state non-district week
 

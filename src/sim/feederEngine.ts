@@ -24,7 +24,8 @@ export const SOURCE_LABELS: Record<ProspectSource, string> = {
   MOVE_IN: 'Move-Ins',
   STAR_RECRUIT: 'Out-of-Area Stars',
   OUT_OF_DISTRICT: 'Zoned Elsewhere',
-  TRYOUT: 'Tryout Walk-Ons'
+  TRYOUT: 'Tryout Walk-Ons',
+  MULTI_SPORT: 'Multi-Sport Athletes'
 };
 
 
@@ -67,7 +68,9 @@ export type FeederEventType =
   | 'YOUTH_CLINIC'
   | 'SEVEN_ON_SEVEN_LEAGUE'
   | 'LOCKDOWN_LEAGUE'
-  | 'TRYOUT_DAY'
+  | 'BIG_MAN_CAMP'
+  | 'SPECIAL_TEAMS_CAMP'
+  | 'TRYOUT_DAY' // the Multi-Sport Tryout
   | 'FAMILY_NIGHT'
   | 'QB_ACADEMY'
   | 'BALL_CARRIER_CLINIC'
@@ -76,7 +79,6 @@ export type FeederEventType =
   | 'WAR_ZONE'
   | 'LINEBACKER_U'
   | 'THE_NICKEL'
-  | 'SPECIALIST_SHOWCASE'
   | 'COMBINE';
 
 export type ProgramGroup = 'DISCOVER' | 'INTEREST' | 'POSITION' | 'SCOUT';
@@ -86,44 +88,76 @@ export interface FeederProgram {
   group: ProgramGroup;
   cost: number;
   every: number; // weeks before it can run again (its cooldown)
+  oncePerYear?: boolean; // back after the banquet, whenever it ran
   positions?: Position[];
+  tag?: string; // its positions as the screen shows them (OL DL)
   description: string;
 }
 
+/** A once-a-year program's cooldown: longer than a season, cleared after the banquet. */
+export const ONCE_A_YEAR = 99;
+
+/** The Multi-Sport Tryout: the coach picks the sport, and its athletes play these positions. */
+export type TryoutSport = 'BASKETBALL' | 'BASEBALL' | 'SOCCER' | 'TRACK' | 'WRESTLING';
+export const TRYOUT_SPORTS: Record<TryoutSport, { label: string; emoji: string; positions: Position[]; tag: string }> = {
+  BASKETBALL: { label: 'Basketball', emoji: '🏀', positions: ['WR', 'TE', 'DE', 'CB'], tag: 'WR TE DE CB' },
+  BASEBALL: { label: 'Baseball', emoji: '⚾', positions: ['QB', 'CB', 'S'], tag: 'QB CB S' },
+  SOCCER: { label: 'Soccer', emoji: '⚽', positions: ['K', 'P'], tag: 'K P' },
+  TRACK: { label: 'Track', emoji: '🏃', positions: ['RB', 'CB', 'WR'], tag: 'RB CB WR' },
+  WRESTLING: { label: 'Wrestling', emoji: '🤼', positions: ['OT', 'OG', 'C', 'DE', 'DT', 'LB'], tag: 'OL DL LB' }
+};
+// The athlete's potential: B likely, A sometimes, A+ rare. Raw at football today.
+const TRYOUT_POTENTIAL: [PotentialGrade, number][] = [
+  ['A+', 0.08],
+  ['A', 0.32],
+  ['B', 0.6]
+];
+const TRYOUT_OVERALL: [number, number] = [52, 62];
+
 // ---------------------------------------------------------------------------
-// Programs run all year except the post season (balance review 2026-10-14). They are the main way to build the
-// district pipeline: discovery programs find new prospects, interest programs lift everyone, position programs
-// work one position group (interest, a rating point, sometimes a new prospect), and the Combine scouts. Coach
-// Points are the limit; each program has its own cooldown.
+// Programs run all year except the post season. Each one does one thing (redesign 2026-10-27): camps find new
+// players, the Combine reveals potential, and position programs and Family Night raise interest. No program raises
+// a rating. Coach Points are the limit; each program (each position program too) has its own cooldown.
 // ---------------------------------------------------------------------------
-const POSITION_PROGRAM = { group: 'POSITION' as const, cost: 40, every: 3, description: 'Prospects at these positions: +6–10 interest and +1 rating (up to +3 each); sometimes a new one comes out.' };
+const POSITION_PROGRAM = { group: 'POSITION' as const, cost: 75, every: 8, description: 'Prospects at these positions: +6–10 interest.' };
 
 export const FEEDER_EVENTS: Record<FeederEventType, FeederProgram> = {
-  YOUTH_CLINIC: {
-    label: 'Youth Football Clinic',
-    group: 'DISCOVER',
-    cost: 60,
-    every: 4,
-    description: '2–3 new middle schoolers; every district middle schooler +1 rating and +4–8 interest.'
-  },
+  YOUTH_CLINIC: { label: 'Youth Football Clinic', group: 'DISCOVER', cost: 75, every: 6, description: '2–3 new middle schoolers, any position.' },
   SEVEN_ON_SEVEN_LEAGUE: {
     label: '7-on-7 League Night',
     group: 'DISCOVER',
-    cost: 50,
-    every: 4,
+    cost: 80,
+    every: 6,
     positions: ['QB', 'RB', 'WR', 'TE'],
-    description: '1–2 new offensive athletes; offensive prospects +5–10 interest.'
+    description: '1–2 new offensive athletes.'
   },
-  LOCKDOWN_LEAGUE: {
-    label: 'Lockdown League',
+  LOCKDOWN_LEAGUE: { label: 'Lockdown League', group: 'DISCOVER', cost: 80, every: 6, positions: ['LB', 'CB', 'S'], description: '1–2 new defensive athletes.' },
+  BIG_MAN_CAMP: {
+    label: 'Big Man Camp',
     group: 'DISCOVER',
-    cost: 50,
-    every: 4,
-    positions: ['LB', 'CB', 'S'],
-    description: '1–2 new defensive athletes; defensive prospects +5–10 interest.'
+    cost: 80,
+    every: 6,
+    positions: ['OT', 'OG', 'C', 'DE', 'DT'],
+    tag: 'OL DL',
+    description: '1–2 new linemen.'
   },
-  TRYOUT_DAY: { label: 'Community Tryout Day', group: 'INTEREST', cost: 60, every: 4, description: '+5 interest for every prospect in your pipeline, and 1–2 walk-ons.' },
-  FAMILY_NIGHT: { label: 'Family Night Cookout', group: 'INTEREST', cost: 120, every: 8, description: '+10 interest for every prospect in your pipeline.' },
+  SPECIAL_TEAMS_CAMP: { label: 'Special Teams Camp', group: 'DISCOVER', cost: 80, every: 6, positions: ['K', 'P'], description: '0–2 new kickers or punters.' },
+  TRYOUT_DAY: {
+    label: 'Multi-Sport Tryout',
+    group: 'DISCOVER',
+    cost: 250,
+    every: ONCE_A_YEAR,
+    oncePerYear: true,
+    description: 'Find one athlete playing another sport. He always signs: raw, but full of potential.'
+  },
+  FAMILY_NIGHT: {
+    label: 'Family Night Cookout',
+    group: 'INTEREST',
+    cost: 500,
+    every: ONCE_A_YEAR,
+    oncePerYear: true,
+    description: '+10 interest for every prospect on your list.'
+  },
   QB_ACADEMY: { ...POSITION_PROGRAM, label: 'Quarterback Academy', positions: ['QB'] },
   BALL_CARRIER_CLINIC: { ...POSITION_PROGRAM, label: 'Ball Carrier Clinic', positions: ['RB'] },
   ROUTE_RUNNERS_SCHOOL: { ...POSITION_PROGRAM, label: 'Route Runners School', positions: ['WR', 'TE'] },
@@ -131,23 +165,16 @@ export const FEEDER_EVENTS: Record<FeederEventType, FeederProgram> = {
   WAR_ZONE: { ...POSITION_PROGRAM, label: 'War Zone', positions: ['DE', 'DT'] },
   LINEBACKER_U: { ...POSITION_PROGRAM, label: 'Linebacker U', positions: ['LB'] },
   THE_NICKEL: { ...POSITION_PROGRAM, label: 'The Nickel', positions: ['CB', 'S'] },
-  SPECIALIST_SHOWCASE: { ...POSITION_PROGRAM, label: 'Specialist Showcase', positions: ['K', 'P'] },
-  COMBINE: {
-    label: 'Speed & Strength Combine',
-    group: 'SCOUT',
-    cost: 25,
-    every: 3,
-    description: 'Reveals potential, speed and strength for five unscouted prospects.'
-  }
+  COMBINE: { label: 'Speed & Strength Combine', group: 'SCOUT', cost: 100, every: 8, description: 'Reveals potential for five unscouted prospects.' }
 };
 
-/** A program can't raise one prospect's rating more than this. */
-export const MAX_PROGRAM_BOOST = 3;
+/** Once-a-year programs come back after the banquet. */
+export const clearYearlyCooldowns = (cooldowns: Partial<Record<FeederEventType, number>>) =>
+  Object.fromEntries(Object.entries(cooldowns).filter(([type]) => !FEEDER_EVENTS[type as FeederEventType]?.oncePerYear)) as Partial<Record<FeederEventType, number>>;
 
 export const LINE_POSITIONS: Position[] = ['OT', 'OG', 'C', 'DE', 'DT'];
 export const SKILL_POSITIONS: Position[] = ['QB', 'RB', 'WR', 'TE', 'CB', 'S'];
 const COMBINE_SCOUTS = 5;
-const POSITION_PROGRAM_FIND_CHANCE = 0.4;
 
 const MIDDLE_SCHOOLS = ['Lakeview MS', 'Cedar Creek MS', 'Oak Hill MS', 'Pecan Springs MS', 'Riverbend MS', 'Canyon Vista MS', 'Bluebonnet MS', 'Live Oak MS'];
 const SEVEN_ON_SEVEN_CLUBS = ['Texas Elite 7v7', 'Lone Star Legends', 'Hill Country Hurricanes', 'Gulf Coast Speed', 'DFW Prime', 'Alamo City Ballers'];
@@ -240,6 +267,7 @@ export function createProspect(
       break;
     }
     case 'TRYOUT':
+    case 'MULTI_SPORT':
     default:
       incomingClass = pick<PlayerClass>(['Freshman', 'Freshman', 'Sophomore', 'Junior']);
       overall = randomInt(36, 50);
@@ -421,16 +449,44 @@ export function pitchStarRecruit(p: FeederProspect, team: Team): FeederProspect 
   return { ...p, interestScore: clamp(p.interestScore + gain, 0, 100), coachContacts: p.coachContacts + 1 };
 }
 
-/** Runs an off-season program event; returns the updated pool and any newly discovered prospects. */
+/** One athlete from another sport at the coach's school: raw at football, real potential, and he always signs. */
+export function multiSportAthlete(sport: TryoutSport, team: Team, takenNames: Set<string> = new Set()): FeederProspect {
+  const { label, positions } = TRYOUT_SPORTS[sport];
+  let roll = Math.random();
+  const potential = TRYOUT_POTENTIAL.find(([, share]) => (roll -= share) <= 0)?.[0] ?? 'B';
+  return {
+    ...createProspect('MULTI_SPORT', team, takenNames),
+    middleSchool: `${label} team`,
+    projectedPosition: pick(positions),
+    trueOverall: randomInt(...TRYOUT_OVERALL),
+    truePotential: potential,
+    interestScore: 100,
+    isTransferRisk: false,
+    suitors: []
+  };
+}
+
+/** What a program did: who joined the pool, whose interest went up (and from what), and who was scouted. */
+export interface ProgramOutcome {
+  pool: FeederProspect[];
+  discovered: FeederProspect[];
+  warmed: { id: string; before: number; after: number }[];
+  scouted: string[];
+}
+
+/** Runs a program: one kind of change each (new prospects, interest, or potential revealed). */
 export function runFeederEvent(
   pool: FeederProspect[],
   type: FeederEventType,
   team: Team,
   ctx?: RecruitingContext,
-  interestFactor: (p: FeederProspect) => number = () => 1 // the staff's recruiters and Family Ties
-): { pool: FeederProspect[]; discovered: FeederProspect[] } {
+  interestFactor: (p: FeederProspect) => number = () => 1, // the staff's recruiters and Family Ties
+  options: { sport?: TryoutSport; shortlist?: string[] } = {}
+): ProgramOutcome {
   const room = () => MAX_POOL_SIZE - pool.filter((p) => !p.homeTeamId).length - discovered.length;
   const discovered: FeederProspect[] = [];
+  const warmed: ProgramOutcome['warmed'] = [];
+  let scouted: string[] = [];
   const names = new Set(pool.map((p) => p.name));
   const discover = (source: ProspectSource, count: number, positions?: Position[]) => {
     for (let i = 0; i < count && room() > 0; i++) {
@@ -439,42 +495,39 @@ export function runFeederEvent(
     }
   };
   const warm = (match: (p: FeederProspect) => boolean, min: number, max: number) => {
-    pool = pool.map((p) => (match(p) ? { ...p, interestScore: clamp(p.interestScore + Math.round(randomInt(min, max) * interestFactor(p)), 0, 100) } : p));
-  };
-
-  // A rating point from coaching, up to MAX_PROGRAM_BOOST per prospect
-  const coachUp = (match: (p: FeederProspect) => boolean) => {
-    pool = pool.map((p) =>
-      match(p) && (p.programBoost ?? 0) < MAX_PROGRAM_BOOST ? { ...p, trueOverall: Math.min(99, p.trueOverall + 1), programBoost: (p.programBoost ?? 0) + 1 } : p
-    );
+    pool = pool.map((p) => {
+      if (!match(p)) return p;
+      const after = clamp(p.interestScore + Math.round(randomInt(min, max) * interestFactor(p)), 0, 100);
+      if (after !== p.interestScore) warmed.push({ id: p.id, before: p.interestScore, after });
+      return { ...p, interestScore: after };
+    });
   };
   const mine = (p: FeederProspect) => inUserPipeline(p) && p.source !== 'STAR_RECRUIT';
   const program = FEEDER_EVENTS[type];
   const at = (p: FeederProspect) => !!program.positions?.includes(p.projectedPosition);
 
   if (type === 'YOUTH_CLINIC') {
-    const middleSchooler = (p: FeederProspect) => p.source === 'FEEDER_MIDDLE_SCHOOL' && !p.homeTeamId;
-    warm(middleSchooler, 4, 8);
-    coachUp(middleSchooler);
     discover('FEEDER_MIDDLE_SCHOOL', randomInt(2, 3));
   } else if (type === 'SEVEN_ON_SEVEN_LEAGUE' || type === 'LOCKDOWN_LEAGUE') {
-    warm((p) => mine(p) && at(p), 5, 10);
     discover('SEVEN_ON_SEVEN', randomInt(1, 2), program.positions);
+  } else if (type === 'BIG_MAN_CAMP') {
+    discover('FEEDER_MIDDLE_SCHOOL', randomInt(1, 2), program.positions);
+  } else if (type === 'SPECIAL_TEAMS_CAMP') {
+    discover('FEEDER_MIDDLE_SCHOOL', randomInt(0, 2), program.positions);
   } else if (type === 'TRYOUT_DAY') {
-    warm(mine, 5, 5);
-    discover('TRYOUT', randomInt(1, 2));
+    if (room() > 0) discovered.push(multiSportAthlete(options.sport ?? 'TRACK', team, names));
   } else if (type === 'FAMILY_NIGHT') {
-    warm(mine, 10, 10);
+    const list = new Set(options.shortlist ?? []);
+    warm((p) => mine(p) && list.has(p.id), 10, 10);
   } else if (type === 'COMBINE') {
-    const unscouted = pool.filter((p) => !isEvaluated(p) && inUserPipeline(p)).slice(0, COMBINE_SCOUTS).map((p) => p.id);
-    pool = pool.map((p) => (unscouted.includes(p.id) ? scoutProspect(p) : p));
+    // Potential only: speed and strength stay hidden
+    scouted = pool.filter((p) => !isEvaluated(p) && inUserPipeline(p)).slice(0, COMBINE_SCOUTS).map((p) => p.id);
+    pool = pool.map((p) => (scouted.includes(p.id) ? { ...p, revealedPotential: p.truePotential } : p));
   } else {
     // A position program
     warm((p) => mine(p) && at(p), 6, 10);
-    coachUp((p) => mine(p) && at(p));
-    if (Math.random() < POSITION_PROGRAM_FIND_CHANCE) discover('FEEDER_MIDDLE_SCHOOL', 1, program.positions);
   }
-  return { pool: [...pool, ...discovered].map(withEvaluation), discovered: discovered.map(withEvaluation) };
+  return { pool: [...pool, ...discovered].map(withEvaluation), discovered: discovered.map(withEvaluation), warmed, scouted };
 }
 
 /** Families occasionally move into the district during the year. */
@@ -498,6 +551,8 @@ export function joinChance(p: FeederProspect, prestige: number): number {
       return clamp((p.interestScore - 55) / 100, 0, 0.45); // a long shot even when they love you
     case 'OUT_OF_DISTRICT':
       return clamp((p.interestScore - 40) / 100, 0, 0.5); // pulling a kid from his zoned school is rare
+    case 'MULTI_SPORT':
+      return 1; // already at the school, and he wants to play
     case 'TRYOUT':
     default:
       return clamp(0.6 + 0.2 * interest, 0, 0.9);
@@ -608,6 +663,12 @@ export function resolveFeederClass(
     // The potential the coach had seen (prospects he evaluated), kept for the signing day board
     const known = withEvaluation(p).revealedPotential;
     const base = { prospectId: p.id, prospectName: p.name, source: p.source, position: p.projectedPosition, ...(known !== 'UNKNOWN' && { potential: known }) };
+    // A multi-sport athlete always joins: no rival recruits him, and he already wants to play
+    if (p.source === 'MULTI_SPORT' && !p.homeTeamId) {
+      const player = signProspect(p, ctx?.userTeamId ?? team.id, ctx?.userTeamId ?? team.id);
+      joined.push(player);
+      return { ...base, outcome: 'JOINED' as FeederOutcomeType, playerId: player.id, overall: p.trueOverall };
+    }
     if (p.isTransferRisk && Math.random() < 0.5) return { ...base, outcome: 'LEFT_AREA' as FeederOutcomeType };
 
     if (!ctx) {

@@ -341,7 +341,7 @@ export const WeeklyAgenda: React.FC<{
       id,
       icon: '✍️',
       title,
-      detail: `${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pipeline pick their school when week ${FEEDER_SIGNING_WEEK} ends.${
+      detail: `${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pool pick their school when week ${FEEDER_SIGNING_WEEK} ends.${
         onTheFence.length ? ` Still deciding: ${onTheFence.map((p) => `${p.projectedPosition} ${p.name}`).join(', ')}.` : ''
       }`,
       tone,
@@ -356,7 +356,7 @@ export const WeeklyAgenda: React.FC<{
           id: 'programs',
           icon: '🏟️',
           title: 'Which programs should we run this week, Coach?',
-          detail: 'Programs grow your district pipeline: more prospects, better ones, and more interest in your program.',
+          detail: 'Programs grow your pool: camps find new prospects, the combine reveals potential, and interest programs win them over.',
           tone: 'info',
           accent: 'feeder',
           counted: false,
@@ -579,7 +579,7 @@ export const WeeklyAgenda: React.FC<{
       headline = {
         id: 'pipeline',
         icon: '🔍',
-        title: currentWeek === firstOffSeasonWeek ? `Prospect season opens: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pipeline` : `Grow the pipeline: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')}`,
+        title: currentWeek === firstOffSeasonWeek ? `Prospect season opens: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pool` : `Grow your pool: ${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')}`,
         detail: `Off season week ${currentWeek - firstOffSeasonWeek + 1} of 4. Prospect signing day is pre season week ${FEEDER_SIGNING_WEEK}.`,
         tone: 'info',
         link: { label: 'Prospects', onClick: () => onNavigate('FEEDERS') }

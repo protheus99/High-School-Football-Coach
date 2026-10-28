@@ -47,6 +47,8 @@ import {
 import {
   FEEDER_EVENTS,
   FeederEventType,
+  TryoutSport,
+  clearYearlyCooldowns,
   PROSPECT_ACTION_COSTS,
   generateFeederPool,
   inUserPipeline,
@@ -165,6 +167,14 @@ const COMPLIANCE_SANCTION_THRESHOLD = 40;
 const MAX_COMPLIANCE_HINTS = 8;
 
 const MID_SEASON_STAR_UPDATE_WEEK = 11;
+
+/** What a prospect program did, for its results pop-up: one kind of change each. */
+export interface ProgramResult {
+  type: FeederEventType;
+  discovered: FeederProspect[]; // camps and the Multi-Sport Tryout
+  warmed: { prospect: FeederProspect; before: number; after: number }[]; // position programs and Family Night
+  scouted: FeederProspect[]; // the Combine: potential revealed
+}
 
 /** Last season in brief (shown on the Hub in week 1). */
 export interface SeasonRecap {
@@ -519,7 +529,7 @@ interface GameStoreState {
   applyLockedGame: () => void; // this week's game already played in this career: its final stands
   dismissLockNotice: () => void;
   unlockTalent: (id: TalentId) => string | null; // null on success, otherwise why not
-  runFeederEvent: (type: FeederEventType) => FeederProspect[]; // returns newly discovered prospects
+  runFeederEvent: (type: FeederEventType, sport?: TryoutSport) => ProgramResult | null; // what it did (null: it couldn't run)
   scoutFeederProspect: (prospectId: string) => void;
   visitFeederProspect: (prospectId: string) => void;
   removeFeederProspect: (prospectId: string) => void;
@@ -1422,7 +1432,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
   finishBanquet: () => {
     const { currentWeek, coachPoints, coachTalents } = get();
-    set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], programCooldowns: tickCooldowns(get().programCooldowns), coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents, get().districtTeams.find((t) => t.id === get().userTeamId)?.programMeters.schoolBoardTrust) });
+    // Once-a-year programs come back after the banquet
+    set({ isBanquetActive: false, currentWeek: currentWeek + 1, feederEventsThisWeek: [], programCooldowns: clearYearlyCooldowns(tickCooldowns(get().programCooldowns)), coachPoints: coachPoints + weeklyCpIncome(currentWeek + 1, coachTalents, get().districtTeams.find((t) => t.id === get().userTeamId)?.programMeters.schoolBoardTrust) });
     // The off-season opens: Coach Point coaches still under contract are paid for next season when there's enough; the rest
     // (and every ducat coach: real money is only spent on a tap) wait for the coach
     if (get().currentWeek === FIRST_OFF_SEASON_WEEK) {
@@ -1827,22 +1838,32 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     return null;
   },
 
-  runFeederEvent: (type) => {
-    const { coachPoints, feederEventsThisWeek, scoutingPool, districtTeams, userTeamId, programCooldowns } = get();
+  runFeederEvent: (type, sport) => {
+    const { coachPoints, feederEventsThisWeek, scoutingPool, districtTeams, userTeamId, programCooldowns, shortlist } = get();
     const staff = staffBonuses(get().coachingStaff);
     const cost = feederEventCost(FEEDER_EVENTS[type].cost, get().coachTalents, staff.programDiscount);
-    if (coachPoints < cost || (programCooldowns[type] ?? 0) > 0 || !feederEventsOpen(get())) return [];
+    if (coachPoints < cost || (programCooldowns[type] ?? 0) > 0 || !feederEventsOpen(get())) return null;
     const userTeam = districtTeams.find((t) => t.id === userTeamId)!;
-    const family = type === 'FAMILY_NIGHT' || type === 'TRYOUT_DAY' ? staff.familyBoost : 0;
-    const result = runFeederEvent(scoutingPool, type, userTeam, recruitingContext(get()), (p) => 1 + (staff.feederInterestByPosition[p.projectedPosition] ?? 0) + family);
+    const family = type === 'FAMILY_NIGHT' ? staff.familyBoost : 0;
+    const result = runFeederEvent(scoutingPool, type, userTeam, recruitingContext(get()), (p) => 1 + (staff.feederInterestByPosition[p.projectedPosition] ?? 0) + family, {
+      sport,
+      shortlist
+    });
     set({
       coachPoints: coachPoints - cost,
       scoutingPool: result.pool,
       feederEventsThisWeek: [...feederEventsThisWeek, type],
       programCooldowns: { ...programCooldowns, [type]: FEEDER_EVENTS[type].every }
     });
-    track('program_run', { program: type, cost, found: result.discovered.length, ...moment(get()) });
-    return result.discovered;
+    track('program_run', { program: type, cost, found: result.discovered.length, warmed: result.warmed.length, scouted: result.scouted.length, ...(sport && { sport }), ...moment(get()) });
+    // The results pop-up: the prospects as they are now
+    const byId = new Map(result.pool.map((p) => [p.id, p]));
+    return {
+      type,
+      discovered: result.discovered,
+      warmed: result.warmed.flatMap((w) => (byId.has(w.id) ? [{ prospect: byId.get(w.id)!, before: w.before, after: w.after }] : [])),
+      scouted: result.scouted.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []))
+    };
   },
 
   collegeRecruitAction: (playerId, action) => {
@@ -1907,7 +1928,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   makeBoosterOffer: (prospectId, offer) => {
     const { scoutingPool, widePool, compliance, currentYear } = get();
     const prospect = scoutingPool.find((p) => p.id === prospectId) ?? widePool.find((p) => p.id === prospectId);
-    if (!prospect || prospect.source === 'TRYOUT' || prospect.boosterOffers?.includes(offer) || onProbation(get().userProbationUntil, currentYear)) return;
+    if (!prospect || prospect.source === 'TRYOUT' || prospect.source === 'MULTI_SPORT' || prospect.boosterOffers?.includes(offer) || onProbation(get().userProbationUntil, currentYear)) return;
     const boost = (p: FeederProspect) => (p.id === prospectId ? boostProspect(p, offer) : p);
     track('booster_offer', { offer });
     const record = compliance.offers.find((r) => r.prospectId === prospectId);
@@ -2072,7 +2093,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       week,
       outlet: 'TOWN_JOURNAL',
       headline: `Prospect Signing Day: ${userTeam.name} Welcomes ${joinedCount} Newcomers to the Program`,
-      content: `${joinedCount} of ${outcomes.length} prospects in your pipeline chose ${userTeam.name}. ${
+      content: `${joinedCount} of ${outcomes.length} prospects in your pool chose ${userTeam.name}. ${
         outcomes.filter((o) => o.outcome === 'OTHER_SCHOOL').length
       } enrolled elsewhere and ${outcomes.filter((o) => o.outcome === 'LEFT_AREA').length} moved away.${
         userWave >= NOTABLE_CLASS_WAVE

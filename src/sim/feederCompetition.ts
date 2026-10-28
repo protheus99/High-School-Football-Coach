@@ -29,7 +29,8 @@ const BASE_PRIORITIES: Record<ProspectSource, Record<RecruitingFactor, number>> 
   MOVE_IN: { WINNING: 0.26, PLAYING_TIME: 0.24, HOME: 0.2, RELATIONSHIP: 0.18, BOOSTERS: 0.12 },
   STAR_RECRUIT: { WINNING: 0.35, PLAYING_TIME: 0.25, BOOSTERS: 0.2, RELATIONSHIP: 0.15, HOME: 0.05 },
   OUT_OF_DISTRICT: { HOME: 0.3, RELATIONSHIP: 0.2, WINNING: 0.2, PLAYING_TIME: 0.18, BOOSTERS: 0.12 },
-  TRYOUT: { HOME: 0.3, RELATIONSHIP: 0.26, PLAYING_TIME: 0.26, WINNING: 0.1, BOOSTERS: 0.08 }
+  TRYOUT: { HOME: 0.3, RELATIONSHIP: 0.26, PLAYING_TIME: 0.26, WINNING: 0.1, BOOSTERS: 0.08 },
+  MULTI_SPORT: { HOME: 0.34, RELATIONSHIP: 0.26, PLAYING_TIME: 0.24, WINNING: 0.1, BOOSTERS: 0.06 }
 };
 
 /** Each prospect's own priorities: the source's typical weights, individually shuffled. */
@@ -339,7 +340,8 @@ function addRivalTargets(pool: FeederProspect[], ctx: RecruitingContext): Feeder
     for (let i = 0; i < 12; i++) {
       const index = randomInt(0, next.length - 1);
       const p = next[index];
-      if (p.homeTeamId === school.id || p.suitors.some((s) => s.teamId === school.id)) continue;
+      // A multi-sport athlete already goes to the coach's school: nobody else recruits him
+      if (p.source === 'MULTI_SPORT' || p.homeTeamId === school.id || p.suitors.some((s) => s.teamId === school.id)) continue;
       const nearby = (p.homeTeamId ? ctx.districtOf.get(p.homeTeamId) === district : ctx.districtOf.get(ctx.userTeamId) === district) ? 8 : 0;
       const score = p.trueOverall + nearby + Math.random() * 10;
       if (score > bestScore) {

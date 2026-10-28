@@ -17,7 +17,8 @@ const SOURCE: Record<ProspectSource, string> = {
   MOVE_IN: 'Move-in',
   STAR_RECRUIT: 'Out-of-area star',
   OUT_OF_DISTRICT: 'Zoned elsewhere',
-  TRYOUT: 'Walk-on'
+  TRYOUT: 'Walk-on',
+  MULTI_SPORT: 'Multi-sport athlete'
 };
 
 const potentialTag = (grade: PotentialGrade) => (

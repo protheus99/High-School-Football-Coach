@@ -414,7 +414,8 @@ export type ProspectSource =
   | 'MOVE_IN' // families relocating into the district
   | 'STAR_RECRUIT' // elite out-of-area talent; only top programs can try to coax them in
   | 'OUT_OF_DISTRICT' // players zoned to a rival program that you can try to pull away
-  | 'TRYOUT'; // general students who come out for the team
+  | 'TRYOUT' // general students who come out for the team
+  | 'MULTI_SPORT'; // an athlete from another sport at the school (the Multi-Sport Tryout): he always signs
 
 /** What a prospect weighs when choosing a program; every prospect weights these differently. */
 /** The coach's booster offers to a prospect, smallest to largest (see sim/compliance). */
@@ -432,7 +433,7 @@ export interface ProspectSuitor {
 
 export interface FeederProspect {
   id: string;
-  programBoost?: number; // rating points programs have added (up to MAX_PROGRAM_BOOST)
+  programBoost?: number; // older saves: rating points programs added (programs no longer raise ratings)
   name: string;
   source: ProspectSource;
   middleSchool: string; // origin: middle school, 7-on-7 club, or hometown

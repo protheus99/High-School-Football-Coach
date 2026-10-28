@@ -1,7 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { feederEventsOpen, useGameStore } from '../store/gameStore';
+import { feederEventsOpen, ProgramResult, useGameStore } from '../store/gameStore';
 import { SigningDayBoard } from './SigningDayBoard';
-import { FEEDER_SIGNING_WEEK } from '../sim/scheduleEngine';
+import { ProgramResultSheet, ProspectPrograms } from './ProspectPrograms';
+import { weeksUntilRegistrationsClose } from '../sim/scheduleEngine';
 import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
 import { FeederProspect, Player, Position, ProspectSource, Team } from '../types/game';
 import { PositionNeed, priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
@@ -11,7 +12,7 @@ import {
   FEEDER_EVENTS,
   FeederEventType,
   MAX_POOL_SIZE,
-  ProgramGroup,
+  TryoutSport,
   CONTACT_ACTIONS,
   CONTACT_ORDER,
   ContactAction,
@@ -20,6 +21,7 @@ import {
   currentCommitment,
   EVALUATION_INTEREST,
   isEvaluated,
+  inUserPipeline,
   scoutProspect,
   topTenLists,
   interestLabel,
@@ -46,17 +48,9 @@ type PoolScope = 'DISTRICT' | 'REGION' | 'STATE' | 'NATIONAL';
 type PoolFilter = 'ALL' | 'TOP10' | 'COMMITTED' | 'MY_LIST';
 const PAGE_SIZE = 20; // prospect cards shown at a time (the State and National lists run to 100+)
 
-/** The Programs screen's groups, in order. */
-const PROGRAM_GROUPS: { id: ProgramGroup; label: string; note: string; color: string }[] = [
-  { id: 'DISCOVER', label: 'Find new prospects', note: 'every 4 weeks', color: '#0F766E' },
-  { id: 'INTEREST', label: 'Interest for everyone', note: 'your whole pipeline', color: '#7C3AED' },
-  { id: 'POSITION', label: 'Position programs', note: '₡40 · every 3 weeks', color: '#EA580C' },
-  { id: 'SCOUT', label: 'Scouting', note: 'every 3 weeks', color: '#2563EB' }
-];
-
 const FEEDER_SUBTITLES: Record<FeederSection, string> = {
   STUDENTS: 'Every student who could join a program next year',
-  PROGRAMS: 'Programs that find, coach up and win over prospects, all year',
+  PROGRAMS: 'Programs that find, scout and win over prospects, all year',
   NEEDS: "Holes in next season's roster by position"
 };
 
@@ -135,6 +129,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
     showListTop();
   };
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [programResult, setProgramResult] = useState<ProgramResult | null>(null);
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
   if (!userTeam) return null;
 
@@ -194,14 +189,12 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const schoolName = (id: string, p?: FeederProspect) =>
     id === userTeamId ? 'You' : (ctx?.teamsById.get(id)?.name ?? p?.suitors.find((s) => s.teamId === id)?.teamName ?? 'Rival');
 
-  const handleEvent = (type: FeederEventType) => {
-    const discovered = runFeederEvent(type);
-    setFeedback(
-      discovered.length > 0
-        ? `${FEEDER_EVENTS[type].label}: ${discovered.map((p) => `${p.name} (${p.projectedPosition})`).join(', ')} joined the pipeline.`
-        : `${FEEDER_EVENTS[type].label} held. Prospects in the pipeline warmed to the program.`
-    );
+  // A program's results show in a pop-up: what it changed, prospect by prospect
+  const handleEvent = (type: FeederEventType, sport?: TryoutSport) => {
+    const result = runFeederEvent(type, sport);
+    if (result) setProgramResult(result);
   };
+  const closesIn = weeksUntilRegistrationsClose(currentYear, currentWeek, feederClassYear);
 
   return (
     <>
@@ -267,14 +260,20 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
 
       {feedback && <div style={{ background: '#EEF2FF', color: '#3730A3', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', marginBottom: '12px' }}>{feedback}</div>}
 
-      {/* Signing day: the deadline, in one line */}
-      <div style={{ fontSize: '12.5px', color: '#475569', marginBottom: '10px' }}>
-        ✍️ <strong>Signing day:</strong>{' '}
-        {currentYear >= feederClassYear && currentWeek <= FEEDER_SIGNING_WEEK
-          ? currentWeek === FEEDER_SIGNING_WEEK
-            ? 'this week, the last chance. Prospects pick their school when the week ends.'
-            : 'next week.'
-          : `pre season week ${FEEDER_SIGNING_WEEK}, ${feederClassYear}`}
+      {/* When the class is decided (school registrations close), in one line */}
+      <div className="registrations-close">
+        📝 Registrations close{' '}
+        {closesIn === 0 ? (
+          <>
+            <b>this week</b>: last chance
+          </>
+        ) : closesIn === 1 ? (
+          <b>next week</b>
+        ) : (
+          <>
+            in <b>{closesIn} weeks</b>
+          </>
+        )}
       </div>
 
       {section === 'NEEDS' && (
@@ -293,20 +292,13 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
           {/* Programs can't add anyone once the user's own pipeline is at its limit */}
           {pipelineFull && (
             <div role="status" style={{ background: '#FFFBEB', border: '1px solid #FCD34D', color: '#92400E', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', marginBottom: '10px' }}>
-              <strong>Your pipeline is full ({MAX_POOL_SIZE}).</strong> Programs can still warm up your prospects, but they won&apos;t find new ones until you
+              <strong>Your pool is full ({MAX_POOL_SIZE}).</strong> Programs can still warm up your prospects, but camps won&apos;t find new ones until you
               remove some.{' '}
               <button onClick={() => onSection('STUDENTS')} style={{ background: 'none', border: 'none', padding: 0, color: '#1D4ED8', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer', fontSize: 'inherit' }}>
                 New Students →
               </button>
             </div>
           )}
-          {/* What there is to spend, and room in the pipeline */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ background: '#FACC15', color: '#0F172A', fontWeight: 800, borderRadius: '8px', padding: '3px 9px', fontSize: '13px' }}>₡{coachPoints.toLocaleString('en-US')} to spend</span>
-            <span style={{ fontSize: '12.5px', color: '#64748B' }}>
-              Pipeline {pipelineCount} / {MAX_POOL_SIZE}
-            </span>
-          </div>
           {topNeeds.length > 0 && (
             <p style={{ margin: '0 0 8px 0', fontSize: '12.5px', color: '#64748B' }}>Your biggest needs: {topNeeds.map((n) => n.position).join(', ')}.</p>
           )}
@@ -315,47 +307,29 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
               Post season: programs reopen after the banquet.
             </p>
           )}
-          {PROGRAM_GROUPS.map((g) => {
-            const types = (Object.keys(FEEDER_EVENTS) as FeederEventType[]).filter((t) => FEEDER_EVENTS[t].group === g.id);
-            const compact = g.id === 'POSITION';
-            return (
-              <section key={g.id} style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', margin: '0 0 6px' }}>
-                  <b style={{ fontSize: '12px', letterSpacing: '0.06em', textTransform: 'uppercase', color: g.color }}>{g.label}</b>
-                  <span style={{ fontSize: '11.5px', color: '#64748B' }}>{g.note}</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(260px, 1fr))', gap: '7px' }}>
-                  {types.map((type) => {
-                    const program = FEEDER_EVENTS[type];
-                    const cost = eventCost(type);
-                    const wait = programCooldowns[type] ?? 0;
-                    const blocked = !eventsOpen || wait > 0 || coachPoints < cost;
-                    const label = !eventsOpen ? 'After the banquet' : wait > 0 ? `Back in ${wait} week${wait === 1 ? '' : 's'}` : coachPoints < cost ? `₡${cost}: not enough` : `Host ₡${cost}`;
-                    return (
-                      <div
-                        key={type}
-                        style={{ background: '#fff', border: '1px solid #E2E8F0', borderLeft: `4px solid ${g.color}`, borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}
-                      >
-                        {/* Name, then its positions on their own line, then the button pinned to the bottom: every card in a row lines up */}
-                        <b style={{ fontSize: '13.5px', lineHeight: 1.25 }}>{program.label}</b>
-                        {program.positions && (
-                          <span style={{ alignSelf: 'flex-start', fontSize: '11px', fontWeight: 800, color: '#475569', background: '#F1F5F9', borderRadius: '5px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
-                            {program.positions.join(' ')}
-                          </span>
-                        )}
-                        {!compact && <div style={{ fontSize: '12px', color: '#475569' }}>{program.description}</div>}
-                        <button onClick={() => handleEvent(type)} disabled={blocked} style={{ ...actionBtn(g.color, blocked), alignSelf: 'stretch', marginTop: 'auto', borderRadius: '8px' }}>
-                          {label}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-                {compact && <p style={{ fontSize: '12px', color: '#475569', margin: '6px 0 0' }}>{FEEDER_EVENTS.QB_ACADEMY.description}</p>}
-              </section>
-            );
-          })}
+          <ProspectPrograms
+            coachPoints={coachPoints}
+            cost={eventCost}
+            cooldowns={programCooldowns}
+            open={eventsOpen}
+            familyCount={scoutingPool.filter((p) => listed.has(p.id) && inUserPipeline(p) && p.source !== 'STAR_RECRUIT' && p.interestScore < 100).length}
+            onRun={handleEvent}
+          />
         </>
+      )}
+
+      {programResult && (
+        <ProgramResultSheet
+          result={programResult}
+          poolFull={pipelineFull}
+          listed={listed}
+          onToggleList={toggleShortlist}
+          onSeeStudents={() => {
+            setProgramResult(null);
+            onSection('STUDENTS');
+          }}
+          onClose={() => setProgramResult(null)}
+        />
       )}
 
       {section === 'STUDENTS' && (
@@ -382,7 +356,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
             <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#1D4ED8', minHeight: '32px', display: 'flex', alignItems: 'center' }}>How recruiting works</summary>
             <p style={{ margin: '4px 0' }}>
               Every student who could join the team next year. Not everyone will come out: your programs and personal visits decide who does.{' '}
-              {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; the off season is the time to build the pipeline.'}
+              {weeklyIncome < 100 && 'During the season you earn fewer Coach Points; the off season is the time to build your pool.'}
             </p>
             <p style={{ margin: '4px 0' }}>
               {scope === 'NATIONAL' || (scope === 'STATE' && multiRegion)
@@ -538,6 +512,7 @@ const ProspectCard: React.FC<{
   const notes: string[] = [];
   if (p.source === 'SEVEN_ON_SEVEN') notes.push("Doesn't play tackle yet");
   if (p.source === 'TRYOUT') notes.push('General student trying out');
+  if (p.source === 'MULTI_SPORT') notes.push('Already at your school: he always signs');
   if (p.isTransferRisk) notes.push('Family may relocate');
   if (positionFilled) notes.push(`${p.projectedPosition} is already filled for next season`);
 
@@ -672,7 +647,7 @@ const ProspectCard: React.FC<{
         })}
       </div>
       {/* Boosters: free interest now, evidence for later (each offer once per player; not for tryouts or on probation) */}
-      {p.source !== 'TRYOUT' && (
+      {p.source !== 'TRYOUT' && p.source !== 'MULTI_SPORT' && (
         <div style={{ borderTop: '1px dashed #FDA4AF', paddingTop: '7px' }}>
           <div style={{ fontSize: '11.5px', fontWeight: 'bold', color: '#9F1239' }}>🚩 Boosters</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', marginTop: '6px' }}>
@@ -814,7 +789,7 @@ const TeamNeedsPanel: React.FC<{ needs: PositionNeed[]; onPrograms: () => void; 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>{priority.map((n) => row(n, true))}</div>
         </>
       ) : (
-        <p style={{ fontSize: '13px', color: '#15803D', fontWeight: 'bold' }}>No urgent needs: the pipeline covers every position.</p>
+        <p style={{ fontSize: '13px', color: '#15803D', fontWeight: 'bold' }}>No urgent needs: your pool covers every position.</p>
       )}
       <h3 style={{ margin: '0 0 8px 0', fontSize: '15px' }}>Covered</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{rest.map((n) => row(n, false))}</div>

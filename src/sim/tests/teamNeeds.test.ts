@@ -26,22 +26,18 @@ describe('Team needs', () => {
     expect(seniorsStillHere(2027, 2028, 10)).toBe(true);
   });
 
-  it('targets programs at positions: The Trenches finds, warms and coaches up offensive linemen (up to +3); the combine scouts', () => {
+  it('targets programs at positions: The Trenches warms offensive linemen (no one new, no rating); the combine scouts', () => {
     const [team] = generateDistrictTeams();
-    const pool = generateFeederPool(team).slice(0, 10);
+    const pool = generateFeederPool(team).slice(0, 10).map((p) => ({ ...p, interestScore: Math.min(p.interestScore, 80) }));
     const OL = ['OT', 'OG', 'C'];
     const camp = runFeederEvent(pool, 'THE_TRENCHES', team);
-    camp.discovered.forEach((p) => expect(OL).toContain(p.projectedPosition));
-    pool.filter((p) => OL.includes(p.projectedPosition) && inUserPipeline(p)).forEach((p) => {
+    expect(camp.discovered).toEqual([]);
+    pool.filter((p) => OL.includes(p.projectedPosition) && inUserPipeline(p) && p.source !== 'STAR_RECRUIT').forEach((p) => {
       const after = camp.pool.find((q) => q.id === p.id)!;
       expect(after.interestScore).toBeGreaterThan(p.interestScore);
-      expect(after.trueOverall).toBe(Math.min(99, p.trueOverall + 1));
+      expect(after.trueOverall).toBe(p.trueOverall);
     });
-    let coached = camp.pool;
-    for (let i = 0; i < 5; i++) coached = runFeederEvent(coached, 'THE_TRENCHES', team).pool;
-    pool.filter((p) => OL.includes(p.projectedPosition) && inUserPipeline(p)).forEach((p) => {
-      expect(coached.find((q) => q.id === p.id)!.trueOverall).toBe(Math.min(99, p.trueOverall + 3)); // capped at +3
-    });
+    pool.filter((p) => !OL.includes(p.projectedPosition)).forEach((p) => expect(camp.pool.find((q) => q.id === p.id)!.interestScore).toBe(p.interestScore));
     expect(LINE_POSITIONS).toContain('OT');
     const combine = runFeederEvent(pool, 'COMBINE', team);
     // The combine evaluates up to five who aren't evaluated yet; everyone at 50+ interest already counts

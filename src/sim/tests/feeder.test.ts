@@ -84,23 +84,75 @@ describe('Coach actions', () => {
     expect(pitchStarRecruit(regular, team)).toBe(regular);
   });
 
-  it('program events grow interest and discover new prospects, capped at 60', () => {
+  it('camps only find new players: nobody already in the pool changes, and the pool stops at 60', () => {
     const team = teamWithPrestige(80);
     const pool = generateFeederPool(team);
     const clinic = runFeederEvent(pool, 'YOUTH_CLINIC', team);
-    const before = pool.filter((p) => p.source === 'FEEDER_MIDDLE_SCHOOL');
-    before.forEach((p) => {
+    expect(clinic.discovered.length).toBe(Math.min(clinic.discovered.length, 3));
+    pool.forEach((p) => {
       const after = clinic.pool.find((x) => x.id === p.id)!;
-      expect(after.interestScore).toBeGreaterThanOrEqual(p.interestScore);
-      expect(after.trueOverall).toBe(Math.min(99, p.trueOverall + 1));
+      expect([after.interestScore, after.trueOverall]).toEqual([p.interestScore, p.trueOverall]);
     });
-    const tryout = runFeederEvent(pool, 'TRYOUT_DAY', team);
-    expect(tryout.discovered.length).toBeGreaterThanOrEqual(Math.min(1, MAX_POOL_SIZE - pool.length));
-    tryout.discovered.forEach((p) => expect(p.source).toBe('TRYOUT'));
+    expect(clinic.warmed).toEqual([]);
+    const big = runFeederEvent(pool, 'BIG_MAN_CAMP', team);
+    big.discovered.forEach((p) => expect(['OT', 'OG', 'C', 'DE', 'DT']).toContain(p.projectedPosition));
+    const kickers = runFeederEvent(pool, 'SPECIAL_TEAMS_CAMP', team);
+    kickers.discovered.forEach((p) => expect(['K', 'P']).toContain(p.projectedPosition));
 
-    let big = pool;
-    for (let i = 0; i < 30; i++) big = runFeederEvent(big, 'TRYOUT_DAY', team).pool;
-    expect(big.length).toBeLessThanOrEqual(MAX_POOL_SIZE);
+    let full = pool;
+    for (let i = 0; i < 40; i++) full = runFeederEvent(full, 'YOUTH_CLINIC', team).pool;
+    expect(full.filter((p) => !p.homeTeamId).length).toBeLessThanOrEqual(MAX_POOL_SIZE);
+  });
+
+  it('the Multi-Sport Tryout finds one raw athlete at a position his sport plays, with B to A+ potential', () => {
+    const team = teamWithPrestige(70);
+    const grades = new Map<string, number>();
+    for (let i = 0; i < 300; i++) {
+      const [athlete] = runFeederEvent([], 'TRYOUT_DAY', team, undefined, undefined, { sport: 'SOCCER' }).discovered;
+      expect(athlete.source).toBe('MULTI_SPORT');
+      expect(['K', 'P']).toContain(athlete.projectedPosition);
+      expect(athlete.trueOverall).toBeGreaterThanOrEqual(52);
+      expect(athlete.trueOverall).toBeLessThanOrEqual(62);
+      expect(athlete.suitors).toEqual([]);
+      grades.set(athlete.truePotential, (grades.get(athlete.truePotential) ?? 0) + 1);
+    }
+    expect([...grades.keys()].every((g) => ['B', 'A', 'A+'].includes(g))).toBe(true);
+    expect(grades.get('B')!).toBeGreaterThan(grades.get('A')!); // B likely, A sometimes, A+ rare
+    expect(grades.get('A')!).toBeGreaterThan(grades.get('A+') ?? 0);
+  });
+
+  it('a multi-sport athlete always signs, even at no interest from rivals or a long-shot program', () => {
+    const team = teamWithPrestige(45);
+    const athletes = Array.from({ length: 20 }, () => runFeederEvent([], 'TRYOUT_DAY', team, undefined, undefined, { sport: 'TRACK' }).discovered[0]);
+    const { joined } = resolveFeederClass(athletes, team);
+    expect(joined.length).toBe(20);
+  });
+
+  it('position programs and Family Night only raise interest; the combine reveals potential only', () => {
+    const team = teamWithPrestige(80);
+    const pool = generateFeederPool(team).map((p) => ({ ...p, interestScore: Math.min(p.interestScore, 40), revealedPotential: 'UNKNOWN' as const }));
+    const qb = runFeederEvent(pool, 'QB_ACADEMY', team);
+    expect(qb.discovered).toEqual([]);
+    qb.warmed.forEach((w) => {
+      const before = pool.find((p) => p.id === w.id)!;
+      expect(before.projectedPosition).toBe('QB');
+      expect(w.after - w.before).toBeGreaterThanOrEqual(6);
+      expect(w.after - w.before).toBeLessThanOrEqual(10);
+      expect(qb.pool.find((p) => p.id === w.id)!.trueOverall).toBe(before.trueOverall); // no rating boost
+    });
+    // Family Night: the coach's list only, +10 each
+    const list = pool.slice(0, 3).map((p) => p.id);
+    const family = runFeederEvent(pool, 'FAMILY_NIGHT', team, undefined, undefined, { shortlist: list });
+    expect(family.warmed.map((w) => w.id).sort()).toEqual(pool.slice(0, 3).filter((p) => p.interestScore < 100 && p.source !== 'STAR_RECRUIT').map((p) => p.id).sort());
+    family.warmed.forEach((w) => expect(w.after - w.before).toBe(Math.min(10, 100 - w.before)));
+    // The combine: potential for up to five, speed and strength still hidden
+    const combine = runFeederEvent(pool, 'COMBINE', team);
+    expect(combine.scouted.length).toBe(Math.min(5, pool.filter(inUserPipeline).length));
+    combine.scouted.forEach((id) => {
+      const p = combine.pool.find((q) => q.id === id)!;
+      expect(p.revealedPotential).toBe(p.truePotential);
+      expect(p.scoutedSpeed).toBeNull();
+    });
   });
 });
 
@@ -181,32 +233,37 @@ describe('Feeder pipeline through the store', () => {
     // Keep the board neutral (no income bonus or cut) so the CP math below is exact
     store.getState().leagueTeams.find((t) => t.id === store.getState().userTeamId)!.programMeters.schoolBoardTrust = 70;
 
-    // Programs run all year but the post season: the clinic costs 60, then waits out its cooldown
-    expect(store.getState().runFeederEvent('YOUTH_CLINIC').length).toBeGreaterThan(0);
-    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 60);
-    store.getState().runFeederEvent('YOUTH_CLINIC'); // cooling down: nothing happens
-    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 60);
+    // Programs run all year but the post season: the clinic costs 75, then waits out its cooldown
+    expect(store.getState().runFeederEvent('YOUTH_CLINIC')!.discovered.length).toBeGreaterThan(0);
+    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 75);
+    expect(store.getState().runFeederEvent('YOUTH_CLINIC')).toBeNull(); // cooling down: nothing happens
+    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 75);
     // Personal visits work any time before signing day
     store.getState().visitFeederProspect(pool[0].id);
-    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 75);
+    expect(store.getState().coachPoints).toBe(STARTING_COACH_POINTS - 90);
     expect(store.getState().scoutingPool.find((p) => p.id === pool[0].id)!.coachContacts).toBe(1);
 
     // A new game's rosters already hold this year's freshmen: no signing day until next season
     while (store.getState().currentWeek < 9) store.getState().advanceWeek();
     expect(store.getState().lastFeederResults).toBeNull();
     // Unspent CP carries over: what was left + pre season/camp weeks 2-7 + game weeks 8 and 9 (+ any win bonus)
-    expect(store.getState().coachPoints).toBeGreaterThanOrEqual(STARTING_COACH_POINTS - 75 + 6 * weeklyCoachPoints(2) + 2 * weeklyCoachPoints(9));
+    expect(store.getState().coachPoints).toBeGreaterThanOrEqual(STARTING_COACH_POINTS - 90 + 6 * weeklyCoachPoints(2) + 2 * weeklyCoachPoints(9));
+    // A once-a-year program: the Multi-Sport Tryout, back only after the banquet
+    expect(store.getState().runFeederEvent('TRYOUT_DAY', 'WRESTLING')!.discovered[0].source).toBe('MULTI_SPORT');
+    store.getState().advanceWeek();
+    expect(store.getState().runFeederEvent('TRYOUT_DAY', 'WRESTLING')).toBeNull();
 
     while (!store.getState().isBanquetActive) store.getState().advanceWeek();
     const atBanquet = store.getState().coachPoints;
     store.getState().runFeederEvent('YOUTH_CLINIC'); // the post season: closed
     expect(store.getState().coachPoints).toBe(atBanquet);
     store.getState().finishBanquet(); // off season
+    expect(store.getState().programCooldowns.TRYOUT_DAY).toBeUndefined(); // the tryout is back
     const cp = store.getState().coachPoints;
     store.getState().runFeederEvent('YOUTH_CLINIC');
-    expect(store.getState().coachPoints).toBe(cp - 60);
+    expect(store.getState().coachPoints).toBe(cp - 75);
     store.getState().runFeederEvent('YOUTH_CLINIC'); // cooling down
-    expect(store.getState().coachPoints).toBe(cp - 60);
+    expect(store.getState().coachPoints).toBe(cp - 75);
 
     const year = store.getState().currentYear;
     while (store.getState().currentYear === year) store.getState().advanceWeek(); // off season ends: new year

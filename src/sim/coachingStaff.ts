@@ -231,7 +231,7 @@ export const COACH_ROLES: CoachRoleInfo[] = [
       { id: 'feeder_pipeline', name: 'Prospect Pipeline', description: 'Every contact with a prospect earns more interest', kind: 'RECRUITING', amount: 0.2 },
       { id: 'youth_development', name: 'Youth Development', description: 'Freshmen and sophomores grow faster', kind: 'DEVELOPMENT', amount: 1 },
       { id: 'camp_director', name: 'Camp Director', description: 'Programs cost less', kind: 'PROGRAM', amount: 0.2 },
-      { id: 'family_ties', name: 'Family Ties', description: 'Family Night and Tryout Day earn more interest', kind: 'PROGRAM', amount: 0.5 }
+      { id: 'family_ties', name: 'Family Ties', description: 'Family Night earns more interest', kind: 'PROGRAM', amount: 0.5 }
     ]
   },
   {
