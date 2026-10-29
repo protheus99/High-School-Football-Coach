@@ -2,6 +2,7 @@ import { Player, Position, PotentialGrade, Team } from '../types/game';
 import { clamp, randomInt } from './math/variance';
 import { POSITION_KEY_SKILLS } from './playerEngine';
 import type { SeasonPhase } from './scheduleEngine';
+import { playerMention } from '../utils/playerFormat';
 
 // ---------------------------------------------------------------------------
 // Weekly training. The coach makes one decision, how hard the team practices; every healthy player trains
@@ -240,12 +241,12 @@ export function runTrainingWeek(team: Team, intensity: PracticeIntensity, phase:
       report.overallGains += p.overallRating - before;
       report.players!.push({ id: p.id, points: earned, overall: p.overallRating - before });
       const skill = POSITION_KEY_SKILLS[p.position].find((s) => p.attributes[s] !== skillsBefore[s]);
-      if (skill) report.improved.push(`${p.position} ${p.firstName.charAt(0)}. ${p.lastName} +${earned} ${SKILL_LABELS[skill] ?? skill}`);
+      if (skill) report.improved.push(`${playerMention(p)} +${earned} ${SKILL_LABELS[skill] ?? skill}`);
     }
     if (Math.random() < practiceInjuryChance(p, intensity, multiplier, boosts)) {
       const weeks = Math.random() < 0.75 ? 1 : randomInt(2, 3);
       Object.assign(p.condition, { injuryStatus: weeks === 1 ? 'DINGED' : 'MODERATE', injuryWeeksRemaining: weeks, injuredInWeek: week });
-      report.injured.push(`${p.position} ${p.firstName.charAt(0)}. ${p.lastName} (${weeks} week${weeks === 1 ? '' : 's'})`);
+      report.injured.push(`${playerMention(p)} (${weeks} week${weeks === 1 ? '' : 's'})`);
     }
   });
   return report;

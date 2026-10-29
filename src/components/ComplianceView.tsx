@@ -88,7 +88,7 @@ export const ComplianceView: React.FC = () => {
         ) : (
           compliance.offers.map((r) => (
             <div key={r.prospectId} style={{ fontSize: '13px', color: '#334155', padding: '4px 0' }}>
-              <b>{r.name}</b> · {r.position} · {r.offers.map((o) => BOOSTER_OFFERS[o].label).join(', ')}
+              <b>{r.position} {r.name}</b> · {r.offers.map((o) => BOOSTER_OFFERS[o].label).join(', ')}
               <span style={{ color: '#94A3B8', fontSize: '12px' }}> · {r.season}</span>
             </div>
           ))

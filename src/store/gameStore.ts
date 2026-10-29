@@ -1676,7 +1676,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       id: `news_gameball_${player.id}_${currentYear}_${currentWeek}`,
       week: currentWeek,
       outlet: 'TOWN_JOURNAL',
-      headline: `${player.firstName} ${player.lastName} Earns the Game Ball ${summary.won ? 'in' : 'Despite'} ${summary.won ? 'Win Over' : 'Loss to'} ${summary.opponentName}`,
+      headline: `${player.position} ${player.firstName} ${player.lastName} Earns the Game Ball ${summary.won ? 'in' : 'Despite'} ${summary.won ? 'Win Over' : 'Loss to'} ${summary.opponentName}`,
       content: `${player.position} ${player.firstName} ${player.lastName} was ${team.name}'s Player of the Game (${summary.score}): ${summary.line}. ${attributeLabel(skill)} +1${exposure ? ', and more college exposure' : ''}.`,
       impactSentiment: 'POSITIVE',
       featuredPlayerName: `${player.firstName} ${player.lastName}`,

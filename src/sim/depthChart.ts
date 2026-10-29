@@ -41,9 +41,6 @@ export const SLOT_LABELS: Record<Position, string[]> = {
   P: ['P']
 };
 
-/** Depth chart label, "J, Leconte (99)": first initial, last name, overall rating. */
-export const depthChartName = (p: Player) => `${p.firstName.charAt(0)}, ${p.lastName} (${p.overallRating})`;
-
 /** Strings shown on the depth chart for each slot (starter, 2nd, 3rd). */
 export const DEPTH_ROWS = 3;
 

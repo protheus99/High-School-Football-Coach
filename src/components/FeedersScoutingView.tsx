@@ -35,6 +35,8 @@ import { BOOSTER_OFFERS, BOOSTER_ORDER, BoosterOffer } from '../sim/compliance';
 import { staffBonuses } from '../sim/coachingStaff';
 import { pageScrollTop, scrollPageTo } from '../utils/pageScroll';
 import { OFFENSE_GROUPS, POSITION_GROUPS } from '../data/positionGroups';
+import { CLASS_SHORT } from '../utils/playerFormat';
+import { PosChip, PotentialGrade } from './ui/PlayerRow';
 
 function outlook(chance: number): { label: string; color: string; background: string } {
   if (chance >= 0.65) return { label: 'Likely', color: '#166534', background: '#DCFCE7' };
@@ -534,10 +536,18 @@ const ProspectCard: React.FC<{
       {/* The buttons stay on the name's line: a long name or "North Carolina prospect" wraps instead */}
       <div style={{ display: 'flex', flexWrap: 'nowrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: '14.5px', lineHeight: 1.25 }}>{p.name}</div>
-          {rank && <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#B45309' }}>{rank}</div>}
-          <div style={{ fontSize: '12px', color: '#64748B' }}>
-            {p.projectedPosition} · {p.incomingClass}
+          <div className="pl-line1">
+            <PosChip pos={p.projectedPosition} />
+            <span className="pl-name">{p.name}</span>
+          </div>
+          <div className="pl-details" style={{ marginTop: '2px' }}>
+            {CLASS_SHORT[p.incomingClass]} next season
+            {rank && (
+              <>
+                {' · '}
+                <b style={{ color: '#334155' }}>{rank}</b>
+              </>
+            )}
           </div>
         </div>
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto' }}>
@@ -565,7 +575,7 @@ const ProspectCard: React.FC<{
       <span style={{ ...whereTag, ...WHERE_STYLES[where.kind] }}>{where.text}</span>
       <div style={{ fontSize: '12px', color: '#475569' }}>
         {scouted ? (
-          <>Potential <strong>{seen.revealedPotential}</strong> · Speed {seen.scoutedSpeed} · Strength {seen.scoutedStrength}</>
+          <><PotentialGrade grade={seen.revealedPotential} /> · Speed {seen.scoutedSpeed} · Strength {seen.scoutedStrength}</>
         ) : (
           <span style={{ color: '#64748B' }}>Not evaluated · evaluated at {EVALUATION_INTEREST} interest</span>
         )}

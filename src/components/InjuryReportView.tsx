@@ -1,17 +1,14 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
-import { InjurySeverity, Player } from '../types/game';
+import { InjurySeverity } from '../types/game';
 import { formatPercent } from '../utils/format';
 import { FATIGUE_LEVELS, fatigueLevel, staminaFromFatigue } from '../sim/training';
 import { FatigueChip } from './ui/FatigueChip';
 import { FATIGUE_COLORS } from './ui/fatigueColors';
+import { FatigueNote, PlayerRow, playerRowProps } from './ui/PlayerRow';
 
-const SEVERITY: Record<Exclude<InjurySeverity, 'HEALTHY'>, { label: string; background: string; color: string }> = {
-  DINGED: { label: 'Minor', background: '#FEF3C7', color: '#92400E' },
-  MODERATE: { label: 'Moderate', background: '#FFEDD5', color: '#9A3412' },
-  SEASON_ENDING: { label: 'Season-ending', background: '#FEE2E2', color: '#991B1B' }
-};
-const STRING_NAMES: Record<Player['depthChartTier'], string> = { 1: 'Starter', 2: '2nd string', 3: '3rd string' };
+/** How bad the injury is, next to the weeks out (the chip says Out for season for the worst). */
+const SEVERITY: Record<Exclude<InjurySeverity, 'HEALTHY'>, string> = { DINGED: 'Minor', MODERATE: 'Moderate', SEASON_ENDING: 'Season-ending' };
 /** Fatigue at which players are flagged (Tired and Exhausted): they get hurt more and tire sooner in games. */
 const FATIGUE_WATCH = 55;
 
@@ -74,19 +71,14 @@ export const InjuryReportView: React.FC = () => {
       {tired.length === 0 ? (
         <p style={emptyNote}>Nobody is tired.</p>
       ) : (
-        <div style={list}>
+        <div className="pl-list">
           {tired.map((p) => (
-            <button key={p.id} onClick={() => openPlayerCard(p.id)} style={row}>
-              <span style={{ minWidth: 0 }}>
-                <span style={playerName}>
-                  {p.position} {p.firstName[0]}. {p.lastName}
-                </span>
-                <span style={detail}>
-                  {p.classYear} · {STRING_NAMES[p.depthChartTier]} · starts games at {formatPercent(staminaFromFatigue(p.condition.seasonWear))} stamina
-                </span>
-              </span>
-              <FatigueChip fatigue={p.condition.seasonWear} />
-            </button>
+            <PlayerRow
+              key={p.id}
+              {...playerRowProps(p, { noPotential: true, extra: [`starts games at ${formatPercent(staminaFromFatigue(p.condition.seasonWear))} stamina`] })}
+              onClick={() => openPlayerCard(p.id)}
+              right={<FatigueNote fatigue={p.condition.seasonWear} />}
+            />
           ))}
         </div>
       )}
@@ -97,29 +89,15 @@ export const InjuryReportView: React.FC = () => {
       {injured.length === 0 ? (
         <p style={emptyNote}>No injuries. Everyone is available.</p>
       ) : (
-        <div style={list}>
-          {injured.map((p) => {
-            const severity = SEVERITY[p.condition.injuryStatus as Exclude<InjurySeverity, 'HEALTHY'>];
-            const weeks = p.condition.injuryWeeksRemaining;
-            return (
-              <button key={p.id} onClick={() => openPlayerCard(p.id)} style={row}>
-                <span style={{ minWidth: 0 }}>
-                  <span style={playerName}>
-                    {p.position} {p.firstName[0]}. {p.lastName}
-                  </span>
-                  <span style={detail}>
-                    {p.classYear} · {STRING_NAMES[p.depthChartTier]} · {p.overallRating} OVR
-                  </span>
-                </span>
-                <span style={{ textAlign: 'right', flex: '0 0 auto' }}>
-                  <span style={{ ...chip, background: severity.background, color: severity.color }}>{severity.label}</span>
-                  <span style={{ ...detail, fontWeight: 700, color: '#334155' }}>
-                    {p.condition.injuryStatus === 'SEASON_ENDING' ? 'Out for the season' : `Out ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
+        <div className="pl-list">
+          {injured.map((p) => (
+            <PlayerRow
+              key={p.id}
+              {...playerRowProps(p, { noPotential: true })}
+              onClick={() => openPlayerCard(p.id)}
+              right={p.condition.isSuspended || p.condition.injuryStatus === 'SEASON_ENDING' ? null : <span className="pl-muted">{SEVERITY[p.condition.injuryStatus as Exclude<InjurySeverity, 'HEALTHY'>]}</span>}
+            />
+          ))}
         </div>
       )}
 
@@ -147,25 +125,5 @@ export const InjuryReportView: React.FC = () => {
 };
 
 const summaryChip: React.CSSProperties = { fontSize: '13px', background: '#F1F5F9', color: '#334155', borderRadius: '999px', padding: '4px 10px' };
-const list: React.CSSProperties = { display: 'grid', gap: '6px' };
-const row: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: '10px',
-  width: '100%',
-  minHeight: '52px',
-  padding: '8px 12px',
-  background: '#fff',
-  border: '1px solid #E2E8F0',
-  borderRadius: '10px',
-  textAlign: 'left',
-  font: 'inherit',
-  color: '#0F172A',
-  cursor: 'pointer'
-};
-const playerName: React.CSSProperties = { display: 'block', fontWeight: 700, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const detail: React.CSSProperties = { display: 'block', fontSize: '12px', color: '#475569', marginTop: '2px' };
-const chip: React.CSSProperties = { display: 'inline-block', fontSize: '12px', fontWeight: 700, borderRadius: '999px', padding: '2px 8px' };
 const legendTd: React.CSSProperties = { padding: '5px 4px 5px 0', borderTop: '1px solid #E2E8F0' };
 const emptyNote: React.CSSProperties = { fontSize: '13px', color: '#475569', margin: '0 0 6px' };

@@ -3,6 +3,7 @@ import { CollegeTier, Player, Team } from '../types/game';
 import { TIER_LABELS, isDivisionOne, tierRank } from '../sim/collegeRecruitingEngine';
 import { PlayerDetailModal } from './PlayerDetailModal';
 import { BackToTop } from './ui/BackToTop';
+import { PlayerRow, playerRowProps } from './ui/PlayerRow';
 import { SeasonScorecard } from './SeasonScorecard';
 import { Steps } from './AllStateHonorsPage';
 
@@ -63,25 +64,17 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
           score, and Division I signees also build the program&apos;s alumni prestige.
         </p>
         {signees.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px' }}>
+          <div className="pl-list">
             {signees.map((senior) => {
               const tier = senior.recruiting.signedTier!;
-              const d1 = isDivisionOne(tier);
               return (
-                <button
+                <PlayerRow
                   key={senior.id}
+                  {...playerRowProps(senior, { noString: true, noPotential: true, extra: [`Signed with ${senior.recruiting.committedCollege}`] })}
+                  trouble={null}
                   onClick={() => setViewed(senior)}
-                  style={{ display: 'block', width: '100%', textAlign: 'left', font: 'inherit', color: 'inherit', cursor: 'pointer', background: d1 ? '#EFF6FF' : '#F8FAFC', border: `1px solid ${d1 ? '#93C5FD' : '#CBD5E1'}`, borderRadius: '6px', padding: '12px' }}
-                >
-                  <div style={{ fontWeight: 'bold' }}>{senior.firstName} {senior.lastName} ({senior.position})</div>
-                  <div style={{ color: '#2563EB', fontSize: '13px', fontWeight: 'bold' }}>
-                    Signed with: {senior.recruiting.committedCollege}
-                  </div>
-                  <div style={{ fontSize: '13px', color: '#475569' }}>{TIER_LABELS[tier]}</div>
-                  <div style={{ fontSize: '12px', color: '#64748B' }}>
-                    Rating: {senior.overallRating} OVR ({senior.recruiting.starRating}★)
-                  </div>
-                </button>
+                  right={<span style={{ fontSize: '12px', fontWeight: 800, color: '#1E40AF', maxWidth: '110px' }}>{TIER_LABELS[tier]}</span>}
+                />
               );
             })}
           </div>
@@ -93,30 +86,21 @@ export const OffSeasonBanquetView: React.FC<BanquetProps> = ({
       {/* Graduating Senior Class Farewells */}
       <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
         <h3 style={{ margin: '0 0 12px 0', color: '#1E293B' }}>Graduating Senior Class ({graduatingSeniors.length})</h3>
-        <div style={{ fontSize: '14px' }}>
+        <div className="pl-list">
           {graduates.map((s) => (
-            <button
+            <PlayerRow
               key={s.id}
+              {...playerRowProps(s, { noString: true, noPotential: true, extra: [signedTier(s) ? `Signed with ${s.recruiting.committedCollege}` : null] })}
+              trouble={null}
               onClick={() => setViewed(s)}
-              style={{ width: '100%', minHeight: '44px', padding: '8px 0', background: 'none', border: 'none', borderBottom: '1px solid #F1F5F9', font: 'inherit', color: 'inherit', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'nowrap' }}
-            >
-              <span style={{ minWidth: 0 }}>
-                <strong>
-                  {s.firstName} {s.lastName}
-                </strong>{' '}
-                ({s.position})
-                {signedTier(s) && (
-                  <>
-                    {' '}
-                    <span style={{ background: TIER_COLORS[signedTier(s)!], color: '#fff', borderRadius: '5px', padding: '1px 6px', fontSize: '10.5px', fontWeight: 900, whiteSpace: 'nowrap', verticalAlign: '1px' }}>
-                      {TIER_LABELS[signedTier(s)!].toUpperCase()}
-                    </span>
-                    <span style={{ display: 'block', color: '#64748B', fontSize: '12.5px' }}>Signed with {s.recruiting.committedCollege}</span>
-                  </>
-                )}
-              </span>
-              <span style={{ color: '#64748B', flex: '0 0 auto' }}>{s.overallRating} OVR ›</span>
-            </button>
+              right={
+                signedTier(s) && (
+                  <span style={{ background: TIER_COLORS[signedTier(s)!], color: '#fff', borderRadius: '5px', padding: '1px 6px', fontSize: '10.5px', fontWeight: 900, whiteSpace: 'nowrap' }}>
+                    {TIER_LABELS[signedTier(s)!].toUpperCase()}
+                  </span>
+                )
+              }
+            />
           ))}
         </div>
       </div>

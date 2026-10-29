@@ -358,7 +358,7 @@ export function resolveFieldGoal(
   windSpeed: number
 ): { isSuccess: boolean; text: string } {
   if (Math.random() < BAD_SNAP_OR_BLOCK_CHANCE) {
-    return { isSuccess: false, text: `The ${distanceYards}-yard kick by K #${kicker.lastName} is BLOCKED!` };
+    return { isSuccess: false, text: `The ${distanceYards}-yard kick by K ${kicker.lastName} is BLOCKED!` };
   }
 
   const prob = clamp(
@@ -373,8 +373,8 @@ export function resolveFieldGoal(
   return {
     isSuccess,
     text: isSuccess
-      ? `K #${kicker.lastName} converts the ${distanceYards}-yard Field Goal!`
-      : `K #${kicker.lastName}'s ${distanceYards}-yard Field Goal attempt is NO GOOD!`
+      ? `K ${kicker.lastName} converts the ${distanceYards}-yard Field Goal!`
+      : `K ${kicker.lastName}'s ${distanceYards}-yard Field Goal attempt is NO GOOD!`
   };
 }
 
@@ -403,7 +403,7 @@ export function resolveKickoff(
 
   if (landing >= 100) {
     setFirstDown(state, receiving.id, 20);
-    return { text: ` Kickoff by #${kicker.lastName} sails into the end zone for a touchback.`, isTurnover: false };
+    return { text: ` Kickoff by ${kicker.lastName} sails into the end zone for a touchback.`, isTurnover: false };
   }
 
   const coverageSpeed = getUnitAverage(kicking, ['LB', 'S', 'CB'], 'speed');
@@ -413,11 +413,11 @@ export function resolveKickoff(
 
   if (Math.random() < fumbleChance) {
     setFirstDown(state, kicking.id, 100 - spot);
-    return { text: ` #${returner.lastName} FUMBLES the kickoff return! ${kicking.name} recovers!`, isTurnover: true };
+    return { text: ` ${returner.lastName} FUMBLES the kickoff return! ${kicking.name} recovers!`, isTurnover: true };
   }
 
   setFirstDown(state, receiving.id, spot);
-  return { text: ` #${returner.lastName} returns the kickoff ${returnYards} yds to the ${spot}.`, isTurnover: false };
+  return { text: ` ${returner.lastName} returns the kickoff ${returnYards} yds to the ${spot}.`, isTurnover: false };
 }
 
 /** Default AI play selection for the offense. */
@@ -468,11 +468,11 @@ function startOvertimePeriod(state: GameSimulationState, period: number, firstOf
  */
 function flaggedPlayText(offense: Team, concept: PlayConcept, byOffense: boolean, penaltyYards: number): string {
   const qb = getActivePlayer(offense, 'QB');
-  const label = (p: Player | undefined) => `${p?.position ?? ''} #${p?.lastName ?? '?'}`;
+  const label = (p: Player | undefined) => `${p?.position ?? ''} ${p?.lastName ?? '?'}`;
   const gain = byOffense ? randomInt(3, 22) : randomInt(0, Math.max(0, penaltyYards - 5));
-  if (concept === 'DEEP_PASS' && !byOffense) return `QB #${qb.lastName} goes deep for ${label(pickReceiver(offense))}... incomplete.`;
+  if (concept === 'DEEP_PASS' && !byOffense) return `QB ${qb.lastName} goes deep for ${label(pickReceiver(offense))}... incomplete.`;
   if (isPassConcept(concept)) {
-    return gain === 0 ? `QB #${qb.lastName}'s pass falls incomplete.` : `QB #${qb.lastName} complete to ${label(pickReceiver(offense))} for ${gain} yds.`;
+    return gain === 0 ? `QB ${qb.lastName}'s pass falls incomplete.` : `QB ${qb.lastName} complete to ${label(pickReceiver(offense))} for ${gain} yds.`;
   }
   return `${label(pickRusher(offense))} runs for ${gain} yds.`;
 }
@@ -583,7 +583,7 @@ export function simulateSnap(
     if (concept === 'PAT_KICK') {
       const kicker = getActivePlayer(offense, 'K');
       const res = resolveFieldGoal(kicker, 20, state.windSpeedMph);
-      commentary = res.isSuccess ? `K #${kicker.lastName}'s extra point is GOOD.` : `K #${kicker.lastName}'s extra point is NO GOOD!`;
+      commentary = res.isSuccess ? `K ${kicker.lastName}'s extra point is GOOD.` : `K ${kicker.lastName}'s extra point is NO GOOD!`;
       if (res.isSuccess) {
         isScore = true;
         scoreType = 'PAT';
@@ -636,17 +636,17 @@ export function simulateSnap(
 
     if (landing >= 100) {
       setFirstDown(state, defense.id, 20);
-      commentary = `P #${punter.lastName} punts into the end zone for a touchback.`;
+      commentary = `P ${punter.lastName} punts into the end zone for a touchback.`;
     } else {
       const muffChance = clamp(8 - returner.attributes.catching * 0.08 + (state.weather === 'HEAVY_RAIN' ? 4 : 0), 1, 15) / 100;
       if (Math.random() < muffChance && Math.random() < 0.5) {
         isTurnover = true;
         turnoverType = 'MUFFED_PUNT'; // the punting team gets it back
         setFirstDown(state, offense.id, landing);
-        commentary = `P #${punter.lastName} punts ${gross} yds... MUFFED by #${returner.lastName}! ${offense.name} recovers!`;
+        commentary = `P ${punter.lastName} punts ${gross} yds... MUFFED by ${returner.lastName}! ${offense.name} recovers!`;
       } else {
         setFirstDown(state, defense.id, 100 - landing);
-        commentary = `P #${punter.lastName} punts ${gross} yds to the opponent ${state.yardLine} yd line.`;
+        commentary = `P ${punter.lastName} punts ${gross} yds to the opponent ${state.yardLine} yd line.`;
       }
     }
   }
@@ -657,7 +657,7 @@ export function simulateSnap(
     defensiveCall = chosenDefensiveCall ?? state.defensiveGamePlan?.[defense.id] ?? selectAIDefensiveCall(state);
     const byOffense = rule.side === 'OFFENSE';
     const yards = enforcedYards(rule.yards, byOffense ? state.yardLine : 100 - state.yardLine);
-    const who = player ? `${player.position} #${player.lastName}` : team.name;
+    const who = player ? `${player.position} ${player.lastName}` : team.name;
     let firstDown = false;
     if (byOffense) {
       state.yardLine -= yards;
@@ -718,7 +718,7 @@ export function simulateSnap(
     const receiver = isPass ? pickReceiver(offense) : undefined;
     const ballCarrier = isPass ? undefined : pickRusher(offense);
     const tackler = isPass ? pickPassTackler(defense) : pickRunTackler(defense);
-    const label = (p: Player | undefined) => `${p?.position ?? ''} #${p?.lastName ?? '?'}`;
+    const label = (p: Player | undefined) => `${p?.position ?? ''} ${p?.lastName ?? '?'}`;
 
     // Catastrophic Turnover Check
     // Undisciplined offenses are closer to a fumble or interception on every snap
@@ -733,7 +733,7 @@ export function simulateSnap(
       turnoverType = isPass ? 'INTERCEPTION' : 'FUMBLE';
       const defender = isPass ? pickInterceptor(defense) : tackler;
       if (isPass) {
-        commentary = `INTERCEPTED! QB #${passer?.lastName} picked off by ${label(defender)}!`;
+        commentary = `INTERCEPTED! QB ${passer?.lastName} picked off by ${label(defender)}!`;
         credit(state, passer, { passAttempts: 1, interceptionsThrown: 1 });
         credit(state, defender, { interceptionsCaught: 1 });
       } else {
@@ -760,7 +760,7 @@ export function simulateSnap(
         yardsGained = Math.max(-randomInt(1, isPass ? 8 : 4), -state.yardLine);
         if (isPass) {
           const sacker = pickSacker(defense);
-          commentary = `SACKED! ${label(sacker)} drags down QB #${passer?.lastName} for a loss of ${Math.abs(yardsGained)} yds.`;
+          commentary = `SACKED! ${label(sacker)} drags down QB ${passer?.lastName} for a loss of ${Math.abs(yardsGained)} yds.`;
           credit(state, sacker, { sacks: 1, tackles: 1, tacklesForLoss: 1 });
         } else {
           commentary = `TACKLED FOR LOSS! ${label(ballCarrier)} stopped behind the line by ${label(tackler)} for ${yardsGained} yds.`;
@@ -771,7 +771,7 @@ export function simulateSnap(
       // Incomplete Pass
       else if (passThresholds && playQuality < passThresholds.incomplete) {
         timeElapsed = Math.min(timeElapsed, INCOMPLETE_RUNOFF);
-        commentary = `QB #${passer?.lastName} pass incomplete intended for ${label(receiver)}.`;
+        commentary = `QB ${passer?.lastName} pass incomplete intended for ${label(receiver)}.`;
         credit(state, passer, { passAttempts: 1 });
       }
       // Normal Gain (scaled by execution quality)
@@ -783,7 +783,7 @@ export function simulateSnap(
         yardsGained = Math.min(yardsGained, 100 - state.yardLine);
         const scores = state.yardLine + yardsGained >= 100;
         if (isPass) {
-          commentary = `QB #${passer?.lastName} complete to ${label(receiver)} for ${yardsGained} yds.`;
+          commentary = `QB ${passer?.lastName} complete to ${label(receiver)} for ${yardsGained} yds.`;
           credit(state, passer, { passAttempts: 1, passCompletions: 1, passYards: yardsGained, passTDs: scores ? 1 : 0 });
           credit(state, receiver, { receptions: 1, receivingYards: yardsGained, receivingTDs: scores ? 1 : 0 });
         } else {

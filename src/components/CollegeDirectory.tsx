@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { COLLEGES, CONFERENCES, College, CollegeDivision } from '../data/colleges';
 import { CollegeRecruit, TIER_LABELS, collegeBoard } from '../sim/collegeRecruitingEngine';
+import { PlayerRow, playerRowProps } from './ui/PlayerRow';
 
 const DIVISIONS: { id: CollegeDivision; label: string }[] = [
   { id: 'FBS', label: 'FBS' },
@@ -12,7 +13,6 @@ const DIVISIONS: { id: CollegeDivision; label: string }[] = [
 
 const OFFERS_SHOWN = 12;
 
-const stars = (n: number) => (n > 0 ? '★'.repeat(n) : '—');
 
 /**
  * Every college in the game by division and conference, with the state's juniors and seniors each one offered
@@ -203,32 +203,11 @@ const RecruitLine: React.FC<{
   const r = p.recruiting;
   const status = r.committedCollege ? `Committed to ${r.committedCollege}` : 'Undecided';
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '8px',
-        alignItems: 'baseline',
-        padding: '5px 6px',
-        borderRadius: '6px',
-        background: mine ? '#EFF6FF' : undefined,
-        fontSize: '13px'
-      }}
-    >
-      <span style={{ fontWeight: 700, flex: '0 0 26px', color: '#475569' }}>{p.position}</span>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div>
-          <b>
-            {p.firstName[0]}. {p.lastName}
-          </b>{' '}
-          <span style={{ color: '#B45309' }}>{stars(r.starRating)}</span>
-          {offer.tier === 'PWO' && <span style={{ color: '#64748B' }}> · walk-on</span>}
-        </div>
-        <div style={{ fontSize: '12px', color: mine ? '#1D4ED8' : '#64748B' }}>
-          {team.name} · {p.classYear}
-          {showStatus && ` · ${status}`}
-        </div>
-      </div>
-    </div>
+    <PlayerRow
+      {...playerRowProps(p, { own: false, extra: [team.name, offer.tier === 'PWO' ? 'walk-on' : null, showStatus ? status : null] })}
+      tone={mine ? 'mine' : undefined}
+      className="pl-row-flat"
+    />
   );
 };
 

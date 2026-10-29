@@ -9,6 +9,8 @@ import { bracketRoundWeek } from '../sim/playoffEngine';
 import { rulesForState } from '../sim/stateRules';
 import { nationalTeams } from '../sim/nationalWorld';
 import { Player, PlayerStats, Team } from '../types/game';
+import { playerMention } from '../utils/playerFormat';
+import { PlayerRow, playerRowProps } from './ui/PlayerRow';
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 const scheme = (s: string) => s.replace(/_/g, ' ').toLowerCase();
@@ -140,7 +142,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
           {leaders.map((l) => (
             <div key={l.label} style={leaderCard}>
               <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold', textTransform: 'uppercase' }}>{l.label}</div>
-              {playerBtn(l.player, `${l.player.position} ${l.player.firstName.charAt(0)}. ${l.player.lastName}`)}
+              {playerBtn(l.player, <span className="pl-mention">{playerMention(l.player)}</span>)}
               <div style={{ fontSize: '12px', color: '#334155' }}>
                 {l.value} {l.unit}
               </div>
@@ -155,13 +157,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {topProspects.map((p) => (
-            <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0' }}>
-              {playerBtn(p, `${p.position} ${p.firstName} ${p.lastName}`)}
-              <span style={{ color: '#B45309', whiteSpace: 'nowrap' }}>
-                {'★'.repeat(p.recruiting.starRating)} {p.classYear}
-                {isUser && ` · ${p.overallRating}`}
-              </span>
-            </div>
+            <PlayerRow key={p.id} {...playerRowProps(p, { own: isUser, noString: true })} trouble={null} onClick={() => onOpenPlayer(p)} />
           ))}
         </div>
       )}

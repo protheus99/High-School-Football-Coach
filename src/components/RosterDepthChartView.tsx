@@ -5,9 +5,11 @@ import { useGameStore } from '../store/gameStore';
 import { DepthChartBoard } from './DepthChartBoard';
 import { DataList } from './ui/DataList';
 import { DEFENSE_POSITIONS, OFFENSE_POSITIONS, starterRatings } from '../sim/depthChart';
-import { FatigueChip } from './ui/FatigueChip';
 import type { Player } from '../types/game';
-import { POTENTIAL_COLORS } from '../utils/color';
+import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
+import { CLASS_SHORT, STRING_LABELS, fullName, isNewcomer, playerTrouble } from '../utils/playerFormat';
+import { rulesForState } from '../sim/stateRules';
+import { FatigueNote, PlayerRow, PosChip, PotentialGrade, TroubleChip, playerRowProps } from './ui/PlayerRow';
 import { DEFENSE_GROUPS, OFFENSE_GROUPS, POSITION_GROUPS } from '../data/positionGroups';
 
 export const RosterDepthChartView: React.FC = () => {
@@ -16,6 +18,7 @@ export const RosterDepthChartView: React.FC = () => {
   useScrollTopOnScreenChange(view);
   const [filter, setFilterState] = useState<'ALL' | 'OFF' | 'DEF' | 'NEW'>('ALL');
   const [positionGroup, setPositionGroup] = useState('ALL');
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
   // Offense and Defense keep only their own position chips (a group from the other side goes back to All)
   const groupsFor = (f: typeof filter) => POSITION_GROUPS.filter((g) => (f === 'OFF' ? OFFENSE_GROUPS : f === 'DEF' ? DEFENSE_GROUPS : [g.id]).includes(g.id));
   const setFilter = (f: typeof filter) => {
@@ -27,7 +30,7 @@ export const RosterDepthChartView: React.FC = () => {
   if (!userTeam) return null;
 
   // Newcomers: players who joined the program this year (signing day or a transfer)
-  const isNew = (p: Player) => p.joinedYear !== undefined && p.joinedYear === currentYear;
+  const isNew = (p: Player) => isNewcomer(p, currentYear);
   const newcomers = userTeam.roster.filter(isNew).length;
   const bySide = userTeam.roster.filter((p) => {
     if (filter === 'OFF') return OFFENSE_POSITIONS.includes(p.position);
@@ -40,7 +43,7 @@ export const RosterDepthChartView: React.FC = () => {
   const filtered = bySide.filter((p) => inGroup(p, groupPositions));
   const ratings = starterRatings(userTeam.roster);
 
-  const STRING_LABEL = { 1: '1st', 2: '2nd', 3: '3rd' } as const;
+  const atRiskGpa = rulesForState(userTeam.state).academics.atRiskGpa;
 
   return (
     <div className="ui-screen">
@@ -89,60 +92,56 @@ export const RosterDepthChartView: React.FC = () => {
           <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
             Tap a player for his card: stats, grades, recruiting and his depth chart string.
           </p>
-          <DataList
-            rows={filtered}
-            rowKey={(p) => p.id}
-            onRowClick={(p) => openPlayerCard(p.id)}
-            rowTone={(p) => (!p.academics.isEligible || p.condition.injuryStatus !== 'HEALTHY' ? '#FEF2F2' : undefined)}
-            columns={[
-              {
-                key: 'name',
-                label: 'Name',
-                primary: true,
-                render: (p) => (
-                  <>
-                    {p.firstName} {p.lastName} <span style={{ color: '#64748B', fontWeight: 'normal', fontSize: '13px' }}>{p.position}</span>
-                    {/* Star rating, when colleges have rated him */}
-                    {p.recruiting.starRating > 0 && (
-                      <span aria-label={`${p.recruiting.starRating}-star recruit`} style={{ color: '#B45309', fontSize: '13px', marginLeft: '6px', whiteSpace: 'nowrap' }}>
-                        {'★'.repeat(p.recruiting.starRating)}
-                      </span>
-                    )}
-                    {isNew(p) && (
-                      <span className="depth-tag depth-new" style={{ marginLeft: '6px' }}>
-                        NEW
-                      </span>
-                    )}
-                  </>
-                )
-              },
-              { key: 'ovr', label: 'OVR', badge: true, render: (p) => p.overallRating },
-              {
-                key: 'pot',
-                label: 'Pot',
-                render: (p) => (
-                  <span className="depth-tag depth-potential" style={POTENTIAL_COLORS[p.potential]} aria-label={`Potential ${p.potential}`}>
-                    {p.potential}
-                  </span>
-                )
-              },
-              { key: 'class', label: 'Class', render: (p) => p.classYear },
-              { key: 'string', label: 'String', render: (p) => STRING_LABEL[p.depthChartTier] },
-              { key: 'stamina', label: 'Stamina', desktopOnly: true, render: (p) => formatPercent(p.condition.inGameStamina) },
-              {
-                key: 'status',
-                label: 'Status',
-                render: (p) =>
-                  p.condition.injuryStatus !== 'HEALTHY' ? (
-                    <span style={{ color: '#DC2626' }}>Injured ({p.condition.injuryWeeksRemaining} wk)</span>
-                  ) : (
-                    <FatigueChip fatigue={p.condition.seasonWear} />
+          {isDesktop ? (
+            <DataList
+              rows={filtered}
+              rowKey={(p) => p.id}
+              onRowClick={(p) => openPlayerCard(p.id)}
+              rowTone={(p) => (playerTrouble(p)?.tone === 'out' ? '#FFF7F7' : undefined)}
+              columns={[
+                { key: 'ovr', label: 'OVR', render: (p) => <strong>{p.overallRating}</strong> },
+                {
+                  key: 'name',
+                  label: 'Player',
+                  render: (p) => (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <PosChip pos={p.position} />
+                      <strong>{fullName(p)}</strong>
+                      {p.recruiting.starRating > 0 && <span className="pl-stars">({p.recruiting.starRating}★)</span>}
+                      {isNew(p) && <span className="pl-new">NEW</span>}
+                    </span>
                   )
-              },
-              { key: 'gpa', label: 'GPA', render: (p) => <span style={{ color: p.academics.isEligible ? '#059669' : '#DC2626' }}>{p.academics.gpa.toFixed(2)}</span> },
-              { key: 'offers', label: 'Offers', desktopOnly: true, render: (p) => p.recruiting.offers.length }
-            ]}
-          />
+                },
+                { key: 'pot', label: 'Pot', render: (p) => <PotentialGrade grade={p.potential} /> },
+                { key: 'class', label: 'Class', render: (p) => CLASS_SHORT[p.classYear] },
+                { key: 'string', label: 'String', render: (p) => STRING_LABELS[p.depthChartTier] },
+                { key: 'stamina', label: 'Stamina', render: (p) => formatPercent(p.condition.inGameStamina) },
+                {
+                  key: 'status',
+                  label: 'Status',
+                  render: (p) => {
+                    const trouble = playerTrouble(p, atRiskGpa);
+                    return trouble ? <TroubleChip trouble={trouble} /> : <FatigueNote fatigue={p.condition.seasonWear} />;
+                  }
+                },
+                { key: 'gpa', label: 'GPA', render: (p) => p.academics.gpa.toFixed(2) },
+                { key: 'offers', label: 'Offers', render: (p) => p.recruiting.offers.length }
+              ]}
+            />
+          ) : filtered.length === 0 ? (
+            <div className="ui-muted">Nothing to show.</div>
+          ) : (
+            <div className="pl-list">
+              {filtered.map((p) => (
+                <PlayerRow
+                  key={p.id}
+                  {...playerRowProps(p, { atRiskGpa, isNew: isNew(p) })}
+                  onClick={() => openPlayerCard(p.id)}
+                  right={<FatigueNote fatigue={p.condition.seasonWear} />}
+                />
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>

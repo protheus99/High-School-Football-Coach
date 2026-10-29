@@ -1898,3 +1898,260 @@ body:has(.app-tabbar) .cookie-banner {
 .program-list-add.is-on { background: #2563EB; color: #fff; font-size: 16px; }
 .program-result-none { font-size: 13px; color: #64748B; margin: 10px 2px 0; }
 .program-result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+
+/* ===== Players: one look everywhere (components/ui/PlayerRow, utils/playerFormat) =====
+   [rating] [POS] Full Name (3★) NEW / trouble chip, then gray details. Color only for trouble: red can't play,
+   amber a warning; the rating tile keeps its grade colors. */
+.pl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pl-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 10px 8px 8px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.07);
+  min-width: 0;
+}
+.pl-row-out {
+  border-left-color: #dc2626;
+  background: #fff7f7;
+}
+.pl-row-out .pl-ovr {
+  opacity: 0.45;
+}
+.pl-row-warn {
+  border-left-color: #f59e0b;
+}
+.pl-row-mine {
+  background: #eff6ff;
+}
+.pl-row-selected {
+  outline: 2px solid #2563eb;
+  background: #eff6ff;
+}
+.pl-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+button.pl-main {
+  cursor: pointer;
+  min-height: 40px;
+}
+button.pl-main:hover .pl-name {
+  text-decoration: underline;
+}
+.pl-ovr {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+.pl-ovr-lg {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  font-size: 24px;
+}
+.pl-ovr-locked {
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 20px;
+  box-shadow: none;
+}
+.pl-rank {
+  flex: 0 0 30px;
+  text-align: center;
+  font-weight: 900;
+  font-size: 15px;
+  color: #334155;
+  font-variant-numeric: tabular-nums;
+}
+.pl-rank-top {
+  color: #b45309;
+}
+.pl-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pl-line1,
+.pl-line2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.pl-line2 {
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+.pl-pos {
+  flex: 0 0 auto;
+  font-weight: 900;
+  font-size: 11px;
+  color: #fff;
+  background: #334155;
+  border-radius: 5px;
+  padding: 2px 6px;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+.pl-name {
+  font-weight: 800;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.pl-stars {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+}
+.pl-new {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #334155;
+  border: 1px solid #94a3b8;
+  border-radius: 5px;
+  padding: 0 5px;
+}
+.pl-details,
+.pl-muted {
+  font-size: 12.5px;
+  color: #64748b;
+}
+.pl-pot {
+  color: #0f172a;
+  font-weight: 900;
+  font-size: 13.5px;
+}
+.pl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11.5px;
+  font-weight: 800;
+  border-radius: 6px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+.pl-chip-out {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.pl-chip-warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+.pl-right {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}
+.pl-stat {
+  font-weight: 800;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+}
+/* In a sentence: "OG D. Cantu" */
+.pl-mention {
+  font-weight: 800;
+  color: #0f172a;
+}
+/* The player card's header: the big version of the row */
+.pl-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.pl-head .pl-name {
+  font-size: 20px;
+  white-space: normal;
+}
+.pl-head-meta {
+  display: block;
+  font-size: 13px;
+  font-weight: normal;
+  color: #475569;
+}
+.pl-banner {
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+/* Depth chart on phones: standard player rows inside each slot card */
+.depth-card-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background: #f8fafc;
+}
+.pl-row.depth-row-starter:not(.pl-row-out) {
+  background: #f0f7ff;
+}
+.pl-row.depth-row-reserve .pl-name {
+  color: #64748b;
+}
+/* A player row used as a header inside another card: no card of its own */
+.pl-row.pl-row-bare {
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  background: none;
+}
+.pl-right {
+  max-width: 48%;
+}
+/* A dense list inside a card (college directory): rows without their own shadow */
+.pl-row.pl-row-flat {
+  box-shadow: none;
+  padding: 6px 8px;
+}
+/* Line two flows like text: the trouble chip, then the details wrap after it instead of starting a third line */
+.pl-text .pl-line2 {
+  display: block;
+  line-height: 1.55;
+}
+.pl-line2 > .pl-chip {
+  margin-right: 6px;
+  vertical-align: 1px;
+}

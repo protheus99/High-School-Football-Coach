@@ -32,6 +32,7 @@ import { nationalTeams } from '../sim/nationalWorld';
 import { bracketRoundForWeek, findUserNode, powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
+import { playerMention, playerTrouble, shortFromName, starsLabel } from '../utils/playerFormat';
 
 /** Screens the Hub can send the coach to. */
 export type AgendaTab =
@@ -117,7 +118,6 @@ const accentFor = (item: AgendaItem): [string, string] => {
 const TOP_PROSPECTS = 3;
 const TIRED = 55; // fatigue at which a starter is flagged (Tired and Exhausted, sim/training)
 
-const shortName = (p: Player) => `${p.firstName.charAt(0)}. ${p.lastName}`;
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
@@ -266,7 +266,7 @@ export const WeeklyAgenda: React.FC<{
       title: `${plural(out.length, 'starter')} out`,
       detail: `${out
         .slice(0, 4)
-        .map((p) => `${p.position} ${shortName(p)} (${p.condition.isSuspended ? 'suspended' : p.condition.injuryStatus !== 'HEALTHY' ? 'injured' : 'ineligible'})`)
+        .map((p) => `${playerMention(p)} (${playerTrouble(p)?.words ?? 'out'})`)
         .join(', ')}${out.length > 4 ? '…' : ''}. Backups are in unless you change the depth chart.`,
       tone: 'urgent',
       accent: 'starters',
@@ -305,7 +305,7 @@ export const WeeklyAgenda: React.FC<{
     const seniors = recruits.filter((p) => p.classYear === 'Senior');
     const noOffer = seniors.filter((p) => !p.recruiting.committedCollege && p.recruiting.offers.length === 0);
     const choosing = seniors.filter((p) => !p.recruiting.committedCollege && p.recruiting.offers.length > 0).length;
-    const line = (players: Player[]) => players.slice(0, TOP_PROSPECTS).map((p) => `${p.position} ${shortName(p)}${p.recruiting.starRating ? ` (${p.recruiting.starRating}★)` : ''}`).join(', ');
+    const line = (players: Player[]) => players.slice(0, TOP_PROSPECTS).map((p) => [playerMention(p), starsLabel(p.recruiting.starRating)].filter(Boolean).join(' ')).join(', ');
     const action = { label: '🎓 College recruiting ›', onClick: () => onNavigate('COLLEGE') };
     if (noOffer.length > 0) return { id: 'college', icon: '🎓', title: `${plural(noOffer.length, 'senior')} without a college offer`, detail: line(noOffer), tone: 'todo', actions: [action] };
     if (seniors.length > 0)
@@ -345,7 +345,7 @@ export const WeeklyAgenda: React.FC<{
       icon: '✍️',
       title,
       detail: `${plural(scoutingPool.filter(inUserPipeline).length, 'prospect')} in your pool pick their school when week ${FEEDER_SIGNING_WEEK} ends.${
-        onTheFence.length ? ` Still deciding: ${onTheFence.map((p) => `${p.projectedPosition} ${p.name}`).join(', ')}.` : ''
+        onTheFence.length ? ` Still deciding: ${onTheFence.map((p) => `${p.projectedPosition} ${shortFromName(p.name)}`).join(', ')}.` : ''
       }`,
       tone,
       link: { label: 'Prospects', onClick: () => onNavigate('FEEDERS') }

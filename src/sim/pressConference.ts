@@ -4,6 +4,7 @@ import { isSnapTurnover } from './playAlerts';
 import { PlayoffBracketState, findUserNode } from './playoffEngine';
 import { FIRST_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 import { NewsArticle } from './newsEngine';
+import { playerMention } from '../utils/playerFormat';
 
 /**
  * The post-game press conference: one question a game, picked to fit what just happened (a comeback, a 4th-down call,
@@ -83,7 +84,7 @@ const answer = (id: string, label: string, rating: readonly [number, number, num
   tier,
   impact: impact(rating[0], rating[1], rating[2], rating[3], extra)
 });
-const name = (p: Player) => `${p.firstName[0]}. ${p.lastName}`;
+const name = (p: Player) => playerMention(p);
 
 /** Skipping the press: "No comment" costs the Rating and the booster buzz, with nothing in return. */
 export const NO_COMMENT: DilemmaChoice = answer('no_comment', 'No comment', [-4, -4, 0, 0], { coachPointsDelta: -10 }, 'RISKY');

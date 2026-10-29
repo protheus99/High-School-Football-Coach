@@ -5,6 +5,8 @@ import { ChoiceEffects } from './ui/ChoiceEffects';
 import { dilemmaChoiceEffects } from '../sim/dilemmaEngine';
 import { GAME_BALL_EXPOSURE_CAP, GameBallCandidate, attributeLabel, gameBallSkill } from '../sim/postGame';
 import { NO_COMMENT, OUTLET_NAMES, PressQuestion } from '../sim/pressConference';
+import { playerMention } from '../utils/playerFormat';
+import { PlayerRow, playerRowProps } from './ui/PlayerRow';
 
 /**
  * Post-game step 1: the Player of the Game, win or lose. The three best performances are offered first; anyone else who
@@ -32,18 +34,18 @@ export const GameBallSheet: React.FC<{
       }
     >
       <div style={{ fontSize: '13px', color: '#475569', marginBottom: '4px' }}>Who earned the game ball?</div>
-      {shown.map((c) => (
-        <button key={c.player.id} onClick={() => setPicked(c)} aria-pressed={picked?.player.id === c.player.id} style={candidateBtn(picked?.player.id === c.player.id)}>
-          <div style={{ fontWeight: 700, fontSize: '14px' }}>
-            {c.player.position} {c.player.firstName[0]}. {c.player.lastName}{' '}
-            <span style={{ fontSize: '12px', color: '#475569', fontWeight: 600 }}>
-              · {c.player.classYear}
-              {c.player.recruiting.starRating > 0 ? ` · ${c.player.recruiting.starRating}★` : ''}
-            </span>
-          </div>
-          <div style={{ fontSize: '13px', color: '#334155' }}>{c.line}</div>
-        </button>
-      ))}
+      <div className="pl-list">
+        {shown.map((c) => (
+          <PlayerRow
+            key={c.player.id}
+            {...playerRowProps(c.player, { noString: true, noPotential: true, extra: [<b style={{ color: '#0F172A' }}>{c.line}</b>] })}
+            trouble={null}
+            onClick={() => setPicked(c)}
+            pressed={picked?.player.id === c.player.id}
+            tone={picked?.player.id === c.player.id ? 'selected' : undefined}
+          />
+        ))}
+      </div>
       {!showAll && candidates.length > 3 && (
         <button onClick={() => setShowAll(true)} style={{ minHeight: '40px', background: 'none', border: 'none', color: '#1D4ED8', fontWeight: 700, fontSize: '14px', cursor: 'pointer', padding: '0 2px' }}>
           Pick another player ›
@@ -51,7 +53,7 @@ export const GameBallSheet: React.FC<{
       )}
       {picked && (
         <div style={{ background: '#F8FAFC', borderRadius: '8px', padding: '8px 10px', marginTop: '8px', fontSize: '13px' }}>
-          Game ball for <b>{picked.player.lastName}</b>:
+          Game ball for <span className="pl-mention">{playerMention(picked.player)}</span>:
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
             <span style={gain}>{attributeLabel(gameBallSkill(picked.player))} +1</span>
             {exposureLeft(picked.player) && <span style={gain}>College exposure +1</span>}
@@ -90,20 +92,6 @@ export const PressConferenceSheet: React.FC<{ question: PressQuestion; team: Tea
   );
 };
 
-const candidateBtn = (selected: boolean): React.CSSProperties => ({
-  display: 'block',
-  width: '100%',
-  textAlign: 'left',
-  marginTop: '6px',
-  minHeight: '52px',
-  padding: selected ? '8px 9px' : '9px 10px',
-  borderRadius: '10px',
-  border: selected ? '2px solid #2563EB' : '1px solid #CBD5E1',
-  background: selected ? '#EFF6FF' : '#fff',
-  color: '#0F172A',
-  font: 'inherit',
-  cursor: 'pointer'
-});
 const answerBtn: React.CSSProperties = {
   display: 'block',
   width: '100%',
