@@ -43,12 +43,12 @@ describe('Rivalry helpers', () => {
   });
 
   it('counts a one-way rivalry for both sides, under the name of the school that lists it', () => {
-    // Dallas Skyline lists Lake Highlands; Lake Highlands lists Pearce
-    const skyline = { name: 'Dallas Skyline', state: 'Texas' };
+    // Berkner lists Lake Highlands; Lake Highlands lists Pearce
+    const berkner = { name: 'Richardson Berkner', state: 'Texas' };
     const lakeHighlands = { name: 'Richardson Lake Highlands', state: 'Texas' };
-    expect(rivalOf(lakeHighlands)?.school).not.toBe('Dallas Skyline');
-    expect(isRivalryGame(lakeHighlands, skyline)).toBe(true);
-    expect(rivalryName(lakeHighlands, skyline)).toBe(RIVALRIES.Texas['Dallas Skyline'].name);
+    expect(rivalOf(lakeHighlands)?.school).toBe('Richardson Pearce');
+    expect(isRivalryGame(lakeHighlands, berkner)).toBe(true);
+    expect(rivalryName(lakeHighlands, berkner)).toBe(RIVALRIES.Texas['Richardson Berkner'].name);
   });
 
   it("uses the first team's name when both schools list each other under different names", () => {

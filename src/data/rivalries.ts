@@ -35,8 +35,7 @@ export const RIVALRIES: Record<string, Record<string, Rivalry>> = {
     Robertsdale: { rival: 'Foley', name: 'Baldwin County Rivalry' },
     'Smiths Station': { rival: 'Central-Phenix City', name: 'Lee/Russell County Rivalry' },
     'Spain Park': { rival: 'Hoover', name: 'Battle of Hoover' },
-    Sparkman: { rival: 'Bob Jones', name: 'Highway 72 Rivalry' },
-    Thompson: { rival: 'Hoover', name: '7A Region 3 Rivalry' }
+    Sparkman: { rival: 'Bob Jones', name: 'Highway 72 Rivalry' }
   },
   California: {
     Antioch: { rival: 'Pittsburg', name: 'Big Little Game' },
@@ -517,7 +516,6 @@ export const RIVALRIES: Record<string, Record<string, Rivalry>> = {
     'Cypress Ridge': { rival: 'Cypress Falls', name: 'CFISD Rivalry' },
     'Cypress Springs': { rival: 'Langham Creek', name: 'FM 529 Rivalry' },
     'Cypress Woods': { rival: 'Cy-Fair', name: '290 Rivalry' },
-    'Dallas Skyline': { rival: 'Richardson Lake Highlands', name: 'District 7-6A Rivalry' },
     'Del Rio': { rival: 'Eagle Pass', name: 'Border Battle' },
     'Del Valle': { rival: 'Manor', name: 'East Travis County Rivalry' },
     'Denton Braswell': { rival: 'Little Elm', name: 'Battle of Highway 380' },
