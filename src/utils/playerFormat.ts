@@ -1,4 +1,5 @@
 import type { DepthChartTier, Player, PlayerClass } from '../types/game';
+import { LAST_TRAINING_CAMP_WEEK } from '../sim/scheduleEngine';
 
 /**
  * One way to show a player everywhere. In lists: rating tile, position chip, full name, stars in brackets, then one
@@ -61,3 +62,10 @@ export function playerTrouble(p: Player, atRiskGpa?: number): PlayerTrouble | nu
 
 /** A newcomer this season: he joined the program this year (signing day or a transfer). */
 export const isNewcomer = (p: Player, currentYear?: number) => currentYear !== undefined && p.joinedYear !== undefined && p.joinedYear === currentYear;
+
+/**
+ * The NEW tag is for the start of the year: from signing day through training camp, while the coach is getting to
+ * know the class. It's gone once the season opener kicks off (the roster's New filter still lists them all year).
+ */
+export const showNewTag = (p: Player, currentYear?: number, currentWeek?: number) =>
+  isNewcomer(p, currentYear) && currentWeek !== undefined && currentWeek <= LAST_TRAINING_CAMP_WEEK;

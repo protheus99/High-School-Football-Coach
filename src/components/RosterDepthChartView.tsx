@@ -7,13 +7,13 @@ import { DataList } from './ui/DataList';
 import { DEFENSE_POSITIONS, OFFENSE_POSITIONS, starterRatings } from '../sim/depthChart';
 import type { Player } from '../types/game';
 import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
-import { CLASS_SHORT, STRING_LABELS, fullName, isNewcomer, playerTrouble } from '../utils/playerFormat';
+import { CLASS_SHORT, STRING_LABELS, fullName, isNewcomer, playerTrouble, showNewTag } from '../utils/playerFormat';
 import { rulesForState } from '../sim/stateRules';
 import { FatigueNote, PlayerRow, PosChip, PotentialGrade, TroubleChip, playerRowProps } from './ui/PlayerRow';
 import { DEFENSE_GROUPS, OFFENSE_GROUPS, POSITION_GROUPS } from '../data/positionGroups';
 
 export const RosterDepthChartView: React.FC = () => {
-  const { districtTeams, userTeamId, moveDepthChartPlayer, openPlayerCard, currentYear } = useGameStore();
+  const { districtTeams, userTeamId, moveDepthChartPlayer, openPlayerCard, currentYear, currentWeek } = useGameStore();
   const [view, setView] = useState<'CHART' | 'ROSTER'>('CHART');
   useScrollTopOnScreenChange(view);
   const [filter, setFilterState] = useState<'ALL' | 'OFF' | 'DEF' | 'NEW'>('ALL');
@@ -31,6 +31,7 @@ export const RosterDepthChartView: React.FC = () => {
 
   // Newcomers: players who joined the program this year (signing day or a transfer)
   const isNew = (p: Player) => isNewcomer(p, currentYear);
+  const newTag = (p: Player) => showNewTag(p, currentYear, currentWeek);
   const newcomers = userTeam.roster.filter(isNew).length;
   const bySide = userTeam.roster.filter((p) => {
     if (filter === 'OFF') return OFFENSE_POSITIONS.includes(p.position);
@@ -63,7 +64,7 @@ export const RosterDepthChartView: React.FC = () => {
         </button>
       </div>
 
-      {view === 'CHART' && <DepthChartBoard team={userTeam} onMove={moveDepthChartPlayer} onSelect={(p) => openPlayerCard(p.id)} currentYear={currentYear} />}
+      {view === 'CHART' && <DepthChartBoard team={userTeam} onMove={moveDepthChartPlayer} onSelect={(p) => openPlayerCard(p.id)} currentYear={currentYear} currentWeek={currentWeek} />}
 
       {view === 'ROSTER' && (
         <>
@@ -108,7 +109,7 @@ export const RosterDepthChartView: React.FC = () => {
                       <PosChip pos={p.position} />
                       <strong>{fullName(p)}</strong>
                       {p.recruiting.starRating > 0 && <span className="pl-stars">({p.recruiting.starRating}★)</span>}
-                      {isNew(p) && <span className="pl-new">NEW</span>}
+                      {newTag(p) && <span className="pl-new">NEW</span>}
                     </span>
                   )
                 },
@@ -135,7 +136,7 @@ export const RosterDepthChartView: React.FC = () => {
               {filtered.map((p) => (
                 <PlayerRow
                   key={p.id}
-                  {...playerRowProps(p, { atRiskGpa, isNew: isNew(p) })}
+                  {...playerRowProps(p, { atRiskGpa, isNew: newTag(p) })}
                   onClick={() => openPlayerCard(p.id)}
                   right={<FatigueNote fatigue={p.condition.seasonWear} />}
                 />

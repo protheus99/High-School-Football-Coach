@@ -6,7 +6,7 @@ import { fatigueLevel } from '../sim/training';
 import { rulesForState } from '../sim/stateRules';
 import { formatPercent } from '../utils/format';
 import { scroller } from '../utils/pageScroll';
-import { CLASS_SHORT, fullName, isNewcomer, playerTrouble, ratingColor, starsLabel } from '../utils/playerFormat';
+import { CLASS_SHORT, fullName, playerTrouble, ratingColor, showNewTag, starsLabel } from '../utils/playerFormat';
 import { FatigueNote, PlayerRow, PotentialGrade, TroubleChip, playerRowProps } from './ui/PlayerRow';
 
 /** A slot on the depth chart: a position and which starter column it is (e.g. OT column 0 = LT). */
@@ -79,8 +79,9 @@ export const DepthChartBoard: React.FC<{
   team: Team;
   onMove: (playerId: string, direction: -1 | 1) => void;
   onSelect?: (player: Player) => void;
-  currentYear?: number; // newcomers this year get a NEW tag
-}> = ({ team, onMove, onSelect, currentYear }) => {
+  currentYear?: number; // newcomers get a NEW tag from signing day through training camp
+  currentWeek?: number;
+}> = ({ team, onMove, onSelect, currentYear, currentWeek }) => {
   const isPhone = !useMediaQuery(DESKTOP_QUERY);
   const ratings = starterRatings(team.roster);
   const groups = new Map((Object.keys(DEPTH_TEMPLATE) as Position[]).map((pos) => [pos, depthGroup(team.roster, pos)]));
@@ -113,7 +114,7 @@ export const DepthChartBoard: React.FC<{
   };
 
   const atRiskGpa = rulesForState(team.state).academics.atRiskGpa;
-  const isNew = (p: Player) => isNewcomer(p, currentYear);
+  const isNew = (p: Player) => showNewTag(p, currentYear, currentWeek);
 
   /** Desktop: the name, his stars and NEW, then his trouble chip (injured, suspended, ineligible, grades). */
   const nameCell = (p: Player, starter: boolean) => {
