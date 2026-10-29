@@ -1898,3 +1898,16 @@ body:has(.app-tabbar) .cookie-banner {
 .program-list-add.is-on { background: #2563EB; color: #fff; font-size: 16px; }
 .program-result-none { font-size: 13px; color: #64748B; margin: 10px 2px 0; }
 .program-result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+
+/* Game over (FiredScreen.tsx): the arcade's slow blink on MAIN MENU (the label dims; the button stays tappable) */
+@keyframes game-over-blink {
+  50% { opacity: 0.2; }
+}
+
+.game-over-blink {
+  animation: game-over-blink 1.6s steps(1, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-over-blink { animation: none; }
+}

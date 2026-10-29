@@ -30,6 +30,7 @@ import { DucatCheckoutSheet } from './components/DucatStore';
 import { returnedFromCheckout } from './services/ducats';
 import { ADVANCE_LABEL, advanceBlocker } from './sim/advanceGate';
 import { isCoachBenched } from './sim/billyMartin';
+import { FiredScreen } from './components/FiredScreen';
 import { track } from './services/analytics';
 import { AUTOSAVE_ID, loadSaveGame } from './services/db';
 import { loadLiveState } from './services/playedGames';
@@ -235,22 +236,9 @@ export const App: React.FC = () => {
     );
   }
 
-  // Fired by the school board: this save's career is over
+  // Fired by the school board (its season review, or the 3rd strike): game over for this save
   if (firedFrom) {
-    return (
-      <div className="ui-screen" style={{ maxWidth: '560px', textAlign: 'center', paddingTop: '48px' }}>
-        <div style={{ fontSize: '48px' }}>📉</div>
-        <h1 style={{ margin: '8px 0', fontSize: '26px' }}>You&apos;ve been fired</h1>
-        <p style={{ color: '#475569', fontSize: '15px' }}>
-          {firedForMisconduct
-            ? `After a third scandal, the ${firedFrom} school board has terminated your contract. Thank you for your service, Coach.`
-            : `After a second straight season without the board's confidence, the ${firedFrom} school board has decided to make a change. Thank you for your service, Coach.`}
-        </p>
-        <button className="ui-btn ui-btn-primary ui-btn-block" style={{ marginTop: '16px', minHeight: '50px' }} onClick={() => setShowMenu(true)}>
-          Back to the main menu
-        </button>
-      </div>
-    );
+    return <FiredScreen school={firedFrom} misconduct={firedForMisconduct} career={career} onMainMenu={() => setShowMenu(true)} />;
   }
 
   // The contract's last season is done: the Hall of Fame score, then extend, move on, or leave the world
