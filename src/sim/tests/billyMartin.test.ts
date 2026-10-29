@@ -245,7 +245,7 @@ describe('Threads in the game', () => {
     answer('ACCEPT');
     s = useGameStore.getState();
     expect(s.coachBench.seasons).toEqual([currentYear, currentYear + 1]);
-    expect(toEntry(s.career!).reckonings).toBe(1); // invalid from here on
+    expect(toEntry(s.career!).reckonings).toBe(2); // invalid from here on: the board shows both strikes
     expect(s.firedFrom).toBeNull();
 
     useGameStore.setState({ misconductThreads: [thread('MAJOR', 3, { id: 'bm_third' }), thread('MINOR', 1, { id: 'bm_open', weeksLeft: 30 })] });

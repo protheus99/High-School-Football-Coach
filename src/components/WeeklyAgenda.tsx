@@ -85,6 +85,7 @@ interface AgendaItem {
   link?: { label: string; onClick: () => void }; // shown as a button after the actions
   content?: React.ReactNode; // custom body (the dilemma, the practice plan)
   kicker?: string; // a small label over the title ("NEEDS YOUR REVIEW")
+  kickerDone?: boolean; // the label reads as settled (green): "REVIEWED"
   note?: string; // a line under the buttons
   accent?: string; // the card's color (defaults by tone)
   counted?: boolean; // a task for the "to do" count: done when `tone` is 'done'
@@ -273,7 +274,9 @@ export const WeeklyAgenda: React.FC<{
     return {
       id: 'grades',
       icon: '📚',
-      kicker: `NEEDS YOUR REVIEW · REPORT CARDS IN ${weeks === 1 ? '1 WEEK' : `${weeks} WEEKS`}`,
+      // Reviewed this week: the label says so, and the button is a plain link back to the grades
+      kicker: `${gradesBlocked ? 'NEEDS YOUR REVIEW' : 'REVIEWED'} · REPORT CARDS IN ${weeks === 1 ? '1 WEEK' : `${weeks} WEEKS`}`,
+      kickerDone: !gradesBlocked,
       title: `${plural(watch.length, 'starter')} could be ineligible`,
       tone: gradesBlocked ? 'urgent' : 'done',
       accent: 'school',
@@ -297,7 +300,7 @@ export const WeeklyAgenda: React.FC<{
           ))}
         </div>
       ),
-      actions: [{ label: '📚 Review grades', primary: true, onClick: () => onNavigate('GRADES') }]
+      actions: [gradesBlocked ? { label: '📚 Review grades', primary: true, onClick: () => onNavigate('GRADES') } : { label: '📚 Grades', onClick: () => onNavigate('GRADES') }]
     };
   };
 
@@ -756,7 +759,7 @@ export const WeeklyAgenda: React.FC<{
             {item.icon}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            {item.kicker && <div style={{ fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.03em', color: '#B45309' }}>{item.kicker}</div>}
+            {item.kicker && <div style={{ fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.03em', color: item.kickerDone ? '#15803D' : '#B45309' }}>{item.kicker}</div>}
             <div style={{ fontWeight: 800, fontSize: '14.5px', color: done && item.counted ? '#334155' : '#0F172A' }}>{item.title}</div>
             {item.detail && <div style={{ fontSize: '12.5px', color: '#475569', marginTop: '2px' }}>{item.detail}</div>}
           </div>

@@ -139,7 +139,7 @@ const invalidShown = () => {
     return false;
   }
 };
-/** A career with a reckoning (a shady call that came to light): not ranked. */
+/** A career with strikes (shady calls that came to light, from the 2nd reckoning on): not ranked. */
 const isInvalid = (e: LeaderboardEntry) => (e.reckonings ?? 0) > 0;
 
 /**
@@ -253,7 +253,7 @@ export const HallOfFameArcade: React.FC<{ career: Career | null; length: CareerL
       )}
       {mineInvalid && !showInvalid && (
         <div style={{ marginTop: '8px', background: 'rgba(127,29,29,.25)', border: '1px solid #7F1D1D', borderRadius: '8px', padding: '8px 10px', fontSize: '11.5px', color: '#FECACA', lineHeight: 1.45 }}>
-          ☠️ Your career had a reckoning, so it&apos;s an invalid playthrough and isn&apos;t ranked. Turn on &quot;Invalid playthroughs&quot; to see it.
+          ☠️ Your career has strikes, so it&apos;s an invalid playthrough and isn&apos;t ranked. Turn on &quot;Invalid playthroughs&quot; to see it.
         </div>
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', marginTop: '12px', fontSize: '11px', color: '#94A3B8' }} aria-label="Scoring">
@@ -271,7 +271,7 @@ export const HallOfFameArcade: React.FC<{ career: Career | null; length: CareerL
 
 const BoardRow: React.FC<{ entry: LeaderboardEntry; rank?: number; mine: boolean; deviceOnly?: boolean }> = ({ entry: e, rank, mine, deviceOnly }) => {
   const games = e.wins + e.losses;
-  const reckonings = e.reckonings ?? 0;
+  const strikes = e.reckonings ?? 0; // every reckoning on an invalid career (the board calls them strikes)
   const sub: React.CSSProperties = { display: 'block', color: '#94A3B8', fontSize: '11px' };
   return (
     <div
@@ -310,9 +310,9 @@ const BoardRow: React.FC<{ entry: LeaderboardEntry; rank?: number; mine: boolean
             <TitleCounts state={e.state} titles={e.titles} nationalTitles={e.nationalTitles} />
           </span>
         )}
-        {reckonings > 0 && (
+        {strikes > 0 && (
           <span style={{ display: 'block', color: '#FCA5A5', fontSize: '10.5px', fontWeight: 900, letterSpacing: '0.04em' }}>
-            {reckonings} {reckonings === 1 ? 'RECKONING' : 'RECKONINGS'}
+            {strikes} {strikes === 1 ? 'STRIKE' : 'STRIKES'}
           </span>
         )}
       </span>

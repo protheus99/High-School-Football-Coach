@@ -28,7 +28,7 @@ export interface LeaderboardEntry {
   points: number;
   updatedAt: number;
   isLocal?: boolean; // played on this device
-  reckonings?: number; // reckonings that make it an invalid playthrough (the coach's 2nd onward): any makes it invalid
+  reckonings?: number; // 0 for a ranked career; an invalid one sends all its reckonings (the board's strikes)
 }
 
 export function toEntry(career: Career): LeaderboardEntry {
@@ -52,7 +52,9 @@ export function toEntry(career: Career): LeaderboardEntry {
     points: careerPoints(career),
     updatedAt: Date.now(),
     isLocal: true,
-    reckonings: invalidReckonings(career).length
+    // The board (and its Worker) treats any count as invalid: a career whose only reckoning was its Billy Martin
+    // chance sends 0; once one invalidates, it sends them all, so the board shows every strike
+    reckonings: invalidReckonings(career).length > 0 ? career.reckonings!.length : 0
   };
 }
 

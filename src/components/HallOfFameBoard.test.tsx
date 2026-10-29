@@ -76,16 +76,16 @@ describe('Invalid playthroughs', () => {
     const html = board(null);
     expect(html).toContain('INVALID PLAYTHROUGHS · NOT RANKED');
     expect(html).toContain('Coach2<');
-    expect(html).toContain('2 RECKONINGS');
-    expect(html).toContain('1 RECKONING<');
+    expect(html).toContain('2 STRIKES');
+    expect(html).toContain('1 STRIKE<');
     localStorage.removeItem('fc.hofShowInvalid');
     clear();
   });
 
   it("tell the coach when their own career is one, with the switch off", () => {
     withReckonings();
-    expect(board(careerWithId('c5'))).toContain('Your career had a reckoning');
-    expect(board(careerWithId('c4'))).not.toContain('Your career had a reckoning');
+    expect(board(careerWithId('c5'))).toContain('Your career has strikes');
+    expect(board(careerWithId('c4'))).not.toContain('Your career has strikes');
     clear();
   });
 });
