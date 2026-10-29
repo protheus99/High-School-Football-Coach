@@ -4,6 +4,7 @@ import { simWorkerBridge } from '../services/workerBridge';
 import { soundFx } from '../utils/soundEngine';
 import { PostGameBoxScoreModal } from './PostGameBoxScoreModal';
 import { HalftimeSpeechModal } from './HalftimeSpeechModal';
+import { rememberTalks } from '../sim/talkPicker';
 import { FieldVisualizer } from './FieldVisualizer';
 import { PlayAlert } from './PlayAlert';
 import { PlayAlertData, PreSnap, alertsForPlay } from '../sim/playAlerts';
@@ -359,8 +360,12 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           userTeamId={userTeamId}
           plan={{ offense: planOffense, focus: planFocus, bench: planBench }}
           onUpdatePlan={() => setPlanOpen(true)}
-          onApplySpeech={(talk) => {
-            // The message shapes the second half: the worker plays it, the screen's copy records it
+          onApplySpeech={(given, offered) => {
+            // The speech shapes the second half: the worker plays it, the screen's copy records it, and the next
+            // game's offer steers clear of this one's
+            const talk = given.talk.id;
+            const store = useGameStore.getState();
+            store.setRecentTalks(rememberTalks(store.recentTalks, 'HALF', offered, given));
             simWorkerBridge.setHalftimeTalk(userTeamId, talk);
             track('halftime_talk', { talk, score_diff: (gameState.homeTeam.id === userTeamId ? 1 : -1) * (gameState.homeScore - gameState.awayScore) });
             setGameState((s) => ({ ...s, halftimeTalks: { ...s.halftimeTalks, [userTeamId]: talk } }));

@@ -99,6 +99,7 @@ import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { collectResults } from '../sim/computerRankings';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
 import { HiredCoach, coachGrade, staffBonuses, staffGameDayEdge } from '../sim/coachingStaff';
+import { NO_RECENT_TALKS, RecentTalks } from '../sim/talkPicker';
 import { entrySource, track } from '../services/analytics';
 import { Career, CareerLength, careerPoints, isCareerComplete, scoreSeason, vacateSeason } from '../sim/careerScore';
 import {
@@ -343,6 +344,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     coachTalents: state.coachTalents,
     practiceIntensity: state.practiceIntensity,
     secondStringLead: state.secondStringLead,
+    recentTalks: state.recentTalks,
     feederClassYear: state.feederClassYear,
     seasonRecap: state.seasonRecap,
     districtTeams: state.districtTeams,
@@ -492,6 +494,8 @@ interface GameStoreState {
   coachTalents: TalentId[]; // skill-tree talents bought with CP
   practiceIntensity: PracticeIntensity; // how hard the team practices: the coach's one training decision (sim/training)
   secondStringLead: number | null; // the lead that sends in the coach's second string (null: never), from the strategy room
+  recentTalks: RecentTalks; // last game's speech offers and each speech's last line, so the next game's differ
+  setRecentTalks: (recent: RecentTalks) => void;
   setSecondStringLead: (lead: number | null) => void;
   feederClassYear: number; // the season the current pipeline's class arrives (signing day is week 2 of that season)
   seasonRecap: SeasonRecap | null; // last season in brief, for the Hub's new-season headline
@@ -734,6 +738,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   coachTalents: [],
   practiceIntensity: 'LIMITED',
   secondStringLead: REST_STARTERS_LEAD,
+  recentTalks: NO_RECENT_TALKS,
   feederClassYear: 2027,
   seasonRecap: null,
   viewedTeamId: null,
@@ -904,6 +909,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       coachTalents: save.coachTalents ?? [],
       practiceIntensity: migrateIntensity(save.practiceIntensity),
       secondStringLead: save.secondStringLead === undefined ? REST_STARTERS_LEAD : save.secondStringLead,
+      recentTalks: save.recentTalks ?? NO_RECENT_TALKS,
       // Older saves: the pipeline was always next season's class
       feederClassYear: save.feederClassYear ?? year + 1,
       seasonRecap: save.seasonRecap ?? null,
@@ -1741,6 +1747,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   },
 
   setSecondStringLead: (lead) => set({ secondStringLead: lead }),
+  setRecentTalks: (recent) => set({ recentTalks: recent }),
   setPracticeIntensity: (mode) => {
     if (mode !== get().practiceIntensity) track('practice_set', { intensity: mode, ...moment(get()) });
     set({ practiceIntensity: mode });

@@ -5,6 +5,7 @@ import type { Difficulty, LeagueStructure } from '../sim/league';
 import type { TalentId } from '../sim/coachPoints';
 import { SAVE_FORMAT_GZIP, canCompressSaves, compressText, decompressText } from './saveCodec';
 import type { PlayoffBracketState } from '../sim/playoffEngine';
+import type { RecentTalks } from '../sim/talkPicker';
 import { Team, NarrativeDilemma, FeederProspect, CompactBoxScore, ScheduledGame, DilemmaRecord } from '../types/game';
 
 export interface GameSaveRecord {
@@ -18,6 +19,7 @@ export interface GameSaveRecord {
   coachTalents?: TalentId[];
   practiceIntensity: string; // sim/training PracticeIntensity (older saves: WALKTHROUGH / STANDARD / CONTACT)
   secondStringLead?: number | null; // the coach's bench line (null: never); older saves: 35
+  recentTalks?: RecentTalks; // last game's speech offers and each speech's last line (older saves: none)
   districtTeams: Team[];
   activeDilemma: NarrativeDilemma | null;
   scoutingPool: FeederProspect[];

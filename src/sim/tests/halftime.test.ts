@@ -3,9 +3,12 @@ import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { simulateSnap } from '../matchEngine';
 import { GameSimulationState, HalftimeTalk, Team } from '../../types/game';
 
-/** Second halves between equal teams: team A's points for and against, flags, 20+ yard plays and turnovers per game. */
+/**
+ * Second halves between equal teams, per game: team A's points for and against, flags (and pre-snap flags), 20+ yard
+ * plays, giveaways and takeaways, and snaps.
+ */
 function secondHalves(talk: HalftimeTalk | undefined, games: number, pool: Team[]) {
-  const totals = { pf: 0, pa: 0, flags: 0, big: 0 };
+  const totals = { pf: 0, pa: 0, flags: 0, preSnap: 0, big: 0, giveaways: 0, takeaways: 0, snaps: 0 };
   for (let i = 0; i < games; i++) {
     const base = pool[i % pool.length];
     const clone = (id: string): Team => ({ ...JSON.parse(JSON.stringify(base)), id, name: id });
@@ -21,16 +24,21 @@ function secondHalves(talk: HalftimeTalk | undefined, games: number, pool: Team[
     totals.pf += scoreA() - halfA;
     totals.pa += scoreB() - halfB;
     s.eventLog.slice(log).forEach((e) => {
+      const snapper = e.snapTeamId ?? e.possessionTeamId;
       if (e.penalty?.teamId === 'A') totals.flags++;
-      if ((e.snapTeamId ?? e.possessionTeamId) === 'A' && e.yardsGained >= 20) totals.big++;
+      if (e.penalty?.teamId === 'A' && e.penalty.timing === 'PRE_SNAP') totals.preSnap++;
+      if (snapper === 'A' && e.yardsGained >= 20) totals.big++;
+      if (snapper === 'A' && !e.isTry) totals.snaps++;
+      if (e.turnoverType === 'INTERCEPTION' || e.turnoverType === 'FUMBLE') totals[snapper === 'A' ? 'giveaways' : 'takeaways']++;
     });
   }
-  return { pf: totals.pf / games, pa: totals.pa / games, flags: totals.flags / games, big: totals.big / games };
+  const per = (n: number) => n / games;
+  return { pf: per(totals.pf), pa: per(totals.pa), flags: per(totals.flags), preSnap: per(totals.preSnap), big: per(totals.big), giveaways: per(totals.giveaways), takeaways: per(totals.takeaways), snaps: per(totals.snaps) };
 }
 
 describe('Halftime talks', () => {
-  // Statistical: each talk moves what it promises by about 3 to 5 points (src/sim/halftime.ts has the measured
-  // values); the ranges are wide so chance alone doesn't fail it, but rerun before treating a miss as a regression
+  // Statistical: each talk moves what it promises by about 3 to 5 points (src/sim/talks.ts has the sizes); the
+  // ranges are wide so chance alone doesn't fail it, but rerun before treating a miss as a regression
   it('each talk helps and costs what it says, by a few points over a second half', () => {
     const pool = Array.from({ length: 12 }, () => generateDistrictTeams()[0]);
     const games = 900;
@@ -55,5 +63,27 @@ describe('Halftime talks', () => {
     expect(big.big).toBeGreaterThan(none.big * 1.7);
     expect(big.pf - none.pf).toBeGreaterThan(1.5);
     expect(Math.abs(margin(big))).toBeLessThan(3);
+  }, 300000);
+
+  // Statistical too: the newer levers move the thing their chips name, clearly
+  it('the newer levers do what their chips say: tempo, takeaways, ball security, pre-snap flags', () => {
+    const pool = Array.from({ length: 12 }, () => generateDistrictTeams()[0]);
+    const games = 500;
+    const none = secondHalves(undefined, games, pool);
+    const hurry = secondHalves('HURRY_UP', games, pool);
+    const clock = secondHalves('CLOCK', games, pool);
+    const strip = secondHalves('STRIP_IT', games, pool);
+    const protect = secondHalves('PROTECT_BALL', games, pool);
+    const clean = secondHalves('CLEAN_IT_UP', games, pool);
+
+    // No huddle: more snaps; running the clock: fewer
+    expect(hurry.snaps).toBeGreaterThan(none.snaps * 1.12);
+    expect(clock.snaps).toBeLessThan(none.snaps * 0.92);
+    // Rip at the ball: more takeaways, and more big plays given up
+    expect(strip.takeaways).toBeGreaterThan(none.takeaways * 1.3);
+    // Two hands on the ball: fewer giveaways
+    expect(protect.giveaways).toBeLessThan(none.giveaways * 0.8);
+    // Stop beating yourselves: far fewer false starts and offsides
+    expect(clean.preSnap).toBeLessThan(none.preSnap * 0.6);
   }, 300000);
 });

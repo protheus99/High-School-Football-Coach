@@ -29,9 +29,12 @@ import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
 import { leagueRoundNames } from '../sim/playoffEngine';
 import { rulesForState } from '../sim/stateRules';
 import { Team } from '../types/game';
+import { isRivalryGame } from '../data/rivalries';
+import { specialNightLabel, specialNights } from '../sim/talkPicker';
 
 export const ScheduleView: React.FC = () => {
-  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, currentYear, feederClassYear, openTeamProfile, nationalLeagues } = useGameStore();
+  const { currentWeek, districtTeams, leagueTeams, league, seasonSchedule, interstateGames, playoffBracket, userTeamId, currentYear, feederClassYear, openTeamProfile, nationalLeagues } =
+    useGameStore();
   const playoffs = usePlayoffRecords();
   const userTeam = districtTeams.find((t) => t.id === userTeamId);
 
@@ -76,10 +79,16 @@ export const ScheduleView: React.FC = () => {
     const userScore = isHome ? scheduled?.homeScore : scheduled?.awayScore;
     const opponentScore = isHome ? scheduled?.awayScore : scheduled?.homeScore;
 
+    const opponent = leagueTeams.find((t) => t.id === opponentId) ?? nationalLeagues.flatMap((l) => l.teams).find((t) => t.id === opponentId) ?? null;
+    // Homecoming, Senior Night and the rivalry game
+    const night =
+      scheduled && opponent
+        ? specialNightLabel({ ...specialNights([...seasonSchedule, ...interstateGames], userTeamId, scheduled.gameId), rivalry: isRivalryGame(userTeam, opponent) })
+        : null;
     return {
       ...base,
-      label: roundIndex >= 0 && roundIndex < playoffRounds ? ROUND_LABELS[leagueRounds[roundIndex]] : (undefined as string | undefined),
-      opponent: leagueTeams.find((t) => t.id === opponentId) ?? nationalLeagues.flatMap((l) => l.teams).find((t) => t.id === opponentId) ?? null,
+      label: roundIndex >= 0 && roundIndex < playoffRounds ? ROUND_LABELS[leagueRounds[roundIndex]] : (night ?? undefined),
+      opponent,
       isHome,
       result: !played
         ? null
