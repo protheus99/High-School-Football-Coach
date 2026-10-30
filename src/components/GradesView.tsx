@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { Player } from '../types/game';
-import { canBookFix, GRADE_FIX_ORDER, GRADE_FIXES, gpaTrend, gradeList, nextReportCardWeek } from '../sim/grades';
+import { canBookFix, GRADE_FIX_ORDER, GRADE_FIXES, gpaTrend, gradeList, weeksToReportCard } from '../sim/grades';
+import { isAcademicallyAtRisk } from '../sim/playerEngine';
+import { seasonLength } from '../sim/league';
 import { rulesForState } from '../sim/stateRules';
 
 const CLASS_SHORT: Record<Player['classYear'], string> = { Freshman: 'Fr', Sophomore: 'So', Junior: 'Jr', Senior: 'Sr' };
@@ -19,7 +21,7 @@ export const GradesView: React.FC = () => {
   if (!team) return null;
   const rules = rulesForState(league?.state);
   const players = gradeList(team, rules);
-  const weeks = nextReportCardWeek(currentWeek) - currentWeek;
+  const weeks = weeksToReportCard(currentWeek, league ? seasonLength(league) : 28);
 
   return (
     <div className="ui-screen" style={{ maxWidth: '760px' }}>
@@ -33,9 +35,11 @@ export const GradesView: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {players.map((p) => {
             const out = !p.academics.isEligible;
+            // Above the line again (a dilemma lifted his grades) with a fix still booked: listed so it can be cancelled
+            const safe = !isAcademicallyAtRisk(p, rules);
             const booked = p.academics.gradeFix;
             return (
-              <div key={p.id} style={{ ...card, ...(out ? { background: '#FFEDD5', border: '1px solid #FDBA74', borderLeft: '5px solid #EA580C' } : { borderLeft: '5px solid #FDBA74' }) }}>
+              <div key={p.id} style={{ ...card, ...(out ? { background: '#FFEDD5', border: '1px solid #FDBA74', borderLeft: '5px solid #EA580C' } : { borderLeft: `5px solid ${safe ? '#86EFAC' : '#FDBA74'}` }) }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={posChip}>{p.position}</span>
                   <button onClick={() => openPlayerCard(p.id)} style={nameBtn}>
@@ -45,9 +49,10 @@ export const GradesView: React.FC = () => {
                     </span>
                     <span style={{ display: 'block', fontSize: '11.5px', color: '#64748B' }}>
                       {CLASS_SHORT[p.classYear]} · {STRING_NAMES[p.depthChartTier]}
+                      {safe && <span style={{ color: '#15803D', fontWeight: 700 }}> · Above the line</span>}
                     </span>
                   </button>
-                  <span style={{ fontWeight: 900, fontSize: '15px', color: '#9A3412', fontVariantNumeric: 'tabular-nums' }}>{p.academics.gpa.toFixed(2)}</span>
+                  <span style={{ fontWeight: 900, fontSize: '15px', color: safe ? '#15803D' : '#9A3412', fontVariantNumeric: 'tabular-nums' }}>{p.academics.gpa.toFixed(2)}</span>
                 </div>
                 <div style={{ fontSize: '11.5px', color: '#475569', margin: '6px 0' }}>GPA Trend: {gpaTrend(p).map((g) => g.toFixed(2)).join(' → ')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px' }}>

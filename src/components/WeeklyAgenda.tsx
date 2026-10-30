@@ -32,7 +32,7 @@ import { nationalTeams } from '../sim/nationalWorld';
 import { bracketRoundForWeek, findUserNode, powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
-import { GRADE_FIXES, gradeWatchActive, nextReportCardWeek, startersAtRisk } from '../sim/grades';
+import { GRADE_FIXES, gradeWatchActive, startersAtRisk, weeksToReportCard } from '../sim/grades';
 import { gradesNeedReview } from '../sim/advanceGate';
 
 /** Screens the Hub can send the coach to. */
@@ -270,7 +270,7 @@ export const WeeklyAgenda: React.FC<{
     if (!gradeWatchActive(currentWeek, playoffBracket, userTeamId)) return null;
     const watch = startersAtRisk(team, stateRules);
     if (watch.length === 0) return null;
-    const weeks = nextReportCardWeek(currentWeek) - currentWeek;
+    const weeks = weeksToReportCard(currentWeek, totalWeeks);
     return {
       id: 'grades',
       icon: '📚',

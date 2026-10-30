@@ -49,6 +49,7 @@ export interface GameSaveRecord {
   coachBench?: import('../sim/billyMartin').CoachBench; // games and seasons the coach sits out
   coachReckonings?: number; // reckonings in the coach's career so far
   gradesReviewed?: string; // the week the coach last opened Team › Grades
+  bookedGradeFixes?: Record<string, import('../types/game').GradeFix>; // fixes paid for and not yet used, by player
   pressLog?: { questionId: string; year: number; week: number; phrasing?: number }[];
   difficulty?: Difficulty;
   feederClassYear?: number;

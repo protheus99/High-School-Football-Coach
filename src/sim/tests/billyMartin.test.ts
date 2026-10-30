@@ -15,6 +15,7 @@ import {
 } from '../billyMartin';
 import { DilemmaRecord, DilemmaSeverity, MisconductThread } from '../../types/game';
 import { programRating } from '../programMeters';
+import { seasonLength } from '../league';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
 import { useGameStore } from '../../store/gameStore';
@@ -263,6 +264,33 @@ describe('Threads in the game', () => {
     useGameStore.setState({ activeDilemma: buildThreadStep(thread('MAJOR', 3), useGameStore.getState().districtTeams[0], 0, false) });
     answer('ACCEPT');
     expect(useGameStore.getState().coachBench.seasons).toEqual([currentYear + 1]);
+  });
+
+  it('carry across seasons: a warning due early next season comes then', () => {
+    setup();
+    const { league, currentYear, userTeamId } = useGameStore.getState();
+    const last = seasonLength(league!);
+    useGameStore.getState().districtTeams.find((t) => t.id === userTeamId)!.programMeters.schoolBoardTrust = 90; // no firing at the review
+    useGameStore.setState({ currentWeek: last, onHotSeat: false, activeDilemma: null, misconductThreads: [thread('MINOR', 1, { weeksLeft: 3 })] });
+    useGameStore.getState().advanceWeek(); // into next season
+    expect(useGameStore.getState().currentYear).toBe(currentYear + 1);
+    expect(useGameStore.getState().misconductThreads).toMatchObject([{ step: 1, weeksLeft: 2 }]);
+    useGameStore.getState().advanceWeek();
+    useGameStore.setState({ activeDilemma: null });
+    useGameStore.getState().advanceWeek();
+    const card = useGameStore.getState().activeDilemma!;
+    expect(card.threadStep).toBe(1);
+    expect(card.scenario).toContain('Billy Martin');
+  });
+
+  it('are dropped when the contract ends', () => {
+    useGameStore.getState().newScenarioGame('RECLAIM', 'Texas', 'Odessa Permian', 'Tester', 3);
+    const career = useGameStore.getState().career!;
+    const season = (year: number) => ({ year, school: 'Odessa Permian', wins: 8, losses: 2, playoffWins: 1, stateTitle: false, collegeSignees: 2, points: 52 });
+    useGameStore.setState({ career: { ...career, seasons: [season(2026), season(2027), season(2028)] }, misconductThreads: [thread('MAJOR', 2, { weeksLeft: 4 })] });
+    useGameStore.getState().transitionToNextYear();
+    expect(useGameStore.getState().careerComplete).toBe(true);
+    expect(useGameStore.getState().misconductThreads).toEqual([]);
   });
 
   it('keeps older saves’ reckonings as they were: each one invalid', () => {

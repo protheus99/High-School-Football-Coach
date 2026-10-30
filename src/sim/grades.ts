@@ -19,11 +19,15 @@ export const GRADE_FIX_ORDER: GradeFix[] = ['STUDY_HALL', 'TUTOR', 'TEACHER'];
 
 /** Report cards come out as the coach advances into every third week from the first game week on. */
 export const isReportCardWeek = (week: number) => week % 3 === 0 && week >= FIRST_NON_DISTRICT_WEEK;
-/** The next week whose report card is still ahead (it comes out when the coach advances into it). */
-export function nextReportCardWeek(week: number): number {
-  let w = week + 1;
-  while (!isReportCardWeek(w)) w++;
-  return w;
+/**
+ * Weeks until the next report card (it comes out when the coach advances into its week). `lastWeek` is the season's
+ * last week: with none left this year, it's the first one next season (advancing past the last week starts week 1).
+ */
+export function weeksToReportCard(week: number, lastWeek: number): number {
+  for (let w = week + 1; w <= lastWeek; w++) if (isReportCardWeek(w)) return w - week;
+  let first = 1;
+  while (!isReportCardWeek(first)) first++;
+  return lastWeek - week + first;
 }
 
 /** The GPAs to show as a trend: the last report cards, then the current GPA if it has moved since. */
@@ -39,20 +43,19 @@ export function canBookFix(p: Player, fix: GradeFix, year: number): boolean {
   return fix !== 'TEACHER' || p.academics.teacherYear !== year;
 }
 
-/** The players the Grades screen lists: ineligible first, then at risk; starters first, then by rating. */
+/**
+ * The players the Grades screen lists: ineligible first, then at risk, then anyone above the line who still has a
+ * fix booked (a dilemma lifted his grades: the fix can still be cancelled); starters first, then by rating.
+ */
 export function gradeList(team: Team, rules: StateRules): Player[] {
+  const group = (p: Player) => (!p.academics.isEligible ? 0 : isAcademicallyAtRisk(p, rules) ? 1 : 2);
   return team.roster
-    .filter((p) => isAcademicallyAtRisk(p, rules))
-    .sort(
-      (a, b) =>
-        Number(a.academics.isEligible) - Number(b.academics.isEligible) ||
-        Number(a.depthChartTier !== 1) - Number(b.depthChartTier !== 1) ||
-        b.overallRating - a.overallRating
-    );
+    .filter((p) => isAcademicallyAtRisk(p, rules) || !!p.academics.gradeFix)
+    .sort((a, b) => group(a) - group(b) || Number(a.depthChartTier !== 1) - Number(b.depthChartTier !== 1) || b.overallRating - a.overallRating);
 }
 
 /** Starters who could be ineligible after the next report card (the Hub's card). */
-export const startersAtRisk = (team: Team, rules: StateRules) => gradeList(team, rules).filter((p) => p.depthChartTier === 1);
+export const startersAtRisk = (team: Team, rules: StateRules) => gradeList(team, rules).filter((p) => p.depthChartTier === 1 && isAcademicallyAtRisk(p, rules));
 
 /**
  * Whether grades are being watched this week: from the last camp weeks through the coach's playoff run, while

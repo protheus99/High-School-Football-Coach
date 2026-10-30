@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
-import { GRADE_FIXES, gpaTrend, gradeList, isReportCardWeek, nextReportCardWeek, startersAtRisk } from '../grades';
+import { GRADE_FIXES, gpaTrend, gradeList, isReportCardWeek, startersAtRisk, weeksToReportCard } from '../grades';
 import { evaluateAcademicReport } from '../playerEngine';
 import { advanceBlocker, gradesNeedReview } from '../advanceGate';
 import { TEXAS_RULES } from '../stateRules';
@@ -71,6 +71,32 @@ describe('Grades: the fixes', () => {
     expect(me().academics.gradeFix).toBe('TEACHER');
   });
 
+  it('refunds a fix booked for a player who leaves the program before the report card', () => {
+    const { me, book } = setup();
+    const { userTeamId } = useGameStore.getState();
+    book('TUTOR');
+    expect(useGameStore.getState().bookedGradeFixes).toEqual({ [me().id]: 'TUTOR' });
+    const gone = me().id;
+    const team = useGameStore.getState().districtTeams.find((t) => t.id === userTeamId)!;
+    team.roster = team.roster.filter((p) => p.id !== gone); // he transfers out (or graduates)
+    useGameStore.getState().settleGradeFixes();
+    expect(cp()).toBe(200);
+    expect(useGameStore.getState().bookedGradeFixes).toEqual({});
+  });
+
+  it('settles a fix used at a report card without a refund', () => {
+    const { me, book } = setup();
+    book('STUDY_HALL');
+    useGameStore.setState({ currentWeek: 8 });
+    useGameStore.getState().advanceWeek(); // week 9: report cards use it
+    useGameStore.setState({ activeDilemma: null });
+    const before = cp();
+    useGameStore.getState().settleGradeFixes();
+    expect(cp()).toBe(before);
+    expect(useGameStore.getState().bookedGradeFixes).toEqual({});
+    expect(me().academics.gradeFix).toBeUndefined();
+  });
+
   it('adds its bonus at the next report card, and records the GPA trend', () => {
     const { me, book } = setup();
     me().attributes.footballIQ = 50;
@@ -126,9 +152,25 @@ describe('Grades: the trend and the list', () => {
     expect(startersAtRisk(team, TEXAS_RULES).map((p) => p.id).sort()).toEqual([starter.id, other.id].sort());
   });
 
-  it('counts the weeks to the next report card (every third week from week 9)', () => {
-    expect([8, 9, 10, 11].map(nextReportCardWeek)).toEqual([9, 12, 12, 12]);
+  it('counts the weeks to the next report card (every third week from week 9), into next season at the end', () => {
+    expect([8, 9, 10, 11].map((w) => weeksToReportCard(w, 28))).toEqual([1, 3, 2, 1]);
     expect([3, 6, 9, 12].map(isReportCardWeek)).toEqual([false, false, true, true]);
+    // The last report card of a 28-week season is week 27: after it, the next is week 9 next season
+    expect(weeksToReportCard(27, 28)).toBe(1 + 9);
+    expect(weeksToReportCard(28, 28)).toBe(9);
+    expect(weeksToReportCard(2, 28)).toBe(7);
+  });
+
+  it('keeps a booked fix on the list after a dilemma lifts the player above the line, so it can be cancelled', () => {
+    reset();
+    const p = team.roster.find((x) => x.depthChartTier === 1)!;
+    Object.assign(p.academics, { gpa: 2.6, gradeFix: 'TUTOR' });
+    expect(gradeList(team, TEXAS_RULES).map((x) => x.id)).toEqual([p.id]);
+    expect(startersAtRisk(team, TEXAS_RULES)).toEqual([]); // not on the Hub's card: he's safe
+    const risky = team.roster.find((x) => x.depthChartTier === 1 && x !== p)!;
+    risky.academics.gpa = 2.2;
+    expect(gradeList(team, TEXAS_RULES).map((x) => x.id)).toEqual([risky.id, p.id]); // at risk first
+    delete p.academics.gradeFix;
   });
 });
 

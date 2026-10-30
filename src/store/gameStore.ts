@@ -363,6 +363,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     coachBench: state.coachBench,
     coachReckonings: state.coachReckonings,
     ...(state.gradesReviewed && { gradesReviewed: state.gradesReviewed }),
+    bookedGradeFixes: state.bookedGradeFixes,
     pressLog: state.pressLog,
     playoffBracket: state.playoffBracket && compactBracket(state.playoffBracket),
     sanctionLevel: state.sanctionLevel,
@@ -474,6 +475,8 @@ interface GameStoreState {
   gradesReviewed: string | null; // the week the coach last opened Team › Grades (sim/grades reviewKey)
   markGradesReviewed: () => void;
   bookGradeFix: (playerId: string, fix: GradeFix) => void; // books a fix for the next report card, or cancels it for a refund
+  bookedGradeFixes: Record<string, GradeFix>; // fixes paid for and not yet used, by player: refunded if he leaves first
+  settleGradeFixes: () => void; // refunds the fixes of players who left the program before their report card
   pressLog: PressRecord[]; // post-game press questions asked (rotation and cooldowns)
   shortlist: string[]; // prospects the coach put on his list (Prospects › List › My List)
   careerKey: string | null; // this playthrough, across its saves: its played games are written down (sim/gameLock.ts)
@@ -750,6 +753,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   coachReckonings: 0,
   firedForMisconduct: false,
   gradesReviewed: null,
+  bookedGradeFixes: {},
   pressLog: [],
   shortlist: [],
   careerKey: null,
@@ -856,6 +860,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       coachReckonings: 0,
       firedForMisconduct: false,
       gradesReviewed: null,
+      bookedGradeFixes: {},
       pressLog: [],
       sanctionLevel: 0,
       playoffBracket: null,
@@ -953,6 +958,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       coachReckonings: save.coachReckonings ?? [...(save.careerHistory ?? []), ...(save.career ? [save.career] : [])].reduce((n, c) => n + (c.reckonings?.length ?? 0), 0),
       firedForMisconduct: false,
       gradesReviewed: save.gradesReviewed ?? null,
+      bookedGradeFixes: save.bookedGradeFixes ?? {},
       pressLog: save.pressLog ?? [],
       shortlist: save.shortlist ?? [],
       programCooldowns: save.programCooldowns ?? {},
@@ -1016,6 +1022,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const { currentWeek, districtTeams, leagueTeams, seasonSchedule, userTeamId, practiceIntensity, polls, league } = get();
     // Everything reported from here on is next week's news (the Hub's headlines)
     set({ newsMark: get().newsArticles.length });
+    // Fixes booked for players who have since left the program come back
+    get().settleGradeFixes();
     // A week closer to each open warning (they carry across seasons)
     if (get().misconductThreads.length > 0) set({ misconductThreads: get().misconductThreads.map((t) => ({ ...t, weeksLeft: t.weeksLeft - 1 })) });
     // Advancing out of the off-season week starts next year
@@ -1795,6 +1803,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       dilemmaLog: [...dilemmaLog, record],
       coachPoints: Math.max(0, get().coachPoints + (choice.impact.coachPointsDelta ?? 0)) // a booster's thanks, or tutors paid for
     });
+    // A player who leaves the program takes no fix with him: it's refunded
+    get().settleGradeFixes();
     // Sitting out games: the coach's own choice, or the end of a warning let ride
     if (choice.impact.coachGamesOut) set({ coachBench: { ...get().coachBench, gamesLeft: get().coachBench.gamesLeft + choice.impact.coachGamesOut } });
 
@@ -1864,14 +1874,26 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       // Cancelled before the report card: the money comes back (and so does the teacher's help this season)
       delete academics.gradeFix;
       if (fix === 'TEACHER') delete academics.teacherYear;
-      set({ coachPoints: coachPoints + cost, districtTeams: [...districtTeams] });
+      const { [playerId]: _, ...rest } = get().bookedGradeFixes;
+      set({ coachPoints: coachPoints + cost, districtTeams: [...districtTeams], bookedGradeFixes: rest });
       return;
     }
     if (coachPoints < cost) return;
     academics.gradeFix = fix;
     if (fix === 'TEACHER') academics.teacherYear = currentYear;
     track('grade_fix', { fix, ...moment(get()) });
-    set({ coachPoints: coachPoints - cost, districtTeams: [...districtTeams] });
+    set({ coachPoints: coachPoints - cost, districtTeams: [...districtTeams], bookedGradeFixes: { ...get().bookedGradeFixes, [playerId]: fix } });
+  },
+
+  settleGradeFixes: () => {
+    const booked = Object.entries(get().bookedGradeFixes);
+    if (booked.length === 0) return;
+    const roster = new Map(get().leagueTeams.find((t) => t.id === get().userTeamId)?.roster.map((p) => [p.id, p]) ?? []);
+    // Still booked: kept. Used at a report card (the player is here, the fix is gone): settled. Gone: refunded
+    const kept = booked.filter(([id, fix]) => roster.get(id)?.academics.gradeFix === fix);
+    const refund = booked.filter(([id]) => !roster.has(id)).reduce((sum, [, fix]) => sum + GRADE_FIXES[fix].cost, 0);
+    if (kept.length === booked.length) return;
+    set({ bookedGradeFixes: Object.fromEntries(kept), ...(refund > 0 && { coachPoints: get().coachPoints + refund }) });
   },
 
   setSecondStringLead: (lead) => set({ secondStringLead: lead }),
