@@ -5,7 +5,7 @@ import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK, LAST_TRAINING_CAMP_W
 import { findUserNode, PlayoffBracketState } from './playoffEngine';
 
 // ---------------------------------------------------------------------------
-// Grades: report cards come out every third week of the season (sim/playerEngine evaluateAcademicReport). Before
+// Grades: report cards come out every sixth week of the season (sim/playerEngine evaluateAcademicReport). Before
 // one, the coach can book one fix for each player who is ineligible or close to the line; its GPA bonus counts at
 // that report card. A fix can be cancelled for a refund until then. The teacher's help is once a season per player.
 // ---------------------------------------------------------------------------
@@ -17,8 +17,10 @@ export const GRADE_FIXES: Record<GradeFix, { label: string; cost: number; gain: 
 };
 export const GRADE_FIX_ORDER: GradeFix[] = ['STUDY_HALL', 'TUTOR', 'TEACHER'];
 
-/** Report cards come out as the coach advances into every third week from the first game week on. */
-export const isReportCardWeek = (week: number) => week % 3 === 0 && week >= FIRST_NON_DISTRICT_WEEK;
+/** How often report cards come out, in weeks. */
+export const REPORT_CARD_WEEKS = 6;
+/** Report cards come out as the coach advances into every sixth week from the first game week on: weeks 12, 18, 24. */
+export const isReportCardWeek = (week: number) => week % REPORT_CARD_WEEKS === 0 && week >= FIRST_NON_DISTRICT_WEEK;
 /**
  * Weeks until the next report card (it comes out when the coach advances into its week). `lastWeek` is the season's
  * last week: with none left this year, it's the first one next season (advancing past the last week starts week 1).

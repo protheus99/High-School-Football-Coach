@@ -1345,7 +1345,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       return;
     }
 
-    // 1. Weekly triage for every program: injuries heal, and every third week brings
+    // 1. Weekly triage for every program: injuries heal, and every sixth week brings
     // report cards ("No Pass, No Play"). AI programs keep their struggling students in study hall; the
     // coach books fixes on Team › Grades (sim/grades.ts), and some dilemmas touch grades too.
     const stateRules = rulesForState(league?.state);
@@ -1357,10 +1357,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       const playedGame = phase === 'STATE_PLAYOFFS' || getTeamGameForWeek(weekGames, currentWeek, team.id) !== undefined;
       team.roster.forEach((p) => {
         processWeeklyInjuryHealing(p, currentWeek, playedGame);
-        // Report cards every third week once the school year and season are under way; a booked fix counts now
+        // Report cards every sixth week once the school year and season are under way; a booked fix counts now
         if (isReportCardWeek(nextWeek)) {
           const fix = isUser ? p.academics.gradeFix : undefined;
-          evaluateAcademicReport(p, (!isUser && isAcademicallyAtRisk(p, stateRules) ? 0.1 : 0) + (fix ? GRADE_FIXES[fix].gain : 0), stateRules);
+          evaluateAcademicReport(p, (!isUser && isAcademicallyAtRisk(p, stateRules) ? 0.15 : 0) + (fix ? GRADE_FIXES[fix].gain : 0), stateRules);
           delete p.academics.gradeFix;
         }
       });

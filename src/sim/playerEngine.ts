@@ -79,7 +79,7 @@ export function processWeeklyInjuryHealing(player: Player, week?: number, played
 }
 
 /**
- * Evaluates 3-week academic report cards for "No Pass, No Play" eligibility.
+ * Evaluates the 6-week academic report cards for "No Pass, No Play" eligibility.
  */
 /** Ineligible, or close enough to the state's eligibility line to be in danger (Texas: under 2.3, the line is 2.0). */
 export function isAcademicallyAtRisk(player: Player, rules: StateRules = TEXAS_RULES): boolean {
@@ -88,7 +88,8 @@ export function isAcademicallyAtRisk(player: Player, rules: StateRules = TEXAS_R
 
 export function evaluateAcademicReport(player: Player, support = 0, rules: StateRules = TEXAS_RULES): void {
   // support: AI programs keep struggling players in study hall; the coach books a fix (sim/grades.ts)
-  let gpaDelta = (Math.random() * 0.6 - 0.3) + support;
+  // A report card covers six weeks of school: grades can move up to 0.4 either way
+  let gpaDelta = (Math.random() * 0.8 - 0.4) + support;
   if (player.attributes.footballIQ > 75) gpaDelta += 0.1;
 
   const before = player.academics.gpa;

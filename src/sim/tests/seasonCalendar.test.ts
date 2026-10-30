@@ -97,7 +97,7 @@ describe('Season calendar', () => {
     team.roster.forEach((p) => (p.academics.gpa = 2.0)); // every starter is struggling
     const grades = TEMPLATES.find((t) => t.id === 'GRADE_CRISIS')!;
     const gradeWeeks = Array.from({ length: 28 }, (_, i) => i + 1).filter((w) => grades.appliesTo(team, w) !== null);
-    expect(gradeWeeks).toEqual([9, 12, 15, 18, 21]);
+    expect(gradeWeeks).toEqual([12, 18]);
     const tickets = TEMPLATES.find((t) => t.id === 'PLAYOFF_TICKET_SCALPING')!;
     expect(Array.from({ length: 28 }, (_, i) => i + 1).filter((w) => tickets.appliesTo(team, w) !== null)).toEqual([18, 19, 20, 21, 22, 23]);
     const heat = TEMPLATES.find((t) => t.id === 'HEAT_ADVISORY')!;

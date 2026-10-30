@@ -1,4 +1,5 @@
 import { rulesForState } from './stateRules';
+import { isReportCardWeek as isGradesWeek } from './grades';
 import { NarrativeDilemma, Team, DilemmaChoice, DilemmaSeverity, Player, Position } from '../types/game';
 import { isAcademicallyAtRisk } from './playerEngine';
 import { FIRST_DISTRICT_WEEK, FIRST_NON_DISTRICT_WEEK, FIRST_TRAINING_CAMP_WEEK, LAST_REGULAR_SEASON_WEEK, LAST_TRAINING_CAMP_WEEK } from './scheduleEngine';
@@ -43,8 +44,8 @@ const isPlayoffs = (week: number) => week > LAST_REGULAR_SEASON_WEEK && week <= 
 const isGameWeek = (week: number) => isRegularSeason(week) || isPlayoffs(week);
 /** Training camp through the playoffs: games are coming, so suspensions and playing time mean something. */
 const isFootballSeason = (week: number) => isCamp(week) || isGameWeek(week);
-/** Report cards come out every third week during the season (midterms). */
-const isReportCardWeek = (week: number) => isGameWeek(week) && week % 3 === 0;
+/** Report cards come out every sixth week during the season (sim/grades). */
+const isReportCardWeek = (week: number) => isGameWeek(week) && isGradesWeek(week);
 const inWeeks = (week: number, from: number, to: number) => week >= from && week <= to;
 const when = (condition: boolean): true | null => (condition ? true : null);
 /** The scenario needs a player: no matching player means it cannot occur. */

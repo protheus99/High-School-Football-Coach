@@ -33,7 +33,7 @@ import { nationalTeams } from '../sim/nationalWorld';
 import { bracketRoundForWeek, findUserNode, powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
-import { GRADE_FIXES, gradeWatchActive, startersAtRisk, weeksToReportCard } from '../sim/grades';
+import { GRADE_FIXES, gradeWatchActive, isReportCardWeek, startersAtRisk, weeksToReportCard } from '../sim/grades';
 import { gradesNeedReview, isGradesReviewWeek } from '../sim/advanceGate';
 import { playerMention, playerTrouble, shortFromName, starsLabel } from '../utils/playerFormat';
 import { PlayerRow } from './ui/PlayerRow';
@@ -318,7 +318,7 @@ export const WeeklyAgenda: React.FC<{
     const watch = startersAtRisk(team, stateRules);
     if (watch.length === 0) return null;
     const weeks = weeksToReportCard(currentWeek, totalWeeks);
-    // A review is due only the week before a report card (every third week); other weeks it's a note
+    // A review is due only the week before a report card (every sixth week); other weeks it's a note
     const reviewWeek = isGradesReviewWeek(currentWeek);
     const when = `REPORT CARDS IN ${weeks === 1 ? '1 WEEK' : `${weeks} WEEKS`}`;
     return {
@@ -712,9 +712,9 @@ export const WeeklyAgenda: React.FC<{
     const needsCard = teamNeedsCard();
     if (needsCard) extras.push(needsCard);
   }
-  // Report cards come out every third week (the starters' own card covers them while it shows)
+  // Report cards come out every sixth week (the starters' own card covers them while it shows)
   const grades = gradesCard();
-  if (isGamePhase && currentWeek % 3 === 0 && !grades) {
+  if (isGamePhase && isReportCardWeek(currentWeek) && !grades) {
     const ineligible = team.roster.filter((p) => !p.academics.isEligible).length;
     const atRisk = team.roster.filter((p) => p.academics.isEligible && isAcademicallyAtRisk(p, stateRules)).length;
     if (ineligible + atRisk > 0) {

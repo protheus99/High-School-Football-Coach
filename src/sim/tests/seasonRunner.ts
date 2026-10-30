@@ -1,4 +1,5 @@
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
+import { isReportCardWeek } from '../grades';
 import { simulateSnap } from '../matchEngine';
 import { simulateMacroMatch, teamStarterRating } from '../macroSim';
 import { processWeeklyInjuryHealing, evaluateAcademicReport } from '../playerEngine';
@@ -31,7 +32,7 @@ export function runDynastySimulation(numYears = 3): void {
       // Triage and fatigue
       userTeam.roster.forEach((p) => {
         processWeeklyInjuryHealing(p);
-        if (week % 3 === 0) evaluateAcademicReport(p);
+        if (isReportCardWeek(week)) evaluateAcademicReport(p);
       });
       runTrainingWeek(userTeam, 'LIMITED', 'DISTRICT_PLAY', week, week > 1);
 

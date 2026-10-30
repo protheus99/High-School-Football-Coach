@@ -57,7 +57,7 @@ describe('Grades: the fixes', () => {
     book('TEACHER');
     expect(me().academics.teacherYear).toBe(currentYear);
     // The report card uses it up
-    useGameStore.setState({ currentWeek: 8 });
+    useGameStore.setState({ currentWeek: 11 });
     useGameStore.getState().advanceWeek();
     expect(me().academics.gradeFix).toBeUndefined();
     book('TEACHER');
@@ -87,8 +87,8 @@ describe('Grades: the fixes', () => {
   it('settles a fix used at a report card without a refund', () => {
     const { me, book } = setup();
     book('STUDY_HALL');
-    useGameStore.setState({ currentWeek: 8 });
-    useGameStore.getState().advanceWeek(); // week 9: report cards use it
+    useGameStore.setState({ currentWeek: 11 });
+    useGameStore.getState().advanceWeek(); // week 12: report cards use it
     useGameStore.setState({ activeDilemma: null });
     const before = cp();
     useGameStore.getState().settleGradeFixes();
@@ -101,11 +101,11 @@ describe('Grades: the fixes', () => {
     const { me, book } = setup();
     me().attributes.footballIQ = 50;
     book('TUTOR');
-    useGameStore.setState({ currentWeek: 8 });
-    useGameStore.getState().advanceWeek(); // week 9: report cards
+    useGameStore.setState({ currentWeek: 11 });
+    useGameStore.getState().advanceWeek(); // week 12: report cards
     const gpa = me().academics.gpa;
-    expect(gpa).toBeGreaterThanOrEqual(2.1 + 0.25 - 0.3 - 0.001);
-    expect(gpa).toBeLessThanOrEqual(2.1 + 0.25 + 0.3 + 0.001);
+    expect(gpa).toBeGreaterThanOrEqual(2.1 + 0.25 - 0.4 - 0.001);
+    expect(gpa).toBeLessThanOrEqual(2.1 + 0.25 + 0.4 + 0.001);
     expect(me().academics.gpaHistory).toEqual([2.1, gpa]);
     expect(me().academics.gradeFix).toBeUndefined();
   });
@@ -153,12 +153,12 @@ describe('Grades: the trend and the list', () => {
   });
 
   it('counts the weeks to the next report card (every third week from week 9), into next season at the end', () => {
-    expect([8, 9, 10, 11].map((w) => weeksToReportCard(w, 28))).toEqual([1, 3, 2, 1]);
-    expect([3, 6, 9, 12].map(isReportCardWeek)).toEqual([false, false, true, true]);
+    expect([8, 9, 10, 11].map((w) => weeksToReportCard(w, 28))).toEqual([4, 3, 2, 1]);
+    expect([3, 6, 9, 12, 18, 24].map(isReportCardWeek)).toEqual([false, false, false, true, true, true]);
     // The last report card of a 28-week season is week 27: after it, the next is week 9 next season
-    expect(weeksToReportCard(27, 28)).toBe(1 + 9);
-    expect(weeksToReportCard(28, 28)).toBe(9);
-    expect(weeksToReportCard(2, 28)).toBe(7);
+    expect(weeksToReportCard(27, 28)).toBe(1 + 12);
+    expect(weeksToReportCard(28, 28)).toBe(12);
+    expect(weeksToReportCard(2, 28)).toBe(10);
   });
 
   it('keeps a booked fix on the list after a dilemma lifts the player above the line, so it can be cancelled', () => {
@@ -196,8 +196,10 @@ describe('Grades: Advance waits for the review', () => {
     useGameStore.setState({ activeDilemma: null });
     useGameStore.getState().markGradesReviewed();
     expect(advanceBlocker(useGameStore.getState())).not.toBe('GRADES');
-    // The next report card's week before asks again
+    // The next report card's week before asks again (week 18's)
     useGameStore.setState({ currentWeek: 14 });
+    expect(gradesNeedReview(useGameStore.getState())).toBe(false);
+    useGameStore.setState({ currentWeek: 17 });
     expect(gradesNeedReview(useGameStore.getState())).toBe(true);
     // Not in the off-season
     useGameStore.setState({ currentWeek: 2 });

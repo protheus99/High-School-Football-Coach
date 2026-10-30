@@ -79,7 +79,7 @@ describe('Game injuries and league-wide report cards', () => {
   it('AI programs pick up injuries and report cards over a season', () => {
     const store = useGameStore;
     store.getState().startNewSeason();
-    while (store.getState().currentWeek < 12) store.getState().advanceWeek();
+    while (store.getState().currentWeek < 18) store.getState().advanceWeek(); // two report cards (weeks 12 and 18)
     const ai = store.getState().leagueTeams.filter((t) => t.id !== store.getState().userTeamId);
     const injured = ai.flatMap((t) => t.roster).filter((p) => p.condition.injuryStatus !== 'HEALTHY').length;
     const ineligible = ai.flatMap((t) => t.roster).filter((p) => !p.academics.isEligible).length;

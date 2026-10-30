@@ -4,7 +4,7 @@ import { gradeWatchActive, reviewKey, startersAtRisk, weeksToReportCard } from '
 import { rulesForState } from './stateRules';
 import { OFF_SEASON_WEEKS, STATE_FINAL_WEEK } from './scheduleEngine';
 
-/** The grades review comes once per report card (every third week): in the week before it, when a fix still counts. */
+/** The grades review comes once per report card (every sixth week): in the week before it, when a fix still counts. */
 export const isGradesReviewWeek = (week: number) => weeksToReportCard(week, STATE_FINAL_WEEK + 1 + OFF_SEASON_WEEKS) === 1;
 
 /**
