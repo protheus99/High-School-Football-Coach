@@ -79,12 +79,12 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({ user
     >
       <SheetSection title="Game information" first>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-          {stakes?.banner && <div style={banner}>{stakes.banner}</div>}
+          {/* A rivalry game's banner names it: "⚔️ Rivalry game: Jubilee Cup" */}
+          {stakes?.banner && <div style={banner}>{rivalry ? stakes.banner.replace('Rivalry game', `Rivalry game: ${rivalry.name}`) : stakes.banner}</div>}
           {rivalry && (
             <div style={{ display: 'flex', gap: '8px', padding: '8px 10px', borderRadius: '10px', border: '1px solid #FECACA', background: '#FFF5F5', fontSize: '12.5px', color: '#7F1D1D' }}>
               <span aria-hidden="true">🔥</span>
               <span>
-                <b>{rivalry.name}.</b>{' '}
                 {rivalry.theirs
                   ? `${opponentTeam.name}'s rivalry game: they'll be fired up.`
                   : rivalry.series.wins + rivalry.series.losses === 0
