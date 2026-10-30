@@ -175,23 +175,29 @@ describe('Grades: the trend and the list', () => {
 });
 
 describe('Grades: Advance waits for the review', () => {
-  it('blocks the week while a starter could be ineligible, until Team › Grades is opened this week', () => {
+  it('blocks the week before a report card while a starter could be ineligible, until Team › Grades is opened', () => {
     useGameStore.getState().startNewSeason();
     const { userTeamId } = useGameStore.getState();
     const team = useGameStore.getState().districtTeams.find((t) => t.id === userTeamId)!;
     team.roster.forEach((p) => Object.assign(p.academics, { gpa: 3, isEligible: true }));
-    useGameStore.setState({ currentWeek: 10, activeDilemma: null });
+    useGameStore.setState({ currentWeek: 11, activeDilemma: null });
     expect(gradesNeedReview(useGameStore.getState())).toBe(false);
     team.roster.find((p) => p.depthChartTier === 1)!.academics.gpa = 2.2;
     expect(advanceBlocker(useGameStore.getState())).toBe('GRADES');
+    // Only the week before a report card (week 12's): weeks 12 and 13 don't ask
+    useGameStore.setState({ currentWeek: 12 });
+    expect(gradesNeedReview(useGameStore.getState())).toBe(false);
+    useGameStore.setState({ currentWeek: 13 });
+    expect(gradesNeedReview(useGameStore.getState())).toBe(false);
+    useGameStore.setState({ currentWeek: 11 });
     // A decision comes first
-    useGameStore.setState({ activeDilemma: { id: 'd', title: 'T', scenario: '', weekTriggered: 10, choices: [] } });
+    useGameStore.setState({ activeDilemma: { id: 'd', title: 'T', scenario: '', weekTriggered: 11, choices: [] } });
     expect(advanceBlocker(useGameStore.getState())).toBe('DECISION');
     useGameStore.setState({ activeDilemma: null });
     useGameStore.getState().markGradesReviewed();
     expect(advanceBlocker(useGameStore.getState())).not.toBe('GRADES');
-    // A new week asks again
-    useGameStore.setState({ currentWeek: 11 });
+    // The next report card's week before asks again
+    useGameStore.setState({ currentWeek: 14 });
     expect(gradesNeedReview(useGameStore.getState())).toBe(true);
     // Not in the off-season
     useGameStore.setState({ currentWeek: 2 });

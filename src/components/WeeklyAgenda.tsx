@@ -34,7 +34,7 @@ import { bracketRoundForWeek, findUserNode, powerRatings } from '../sim/playoffE
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 import { GRADE_FIXES, gradeWatchActive, startersAtRisk, weeksToReportCard } from '../sim/grades';
-import { gradesNeedReview } from '../sim/advanceGate';
+import { gradesNeedReview, isGradesReviewWeek } from '../sim/advanceGate';
 import { playerMention, playerTrouble, shortFromName, starsLabel } from '../utils/playerFormat';
 import { PlayerRow } from './ui/PlayerRow';
 import { playerRowProps } from './ui/playerRowProps';
@@ -318,16 +318,19 @@ export const WeeklyAgenda: React.FC<{
     const watch = startersAtRisk(team, stateRules);
     if (watch.length === 0) return null;
     const weeks = weeksToReportCard(currentWeek, totalWeeks);
+    // A review is due only the week before a report card (every third week); other weeks it's a note
+    const reviewWeek = isGradesReviewWeek(currentWeek);
+    const when = `REPORT CARDS IN ${weeks === 1 ? '1 WEEK' : `${weeks} WEEKS`}`;
     return {
       id: 'grades',
       icon: '📚',
       // Reviewed this week: the label says so, and the button is a plain link back to the grades
-      kicker: `${gradesBlocked ? 'NEEDS YOUR REVIEW' : 'REVIEWED'} · REPORT CARDS IN ${weeks === 1 ? '1 WEEK' : `${weeks} WEEKS`}`,
-      kickerDone: !gradesBlocked,
+      kicker: reviewWeek ? `${gradesBlocked ? 'NEEDS YOUR REVIEW' : 'REVIEWED'} · ${when}` : when,
+      kickerDone: reviewWeek && !gradesBlocked,
       title: `${plural(watch.length, 'starter')} could be ineligible`,
-      tone: gradesBlocked ? 'urgent' : 'done',
+      tone: !reviewWeek ? 'info' : gradesBlocked ? 'urgent' : 'done',
       accent: 'school',
-      counted: true,
+      counted: reviewWeek,
       content: (
         <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {/* The shared player row: the grade trouble chip carries the GPA */}
@@ -779,11 +782,11 @@ export const WeeklyAgenda: React.FC<{
   );
 
   // ---------------------------------------------------------------- the list
-  // The decision first (then the grades to review), then this week's headline (usually the game), anything else that needs the coach,
-  // the week's task (usually practice), then the rest; background notes fold under "More this week"
+  // The decision first, then this week's headline (usually the game), anything else that needs the coach, the week's
+  // task (usually practice) with the grades under it, then the rest; background notes fold under "More this week"
   const [decision, ...otherNeeds] = needs[0]?.id === 'dilemma' ? needs : [dilemmaCard(), ...needs];
   const college = task?.id === 'college' ? null : collegeCard();
-  const visible = [decision, grades, headline, ...otherNeeds, ...(task ? [task] : []), ...extras, college].filter((c): c is AgendaItem => !!c);
+  const visible = [decision, headline, ...otherNeeds, ...(task ? [task] : []), grades, ...extras, college].filter((c): c is AgendaItem => !!c);
   const folded: AgendaItem[] = [];
   const concerns = concernsCard();
   if (concerns) folded.push(concerns);

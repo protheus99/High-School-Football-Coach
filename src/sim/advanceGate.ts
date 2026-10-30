@@ -1,7 +1,11 @@
 import { getUserMatchup } from './userMatchup';
 import { lockKey, PlayedGame } from './gameLock';
-import { gradeWatchActive, reviewKey, startersAtRisk } from './grades';
+import { gradeWatchActive, reviewKey, startersAtRisk, weeksToReportCard } from './grades';
 import { rulesForState } from './stateRules';
+import { OFF_SEASON_WEEKS, STATE_FINAL_WEEK } from './scheduleEngine';
+
+/** The grades review comes once per report card (every third week): in the week before it, when a fix still counts. */
+export const isGradesReviewWeek = (week: number) => weeksToReportCard(week, STATE_FINAL_WEEK + 1 + OFF_SEASON_WEEKS) === 1;
 
 /**
  * What stops the week from moving on, for the Advance button in the top bar (every screen) and the Hub alike:
@@ -20,8 +24,9 @@ type GateState = Parameters<typeof getUserMatchup>[0] & {
   league?: { state?: string } | null;
 };
 
-/** Starters who could be ineligible, not yet reviewed on Team › Grades this week. */
+/** Starters who could be ineligible, not yet reviewed on Team › Grades, in the week before a report card. */
 export function gradesNeedReview(s: GateState): boolean {
+  if (!isGradesReviewWeek(s.currentWeek)) return false;
   if (s.gradesReviewed === reviewKey(s.currentYear, s.currentWeek)) return false;
   if (!gradeWatchActive(s.currentWeek, s.playoffBracket, s.userTeamId)) return false;
   const team = s.leagueTeams.find((t) => t.id === s.userTeamId);
