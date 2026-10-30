@@ -14,6 +14,7 @@ export interface PregameSpeech {
   given: TalkOption;
   offered: TalkOption[];
 }
+import { isTrophyName, rivalryFor } from '../sim/rivalryEngine';
 
 interface PreGameStrategyModalProps {
   userTeam: Team;
@@ -49,6 +50,7 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({ user
 
   const theirDefense = opponentTeam.schemeDefense;
   const passFirst = OFFENSE_STYLES[opponentTeam.schemeOffense].toLowerCase();
+  const rivalry = rivalryFor(userTeam, opponentTeam, useGameStore((s) => s.rivalryLog));
 
   return (
     <Sheet
@@ -78,6 +80,20 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({ user
       <SheetSection title="Game information" first>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
           {stakes?.banner && <div style={banner}>{stakes.banner}</div>}
+          {rivalry && (
+            <div style={{ display: 'flex', gap: '8px', padding: '8px 10px', borderRadius: '10px', border: '1px solid #FECACA', background: '#FFF5F5', fontSize: '12.5px', color: '#7F1D1D' }}>
+              <span aria-hidden="true">🔥</span>
+              <span>
+                <b>{rivalry.name}.</b>{' '}
+                {rivalry.theirs
+                  ? `${opponentTeam.name}'s rivalry game: they'll be fired up.`
+                  : rivalry.series.wins + rivalry.series.losses === 0
+                    ? `Your first ${rivalry.name}.`
+                    : `Your record in it: ${rivalry.series.wins}-${rivalry.series.losses}.`}{' '}
+                {isTrophyName(rivalry.name) ? 'The winner keeps the trophy for a year.' : 'Win it for the boosters and the bragging rights.'}
+              </span>
+            </div>
+          )}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             <span style={chip}>
               Offense: <b>{OFFENSE_NAMES[opponentTeam.schemeOffense]}</b> · {passFirst}

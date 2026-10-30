@@ -11,6 +11,9 @@ const STYLE: Record<NewsCategory, { icon: string; label: string; tint: string; c
   LEAGUE: { icon: '🏟️', label: 'LEAGUE', tint: '#F1F5F9', color: '#334155', target: 'NEWS' }
 };
 
+// A rivalry game's stories (the week's preview, the final) stand out with a flame
+const RIVALRY_STYLE = { icon: '🔥', label: 'RIVALRY', tint: '#FEE2E2', color: '#B91C1C', target: 'NEWS' as AgendaTab };
+
 const MAX_HEADLINES = 5;
 const DETAIL_LENGTH = 110;
 const trim = (text: string) => (text.length > DETAIL_LENGTH ? `${text.slice(0, DETAIL_LENGTH - 1).trimEnd()}…` : text);
@@ -37,7 +40,7 @@ export const HubHeadlines: React.FC<{ onNavigate: (tab: AgendaTab) => void }> = 
       <div style={card}>
         {headlines.length === 0 && <div style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>No big stories this week.</div>}
         {headlines.map((a, i) => {
-          const s = STYLE[newsCategory(a)];
+          const s = a.rivalry ? RIVALRY_STYLE : STYLE[newsCategory(a)];
           return (
             <button key={a.id} onClick={() => onNavigate(s.target)} style={{ ...row, borderTop: i === 0 ? 'none' : '1px solid #F1F5F9' }}>
               <span aria-hidden="true" style={{ ...circle, background: s.tint }}>

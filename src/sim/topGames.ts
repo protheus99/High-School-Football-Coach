@@ -1,14 +1,26 @@
 import { StateAndNationalPolls } from '../types/game';
 import { INTERSTATE, PrecomputedGame } from './runAhead';
 import { stateAbbreviation } from '../utils/format';
+import { rivalryName } from '../data/rivalries';
 
 // ---------------------------------------------------------------------------
 // "Around the state": once the coach's game is over, the week's top games from the run-ahead finals (the same
 // results Advance Week applies). Up to 8, in this order: his league's games, games with a team in his state's top
 // 10, upsets (a nationally ranked team lost), the national top 5, and in the playoffs his division's other games.
+// Up to three rivalry games come right after his league's (ranked teams first), so rivalry week gets its spotlight.
 // ---------------------------------------------------------------------------
 
-export type TopGameTag = 'LEAGUE' | 'STATE_TOP_10' | 'UPSET' | 'NATIONAL_TOP_5' | 'DIVISION';
+export type TopGameTag = 'LEAGUE' | 'RIVALRY' | 'STATE_TOP_10' | 'UPSET' | 'NATIONAL_TOP_5' | 'DIVISION';
+
+export const MAX_RIVALRY_GAMES = 3;
+
+/** A game's team's state: the game's own, or from an out-of-state game's "Alabama v Texas" label. */
+const teamState = (game: PrecomputedGame, side: 'home' | 'away') => (game.state === INTERSTATE ? game.label?.split(' v ')[side === 'home' ? 0 : 1] : game.state);
+
+/** The rivalry's name when the game is one (the home team's name for it), or undefined. */
+export function gameRivalry(game: PrecomputedGame): string | undefined {
+  return rivalryName({ name: game.homeName, state: teamState(game, 'home') }, { name: game.awayName, state: teamState(game, 'away') });
+}
 
 export interface TopGame {
   game: PrecomputedGame;
@@ -39,6 +51,13 @@ export function topGames(input: {
 
   const groups: [TopGameTag, PrecomputedGame[]][] = [
     ['LEAGUE', results.filter((g) => g.state === userState && !g.label && districtIds.has(g.homeId) && districtIds.has(g.awayId))],
+    [
+      'RIVALRY',
+      results
+        .filter((g) => (g.state === userState || g.state === INTERSTATE) && gameRivalry(g) !== undefined)
+        .sort((a, b) => best(a, stateTop10) - best(b, stateTop10))
+        .slice(0, MAX_RIVALRY_GAMES)
+    ],
     ['STATE_TOP_10', results.filter((g) => stateTop10.has(g.homeId) || stateTop10.has(g.awayId)).sort((a, b) => best(a, stateTop10) - best(b, stateTop10))],
     ['UPSET', results.filter(isUpset).sort((a, b) => (national.get(loser(a)!) ?? 99) - (national.get(loser(b)!) ?? 99))],
     ['NATIONAL_TOP_5', results.filter((g) => best(g, national) <= 5).sort((a, b) => best(a, national) - best(b, national))],
@@ -62,6 +81,8 @@ export function topGameTagLabel(tag: TopGameTag, userState: string): string {
   switch (tag) {
     case 'LEAGUE':
       return 'League';
+    case 'RIVALRY':
+      return 'Rivalry';
     case 'STATE_TOP_10':
       return `${stateAbbreviation(userState)} top 10`;
     case 'UPSET':

@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { PrecomputedGame, gameKey } from '../sim/runAhead';
-import { TopGameTag, otherStateOf, topGameTagLabel, topGames } from '../sim/topGames';
+import { TopGameTag, gameRivalry, otherStateOf, topGameTagLabel, topGames } from '../sim/topGames';
 import { userDivisionIndex } from '../sim/playoffEngine';
 
 const TAG_STYLE: Record<TopGameTag, React.CSSProperties> = {
   LEAGUE: { color: '#14532D', background: '#DCFCE7' },
+  RIVALRY: { color: '#7F1D1D', background: '#FEE2E2' },
   DIVISION: { color: '#14532D', background: '#DCFCE7' },
   STATE_TOP_10: { color: '#1E40AF', background: '#DBEAFE' },
   NATIONAL_TOP_5: { color: '#1E40AF', background: '#DBEAFE' },
@@ -51,6 +52,7 @@ export const AroundTheState: React.FC = () => {
       </div>
       {rows.map(({ game: g, tag }, i) => {
         const winner = g.homeScore === g.awayScore ? null : g.homeScore > g.awayScore ? 'home' : 'away';
+        const rivalry = gameRivalry(g);
         return (
           <div key={g.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderTop: i > 0 ? '1px solid #F1F5F9' : undefined, fontSize: '13px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -60,6 +62,7 @@ export const AroundTheState: React.FC = () => {
                   <span style={{ fontVariantNumeric: 'tabular-nums' }}>{side === 'home' ? g.homeScore : g.awayScore}</span>
                 </div>
               ))}
+              {rivalry && <div style={{ fontSize: '11px', fontWeight: 700, color: '#B91C1C', marginTop: '1px' }}>🔥 {rivalry}</div>}
             </div>
             {/* A fixed column, so the scores line up whatever the tag */}
             <span style={{ flex: '0 0 74px', textAlign: 'right' }}>

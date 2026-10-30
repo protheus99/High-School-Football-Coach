@@ -1,4 +1,5 @@
 import React from 'react';
+import { isTrophyName } from '../sim/rivalryEngine';
 
 export interface TrophyRecord {
   year: number;
@@ -21,7 +22,7 @@ export const TrophyCase: React.FC<{ trophies: TrophyRecord[]; collegeSignees: nu
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '18px' }}>
         {stat('Prestige', schoolPrestige, '#2563EB')}
         {stat('College signees', collegeSignees, '#047857')}
-        {stat('Titles', trophies.length, '#B45309')}
+        {stat('Titles', trophies.filter((t) => t.type !== 'RIVALRY_BELL').length, '#B45309')}
       </div>
 
       <h3 style={{ margin: '0 0 10px 0', fontSize: '15px' }}>Trophy showcase</h3>
@@ -29,13 +30,18 @@ export const TrophyCase: React.FC<{ trophies: TrophyRecord[]; collegeSignees: nu
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
           {trophies.map((t, idx) => (
             <div key={idx} style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '10px', padding: '10px' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#B45309' }}>{t.type === 'STATE_CHAMPIONSHIP' ? '👑 State Champions' : t.name}</div>
-              <div style={{ fontSize: '13px', color: '#4B5563' }}>Season {t.year}</div>
+              <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#B45309' }}>
+                {t.type === 'STATE_CHAMPIONSHIP' ? '👑 State Champions' : t.type === 'RIVALRY_BELL' ? `${isTrophyName(t.name) ? '🏆' : '🔥'} ${t.name}` : t.name}
+              </div>
+              <div style={{ fontSize: '13px', color: '#4B5563' }}>
+                Season {t.year}
+                {t.opponent ? ` · vs ${t.opponent}` : ''}
+              </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="ui-muted">No trophies in the case yet. District titles and state championships you win will be displayed here.</div>
+        <div className="ui-muted">No trophies in the case yet. State championships and rivalry wins will be displayed here.</div>
       )}
     </div>
   );

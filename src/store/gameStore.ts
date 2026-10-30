@@ -96,7 +96,9 @@ import {
   processWeeklyInjuryHealing
 } from '../sim/playerEngine';
 import { buildPlayoffBracket, advancePlayoffRound, BracketNode, bracketRoundForWeek, compactBracket, findUserNode, recordPlayoffResult, relinkBracketTeams, PlayoffBracketState } from '../sim/playoffEngine';
-import { gameResultNews, generateWeeklyNewsStream, NewsArticle, rankingNews } from '../sim/newsEngine';
+import { gameResultNews, generateWeeklyNewsStream, NewsArticle, rankingNews, rivalryWeekNews } from '../sim/newsEngine';
+import { RivalryResult, applyRivalryWin } from '../sim/rivalryEngine';
+import { rivalryName } from '../data/rivalries';
 import { calculateSeasonAwards, honoredPlayers, SeasonAwardsRecord } from '../sim/awardsEngine';
 import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
@@ -317,6 +319,22 @@ function punishCaughtProgram(team: Team, bannedSeason: number, week: number): Ne
 const moment = (s: { currentYear: number; currentWeek: number }) => ({ season: s.currentYear - 2025, week: s.currentWeek });
 
 /** The coach's side of a final, for game events. */
+/**
+ * The coach's rivalry game, once it's final: written in his log (the series record and the Trophy Case) and, for a
+ * win, his boosters (Rating) and prestige go up. Once a week: a live final and the week's results both report it.
+ */
+function recordRivalryResult(get: () => GameStoreState, set: (partial: Partial<GameStoreState>) => void, opponent: Team, userScore: number, opponentScore: number): void {
+  const { currentYear, currentWeek, leagueTeams, userTeamId, rivalryLog } = get();
+  const team = leagueTeams.find((t) => t.id === userTeamId);
+  const name = team && rivalryName(team, opponent);
+  if (!team || !name || userScore === opponentScore) return;
+  if (rivalryLog.some((g) => g.year === currentYear && g.week === currentWeek)) return;
+  const won = userScore > opponentScore;
+  if (won) applyRivalryWin(team);
+  const result: RivalryResult = { year: currentYear, week: currentWeek, school: team.name, opponent: opponent.name, name, won, score: `${userScore}-${opponentScore}` };
+  set({ rivalryLog: [...rivalryLog, result] });
+}
+
 function gameOutcome(userTeamId: string, g: { homeId: string; homeScore: number; awayScore: number }) {
   const mine = g.homeId === userTeamId ? g.homeScore : g.awayScore;
   const theirs = g.homeId === userTeamId ? g.awayScore : g.homeScore;
@@ -364,6 +382,7 @@ function buildSaveRecord(state: GameStoreState, id: string, saveName: string): G
     misconductThreads: state.misconductThreads,
     coachBench: state.coachBench,
     coachReckonings: state.coachReckonings,
+    rivalryLog: state.rivalryLog,
     ...(state.gradesReviewed && { gradesReviewed: state.gradesReviewed }),
     bookedGradeFixes: state.bookedGradeFixes,
     pressLog: state.pressLog,
@@ -472,6 +491,7 @@ interface GameStoreState {
   dilemmaLog: DilemmaRecord[];
   misconductThreads: MisconductThread[]; // shady calls that can still come back (the Billy Martin rule, sim/billyMartin.ts)
   coachBench: CoachBench; // games and seasons the coach sits out (his coordinator coaches them)
+  rivalryLog: RivalryResult[]; // the coach's rivalry games: series records and the Trophy Case (sim/rivalryEngine.ts)
   coachReckonings: number; // reckonings in this coach's career: each one's penalty is bigger
   firedForMisconduct: boolean; // fired at the 3rd reckoning, not by the board's review
   gradesReviewed: string | null; // the week the coach last opened Team › Grades (sim/grades reviewKey)
@@ -754,6 +774,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   dilemmaLog: [],
   misconductThreads: [],
   coachBench: NO_BENCH,
+  rivalryLog: [],
   coachReckonings: 0,
   firedForMisconduct: false,
   gradesReviewed: null,
@@ -862,6 +883,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       dilemmaLog: [],
       misconductThreads: [],
       coachBench: NO_BENCH,
+      rivalryLog: [],
       coachReckonings: 0,
       firedForMisconduct: false,
       gradesReviewed: null,
@@ -959,6 +981,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       dilemmaLog: save.dilemmaLog ?? [],
       misconductThreads: save.misconductThreads ?? pendingExposureThreads(save.dilemmaLog ?? [], year, save.currentWeek, userTeam),
       coachBench: save.coachBench ?? NO_BENCH,
+      rivalryLog: save.rivalryLog ?? [],
       // Older saves: the reckonings their careers recorded (each one made the career invalid, and still does)
       coachReckonings: save.coachReckonings ?? [...(save.careerHistory ?? []), ...(save.career ? [save.career] : [])].reduce((n, c) => n + (c.reckonings?.length ?? 0), 0),
       firedForMisconduct: false,
@@ -1090,6 +1113,13 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     // Coach Points: the weekly allowance plus a bonus for a regular-season win; unspent CP carries over.
     // Program events can run once per week.
     const userGame = getTeamGameForWeek(seasonSchedule, currentWeek, userTeamId);
+    const logRivalry = (opponent: Team, userScore: number, opponentScore: number) => recordRivalryResult(get, set, opponent, userScore, opponentScore);
+    const finalGame = getTeamGameForWeek([...seasonSchedule, ...get().interstateGames], currentWeek, userTeamId);
+    const finalOpponent = finalGame?.homeScore !== undefined ? everyTeam.get(finalGame.homeTeamId === userTeamId ? finalGame.awayTeamId : finalGame.homeTeamId) : undefined;
+    if (finalGame && finalOpponent) {
+      const home = finalGame.homeTeamId === userTeamId;
+      logRivalry(finalOpponent, home ? finalGame.homeScore! : finalGame.awayScore!, home ? finalGame.awayScore! : finalGame.homeScore!);
+    }
     const userWon =
       userGame?.homeScore !== undefined &&
       (userGame.homeTeamId === userTeamId ? userGame.homeScore > userGame.awayScore! : userGame.awayScore! > userGame.homeScore);
@@ -1185,6 +1215,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         .forEach((n) => [n.team1, n.team2].forEach((t) => played.add(t.id)));
       const mine = linked.divisions.flatMap((d) => d.rounds[linked.currentRoundIndex] ?? []).find((n) => !n.isBye && (n.team1.id === userTeamId || n.team2.id === userTeamId));
       if (mine?.team1Score !== undefined) playoffResult = { node: mine, label: rulesForState(league?.state).playoffs.roundLabels[linked.roundNames[linked.currentRoundIndex]] };
+      if (mine?.team1Score !== undefined && mine.team2Score !== undefined) {
+        const first = mine.team1.id === userTeamId;
+        logRivalry(first ? mine.team2 : mine.team1, first ? mine.team1Score : mine.team2Score, first ? mine.team2Score : mine.team1Score);
+      }
       set({ playoffBracket: advancePlayoffRound(linked) });
       if (userNode?.winnerTeamId === userTeamId) {
         userTeam.programMeters.schoolBoardTrust = Math.min(100, userTeam.programMeters.schoolBoardTrust + BOARD_RESULT_DELTA.playoffWin);
@@ -1255,6 +1289,12 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     // Postseason starts the week after the regular season
     if (nextWeek === LAST_REGULAR_SEASON_WEEK + 1) {
       get().startPostseason();
+      // The last regular-season game (rivalry week) still makes the news
+      if (finalGame && finalOpponent) {
+        const home = finalGame.homeTeamId === userTeamId;
+        const story = gameResultNews(nextWeek, userTeam, finalOpponent, home ? finalGame.homeScore! : finalGame.awayScore!, home ? finalGame.awayScore! : finalGame.homeScore!, polls, recordText(userTeam, get().playoffBracket));
+        set({ newsArticles: [story, ...get().newsArticles] });
+      }
       return;
     }
 
@@ -1396,6 +1436,11 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     // 5. Generate Weekly Press Articles
     // (a warning isn't news until it goes public: the second one runs its own story above)
     const newArticles = generateWeeklyNewsStream(nextWeek, userTeam, undefined, warning ? undefined : dilemma?.title);
+    // Next week's game against a rival is a story of its own
+    const nextGame = getTeamGameForWeek([...get().seasonSchedule, ...get().interstateGames], nextWeek, userTeamId);
+    const nextOpponent = nextGame && everyone.find((t) => t.id === (nextGame.homeTeamId === userTeamId ? nextGame.awayTeamId : nextGame.homeTeamId));
+    const rivalryWeek = nextOpponent && rivalryWeekNews(nextWeek, userTeam, nextOpponent, nextGame!.homeTeamId === userTeamId, get().rivalryLog);
+    if (rivalryWeek) newArticles.unshift(rivalryWeek);
 
     const updatedState = {
       currentWeek: nextWeek,
@@ -1925,6 +1970,9 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       scheduled.homeScore = sameOrientation ? finalState.homeScore : finalState.awayScore;
       scheduled.awayScore = sameOrientation ? finalState.awayScore : finalState.homeScore;
       applyGameResult(home, away, finalState.homeScore, finalState.awayScore, scheduled.isDistrictGame);
+      // A rivalry win counts right away (the Hub's final shows what it was worth)
+      const userHome = home.id === userTeamId;
+      recordRivalryResult(get, set, userHome ? away : home, userHome ? finalState.homeScore : finalState.awayScore, userHome ? finalState.awayScore : finalState.homeScore);
     }
 
     [home, away].forEach((team) =>

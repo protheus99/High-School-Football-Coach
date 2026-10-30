@@ -1,4 +1,6 @@
 import { StateAndNationalPolls, Team } from '../types/game';
+import { rivalryName } from '../data/rivalries';
+import { RivalryResult, rivalryFor, rivalryHeadline } from './rivalryEngine';
 import { bestOffer } from './collegeRecruitingEngine';
 
 export interface NewsArticle {
@@ -10,6 +12,7 @@ export interface NewsArticle {
   impactSentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
   featuredPlayerName?: string;
   featuredTeamName?: string;
+  rivalry?: string; // a story about a rivalry game: its name (the Hub marks it with a flame)
 }
 
 export function generateWeeklyNewsStream(
@@ -162,14 +165,45 @@ export function gameResultNews(
 ): NewsArticle {
   const won = userScore > opponentScore;
   const opp = rankedName(opponent, polls);
+  // A rivalry game says so: "Daphne Wins the Jubilee Cup, 28-21"
+  const rivalry = rivalryName(userTeam, opponent);
   return {
     id: `news_gm_${week}_${opponent.id}`,
     week,
     outlet: 'TOWN_JOURNAL',
-    headline: won ? `${userTeam.name} Beats ${opp} ${userScore}-${opponentScore}` : `${userTeam.name} Falls to ${opp} ${opponentScore}-${userScore}`,
-    content: `${label ? `${label}: ` : ''}${userTeam.name} ${won ? 'won' : 'lost'} ${userScore}-${opponentScore} and is now ${record}.`,
+    headline: rivalry
+      ? rivalryHeadline(userTeam.name, opp, rivalry, userScore, opponentScore)
+      : won
+        ? `${userTeam.name} Beats ${opp} ${userScore}-${opponentScore}`
+        : `${userTeam.name} Falls to ${opp} ${opponentScore}-${userScore}`,
+    content: `${label ? `${label}: ` : ''}${userTeam.name} ${won ? 'won' : 'lost'} ${rivalry ? `the ${rivalry} ` : ''}${userScore}-${opponentScore} and is now ${record}.`,
     impactSentiment: won ? 'POSITIVE' : 'NEGATIVE',
-    featuredTeamName: userTeam.name
+    featuredTeamName: userTeam.name,
+    ...(rivalry && { rivalry })
+  };
+}
+
+/** The week of a rivalry game, before kickoff: "Jubilee Cup Week: Daphne Hosts Fairhope". */
+export function rivalryWeekNews(week: number, userTeam: Team, opponent: Team, isHome: boolean, log: RivalryResult[]): NewsArticle | null {
+  const rivalry = rivalryFor(userTeam, opponent, log);
+  if (!rivalry) return null;
+  const { wins, losses } = rivalry.series;
+  const games = wins + losses;
+  const series =
+    games === 0
+      ? `The first ${rivalry.name} for this staff.`
+      : wins === losses
+        ? `The series under this staff is even at ${wins}-${losses}.`
+        : `${wins > losses ? userTeam.name : opponent.name} leads the series under this staff ${Math.max(wins, losses)}-${Math.min(wins, losses)}.`;
+  return {
+    id: `news_gm_rivalry_${week}_${opponent.id}`,
+    week,
+    outlet: 'TOWN_JOURNAL',
+    headline: `${rivalry.name} Week: ${userTeam.name} ${isHome ? 'Hosts' : 'Visits'} ${opponent.name}`,
+    content: rivalry.theirs ? `${opponent.name} circles this game every year: ${userTeam.name} is its rival. ${series}` : series,
+    impactSentiment: 'NEUTRAL',
+    featuredTeamName: userTeam.name,
+    rivalry: rivalry.name
   };
 }
 

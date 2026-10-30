@@ -12,6 +12,8 @@ import { Player, PlayerStats, Team } from '../types/game';
 import { playerMention } from '../utils/playerFormat';
 import { PlayerRow } from './ui/PlayerRow';
 import { playerRowProps } from './ui/playerRowProps';
+import { rivalOf, rivalryName } from '../data/rivalries';
+import { rivalryFor } from '../sim/rivalryEngine';
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 const scheme = (s: string) => s.replace(/_/g, ' ').toLowerCase();
@@ -31,7 +33,7 @@ const LEADERS: { stat: keyof PlayerStats; label: string; unit: string }[] = [
  * the top college prospects. Ratings stay hidden for other programs (stats and star ratings are public).
  */
 export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; onOpenPlayer: (player: Player) => void }> = ({ teamId, onClose, onOpenPlayer }) => {
-  const { leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, polls, openTeamProfile, nationalLeagues } = useGameStore();
+  const { leagueTeams, league, seasonSchedule, playoffBracket, userTeamId, polls, openTeamProfile, nationalLeagues, rivalryLog } = useGameStore();
   const playoffs = usePlayoffRecords();
   const team = leagueTeams.find((t) => t.id === teamId);
   if (!team) return null;
@@ -45,6 +47,11 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
   const stateRank = polls?.stateRankings[team.state ?? '']?.find((e) => e.teamId === team.id)?.rank;
   const nationalRank = polls?.nationalTop25.find((e) => e.teamId === team.id)?.rank;
   const byId = new Map(nationalTeams(leagueTeams, nationalLeagues).map((t) => [t.id, t]));
+  // The school's rival (a tap away when it's in this league), and the coach's series when this team is his rival
+  const rival = rivalOf(team);
+  const rivalTeam = rival && rival.state === (team.state ?? 'Texas') ? leagueTeams.find((t) => t.name === rival.school) : undefined;
+  const userTeam = leagueTeams.find((t) => t.id === userTeamId);
+  const coachRivalry = !isUser && userTeam ? rivalryFor(userTeam, team, rivalryLog) : null;
 
   // Regular season from the schedule, then playoff games from the bracket
   const games: { week: number; label?: string; opponent?: Team; isHome: boolean; result?: string; won?: boolean }[] = seasonSchedule
@@ -109,6 +116,29 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
       <div style={{ fontSize: '13px', color: '#475569', marginBottom: '12px' }}>
         {/^coach /i.test(team.staff.headCoachName) ? team.staff.headCoachName : `Coach ${team.staff.headCoachName}`} · {scheme(team.schemeOffense)} offense, {scheme(team.schemeDefense)} defense · Prestige {team.prestige}
       </div>
+      {(rival || coachRivalry) && (
+        <div style={{ fontSize: '13px', color: '#7F1D1D', background: '#FFF5F5', border: '1px solid #FECACA', borderRadius: '8px', padding: '6px 10px', marginBottom: '12px' }}>
+          {rival && (
+            <div>
+              🔥 Rival:{' '}
+              {rivalTeam ? (
+                <button onClick={() => openTeamProfile(rivalTeam.id)} style={{ ...linkBtn, color: '#7F1D1D' }}>
+                  {rival.school}
+                </button>
+              ) : (
+                rival.school
+              )}{' '}
+              · {rival.name}
+            </div>
+          )}
+          {coachRivalry && (
+            <div>
+              {coachRivalry.theirs ? `${team.name} counts you as its rival. Your series: ` : `Your series in the ${coachRivalry.name}: `}
+              {coachRivalry.series.wins}-{coachRivalry.series.losses}
+            </div>
+          )}
+        </div>
+      )}
 
       <h3 style={sectionTitle}>Schedule</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px' }}>
@@ -125,6 +155,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
                 'TBD'
               )}
               {g.label && <span style={{ color: '#64748B', fontSize: '12px' }}> · {g.label}</span>}
+              {g.opponent && rivalryName(team, g.opponent) && <span style={{ color: '#B91C1C', fontSize: '12px', fontWeight: 700 }}> · 🔥 {rivalryName(team, g.opponent)}</span>}
             </span>
             <strong style={{ whiteSpace: 'nowrap', color: g.won === undefined ? '#94A3B8' : g.won ? '#059669' : '#DC2626' }}>
               {g.won === undefined ? '—' : `${g.won ? 'W' : 'L'} ${g.result}`}

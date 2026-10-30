@@ -1,5 +1,6 @@
 import { ScheduledGame, Team } from '../types/game';
 import { simulateMacroMatch } from './macroSim';
+import { rivalryLocks } from './rivalryEngine';
 
 // Season calendar: Pre Season (weeks 1-4, feeder signing day in week 2), Training Camp (5-7, depth chart set
 // in week 7), non-district games (8-10), the district round robin (11-17), one week per playoff round (six
@@ -83,8 +84,33 @@ export function roundRobinRounds(teamIds: string[]): [string, string][][] {
 }
 
 /**
+ * A district's round robin with its locked rival games all in the last round (null when it has none): the teams
+ * are seated so the circle method's first round holds every locked pair, and that round moves to the end. A big
+ * district's partial round robin keeps it as its last of `weeks` rounds.
+ */
+function lockedRoundRobin(ids: string[], locked: [string, string][], weeks: number): { ids: string[]; rounds: [string, string][][] } | null {
+  const mine = locked.filter(([a, b]) => ids.includes(a) && ids.includes(b));
+  if (mine.length === 0) return null;
+  // The first round pairs seat i with seat m-1-i (m counts the bye seat an odd district adds at the end, which
+  // takes seat 0's partner), so locked pairs take the seats from 1 (odd) or 0 (even) inward
+  const m = ids.length + (ids.length % 2);
+  const start = ids.length % 2;
+  const seats: (string | undefined)[] = Array.from({ length: ids.length });
+  mine.forEach(([a, b], j) => {
+    seats[start + j] = a;
+    seats[m - 1 - start - j] = b;
+  });
+  const rest = ids.filter((id) => !mine.some(([a, b]) => a === id || b === id));
+  const ordered = seats.map((id) => id ?? rest.shift()!);
+  const all = roundRobinRounds(ordered);
+  return { ids: ordered, rounds: [...all.slice(1, Math.max(1, Math.min(all.length, weeks))), all[0]] };
+}
+
+/**
  * Builds the regular season for a whole league (region -> district -> teams): three non-district weeks
  * against other districts in the same region (rotating district pairings), then each district's round robin.
+ * Rival games are locked in (see rivalryEngine): district rivals meet in the last district week, rivals in other
+ * districts of the state in the last non-district week.
  */
 export function generateSeasonSchedule(regions: Team[][][], year: number, options: { reservedWeeks?: number[] } = {}): ScheduledGame[] {
   // Weeks left open for games outside the league (the national out-of-state week)
@@ -94,9 +120,26 @@ export function generateSeasonSchedule(regions: Team[][][], year: number, option
   const addGame = (week: number, homeTeamId: string, awayTeamId: string, isDistrictGame: boolean) =>
     games.push({ gameId: `y${year}_w${week}_${homeTeamId}_${awayTeamId}`, week, homeTeamId, awayTeamId, isDistrictGame });
 
+  const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+  const locks = rivalryLocks(regions);
+  const lockedPairs = new Set([...locks.district, ...locks.nonDistrict].map(([a, b]) => pairKey(a, b)));
+  // Rivals in other districts (other regions too) are booked first, in the last non-district week
+  const rivalWeek = nonDistrictWeeks[nonDistrictWeeks.length - 1];
+  const rivalBooked = new Set<string>();
+  if (rivalWeek !== undefined) {
+    for (const [a, b] of locks.nonDistrict) {
+      if (Math.random() < 0.5) addGame(rivalWeek, a, b, false);
+      else addGame(rivalWeek, b, a, false);
+      rivalBooked.add(a).add(b);
+    }
+  }
+  const busy = (week: number, id: string) => week === rivalWeek && rivalBooked.has(id);
+
+  const districtWeeks = LAST_REGULAR_SEASON_WEEK - FIRST_DISTRICT_WEEK + 1;
   const allDistricts: string[][] = [];
   for (const region of regions) {
-    const districts = region.map((teams) => shuffle(teams.map((t) => t.id)));
+    const lockedPlans = region.map((teams) => lockedRoundRobin(shuffle(teams.map((t) => t.id)), locks.district, districtWeeks));
+    const districts = region.map((teams, d) => lockedPlans[d]?.ids ?? shuffle(teams.map((t) => t.id)));
     const districtIndex = new Map(districts.flatMap((ids, d) => ids.map((id) => [id, d] as const)));
 
     // Showcase week: the first in-state non-district week pairs the region's top programs with each other (other
@@ -105,12 +148,11 @@ export function generateSeasonSchedule(regions: Team[][][], year: number, option
     const showcaseWeek = nonDistrictWeeks[0];
     const booked = new Set<string>();
     const showcasePairs = new Set<string>();
-    const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
     if (showcaseWeek !== undefined) {
-      const elite = region.flat().filter((t) => t.prestige >= SHOWCASE_PRESTIGE).sort((a, b) => b.prestige - a.prestige);
+      const elite = region.flat().filter((t) => t.prestige >= SHOWCASE_PRESTIGE && !busy(showcaseWeek, t.id)).sort((a, b) => b.prestige - a.prestige);
       while (elite.length > 1) {
         const team = elite.shift()!;
-        const index = elite.findIndex((other) => districtIndex.get(other.id) !== districtIndex.get(team.id));
+        const index = elite.findIndex((other) => districtIndex.get(other.id) !== districtIndex.get(team.id) && !lockedPairs.has(pairKey(team.id, other.id)));
         if (index < 0) continue;
         const [opponent] = elite.splice(index, 1);
         if (Math.random() < 0.5) addGame(showcaseWeek, team.id, opponent.id, false);
@@ -136,6 +178,7 @@ export function generateSeasonSchedule(regions: Team[][][], year: number, option
           const team = a[(t + i + k) % a.length];
           const opponent = b[(t + 2 * partner + k) % b.length];
           if (showcasePairs.has(pairKey(team, opponent))) continue; // they met in the showcase week (a fill-in replaces it)
+          if (lockedPairs.has(pairKey(team, opponent)) || busy(week, team) || busy(week, opponent)) continue; // rivals meet in their locked week
           if ((t + k) % 2 === 0) addGame(week, team, opponent, false);
           else addGame(week, opponent, team, false);
         }
@@ -145,17 +188,18 @@ export function generateSeasonSchedule(regions: Team[][][], year: number, option
     // District round robins; large districts play a partial round robin that fits the district weeks. A small
     // district (fewer rounds than weeks) sits out some weeks: the first one sits out the last weeks, and later
     // ones sit out the weeks where the most other teams are idle, so the fill-in games below can pair them up.
-    const districtWeeks = LAST_REGULAR_SEASON_WEEK - FIRST_DISTRICT_WEEK + 1;
     const idleCount = Array.from({ length: districtWeeks }, () => 0);
-    const plans = districts.map((ids) => ({ ids, rounds: roundRobinRounds(ids).slice(0, districtWeeks) }));
+    // A district with locked rivals plays them in its last round, in the last district week
+    const plans = districts.map((ids, d) => ({ ids, rounds: lockedPlans[d]?.rounds ?? roundRobinRounds(ids).slice(0, districtWeeks), locked: !!lockedPlans[d] }));
     plans.forEach((p) => p.ids.length % 2 === 1 && idleCount.forEach((_, w) => idleCount[w]++)); // odd districts: one idle a week
     [...plans]
       .sort((a, b) => a.rounds.length - b.rounds.length)
-      .forEach(({ ids, rounds }, order) => {
+      .forEach(({ ids, rounds, locked }, order) => {
         const skips = districtWeeks - rounds.length;
         const weeks = Array.from({ length: districtWeeks }, (_, w) => w);
+        const open = locked ? weeks.slice(0, -1) : weeks; // a district with locked rivals plays the last week
         const skipWeeks = new Set(
-          order === 0 ? weeks.slice(districtWeeks - skips) : [...weeks].sort((a, b) => idleCount[b] - idleCount[a] || b - a).slice(0, skips)
+          order === 0 ? open.slice(open.length - skips) : [...open].sort((a, b) => idleCount[b] - idleCount[a] || b - a).slice(0, skips)
         );
         skipWeeks.forEach((w) => (idleCount[w] += ids.length));
         const playWeeks = weeks.filter((w) => !skipWeeks.has(w));
@@ -187,7 +231,7 @@ function fillIdleWeeks(
 ): void {
   const districtOf = new Map(districts.flatMap((ids, d) => ids.map((id) => [id, d] as const)));
   const regionIds = new Set(districts.flat());
-  const regionGames = games.filter((g) => regionIds.has(g.homeTeamId));
+  const regionGames = games.filter((g) => regionIds.has(g.homeTeamId) || regionIds.has(g.awayTeamId)); // a locked rival game can cross regions
   const weeks = Array.from({ length: LAST_REGULAR_SEASON_WEEK - FIRST_NON_DISTRICT_WEEK + 1 }, (_, w) => FIRST_NON_DISTRICT_WEEK + w).filter((w) => !reserved.has(w));
   const bookedIn = new Map(weeks.map((week) => [week, new Set(regionGames.filter((g) => g.week === week).flatMap((g) => [g.homeTeamId, g.awayTeamId]))]));
   // Tightest weeks first (fewest idle teams), so wide-open weeks don't use up the pairings they need

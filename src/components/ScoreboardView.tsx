@@ -9,6 +9,7 @@ import { recordText } from '../sim/seasonRecord';
 import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
 import { getUserMatchup } from '../sim/userMatchup';
 import { gameKey, playoffKey } from '../sim/runAhead';
+import { rivalryName } from '../data/rivalries';
 
 type Scope = 'DISTRICT' | 'REGION' | 'ALL';
 
@@ -91,6 +92,9 @@ export const ScoreboardView: React.FC = () => {
         return week === currentWeek ? withFinal(row, g.gameId) : row;
       });
   };
+
+  // A rivalry game shows its name (the home team's name for it)
+  const rivalryOf = (r: ScoreRow) => rivalryName({ name: r.homeName, state: league?.state }, { name: r.awayName, state: league?.state });
 
   const inScope = (id: string) =>
     scope === 'ALL' ||
@@ -176,6 +180,7 @@ export const ScoreboardView: React.FC = () => {
                       <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>
                         {final ? 'Final' : 'Scheduled'}
                         {r.tag ? ` · ${r.tag}` : ''}
+                        {rivalryOf(r) && <span style={{ color: '#B91C1C', fontWeight: 700 }}> · 🔥 {rivalryOf(r)}</span>}
                       </div>
                     </div>
                   );

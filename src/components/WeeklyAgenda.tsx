@@ -24,7 +24,7 @@ import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { dilemmaChoiceEffects } from '../sim/dilemmaEngine';
 import { ChoiceEffects } from './ui/ChoiceEffects';
 import { ScoutingReport } from './ScoutingReport';
-import { gameStakes } from '../sim/talkPicker';
+import { gameStakes, specialNightLabel } from '../sim/talkPicker';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, seasonLength } from '../sim/league';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
@@ -38,6 +38,8 @@ import { gradesNeedReview } from '../sim/advanceGate';
 import { playerMention, playerTrouble, shortFromName, starsLabel } from '../utils/playerFormat';
 import { PlayerRow } from './ui/PlayerRow';
 import { playerRowProps } from './ui/playerRowProps';
+import { RIVALRY_WIN_PRESTIGE, isTrophyName, rivalryFor } from '../sim/rivalryEngine';
+import { rivalOf } from '../data/rivalries';
 
 /** Screens the Hub can send the coach to. */
 export type AgendaTab =
@@ -99,6 +101,8 @@ interface AgendaItem {
 const ACCENTS: Record<string, [string, string]> = {
   dilemma: ['#F59E0B', '#FEF3C7'],
   game: ['#2563EB', '#DBEAFE'],
+  rival: ['#B91C1C', '#FEE2E2'],
+  cup: ['#A16207', '#FEF3C7'],
   starters: ['#DC2626', '#FEE2E2'],
   warnings: ['#DC2626', '#FEE2E2'],
   practice: ['#7C3AED', '#EDE9FE'],
@@ -122,6 +126,48 @@ const accentFor = (item: AgendaItem): [string, string] => {
   if (item.tone === 'urgent') return ACCENTS.dilemma;
   return ACCENTS.info;
 };
+
+/** The game card's rivalry line: the series at this school, or whose rival the coach's school is. */
+function rivalryNote(team: Team, opponent: Team, rivalry: NonNullable<ReturnType<typeof rivalryFor>>): string {
+  const { wins, losses } = rivalry.series;
+  if (rivalry.theirs) {
+    const own = rivalOf(team)?.school;
+    return `${opponent.name} has circled this one: you're their rival.${own ? ` Yours is ${own}.` : ''}`;
+  }
+  if (wins + losses === 0) return `${opponent.name} ${opponent.mascot}. Your first ${rivalry.name}.`;
+  const standing = wins > losses ? 'lead' : wins < losses ? 'trail' : 'are even in';
+  return `${opponent.name} ${opponent.mascot}. You ${standing} the ${rivalry.name} ${wins}-${losses}.`;
+}
+
+/** Over a rivalry final: "🏆 THE JUBILEE CUP IS YOURS" or "THE JUBILEE CUP GOES TO FAIRHOPE". */
+function rivalryFinalKicker(name: string, won: boolean, opponent: string): string {
+  const upper = name.toUpperCase();
+  if (isTrophyName(name)) return won ? `🏆 THE ${upper} IS YOURS` : `THE ${upper} GOES TO ${opponent.toUpperCase()}`;
+  return won ? `🔥 ${upper}: YOURS` : `🔥 ${upper}: ${opponent.toUpperCase()}'S`;
+}
+
+/** What a rivalry win was worth (the boosters' cheer shows as Rating), and the series with this game in it. */
+const RivalryReward: React.FC<{ name: string; won: boolean; wins: number; losses: number }> = ({ name, won, wins, losses }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px', padding: '8px 10px', borderRadius: '10px', fontSize: '12.5px', ...(won ? { background: '#FEF3C7', color: '#713F12' } : { background: '#F1F5F9', color: '#475569' }) }}>
+    {won && (
+      <>
+        <div>
+          📣 The boosters are thrilled: <b>Rating +1</b>
+        </div>
+        <div>
+          ⭐ Bragging rights: <b>Prestige +{RIVALRY_WIN_PRESTIGE}</b>
+        </div>
+        {isTrophyName(name) && <div>🏆 {name} added to the Trophy Case</div>}
+      </>
+    )}
+    <div>
+      {won ? '📈' : '📉'} Series under you:{' '}
+      <b>
+        {wins}-{losses}
+      </b>
+    </div>
+  </div>
+);
 
 const TOP_PROSPECTS = 3;
 const TIRED = 55; // fatigue at which a starter is flagged (Tired and Exhausted, sim/training)
@@ -471,15 +517,20 @@ export const WeeklyAgenda: React.FC<{
         : currentWeek === FIRST_DISTRICT_WEEK
           ? `${stateRules.districtLabel} opener: ${openerRule}`
           : undefined;
-    // Homecoming, Senior Night or the rivalry game (the playoffs already name the round)
-    const night = game.isPlayoff ? null : (gameStakes(store)?.banner ?? null);
     const opp = game.opponent;
+    // A rivalry game says so, with the series under this coach (or whose rival the coach's school is)
+    const rivalry = rivalryFor(team, opp, store.rivalryLog);
+    // Homecoming or Senior Night (the playoffs already name the round, and the rivalry has its own label above)
+    const stakes = game.isPlayoff ? undefined : gameStakes(store);
+    const night = stakes ? specialNightLabel({ ...stakes, rivalry: stakes.rivalry && !rivalry }) : null;
+    const rivalryLine = rivalry && rivalryNote(team, opp, rivalry);
     headline = {
       id: 'game',
-      icon: game.isPlayoff ? '🏆' : '🏈',
+      icon: rivalry ? '🔥' : game.isPlayoff ? '🏆' : '🏈',
+      ...(rivalry && { kicker: `${game.isPlayoff ? 'RIVALRY GAME' : 'RIVALRY WEEK'} · ${rivalry.name.toUpperCase()}`, accent: 'rival' }),
       // A nationally ranked opponent carries its rank: "vs #18 Midland Legacy"
       title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${rankedName(opp, polls)} (${recordText(opp, playoffs)})`,
-      detail: [night, note].filter(Boolean).join(' · ') || undefined,
+      detail: [[night, note].filter(Boolean).join(' · '), rivalryLine].filter(Boolean).join('. ') || undefined,
       tone: 'todo',
       counted: true,
       // The film study, right here: no extra tap before choosing to play or sim
@@ -494,13 +545,19 @@ export const WeeklyAgenda: React.FC<{
       note: game.benched ?? 'Play: you set the game plan next. Sim: your staff picks it.'
     };
   } else if (game?.isPlayed && game.result) {
+    // A rivalry final: who has it now, what the win was worth, and the series with this game in it (counted once,
+    // whether or not the log has it yet)
+    const rivalry = rivalryFor(team, game.opponent, store.rivalryLog.filter((g) => !(g.year === currentYear && g.week === currentWeek)));
+    const won = game.result.startsWith('Won');
     headline = {
       id: 'game',
-      icon: game.isPlayoff ? '🏆' : '🏈',
+      icon: rivalry && won ? '🏆' : game.isPlayoff ? '🏆' : '🏈',
+      ...(rivalry && { kicker: rivalryFinalKicker(rivalry.name, won, game.opponent.name), accent: won ? 'cup' : 'info' }),
       title: game.result,
       detail: game.resultStands ? 'Played before this save was loaded. The result stands.' : "The final is in. Advance when you're ready.",
       tone: 'done',
-      counted: true
+      counted: true,
+      ...(rivalry && { content: <RivalryReward name={rivalry.name} won={won} wins={rivalry.series.wins + (won ? 1 : 0)} losses={rivalry.series.losses + (won ? 0 : 1)} /> })
     };
   } else if (phase === 'SPRING_EVALUATION') {
     if (currentWeek === 1) {
@@ -751,6 +808,7 @@ export const WeeklyAgenda: React.FC<{
           ...cardStyle,
           scrollMarginTop: 'calc(var(--topbar-h) + 12px)',
           borderLeft: `5px solid ${accent}`,
+          ...(item.accent === 'rival' && { background: 'linear-gradient(180deg, #FFF7F7 0, #FFFFFF 46px)' }),
           ...(urgent && { background: '#FFFBEB', outline: '2px solid #F59E0B' })
         }}
       >
@@ -759,7 +817,9 @@ export const WeeklyAgenda: React.FC<{
             {item.icon}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            {item.kicker && <div style={{ fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.03em', color: item.kickerDone ? '#15803D' : '#B45309' }}>{item.kicker}</div>}
+            {item.kicker && (
+              <div style={{ fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.03em', color: item.kickerDone ? '#15803D' : item.id === 'game' && item.accent ? accent : '#B45309' }}>{item.kicker}</div>
+            )}
             <div style={{ fontWeight: 800, fontSize: '14.5px', color: done && item.counted ? '#334155' : '#0F172A' }}>{item.title}</div>
             {item.detail && <div style={{ fontSize: '12.5px', color: '#475569', marginTop: '2px' }}>{item.detail}</div>}
           </div>

@@ -29,7 +29,7 @@ import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
 import { leagueRoundNames } from '../sim/playoffEngine';
 import { rulesForState } from '../sim/stateRules';
 import { Team } from '../types/game';
-import { isRivalryGame } from '../data/rivalries';
+import { rivalryName } from '../data/rivalries';
 import { specialNightLabel, specialNights } from '../sim/talkPicker';
 
 export const ScheduleView: React.FC = () => {
@@ -80,11 +80,8 @@ export const ScheduleView: React.FC = () => {
     const opponentScore = isHome ? scheduled?.awayScore : scheduled?.homeScore;
 
     const opponent = leagueTeams.find((t) => t.id === opponentId) ?? nationalLeagues.flatMap((l) => l.teams).find((t) => t.id === opponentId) ?? null;
-    // Homecoming, Senior Night and the rivalry game
-    const night =
-      scheduled && opponent
-        ? specialNightLabel({ ...specialNights([...seasonSchedule, ...interstateGames], userTeamId, scheduled.gameId), rivalry: isRivalryGame(userTeam, opponent) })
-        : null;
+    // Homecoming and Senior Night (a rivalry game shows its own name, below)
+    const night = scheduled && opponent ? specialNightLabel({ ...specialNights([...seasonSchedule, ...interstateGames], userTeamId, scheduled.gameId), rivalry: false }) : null;
     return {
       ...base,
       label: roundIndex >= 0 && roundIndex < playoffRounds ? ROUND_LABELS[leagueRounds[roundIndex]] : (night ?? undefined),
@@ -109,7 +106,10 @@ export const ScheduleView: React.FC = () => {
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {schedule.map((game, i) => (
+        {schedule.map((game, i) => {
+          // A rivalry game carries its name and a red edge
+          const rivalry = game.opponent ? rivalryName(userTeam, game.opponent) : undefined;
+          return (
           <React.Fragment key={game.week}>
             {/* A header where each phase begins */}
             {(i === 0 || schedule[i - 1].type !== game.type) && (
@@ -126,8 +126,9 @@ export const ScheduleView: React.FC = () => {
             <div
               style={{
                 padding: '10px 12px',
-                background: game.isCurrent ? '#EFF6FF' : '#fff',
-                border: game.isCurrent ? '2px solid #3B82F6' : '1px solid #E2E8F0',
+                background: game.isCurrent ? (rivalry ? '#FFF7F7' : '#EFF6FF') : '#fff',
+                border: game.isCurrent ? `2px solid ${rivalry ? '#B91C1C' : '#3B82F6'}` : '1px solid #E2E8F0',
+                ...(rivalry && { borderLeft: '5px solid #B91C1C' }),
                 borderRadius: '10px'
               }}
             >
@@ -135,6 +136,7 @@ export const ScheduleView: React.FC = () => {
                 <span style={{ fontSize: '14px' }}>
                   <strong>Week {game.week}</strong>
                   {game.label && <span style={{ color: '#475569', fontSize: '13px' }}> · {game.label}</span>}
+                  {rivalry && <span style={rivalryTag}>🔥 {rivalry}</span>}
                 </span>
                 {game.result && <strong style={{ color: game.result.startsWith('W') ? '#059669' : '#DC2626', fontSize: '14px' }}>{game.result}</strong>}
               </div>
@@ -164,8 +166,21 @@ export const ScheduleView: React.FC = () => {
               )}
             </div>
           </React.Fragment>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
+};
+
+const rivalryTag: React.CSSProperties = {
+  display: 'inline-block',
+  marginLeft: '6px',
+  fontSize: '10.5px',
+  fontWeight: 800,
+  borderRadius: '999px',
+  padding: '1px 7px',
+  background: '#FEE2E2',
+  color: '#7F1D1D',
+  verticalAlign: '1px'
 };
