@@ -136,7 +136,7 @@ export const ScheduleView: React.FC = () => {
                 <span style={{ fontSize: '14px' }}>
                   <strong>Week {game.week}</strong>
                   {game.label && <span style={{ color: '#475569', fontSize: '13px' }}> · {game.label}</span>}
-                  {rivalry && <span style={rivalryTag}>🔥 {rivalry}</span>}
+                  {rivalry && <span style={rivalryTag}>⚔️ {rivalry}</span>}
                 </span>
                 {game.result && <strong style={{ color: game.result.startsWith('W') ? '#059669' : '#DC2626', fontSize: '14px' }}>{game.result}</strong>}
               </div>

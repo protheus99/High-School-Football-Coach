@@ -120,7 +120,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
         <div style={{ fontSize: '13px', color: '#7F1D1D', background: '#FFF5F5', border: '1px solid #FECACA', borderRadius: '8px', padding: '6px 10px', marginBottom: '12px' }}>
           {rival && (
             <div>
-              🔥 Rival:{' '}
+              ⚔️ Rival:{' '}
               {rivalTeam ? (
                 <button onClick={() => openTeamProfile(rivalTeam.id)} style={{ ...linkBtn, color: '#7F1D1D' }}>
                   {rival.school}
@@ -155,7 +155,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
                 'TBD'
               )}
               {g.label && <span style={{ color: '#64748B', fontSize: '12px' }}> · {g.label}</span>}
-              {g.opponent && rivalryName(team, g.opponent) && <span style={{ color: '#B91C1C', fontSize: '12px', fontWeight: 700 }}> · 🔥 {rivalryName(team, g.opponent)}</span>}
+              {g.opponent && rivalryName(team, g.opponent) && <span style={{ color: '#B91C1C', fontSize: '12px', fontWeight: 700 }}> · ⚔️ {rivalryName(team, g.opponent)}</span>}
             </span>
             <strong style={{ whiteSpace: 'nowrap', color: g.won === undefined ? '#94A3B8' : g.won ? '#059669' : '#DC2626' }}>
               {g.won === undefined ? '—' : `${g.won ? 'W' : 'L'} ${g.result}`}

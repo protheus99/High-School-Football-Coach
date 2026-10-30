@@ -143,7 +143,7 @@ function rivalryNote(team: Team, opponent: Team, rivalry: NonNullable<ReturnType
 function rivalryFinalKicker(name: string, won: boolean, opponent: string): string {
   const upper = name.toUpperCase();
   if (isTrophyName(name)) return won ? `🏆 THE ${upper} IS YOURS` : `THE ${upper} GOES TO ${opponent.toUpperCase()}`;
-  return won ? `🔥 ${upper}: YOURS` : `🔥 ${upper}: ${opponent.toUpperCase()}'S`;
+  return won ? `⚔️ ${upper}: YOURS` : `⚔️ ${upper}: ${opponent.toUpperCase()}'S`;
 }
 
 /** What a rivalry win was worth (the boosters' cheer shows as Rating), and the series with this game in it. */
@@ -526,7 +526,7 @@ export const WeeklyAgenda: React.FC<{
     const rivalryLine = rivalry && rivalryNote(team, opp, rivalry);
     headline = {
       id: 'game',
-      icon: rivalry ? '🔥' : game.isPlayoff ? '🏆' : '🏈',
+      icon: rivalry ? '⚔️' : game.isPlayoff ? '🏆' : '🏈',
       ...(rivalry && { kicker: `${game.isPlayoff ? 'RIVALRY GAME' : 'RIVALRY WEEK'} · ${rivalry.name.toUpperCase()}`, accent: 'rival' }),
       // A nationally ranked opponent carries its rank: "vs #18 Midland Legacy"
       title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${rankedName(opp, polls)} (${recordText(opp, playoffs)})`,

@@ -12,7 +12,7 @@ const STYLE: Record<NewsCategory, { icon: string; label: string; tint: string; c
 };
 
 // A rivalry game's stories (the week's preview, the final) stand out with a flame
-const RIVALRY_STYLE = { icon: '🔥', label: 'RIVALRY', tint: '#FEE2E2', color: '#B91C1C', target: 'NEWS' as AgendaTab };
+const RIVALRY_STYLE = { icon: '⚔️', label: 'RIVALRY', tint: '#FEE2E2', color: '#B91C1C', target: 'NEWS' as AgendaTab };
 
 const MAX_HEADLINES = 5;
 const DETAIL_LENGTH = 110;

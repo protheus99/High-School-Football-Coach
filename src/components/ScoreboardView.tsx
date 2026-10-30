@@ -180,7 +180,7 @@ export const ScoreboardView: React.FC = () => {
                       <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>
                         {final ? 'Final' : 'Scheduled'}
                         {r.tag ? ` · ${r.tag}` : ''}
-                        {rivalryOf(r) && <span style={{ color: '#B91C1C', fontWeight: 700 }}> · 🔥 {rivalryOf(r)}</span>}
+                        {rivalryOf(r) && <span style={{ color: '#B91C1C', fontWeight: 700 }}> · ⚔️ {rivalryOf(r)}</span>}
                       </div>
                     </div>
                   );

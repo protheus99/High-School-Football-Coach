@@ -62,7 +62,7 @@ export const AroundTheState: React.FC = () => {
                   <span style={{ fontVariantNumeric: 'tabular-nums' }}>{side === 'home' ? g.homeScore : g.awayScore}</span>
                 </div>
               ))}
-              {rivalry && <div style={{ fontSize: '11px', fontWeight: 700, color: '#B91C1C', marginTop: '1px' }}>🔥 {rivalry}</div>}
+              {rivalry && <div style={{ fontSize: '11px', fontWeight: 700, color: '#B91C1C', marginTop: '1px' }}>⚔️ {rivalry}</div>}
             </div>
             {/* A fixed column, so the scores line up whatever the tag */}
             <span style={{ flex: '0 0 74px', textAlign: 'right' }}>

@@ -31,7 +31,7 @@ export const TrophyCase: React.FC<{ trophies: TrophyRecord[]; collegeSignees: nu
           {trophies.map((t, idx) => (
             <div key={idx} style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: '10px', padding: '10px' }}>
               <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#B45309' }}>
-                {t.type === 'STATE_CHAMPIONSHIP' ? '👑 State Champions' : t.type === 'RIVALRY_BELL' ? `${isTrophyName(t.name) ? '🏆' : '🔥'} ${t.name}` : t.name}
+                {t.type === 'STATE_CHAMPIONSHIP' ? '👑 State Champions' : t.type === 'RIVALRY_BELL' ? `${isTrophyName(t.name) ? '🏆' : '⚔️'} ${t.name}` : t.name}
               </div>
               <div style={{ fontSize: '13px', color: '#4B5563' }}>
                 Season {t.year}

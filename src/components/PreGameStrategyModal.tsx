@@ -83,7 +83,7 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({ user
           {stakes?.banner && <div style={banner}>{rivalry ? stakes.banner.replace('Rivalry game', `Rivalry game: ${rivalry.name}`) : stakes.banner}</div>}
           {rivalry && (
             <div style={{ display: 'flex', gap: '8px', padding: '8px 10px', borderRadius: '10px', border: '1px solid #FECACA', background: '#FFF5F5', fontSize: '12.5px', color: '#7F1D1D' }}>
-              <span aria-hidden="true">🔥</span>
+              <span aria-hidden="true">⚔️</span>
               <span>
                 {rivalry.theirs
                   ? `${opponentTeam.name}'s rivalry game: they'll be fired up.`
