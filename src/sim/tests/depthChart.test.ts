@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateDistrictTeams } from '../../generators/rosterGenerator';
 import { generateProceduralPlayer } from '../../generators/rosterGenerator';
-import { DEFENSE_POSITIONS, OFFENSE_POSITIONS, depthChartName, depthGroup, moveInDepthChart, normalizeDepthChart, promoteToStarter, rebuildDepthChart, setDepthTier } from '../depthChart';
+import { DEFENSE_POSITIONS, OFFENSE_POSITIONS, depthGroup, moveInDepthChart, normalizeDepthChart, promoteToStarter, rebuildDepthChart, setDepthTier } from '../depthChart';
 import { getPositionGroup } from '../matchEngine';
 
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
@@ -16,14 +16,6 @@ function teamWithTackles(count: number) {
 }
 
 describe('Depth chart', () => {
-  it('labels players as first initial, last name and rating', () => {
-    const p = generateProceduralPlayer('QB', 'Senior');
-    p.firstName = 'Jalen';
-    p.lastName = 'Leconte';
-    p.overallRating = 99;
-    expect(depthChartName(p)).toBe('J, Leconte (99)');
-  });
-
   it('orders by rating into 1st, 2nd and 3rd strings', () => {
     const team = teamWithTackles(6);
     const tackles = depthGroup(team.roster, 'OT');

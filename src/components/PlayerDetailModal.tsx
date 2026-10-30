@@ -4,7 +4,10 @@ import { Sheet } from './ui/Sheet';
 import { formatPercent } from '../utils/format';
 import { TIER_LABELS, recruitingStatus, sortedOffers } from '../sim/collegeRecruitingEngine';
 import { careerTotals, positionStatLines } from '../sim/playerStats';
-import { FatigueChip } from './ui/FatigueChip';
+import { rulesForState } from '../sim/stateRules';
+import { useGameStore } from '../store/gameStore';
+import { PlayerTrouble, STRING_LABELS, fullName, playerTrouble, starsLabel } from '../utils/playerFormat';
+import { FatigueNote, LockedTile, OvrTile, PosChip, PotentialGrade } from './ui/PlayerRow';
 
 interface PlayerDetailModalProps {
   player: Player;
@@ -15,8 +18,25 @@ interface PlayerDetailModalProps {
   onOpenRecruiting?: () => void; // your own junior or senior: his page in College recruiting
 }
 
-const STRING_LABELS: Record<DepthChartTier, string> = { 1: '1st String', 2: '2nd String', 3: '3rd String' };
 const stars = (n: number) => (n > 0 ? '★'.repeat(n) + '☆'.repeat(5 - n) : 'Unrated');
+
+/** The trouble banner: what it means for Friday. */
+const troubleBanner = (p: Player, t: PlayerTrouble) => {
+  const weeks = p.condition.injuryWeeksRemaining;
+  const games = `${weeks} ${weeks === 1 ? 'game' : 'games'}`;
+  switch (t.kind) {
+    case 'INELIGIBLE':
+      return `${t.icon} Ineligible: GPA ${p.academics.gpa.toFixed(2)}. He sits until his grades recover.`;
+    case 'SUSPENDED':
+      return `${t.icon} Suspended for ${games}. The next man up plays.`;
+    case 'SEASON_ENDING':
+      return `${t.icon} Out for the season.`;
+    case 'INJURED':
+      return `${t.icon} Injured: out ${weeks} ${weeks === 1 ? 'week' : 'weeks'}. The next man up plays.`;
+    case 'GPA_RISK':
+      return `${t.icon} GPA ${p.academics.gpa.toFixed(2)}: close to the line. Still eligible.`;
+  }
+};
 
 /**
  * The player card, the same from every screen (depth chart, roster, leaders, other teams' pages, feeders): who he
@@ -25,7 +45,8 @@ const stars = (n: number) => (n > 0 ? '★'.repeat(n) + '☆'.repeat(5 - n) : 'U
  * controls and their family; other teams' players show only what's public.
  */
 export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p, onClose, isOwnPlayer, teamName, onSetString, onOpenRecruiting }) => {
-  const injured = p.condition.injuryStatus !== 'HEALTHY';
+  const userState = useGameStore((s) => s.districtTeams.find((t) => t.id === s.userTeamId)?.state);
+  const trouble = isOwnPlayer ? playerTrouble(p, rulesForState(userState).academics.atRiskGpa) : null;
   const status = recruitingStatus(p);
   const offers = sortedOffers(p);
   const career = careerTotals(p);
@@ -33,8 +54,30 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
 
   return (
     <Sheet
-      title={`${p.firstName} ${p.lastName}`}
-      subtitle={`${p.position} · ${p.classYear} (age ${p.age})${teamName ? ` · ${teamName}` : ''}`}
+      title={
+        <span className="pl-head">
+          {isOwnPlayer ? <OvrTile ovr={p.overallRating} large /> : <LockedTile />}
+          <span style={{ minWidth: 0 }}>
+            <span className="pl-line1" style={{ flexWrap: 'wrap' }}>
+              <PosChip pos={p.position} />
+              <span className="pl-name">{fullName(p)}</span>
+              {p.recruiting.starRating > 0 && <span className="pl-stars">{starsLabel(p.recruiting.starRating)}</span>}
+            </span>
+            <span className="pl-head-meta">
+              {p.classYear}
+              {isOwnPlayer && (
+                <>
+                  {' · '}
+                  {STRING_LABELS[p.depthChartTier]}
+                  {' · '}
+                  <PotentialGrade grade={p.potential} />
+                </>
+              )}
+            </span>
+            {teamName && <span className="pl-head-meta">{teamName}</span>}
+          </span>
+        </span>
+      }
       onClose={onClose}
       footer={
         <button className="ui-btn ui-btn-primary ui-btn-block" onClick={onClose}>
@@ -42,12 +85,8 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
         </button>
       }
     >
-      {/* The essentials */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '12px' }}>
-        <Tile label="Stars" value={<span style={{ color: '#B45309', letterSpacing: '1px' }}>{stars(p.recruiting.starRating)}</span>} small />
-        <Tile label="Overall" value={isOwnPlayer ? p.overallRating : '🔒'} tone={isOwnPlayer ? '#2563EB' : undefined} />
-        <Tile label="Potential" value={isOwnPlayer ? p.potential : '🔒'} />
-      </div>
+      {/* Trouble in plain words: what it means for Friday */}
+      {trouble && <div className={`pl-banner ${trouble.tone === 'out' ? 'pl-chip-out' : 'pl-chip-warn'}`}>{troubleBanner(p, trouble)}</div>}
 
       {isOwnPlayer ? (
         <>
@@ -59,18 +98,16 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
             <div>
               <dt>Fatigue</dt>
               <dd>
-                <FatigueChip fatigue={p.condition.seasonWear} />
+                <FatigueNote fatigue={p.condition.seasonWear} />
               </dd>
             </div>
             <div>
               <dt>GPA</dt>
-              <dd style={{ color: p.academics.gpa < 2 ? '#DC2626' : undefined }}>{p.academics.gpa.toFixed(2)}</dd>
+              <dd>{p.academics.gpa.toFixed(2)}</dd>
             </div>
             <div>
-              <dt>Eligibility</dt>
-              <dd style={{ color: !p.academics.isEligible || injured ? '#DC2626' : '#15803D' }}>
-                {!p.academics.isEligible ? 'Ineligible (grades)' : injured ? `Injured, ${p.condition.injuryWeeksRemaining} wk` : 'Eligible'}
-              </dd>
+              <dt>Stars</dt>
+              <dd>{stars(p.recruiting.starRating)}</dd>
             </div>
           </dl>
 
@@ -152,13 +189,6 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({ player: p,
     </Sheet>
   );
 };
-
-const Tile: React.FC<{ label: string; value: React.ReactNode; tone?: string; small?: boolean }> = ({ label, value, tone, small }) => (
-  <div style={{ background: '#F1F5F9', borderRadius: '10px', padding: '8px 6px', textAlign: 'center' }}>
-    <div style={{ fontSize: '12px', color: '#475569' }}>{label}</div>
-    <div style={{ fontWeight: 'bold', fontSize: small ? '14px' : '20px', color: tone ?? '#0F172A', whiteSpace: 'nowrap', lineHeight: 1.4 }}>{value}</div>
-  </div>
-);
 
 const StatLines: React.FC<{ lines: [string, string][] }> = ({ lines }) => (
   <div style={{ fontSize: '13px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 12px', marginBottom: '10px' }}>

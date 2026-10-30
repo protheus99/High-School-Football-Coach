@@ -3,7 +3,8 @@ import { useScrollTopOnScreenChange } from "../utils/pageScroll";
 import { useGameStore } from "../store/gameStore";
 import { collegeActionCost } from "../sim/coachPoints";
 import { Player, Team } from "../types/game";
-import { DataList } from "./ui/DataList";
+import { PlayerRow } from "./ui/PlayerRow";
+import { playerRowProps } from "./ui/playerRowProps";
 import { CollegeDirectory } from "./CollegeDirectory";
 import { collegeWithConference } from "../data/colleges";
 import {
@@ -19,6 +20,7 @@ import {
   recruitingStatus,
   sortedOffers,
 } from "../sim/collegeRecruitingEngine";
+import { rulesForState } from "../sim/stateRules";
 
 const ACTIONS: {
   action: CollegeAction;
@@ -51,7 +53,6 @@ const byStock = (a: Player, b: Player) =>
   b.recruiting.starRating - a.recruiting.starRating ||
   recruitScore(b) - recruitScore(a);
 
-const stars = (n: number) => (n > 0 ? "★".repeat(n) : "—");
 
 type Stage = "NO_OFFERS" | "UNCOMMITTED" | "COMMITTED";
 /** Where a recruit stands: committed (or signed), offers but still choosing, or no offer yet. */
@@ -339,60 +340,26 @@ export const CollegeRecruitingView: React.FC<{
           >
             Top Senior Recruits in the State
           </h3>
-          <DataList
-            rows={statewide.map((row, i) => ({ ...row, rank: i + 1 }))}
-            rowKey={(r) => r.player.id}
-            rowTone={(r) => (r.team.id === userTeamId ? "#EFF6FF" : undefined)}
-            columns={[
-              {
-                key: "rank",
-                label: "#",
-                badge: true,
-                render: (r) => `#${r.rank}`,
-              },
-              {
-                key: "player",
-                label: "Player",
-                primary: true,
-                render: (r) => (
-                  <>
-                    {r.player.firstName} {r.player.lastName}{" "}
-                    <span
-                      style={{
-                        color: "#64748B",
-                        fontWeight: "normal",
-                        fontSize: "13px",
-                      }}
-                    >
-                      {r.player.position}
-                    </span>
-                  </>
-                ),
-              },
-              { key: "school", label: "School", render: (r) => r.team.name },
-              {
-                key: "stars",
-                label: "Stars",
-                render: (r) => (
-                  <span style={{ color: "#B45309" }}>
-                    {stars(r.player.recruiting.starRating)}
-                  </span>
-                ),
-              },
-              {
-                key: "status",
-                label: "Status",
-                render: (r) => {
-                  const status = recruitingStatus(r.player);
-                  return (
-                    <span style={{ color: status.color, fontWeight: "bold" }}>
+          <div className="pl-list">
+            {statewide.map((r, i) => {
+              const status = recruitingStatus(r.player);
+              const mine = r.team.id === userTeamId;
+              return (
+                <PlayerRow
+                  key={r.player.id}
+                  {...playerRowProps(r.player, { own: mine, noString: true, noPotential: true, extra: [r.team.name] })}
+                  trouble={null}
+                  rank={i + 1}
+                  tone={mine ? "mine" : undefined}
+                  right={
+                    <span style={{ color: status.color, fontWeight: "bold", fontSize: "12.5px", maxWidth: "120px" }}>
                       {status.label}
                     </span>
-                  );
-                },
-              },
-            ]}
-          />
+                  }
+                />
+              );
+            })}
+          </div>
         </>
       )}
     </div>
@@ -458,15 +425,14 @@ const RecruitRow: React.FC<{
               gap: "8px",
             }}
           >
-            <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-              <strong>
-                {p.firstName} {p.lastName}
-              </strong>{" "}
-              <span style={{ color: "#64748B", fontSize: "12px" }}>
-                {p.position} · {p.classYear} · {p.overallRating} OVR · GPA{" "}
-                {p.academics.gpa.toFixed(1)}
-              </span>
-            </div>
+            <PlayerRow
+              {...playerRowProps(p, {
+                atRiskGpa: rulesForState(team.state).academics.atRiskGpa,
+                noString: true,
+                extra: [`GPA ${p.academics.gpa.toFixed(2)}`],
+              })}
+              className="pl-row-bare"
+            />
             <button
               onClick={onToggleList}
               aria-pressed={onList}
@@ -488,14 +454,10 @@ const RecruitRow: React.FC<{
             </button>
           </div>
           <div style={{ fontSize: "12px" }}>
-            <span style={{ color: "#B45309", fontWeight: "bold" }}>
-              {stars(r.starRating)}
-            </span>
             <span
               style={{
                 color: status.color,
                 fontWeight: "bold",
-                marginLeft: "8px",
               }}
             >
               {status.label}

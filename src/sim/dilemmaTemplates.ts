@@ -4,6 +4,7 @@ import { isAcademicallyAtRisk } from './playerEngine';
 import { FIRST_DISTRICT_WEEK, FIRST_NON_DISTRICT_WEEK, FIRST_TRAINING_CAMP_WEEK, LAST_REGULAR_SEASON_WEEK, LAST_TRAINING_CAMP_WEEK } from './scheduleEngine';
 import { randomPlayerName } from '../generators/names';
 import { randomInt } from './math/variance';
+import { playerMention, shortName } from '../utils/playerFormat';
 
 // ---------------------------------------------------------------------------
 // The weekly dilemma library (design spec 12-13): 49 scenarios with Good / Compromise / Risky /
@@ -51,9 +52,10 @@ const whenPlayer = (condition: boolean, player: Player | undefined): Player | nu
 const pickStarter = (team: Team, positions?: Position[]) => pick(starters(team).filter((p) => !positions || positions.includes(p.position)));
 const bestStarter = (team: Team) => [...starters(team)].sort((a, b) => b.overallRating - a.overallRating)[0];
 const SKILL: Position[] = ['QB', 'RB', 'WR', 'TE', 'CB', 'S', 'LB'];
-/** How a player is named in a dilemma: position, #last name and rating, e.g. OT #Kincaid(75). */
-const name = (p: Player) => `${p.position} #${tag(p)}`;
-const tag = (p: Player) => `${p.lastName}(${p.overallRating})`;
+/** How a player is named in a dilemma: position, name and rating, e.g. OT M. Kincaid (75 OVR). */
+const name = (p: Player) => `${playerMention(p)} (${p.overallRating} OVR)`;
+/** Before an apostrophe: "OT M. Kincaid's mother" (no rating in the middle of a possessive). */
+const who = (p: Player) => playerMention(p);
 
 export const TEMPLATES: DilemmaTemplate[] = [
   // -------------------------------------------------------------------------
@@ -65,7 +67,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => (isReportCardWeek(week) ? starters(team).find((p) => p.academics.gpa < 2.3) ?? null : null),
     build: (_team, _week, player) => ({
       title: 'Midterm Grade Crisis',
-      scenario: `Star ${player!.position} #${tag(player!)} is failing Algebra right before Friday's matchup. The math teacher asks if you want to intervene.`,
+      scenario: `Star ${name(player!)} is failing Algebra right before Friday's matchup. The math teacher asks if you want to intervene.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_good', label: 'Enforce "No Pass, No Play" (Bench Him)', description: 'Uphold school integrity. He sits until his grades recover.', tier: 'GOOD',
@@ -170,7 +172,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(isPreseasonOrCamp(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Missing Physical Paperwork',
-      scenario: `${name(player!)}'s pre-participation physical form never made it to the athletic office. Without it he cannot practice, and the deadline is today.`,
+      scenario: `${who(player!)}'s pre-participation physical form never made it to the athletic office. Without it he cannot practice, and the deadline is today.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_hold', label: 'Hold Him Out Until the Form Arrives', description: 'Rules are rules. He misses a week of camp.', tier: 'GOOD',
@@ -194,7 +196,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), team.roster.find((p) => p.parent.archetype === 'DEMANDING_BOOSTER' && p.depthChartTier !== 1)),
     build: (_team, _week, player) => ({
       title: 'Booster Headset Funding Threat',
-      scenario: `An influential booster is furious that his son (#${tag(player!)}) is on the bench and threatens to revoke funding for new digital sideline headsets.`,
+      scenario: `An influential booster is furious that his son, ${name(player!)}, is on the bench and threatens to revoke funding for new digital sideline headsets.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_refuse', label: 'Refuse: "Play the Best Athletes"', description: 'Preserve locker room meritocracy. The donor pulls the headsets and you replace them.', tier: 'GOOD',
@@ -314,7 +316,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => (isDistrictPlay(week) ? starters(team).filter((p) => p.overallRating >= 70).sort((a, b) => b.overallRating - a.overallRating)[0] ?? null : null),
     build: (_team, _week, player) => ({
       title: 'Trash Talk Before a Rivalry Game',
-      scenario: `Your best player, ${player!.position} #${tag(player!)}, posted a video mocking this week's opponent. It already has 40,000 views and the rival coach has called the AD.`,
+      scenario: `Your best player, ${name(player!)}, posted a video mocking this week's opponent. It already has 40,000 views and the rival coach has called the AD.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_suspend', label: 'Bench Him for the Game', description: 'Sends a message about sportsmanship.', tier: 'GOOD',
@@ -478,7 +480,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => (isGameWeek(week) ? pick(starters(team).filter((p) => p.position !== 'K' && p.position !== 'P')) ?? null : null),
     build: (_team, _week, player) => ({
       title: 'Concussion Protocol',
-      scenario: `${player!.position} #${tag(player!)} took a helmet-to-helmet hit in practice and is showing mild symptoms. The athletic trainer wants him held out.`,
+      scenario: `${name(player!)} took a helmet-to-helmet hit in practice and is showing mild symptoms. The athletic trainer wants him held out.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_protocol', label: 'Follow Protocol: Sit Him Two Weeks', description: 'Player safety first.', tier: 'GOOD',
@@ -517,7 +519,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team, ['RB', 'LB', 'DE', 'DT', 'OT', 'OG', 'C'])),
     build: (_team, _week, player) => ({
       title: 'Painkillers in the Locker Room',
-      scenario: `The trainer found prescription painkillers in ${name(player!)}'s locker. They are his older brother's. He says his shoulder has hurt for weeks.`,
+      scenario: `The trainer found prescription painkillers in ${who(player!)}'s locker. They are his older brother's. He says his shoulder has hurt for weeks.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_medical', label: 'Notify His Parents and Get an MRI', description: 'He is likely out a few weeks. It could save his shoulder.', tier: 'GOOD',
@@ -807,7 +809,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week), team.roster.find((p) => p.parent.archetype === 'HELICOPTER' && p.depthChartTier !== 1)),
     build: (_team, _week, player) => ({
       title: 'Helicopter Parent Conference',
-      scenario: `#${tag(player!)}'s mother has emailed the principal three times this week demanding to know why her son isn't starting at ${player!.position}.`,
+      scenario: `${who(player!)}'s mother has emailed the principal three times this week demanding to know why her son isn't starting at ${player!.position}.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_firm', label: 'Stand Firm and Back Your Staff', description: 'Your locker room respects the call. The principal meetings eat your week.', tier: 'GOOD',
@@ -884,7 +886,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(isFootballSeason(week) && week <= FIRST_NON_DISTRICT_WEEK + 3, pick(team.roster.filter((p) => p.overallRating >= 72 && p.classYear !== 'Senior'))),
     build: (_team, _week, player) => ({
       title: 'Star Wants to Transfer to a Rival',
-      scenario: `${name(player!)}'s father says his son is transferring to a district rival unless he is promised the starting job and a featured role. Rival boosters may be involved.`,
+      scenario: `${who(player!)}'s father says his son is transferring to a district rival unless he is promised the starting job and a featured role. Rival boosters may be involved.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_let_go', label: 'Wish Him Well and Report the Contact', description: 'Nobody is bigger than the program.', tier: 'GOOD',
@@ -994,7 +996,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
       const starter = starters(team).find((p) => p.position === 'QB');
       return {
         title: 'Quarterback Controversy',
-        scenario: `Fans are calling for backup QB #${tag(player!)}, a ${player!.classYear.toLowerCase()}, to replace ${starter ? `senior leader #${tag(starter)}` : 'the starter'}. The locker room is split.`,
+        scenario: `Fans are calling for backup ${name(player!)}, a ${player!.classYear.toLowerCase()}, to replace ${starter ? `senior leader ${name(starter)}` : 'the starter'}. The locker room is split.`,
         involvedPlayerId: player!.id,
         choices: [
           { id: 'opt_open', label: 'Open Competition in Practice This Week', description: 'The better quarterback earns it. Splitting reps costs your starters practice time.', tier: 'GOOD',
@@ -1059,7 +1061,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(isPreseasonOrCamp(week), bestStarter(team)),
     build: (_team, _week, player) => ({
       title: 'Captain Vote Goes Sideways',
-      scenario: `The team voted for captains. Your best player, ${name(player!)}, lost to a backup lineman everyone loves. ${player!.lastName}'s family is upset and blaming the staff.`,
+      scenario: `The team voted for captains. Your best player, ${name(player!)}, lost to a backup lineman everyone loves. ${shortName(player!)}'s family is upset and blaming the staff.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_respect', label: 'Respect the Vote', description: 'Leadership is earned in the locker room. His family pulls a pledge.', tier: 'GOOD',
@@ -1255,7 +1257,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(week >= 3, pickStarter(team)),
     build: (_team, _week, player) => ({
       title: 'His Sister Is Being Harassed',
-      scenario: `${name(player!)}'s sister tells you students are harassing her over something he did at school. He asks you not to get involved.`,
+      scenario: `${who(player!)}'s sister tells you students are harassing her over something he did at school. He asks you not to get involved.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_school', label: 'Work With the School to Stop It, Respecting His Privacy', description: 'His family is protected. It takes real time with counselors and administrators.', tier: 'GOOD',
@@ -1294,7 +1296,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(isPlayoffs(week), pickStarter(team)),
     build: (_team, _week, player) => ({
       title: "Can't Afford the Playoff Trip",
-      scenario: `${name(player!)}'s family can't pay the playoff travel fee. He says he'll just stay home so nobody finds out.`,
+      scenario: `${who(player!)}'s family can't pay the playoff travel fee. He says he'll just stay home so nobody finds out.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_fund', label: 'Cover It Through the School Assistance Fund', description: 'He travels with dignity. You add to the fund so the next student is covered.', tier: 'GOOD',
@@ -1333,7 +1335,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(week >= 3, pick(starters(team).filter((p) => p.academics.gpa < 2.6 && (p.classYear === 'Junior' || p.classYear === 'Senior')))),
     build: (_team, _week, player) => ({
       title: 'A Parent Wants the Truth',
-      scenario: `${name(player!)}'s mother asks whether he will play college football. He has talent, but his grades are poor and he shows little interest in schoolwork.`,
+      scenario: `${who(player!)}'s mother asks whether he will play college football. He has talent, but his grades are poor and he shows little interest in schoolwork.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_honest', label: 'Give an Honest Assessment and Offer an Academic Plan', description: 'The family can act early. You pay for the tutoring plan.', tier: 'GOOD',
@@ -1450,7 +1452,7 @@ export const TEMPLATES: DilemmaTemplate[] = [
     appliesTo: (team, week) => whenPlayer(isGameWeek(week), pickStarter(team, ['QB', 'RB', 'WR', 'TE', 'LB', 'CB', 'S', 'DE', 'DT', 'OT', 'OG', 'C'])),
     build: (_team, _week, player) => ({
       title: 'Damaged Helmets',
-      scenario: `The day before the game, you find damaged padding in several helmets, including ${name(player!)}'s. Replacements won't arrive until next week.`,
+      scenario: `The day before the game, you find damaged padding in several helmets, including ${who(player!)}'s. Replacements won't arrive until next week.`,
       involvedPlayerId: player!.id,
       choices: [
         { id: 'opt_hold_out', label: 'Hold the Affected Players Out', description: 'Nobody plays in an unsafe helmet. You lose a starter for the game.', tier: 'GOOD',

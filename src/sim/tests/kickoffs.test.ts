@@ -117,9 +117,9 @@ describe('A fumbled second-half kickoff', () => {
 
   it('is a turnover on the play, recovered by the kicking team', () => {
     const { state, before, event } = fumbledHalftimeKickoff();
-    // The returner's name can have a suffix ("#Moore Jr."), and a school name can hold regex characters
+    // The returner's name can have a suffix ("Moore Jr."), and a school name can hold regex characters
     const school = state.homeTeam.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    expect(event.textCommentary).toMatch(new RegExp(`HALFTIME\\. #.+? FUMBLES the kickoff return! ${school} recovers!`));
+    expect(event.textCommentary).toMatch(new RegExp(`HALFTIME\\. .+? FUMBLES the kickoff return! ${school} recovers!`));
     expect(event.isTurnover).toBe(true);
     expect(event.turnoverType).toBe('KICKOFF_FUMBLE');
     expect(state.possessionTeamId).toBe(state.homeTeam.id);
@@ -151,7 +151,7 @@ describe('A fumbled second-half kickoff', () => {
       Object.assign(state, { down: 1, distance: 10, yardLine: 25, openingPossessionTeamId: undefined, weather: 'HEAVY_RAIN' });
       for (let snap = 0; snap < 500 && !state.isGameOver; snap++) {
         const { event } = simulateSnap(state);
-        if (!/HALFTIME\. #.+? FUMBLES the kickoff return/.test(event.textCommentary)) continue;
+        if (!/HALFTIME\. .+? FUMBLES the kickoff return/.test(event.textCommentary)) continue;
         fumbles++;
         expect(event.isTurnover).toBe(true);
         if (/INTERCEPTED|FUMBLE! |MUFFED|Turnover on downs|Field Goal attempt is NO GOOD|BLOCKED/.test(event.textCommentary)) {

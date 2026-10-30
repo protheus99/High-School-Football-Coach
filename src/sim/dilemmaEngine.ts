@@ -4,6 +4,7 @@ import { promoteToStarter, rebuildDepthChart } from './depthChart';
 import { TEMPLATES, pick, starters } from './dilemmaTemplates';
 import { rulesForState } from './stateRules';
 import { gameBallSkill } from './postGame';
+import { playerMention } from '../utils/playerFormat';
 
 // Design spec 12-13: weekly narrative dilemmas with Good / Compromise / Risky / Corrupt choices (library in dilemmaTemplates.ts)
 const DILEMMA_CHANCE = 0.3; // not every week brings a crisis: about 3 weeks in 10
@@ -63,7 +64,7 @@ export function dilemmaChoiceEffects(choice: DilemmaChoice, userTeam: Team): Cho
   const { impact } = choice;
   const name = (id: string) => {
     const p = userTeam.roster.find((pl) => pl.id === id);
-    return p ? `${p.position} ${p.lastName}` : 'A player';
+    return p ? playerMention(p) : 'A player';
   };
   // Rating is the average of the four background meters
   const rating = Math.round((impact.schoolBoardTrustDelta + impact.boosterApprovalDelta + impact.lockerRoomDisciplineDelta + impact.complianceScoreDelta) / 4);

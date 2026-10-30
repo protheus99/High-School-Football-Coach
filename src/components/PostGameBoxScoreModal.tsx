@@ -7,6 +7,7 @@ import { GameScoreHeader } from './ui/GameScoreHeader';
 import { recordLine } from '../sim/lineScore';
 import { useGameStore } from '../store/gameStore';
 import { AroundTheState } from './AroundTheState';
+import { playerMention } from '../utils/playerFormat';
 
 interface BoxScoreProps {
   gameState: GameSimulationState;
@@ -93,16 +94,16 @@ const TeamPlayerStats: React.FC<{ team: Team; gameStats: Record<string, PlayerSt
     .map((p) => ({ player: p, s: gameStats[p.id] }));
   const top = (score: (s: PlayerStats) => number, n: number) =>
     lines.filter((l) => score(l.s) !== 0).sort((a, b) => score(b.s) - score(a.s)).slice(0, n);
-  const name = (p: Player) => `${p.position} ${p.firstName[0]}. ${p.lastName}`;
-  const td = (n: number) => (n ? `, ${n} TD` : '');
+  const td = (n: number) => (n ? ` · ${n} TD` : '');
 
-  const sections: { title: string; rows: string[] }[] = [
-    { title: 'Passing', rows: top((s) => s.passAttempts, 2).map(({ player, s }) => `${name(player)}: ${s.passCompletions}/${s.passAttempts}, ${s.passYards} yds${td(s.passTDs)}${s.interceptionsThrown ? `, ${s.interceptionsThrown} INT` : ''}`) },
-    { title: 'Rushing', rows: top((s) => s.rushAttempts, 3).map(({ player, s }) => `${name(player)}: ${s.rushAttempts} car, ${s.rushYards} yds${td(s.rushTDs)}`) },
-    { title: 'Receiving', rows: top((s) => s.receptions, 4).map(({ player, s }) => `${name(player)}: ${s.receptions} rec, ${s.receivingYards} yds${td(s.receivingTDs)}`) },
+  // Each line: "QB J. Whitfield" on the left, the numbers lined up on the right
+  const sections: { title: string; rows: [Player, string][] }[] = [
+    { title: 'Passing', rows: top((s) => s.passAttempts, 2).map(({ player, s }) => [player, `${s.passCompletions}/${s.passAttempts} · ${s.passYards} yds${td(s.passTDs)}${s.interceptionsThrown ? ` · ${s.interceptionsThrown} INT` : ''}`]) },
+    { title: 'Rushing', rows: top((s) => s.rushAttempts, 3).map(({ player, s }) => [player, `${s.rushAttempts} car · ${s.rushYards} yds${td(s.rushTDs)}`]) },
+    { title: 'Receiving', rows: top((s) => s.receptions, 4).map(({ player, s }) => [player, `${s.receptions} rec · ${s.receivingYards} yds${td(s.receivingTDs)}`]) },
     { title: 'Defense', rows: top((s) => s.tackles + s.sacks * 2 + s.interceptionsCaught * 3, 4).map(({ player, s }) =>
-      `${name(player)}: ${s.tackles} tkl${s.tacklesForLoss ? `, ${s.tacklesForLoss} TFL` : ''}${s.sacks ? `, ${s.sacks} sack` : ''}${s.interceptionsCaught ? `, ${s.interceptionsCaught} INT` : ''}`) },
-    { title: 'Kicking', rows: top((s) => s.fieldGoalsAttempted, 1).map(({ player, s }) => `${name(player)}: ${s.fieldGoalsMade}/${s.fieldGoalsAttempted} FG`) }
+      [player, `${s.tackles} tkl${s.tacklesForLoss ? ` · ${s.tacklesForLoss} TFL` : ''}${s.sacks ? ` · ${s.sacks} sack` : ''}${s.interceptionsCaught ? ` · ${s.interceptionsCaught} INT` : ''}`]) },
+    { title: 'Kicking', rows: top((s) => s.fieldGoalsAttempted, 1).map(({ player, s }) => [player, `${s.fieldGoalsMade}/${s.fieldGoalsAttempted} FG`]) }
   ];
 
   return (
@@ -111,7 +112,14 @@ const TeamPlayerStats: React.FC<{ team: Team; gameStats: Record<string, PlayerSt
       {sections.filter((sec) => sec.rows.length > 0).map((sec) => (
         <div key={sec.title} style={{ marginBottom: '6px' }}>
           <div style={{ fontWeight: 'bold', color: '#64748B', fontSize: '12px', textTransform: 'uppercase' }}>{sec.title}</div>
-          {sec.rows.map((row) => <div key={row}>{row}</div>)}
+          {sec.rows.map(([player, line]) => (
+            <div key={player.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+              <span className="pl-mention" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {playerMention(player)}
+              </span>
+              <span style={{ flex: '0 0 auto', fontVariantNumeric: 'tabular-nums' }}>{line}</span>
+            </div>
+          ))}
         </div>
       ))}
     </div>

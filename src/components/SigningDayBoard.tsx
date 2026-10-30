@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FeederOutcome, Player, PotentialGrade, ProspectSource } from '../types/game';
-import { POTENTIAL_COLORS } from '../utils/color';
+import { FeederOutcome, Player, PotentialGrade as Grade, ProspectSource } from '../types/game';
+import { PlayerRow, PotentialGrade } from './ui/PlayerRow';
 
 // ---------------------------------------------------------------------------
 // Prospects › Students: the last signing day as a moment. Four count tiles, the newcomers as cards (rating and
@@ -21,9 +21,7 @@ const SOURCE: Record<ProspectSource, string> = {
   MULTI_SPORT: 'Multi-sport athlete'
 };
 
-const potentialTag = (grade: PotentialGrade) => (
-  <span style={{ ...POTENTIAL_COLORS[grade], borderRadius: '5px', padding: '0 5px', fontWeight: 800, fontSize: '11px' }}>{grade}</span>
-);
+const potentialTag = (grade: Grade) => <PotentialGrade grade={grade} />;
 
 export const SigningDayBoard: React.FC<{
   year: number;
@@ -66,40 +64,24 @@ export const SigningDayBoard: React.FC<{
 
       <div style={heading}>Your newcomers</div>
       {joined.length === 0 && <div style={muted}>Nobody joined from this class.</div>}
-      {shown.map(({ r, player }) => {
-        const potential = player?.potential ?? r.potential;
-        const card = (
-          <>
-            <span style={posChip}>{r.position}</span>
-            <span style={{ minWidth: 0, flex: 1, textAlign: 'left' }}>
-              <b style={{ fontSize: '13.5px' }}>{r.prospectName}</b>
-              <br />
-              <span style={muted}>
-                {SOURCE[r.source]}
-                {r.outcome === 'JV_TEAM' ? ' · JV' : ''}
-              </span>
-            </span>
-            <span style={{ textAlign: 'right', flex: '0 0 auto' }}>
-              <b style={{ fontSize: '17px', fontVariantNumeric: 'tabular-nums' }}>{player?.overallRating ?? r.overall ?? '—'}</b>
-              {potential && (
-                <>
-                  <br />
-                  <span style={{ fontSize: '11px', color: '#64748B' }}>{potential} potential</span>
-                </>
-              )}
-            </span>
-          </>
-        );
-        return player ? (
-          <button key={r.prospectId} onClick={() => onOpenPlayer(player)} style={{ ...newcomer, cursor: 'pointer' }} aria-label={`${r.prospectName}, open player card`}>
-            {card}
-          </button>
-        ) : (
-          <div key={r.prospectId} style={newcomer}>
-            {card}
-          </div>
-        );
-      })}
+      <div className="pl-list">
+        {shown.map(({ r, player }) => {
+          const potential = player?.potential ?? r.potential;
+          const ovr = player?.overallRating ?? r.overall;
+          return (
+            <PlayerRow
+              key={r.prospectId}
+              name={r.prospectName}
+              pos={r.position}
+              ovr={ovr}
+              stars={player?.recruiting.starRating}
+              details={[potential ? <PotentialGrade grade={potential} /> : null, SOURCE[r.source], r.outcome === 'JV_TEAM' ? 'JV' : null]}
+              onClick={player ? () => onOpenPlayer(player) : undefined}
+              ariaLabel={player ? `${r.prospectName}, open player card` : undefined}
+            />
+          );
+        })}
+      </div>
       {joined.length > SHOWN_NEWCOMERS && (
         <button onClick={() => setAllNewcomers(!allNewcomers)} style={moreBtn}>
           {allNewcomers ? 'Show fewer' : `+ ${joined.length - SHOWN_NEWCOMERS} more ›`}
@@ -144,29 +126,6 @@ const board: React.CSSProperties = {
 };
 const heading: React.CSSProperties = { fontWeight: 800, fontSize: '13px', color: '#0F172A', marginTop: '2px' };
 const muted: React.CSSProperties = { fontSize: '12px', color: '#64748B' };
-const posChip: React.CSSProperties = {
-  flex: '0 0 auto',
-  minWidth: '34px',
-  textAlign: 'center',
-  background: '#0F172A',
-  color: '#fff',
-  borderRadius: '6px',
-  padding: '3px 4px',
-  fontWeight: 800,
-  fontSize: '11.5px'
-};
-const newcomer: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  width: '100%',
-  background: '#F8FAFC',
-  border: '1px solid #E2E8F0',
-  borderRadius: '10px',
-  padding: '8px 10px',
-  font: 'inherit',
-  color: 'inherit'
-};
 const moreBtn: React.CSSProperties = {
   alignSelf: 'center',
   minHeight: '36px',

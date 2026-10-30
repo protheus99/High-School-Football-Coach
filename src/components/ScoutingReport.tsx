@@ -2,6 +2,7 @@ import React from 'react';
 import { Player, Team } from '../types/game';
 import { getPlayerPrimaryStatLine } from '../sim/playerRankingEngine';
 import { DEFENSE_NAMES } from '../sim/gamePlan';
+import { CLASS_SHORT, playerMention, starsLabel } from '../utils/playerFormat';
 
 /**
  * The opponent on film, right on the Hub's game card (it used to be a separate Study film pop-up): their tendencies
@@ -24,11 +25,10 @@ export const ScoutingReport: React.FC<{ opponent: Team }> = ({ opponent }) => {
     p && (
       <div style={{ fontSize: '12px', lineHeight: 1.4 }}>
         <span style={{ fontWeight: 700, color }}>{label}:</span>{' '}
-        <b>
-          {p.position} {p.firstName[0]}. {p.lastName}
-        </b>{' '}
+        <b>{playerMention(p)}</b>
+        {p.recruiting.starRating > 0 && ` ${starsLabel(p.recruiting.starRating)}`}{' '}
         <span style={{ color: '#475569' }}>
-          ({p.classYear}) · {p.stats.gamesPlayed > 0 ? getPlayerPrimaryStatLine(p) : p.recruiting.starRating > 0 ? `${'★'.repeat(p.recruiting.starRating)} recruit, no film yet this season` : 'no film yet this season'}
+          · {CLASS_SHORT[p.classYear]} · {p.stats.gamesPlayed > 0 ? getPlayerPrimaryStatLine(p) : 'no film yet this season'}
         </span>
       </div>
     );

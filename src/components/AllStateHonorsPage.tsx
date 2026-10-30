@@ -3,9 +3,11 @@ import { AwardWinner, SeasonAwardsRecord, TopPerformer } from '../sim/awardsEngi
 import { Team } from '../types/game';
 import { useGameStore } from '../store/gameStore';
 import { recordText } from '../sim/seasonRecord';
+import { fullName, starsLabel } from '../utils/playerFormat';
+import { PlayerRow, PosChip } from './ui/PlayerRow';
+import { playerRowProps } from './ui/playerRowProps';
 
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
-const CLASS_SHORT: Record<string, string> = { Freshman: 'Fr.', Sophomore: 'So.', Junior: 'Jr.', Senior: 'Sr.' };
 
 /**
  * The end of the season, step 1 of 2: the state's All-State honors on a page of its own. The coach's team summary,
@@ -66,25 +68,22 @@ export const AllStateHonorsPage: React.FC<{
       {performers.length > 0 && (
         <>
           <h2 style={section}>Your top performers</h2>
-          <div style={{ ...card, padding: '6px 12px' }}>
-            {performers.map((p, i) => (
-              <div key={p.player.id} style={{ ...performerRow, borderTop: i === 0 ? 'none' : '1px solid #F1F5F9' }}>
-                <span style={pos}>{p.player.position}</span>
-                <span style={{ minWidth: 0 }}>
-                  <b>
-                    {p.player.firstName} {p.player.lastName}
-                  </b>{' '}
-                  · {CLASS_SHORT[p.player.classYear] ?? p.player.classYear}
-                  <div style={{ fontSize: '12px', color: '#2563EB', fontWeight: 700 }}>{p.statHeadline}</div>
-                </span>
-                <span style={rankPill}>
-                  {ordinal(p.positionRank)} of {p.player.position}s
-                </span>
-              </div>
+          <div className="pl-list">
+            {performers.map((p) => (
+              <PlayerRow
+                key={p.player.id}
+                {...playerRowProps(p.player, { noString: true, noPotential: true, extra: [<b style={{ color: '#0F172A' }}>{p.statHeadline}</b>] })}
+                trouble={null}
+                right={
+                  <span style={rankPill}>
+                    {ordinal(p.positionRank)} of {p.player.position}s
+                  </span>
+                }
+              />
             ))}
-            <div style={{ fontSize: '12px', color: '#64748B', marginTop: '6px' }}>
-              {returning === 0 ? 'All of them are seniors.' : returning === performers.length ? 'All of them return next season.' : `${returning === 1 ? 'One' : returning === 2 ? 'Two' : returning} of them return${returning === 1 ? 's' : ''} next season.`}
-            </div>
+          </div>
+          <div style={{ fontSize: '12px', color: '#64748B', margin: '6px 0 0' }}>
+            {returning === 0 ? 'All of them are seniors.' : returning === performers.length ? 'All of them return next season.' : `${returning === 1 ? 'One' : returning === 2 ? 'Two' : returning} of them return${returning === 1 ? 's' : ''} next season.`}
           </div>
         </>
       )}
@@ -116,18 +115,14 @@ export const AllStateHonorsPage: React.FC<{
           Defense &amp; specialists ({awards.allStateDefense.length})
         </button>
       </div>
-      <div style={{ ...card, padding: '4px 2px' }}>
+      <div className="pl-list">
         {list.map((w, i) => (
-          <div key={`${w.player.id}_${i}`} style={{ ...teamRow, borderTop: i === 0 || mine(w) ? '1px solid transparent' : '1px solid #F1F5F9', ...(mine(w) && { ...highlight, borderRadius: '8px', margin: '2px' }) }}>
-            <span style={pos}>{w.player.position}</span>
-            <span style={{ minWidth: 0 }}>
-              <b>
-                {w.player.firstName} {w.player.lastName}
-              </b>
-              <div style={{ fontSize: '12px', color: '#64748B' }}>{w.teamName}</div>
-            </span>
-            <span style={{ color: '#2563EB', fontWeight: 700, fontSize: '12px', textAlign: 'right' }}>{w.statHeadline}</span>
-          </div>
+          <PlayerRow
+            key={`${w.player.id}_${i}`}
+            {...playerRowProps(w.player, { own: false, extra: [w.teamName] })}
+            tone={mine(w) ? 'mine' : undefined}
+            right={<span style={{ color: '#0F172A', fontWeight: 700, fontSize: '12px', maxWidth: '130px' }}>{w.statHeadline}</span>}
+          />
         ))}
       </div>
 
@@ -147,8 +142,10 @@ const AwardCard: React.FC<{ icon: string; label: string; w: AwardWinner; mine: b
     </span>
     <span style={{ minWidth: 0 }}>
       <div style={{ fontSize: '11.5px', color: '#B45309', fontWeight: 800 }}>{label}</div>
-      <div style={{ fontWeight: 800 }}>
-        {w.player.firstName} {w.player.lastName} · {w.player.position}
+      <div className="pl-line1">
+        <PosChip pos={w.player.position} />
+        <span className="pl-name">{fullName(w.player)}</span>
+        {w.player.recruiting.starRating > 0 && <span className="pl-stars">{starsLabel(w.player.recruiting.starRating)}</span>}
       </div>
       <div style={{ fontSize: '12px', color: '#64748B' }}>
         {w.teamName} · {w.teamRecord} · <span style={{ color: '#2563EB' }}>{w.statHeadline}</span>
@@ -178,9 +175,6 @@ const award: React.CSSProperties = { display: 'flex', gap: '10px', alignItems: '
 const awardIcon: React.CSSProperties = { flex: '0 0 40px', height: '40px', borderRadius: '10px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' };
 // The coach's players: a soft blue fill and edge, no label
 const highlight: React.CSSProperties = { background: '#EFF6FF', boxShadow: 'inset 0 0 0 2px #93C5FD' };
-const pos: React.CSSProperties = { fontWeight: 900, color: '#475569' };
-const performerRow: React.CSSProperties = { display: 'grid', gridTemplateColumns: '38px minmax(0,1fr) auto', gap: '6px', alignItems: 'center', padding: '8px 2px', fontSize: '13px' };
-const teamRow: React.CSSProperties = { display: 'grid', gridTemplateColumns: '38px minmax(0,1fr) auto', gap: '6px', alignItems: 'center', padding: '8px 10px', fontSize: '13px' };
 const rankPill: React.CSSProperties = { fontSize: '11.5px', fontWeight: 800, borderRadius: '999px', padding: '2px 8px', background: '#F1F5F9', color: '#334155', whiteSpace: 'nowrap' };
 const tab = (on: boolean): React.CSSProperties => ({
   minHeight: '40px',

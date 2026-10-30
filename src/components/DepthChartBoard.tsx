@@ -3,10 +3,12 @@ import { Player, Position, Team } from '../types/game';
 import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
 import { DEPTH_TEMPLATE, SLOT_LABELS, depthGroup, starterRatings } from '../sim/depthChart';
 import { fatigueLevel } from '../sim/training';
-import { FATIGUE_COLORS } from './ui/fatigueColors';
+import { rulesForState } from '../sim/stateRules';
 import { formatPercent } from '../utils/format';
-import { POTENTIAL_COLORS } from '../utils/color';
 import { scroller } from '../utils/pageScroll';
+import { CLASS_SHORT, fullName, playerTrouble, ratingColor, showNewTag, starsLabel } from '../utils/playerFormat';
+import { FatigueNote, PlayerRow, PotentialGrade, TroubleChip } from './ui/PlayerRow';
+import { playerRowProps } from './ui/playerRowProps';
 
 /** A slot on the depth chart: a position and which starter column it is (e.g. OT column 0 = LT). */
 type Slot = [Position, number];
@@ -61,12 +63,9 @@ const UNITS: { id: UnitId; title: string; short: string; slots: Slot[] }[] = [
   }
 ];
 
-const CLASS_SHORT: Record<Player['classYear'], string> = { Freshman: 'Fr', Sophomore: 'So', Junior: 'Jr', Senior: 'Sr' };
-
-/** Rating colors: green 80+, blue 70s, amber 60s, gray below. */
-const ratingColor = (ovr: number) => (ovr >= 80 ? '#16A34A' : ovr >= 70 ? '#2563EB' : ovr >= 60 ? '#D97706' : '#94A3B8');
-
-const unavailable = (p: Player) => p.condition.injuryStatus !== 'HEALTHY' || !p.academics.isEligible;
+const tired = (p: Player) => ['Tired', 'Exhausted'].includes(fatigueLevel(p.condition.seasonWear));
+/** Phones show fatigue only once it matters: Worn in gray, Tired and Exhausted as the amber chip. */
+const worn = (p: Player) => fatigueLevel(p.condition.seasonWear) === 'Worn';
 
 /** Where a unit heading lands after a jump, and the line it has to pass to count as the unit on screen. */
 const NAV_OFFSET = 'calc(var(--topbar-h) + 76px)';
@@ -81,8 +80,9 @@ export const DepthChartBoard: React.FC<{
   team: Team;
   onMove: (playerId: string, direction: -1 | 1) => void;
   onSelect?: (player: Player) => void;
-  currentYear?: number; // newcomers this year get a NEW tag
-}> = ({ team, onMove, onSelect, currentYear }) => {
+  currentYear?: number; // newcomers get a NEW tag from signing day through training camp
+  currentWeek?: number;
+}> = ({ team, onMove, onSelect, currentYear, currentWeek }) => {
   const isPhone = !useMediaQuery(DESKTOP_QUERY);
   const ratings = starterRatings(team.roster);
   const groups = new Map((Object.keys(DEPTH_TEMPLATE) as Position[]).map((pos) => [pos, depthGroup(team.roster, pos)]));
@@ -114,42 +114,27 @@ export const DepthChartBoard: React.FC<{
     return group.flatMap((p, i) => (i % k === column ? [{ p, i, k, last: i + k >= group.length }] : []));
   };
 
-  const nameCell = (p: Player, starter: boolean) => (
-    <span className="depth-name">
-      <button onClick={() => onSelect?.(p)} title={`${p.firstName} ${p.lastName} · ${p.classYear}`} style={{ fontWeight: starter ? 'bold' : 'normal' }}>
-        {p.firstName} {p.lastName}
-      </button>
-      {p.recruiting.starRating > 0 && (
-        <span className="depth-stars" aria-label={`${p.recruiting.starRating}-star recruit`}>
-          {p.recruiting.starRating}★
-        </span>
-      )}
-      {unavailable(p) && (
-        <span className="depth-out" title="Injured or ineligible: the next man up plays">
-          OUT
-        </span>
-      )}
-    </span>
-  );
+  const atRiskGpa = rulesForState(team.state).academics.atRiskGpa;
+  const isNew = (p: Player) => showNewTag(p, currentYear, currentWeek);
 
-  const tags = (p: Player) => {
-    const level = fatigueLevel(p.condition.seasonWear);
+  /** Desktop: the name, his stars and NEW, then his trouble chip (injured, suspended, ineligible, grades). */
+  const nameCell = (p: Player, starter: boolean) => {
+    const trouble = playerTrouble(p, atRiskGpa);
+    return (
+      <span className="depth-name">
+        <button onClick={() => onSelect?.(p)} title={`${fullName(p)} · ${p.classYear}`} style={{ fontWeight: starter ? 'bold' : 'normal' }}>
+          {fullName(p)}
+        </button>
+        {p.recruiting.starRating > 0 && <span className="pl-stars">{starsLabel(p.recruiting.starRating)}</span>}
+        {isNew(p) && <span className="pl-new">NEW</span>}
+        {trouble && <TroubleChip trouble={trouble} />}
+      </span>
+    );
+  };
+
+  const offersText = (p: Player) => {
     const offers = p.recruiting.offers.length;
-    return {
-      potential: (
-        <span className="depth-tag depth-potential" style={POTENTIAL_COLORS[p.potential]} aria-label={`Potential ${p.potential}`}>
-          {p.potential}
-        </span>
-      ),
-      year: <span className="depth-tag depth-year">{CLASS_SHORT[p.classYear]}</span>,
-      newcomer: p.joinedYear !== undefined && p.joinedYear === currentYear ? <span className="depth-tag depth-new">NEW</span> : null,
-      fatigue: (
-        <span className="depth-tag depth-fatigue" style={FATIGUE_COLORS[level]}>
-          {level} {formatPercent(p.condition.seasonWear)}
-        </span>
-      ),
-      offers: offers > 0 ? <span className="depth-tag depth-offers">{offers === 1 ? '1 offer' : `${offers} offers`}</span> : null
-    };
+    return offers === 0 ? null : offers === 1 ? '1 offer' : `${offers} offers`;
   };
 
   // No ▲ for the starter and no ▼ for the last man (an empty space keeps the buttons lined up)
@@ -192,62 +177,60 @@ export const DepthChartBoard: React.FC<{
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ p, i, k, last }, r) => {
-            const t = tags(p);
-            return (
-              <tr key={p.id} className={r === 0 ? 'depth-starter' : r >= 3 ? 'depth-reserve' : undefined}>
-                <td>
-                  <span className="depth-ovr" style={{ background: ratingColor(p.overallRating) }}>
-                    {p.overallRating}
-                  </span>
-                </td>
-                <td className="depth-td-name">{nameCell(p, r === 0)}</td>
-                <td>{t.potential}</td>
-                <td>
-                  {t.year}
-                  {t.newcomer}
-                </td>
-                <td>{t.fatigue}</td>
-                <td>{t.offers}</td>
-                <td>{moveButton(p, 1, !last)}</td>
-                <td>{moveButton(p, -1, i - k >= 0)}</td>
-              </tr>
-            );
-          })}
+          {rows.map(({ p, i, k, last }, r) => (
+            <tr key={p.id} className={r === 0 ? 'depth-starter' : r >= 3 ? 'depth-reserve' : undefined}>
+              <td>
+                <span className="depth-ovr" style={{ background: ratingColor(p.overallRating) }}>
+                  {p.overallRating}
+                </span>
+              </td>
+              <td className="depth-td-name">{nameCell(p, r === 0)}</td>
+              <td>
+                <PotentialGrade grade={p.potential} />
+              </td>
+              <td>{CLASS_SHORT[p.classYear]}</td>
+              <td>
+                <FatigueNote fatigue={p.condition.seasonWear} />
+              </td>
+              <td className="pl-muted">{offersText(p)}</td>
+              <td>{moveButton(p, 1, !last)}</td>
+              <td>{moveButton(p, -1, i - k >= 0)}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     );
   };
 
+  /** Phones: the standard player row; the slot heading says the position and the order says the string. */
   const card = (slot: Slot) => {
     const rows = slotPlayers(slot);
     return (
       <div key={`${slot[0]}_${slot[1]}`} className="depth-card">
         <div className="depth-card-head">{SLOT_LABELS[slot[0]][slot[1]]}</div>
-        {rows.map(({ p, i, k, last }, r) => {
-          const t = tags(p);
-          return (
-            <div key={p.id} className={`depth-row${r === 0 ? ' depth-starter' : r >= 3 ? ' depth-reserve' : ''}`}>
-              <span className="depth-ovr depth-ovr-lg" style={{ background: ratingColor(p.overallRating) }}>
-                {p.overallRating}
-              </span>
-              <div className="depth-row-main">
-                {nameCell(p, r === 0)}
-                <div className="depth-tags">
-                  {t.potential}
-                  {t.year}
-                  {t.newcomer}
-                  {t.fatigue}
-                  {t.offers}
-                </div>
-              </div>
-              <span className="depth-row-moves">
-                {moveButton(p, 1, !last)}
-                {moveButton(p, -1, i - k >= 0)}
-              </span>
-            </div>
-          );
-        })}
+        <div className="depth-card-rows">
+          {rows.map(({ p, i, k, last }, r) => (
+            <PlayerRow
+              key={p.id}
+              {...playerRowProps(p, {
+                atRiskGpa,
+                isNew: isNew(p),
+                noPos: true,
+                noString: true,
+                extra: [worn(p) ? `Worn ${formatPercent(p.condition.seasonWear)}` : null, offersText(p)]
+              })}
+              chips={tired(p) ? <FatigueNote fatigue={p.condition.seasonWear} /> : undefined}
+              onClick={() => onSelect?.(p)}
+              className={r === 0 ? 'depth-row-starter' : r >= 3 ? 'depth-row-reserve' : undefined}
+              right={
+                <span className="depth-row-moves">
+                  {moveButton(p, 1, !last)}
+                  {moveButton(p, -1, i - k >= 0)}
+                </span>
+              }
+            />
+          ))}
+        </div>
       </div>
     );
   };

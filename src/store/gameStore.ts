@@ -1741,7 +1741,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       id: `news_gameball_${player.id}_${currentYear}_${currentWeek}`,
       week: currentWeek,
       outlet: 'TOWN_JOURNAL',
-      headline: `${player.firstName} ${player.lastName} Earns the Game Ball ${summary.won ? 'in' : 'Despite'} ${summary.won ? 'Win Over' : 'Loss to'} ${summary.opponentName}`,
+      headline: `${player.position} ${player.firstName} ${player.lastName} Earns the Game Ball ${summary.won ? 'in' : 'Despite'} ${summary.won ? 'Win Over' : 'Loss to'} ${summary.opponentName}`,
       content: `${player.position} ${player.firstName} ${player.lastName} was ${team.name}'s Player of the Game (${summary.score}): ${summary.line}. ${attributeLabel(skill)} +1${exposure ? ', and more college exposure' : ''}.`,
       impactSentiment: 'POSITIVE',
       featuredPlayerName: `${player.firstName} ${player.lastName}`,
@@ -1874,7 +1874,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       // Cancelled before the report card: the money comes back (and so does the teacher's help this season)
       delete academics.gradeFix;
       if (fix === 'TEACHER') delete academics.teacherYear;
-      const { [playerId]: _, ...rest } = get().bookedGradeFixes;
+      const rest = { ...get().bookedGradeFixes };
+      delete rest[playerId];
       set({ coachPoints: coachPoints + cost, districtTeams: [...districtTeams], bookedGradeFixes: rest });
       return;
     }

@@ -8,6 +8,10 @@ import {
   Position,
   RankedPlayerEntry
 } from '../types/game';
+import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
+import { CLASS_SHORT, fullName, starsLabel } from '../utils/playerFormat';
+import { PlayerRow, PosChip } from './ui/PlayerRow';
+import { playerRowProps } from './ui/playerRowProps';
 
 interface PlayerLeaderboardProps {
   rankingsState: PlayerRankingsAndStatsState;
@@ -22,6 +26,7 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'PROSPECT_RANKINGS' | 'STAT_LEADERS'>('PROSPECT_RANKINGS');
   useScrollTopOnScreenChange(activeTab);
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const [scope, setScope] = useState<'NATIONAL' | string>('NATIONAL');
   const [selectedPosition, setSelectedPosition] = useState<Position | 'OVERALL_TOP_100'>('QB');
   const [selectedStatCat, setSelectedStatCat] = useState<StatCategory>('PASS_YARDS');
@@ -49,10 +54,6 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
   } else {
     activeStatEntries = rankingsState.stateStatLeaders[scope]?.[selectedStatCat] || [];
   }
-
-  const renderStarBadges = (stars: number) => {
-    return '★'.repeat(stars) + '☆'.repeat(5 - stars);
-  };
 
   const isProspects = activeTab === 'PROSPECT_RANKINGS';
   const entries = isProspects ? activeProspectEntries : activeStatEntries;
@@ -113,35 +114,51 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
         </div>
       )}
 
-      <DataList
-        rows={entries}
-        rowKey={(e) => e.player.id}
-        onRowClick={onSelectPlayer}
-        rowTone={(e) => (e.teamId === userTeamId ? '#EFF6FF' : undefined)}
-        empty="No players in this list yet."
-        columns={[
-          { key: 'rank', label: 'Rank', badge: true, render: (e) => <span style={{ color: e.rank <= 3 ? '#D97706' : '#1E293B' }}>#{e.rank}</span> },
-          {
-            key: 'name',
-            label: 'Player',
-            primary: true,
-            render: (e) => (
-              <span style={{ color: e.teamId === userTeamId ? '#1D4ED8' : '#0F172A' }}>
-                {e.player.firstName} {e.player.lastName}
-              </span>
-            )
-          },
-          { key: 'pos', label: 'Pos / Class', render: (e) => `${e.player.position} · ${e.player.classYear}` },
-          { key: 'school', label: 'School', render: (e) => e.teamName },
-          { key: 'state', label: 'State', desktopOnly: true, render: (e) => `${e.state} (${e.classification})` },
-          isProspects
-            ? { key: 'stars', label: 'Stars', render: (e) => <span style={{ color: '#B45309' }}>{renderStarBadges(e.player.recruiting.starRating)}</span> }
-            : { key: 'stat', label: 'Production', render: (e) => <strong>{e.primaryStatLine}</strong> },
-          isProspects
-            ? { key: 'grade', label: 'Recruit grade', render: (e) => <strong style={{ color: '#2563EB' }}>{e.compositeRecruitScore} pts</strong> }
-            : { key: 'ovr', label: 'OVR', desktopOnly: true, render: (e) => (e.teamId === userTeamId ? e.player.overallRating : '—') }
-        ]}
-      />
+      {isDesktop ? (
+        <DataList
+          rows={entries}
+          rowKey={(e) => e.player.id}
+          onRowClick={onSelectPlayer}
+          rowTone={(e) => (e.teamId === userTeamId ? '#EFF6FF' : undefined)}
+          empty="No players in this list yet."
+          columns={[
+            { key: 'rank', label: 'Rank', render: (e) => <strong style={{ color: e.rank <= 3 ? '#B45309' : '#1E293B' }}>#{e.rank}</strong> },
+            {
+              key: 'name',
+              label: 'Player',
+              render: (e) => (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <PosChip pos={e.player.position} />
+                  <strong>{fullName(e.player)}</strong>
+                  {e.player.recruiting.starRating > 0 && <span className="pl-stars">{starsLabel(e.player.recruiting.starRating)}</span>}
+                </span>
+              )
+            },
+            { key: 'class', label: 'Class', render: (e) => CLASS_SHORT[e.player.classYear] },
+            { key: 'school', label: 'School', render: (e) => e.teamName },
+            { key: 'state', label: 'State', render: (e) => `${e.state} (${e.classification})` },
+            isProspects
+              ? { key: 'grade', label: 'Recruit grade', render: (e) => <strong>{e.compositeRecruitScore} pts</strong> }
+              : { key: 'stat', label: 'Production', render: (e) => <strong>{e.primaryStatLine}</strong> },
+            ...(isProspects ? [] : [{ key: 'ovr', label: 'OVR', render: (e: RankedPlayerEntry) => (e.teamId === userTeamId ? e.player.overallRating : '—') }])
+          ]}
+        />
+      ) : entries.length === 0 ? (
+        <div className="ui-muted">No players in this list yet.</div>
+      ) : (
+        <div className="pl-list">
+          {entries.map((e) => (
+            <PlayerRow
+              key={e.player.id}
+              {...playerRowProps(e.player, { own: false, extra: [e.teamName] })}
+              rank={e.rank}
+              tone={e.teamId === userTeamId ? 'mine' : undefined}
+              onClick={() => onSelectPlayer(e)}
+              right={<span className="pl-stat">{isProspects ? `${e.compositeRecruitScore} pts` : e.primaryStatLine}</span>}
+            />
+          ))}
+        </div>
+      )}
     </div>
     </>
   );

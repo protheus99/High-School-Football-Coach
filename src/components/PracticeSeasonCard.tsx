@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { userTrainingBoosts, useGameStore } from '../store/gameStore';
 import { coachBoosted } from '../sim/training';
 import { Player, Position } from '../types/game';
-import { POTENTIAL_COLORS } from '../utils/color';
+import { PlayerRow } from './ui/PlayerRow';
+import { playerRowProps } from './ui/playerRowProps';
 
 // ---------------------------------------------------------------------------
 // Team › Practice: what practice has added up to this year. The team's totals on top, then one row per position
@@ -66,33 +67,25 @@ export const PracticeSeasonCard: React.FC = () => {
             </button>
             {isOpen && (
               <>
-                {gained.map((p) => {
-                  const gain = gainOf(p)!;
-                  return (
-                    <button key={p.id} onClick={() => openPlayerCard(p.id)} style={playerRow}>
-                      <span style={{ minWidth: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px', textAlign: 'left' }}>
-                        <span>
-                          {p.position} {p.firstName.charAt(0)}. {p.lastName}
-                        </span>
-                        <span style={{ ...tag, ...POTENTIAL_COLORS[p.potential] }} title={`Potential ${p.potential}: higher potential learns faster`}>
-                          {p.potential}
-                        </span>
-                        {p.depthChartTier === 1 && <span style={{ ...tag, background: '#E0E7FF', color: '#3730A3' }}>Starter</span>}
-                        {coachBoosted(p, boosts) && (
-                          <span style={{ ...tag, background: '#F3E8FF', color: '#6B21A8' }} title="A coach adds to his training">
-                            🧑‍🏫 Coach
-                          </span>
-                        )}
-                      </span>
-                      <span style={{ flex: '0 0 auto', textAlign: 'right' }}>
-                        <b style={{ fontVariantNumeric: 'tabular-nums' }}>
-                          {gain.start} → {gain.start + gain.overall}
-                        </b>{' '}
-                        <span style={{ ...chip, ...(gain.overall > 0 ? up : flat) }}>{gain.overall > 0 ? `+${gain.overall}` : `+${gain.points} pts`}</span>
-                      </span>
-                    </button>
-                  );
-                })}
+                <div className="pl-list">
+                  {gained.map((p) => {
+                    const gain = gainOf(p)!;
+                    return (
+                      <PlayerRow
+                        key={p.id}
+                        {...playerRowProps(p, { extra: [coachBoosted(p, boosts) ? '🧑‍🏫 Coach' : null] })}
+                        trouble={null}
+                        onClick={() => openPlayerCard(p.id)}
+                        right={
+                          <>
+                            <span style={{ ...chip, ...(gain.overall > 0 ? up : flat) }}>{gain.overall > 0 ? `+${gain.overall}` : `+${gain.points} pts`}</span>
+                            <span className="pl-muted">from {gain.start}</span>
+                          </>
+                        }
+                      />
+                    );
+                  })}
+                </div>
                 {players.length > gained.length && (
                   <div style={{ ...muted, padding: '4px 0', borderTop: '1px solid #F1F5F9' }}>
                     {gained.length === 0 ? 'No gains yet' : `${players.length - gained.length} more, no change yet`}
@@ -143,26 +136,7 @@ const groupHead: React.CSSProperties = {
   cursor: 'pointer',
   width: '100%'
 };
-const playerRow: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: '8px',
-  minHeight: '36px',
-  padding: '4px 0',
-  borderTop: '1px solid #F1F5F9',
-  background: 'none',
-  borderLeft: 'none',
-  borderRight: 'none',
-  borderBottom: 'none',
-  font: 'inherit',
-  fontSize: '12.5px',
-  color: '#0F172A',
-  cursor: 'pointer',
-  width: '100%'
-};
 const chip: React.CSSProperties = { borderRadius: '999px', padding: '1px 8px', fontWeight: 800, fontSize: '11.5px', whiteSpace: 'nowrap' };
 const up: React.CSSProperties = { background: '#DCFCE7', color: '#166534' };
 const flat: React.CSSProperties = { background: '#F1F5F9', color: '#475569' };
-const tag: React.CSSProperties = { borderRadius: '5px', padding: '0 5px', fontWeight: 800, fontSize: '10.5px' };
 const muted: React.CSSProperties = { fontSize: '12px', color: '#64748B' };
