@@ -36,6 +36,8 @@ import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 import { GRADE_FIXES, gradeWatchActive, startersAtRisk, weeksToReportCard } from '../sim/grades';
 import { gradesNeedReview } from '../sim/advanceGate';
 import { playerMention, playerTrouble, shortFromName, starsLabel } from '../utils/playerFormat';
+import { PlayerRow } from './ui/PlayerRow';
+import { playerRowProps } from './ui/playerRowProps';
 
 /** Screens the Hub can send the coach to. */
 export type AgendaTab =
@@ -124,8 +126,6 @@ const accentFor = (item: AgendaItem): [string, string] => {
 const TOP_PROSPECTS = 3;
 const TIRED = 55; // fatigue at which a starter is flagged (Tired and Exhausted, sim/training)
 
-const CLASS_SHORT: Record<Player['classYear'], string> = { Freshman: 'Fr', Sophomore: 'So', Junior: 'Jr', Senior: 'Sr' };
-const posChip: React.CSSProperties = { flex: '0 0 auto', fontWeight: 900, fontSize: '11px', color: '#fff', background: '#334155', borderRadius: '5px', padding: '2px 6px' };
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
@@ -283,21 +283,18 @@ export const WeeklyAgenda: React.FC<{
       accent: 'school',
       counted: true,
       content: (
-        <div style={{ marginTop: '6px' }}>
-          {watch.map((p, i) => (
-            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', borderTop: i === 0 ? 'none' : '1px solid #F1F5F9' }}>
-              <span style={posChip}>{p.position}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 800, fontSize: '13.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {p.firstName} {p.lastName} · {p.overallRating}
-                </div>
-                <div style={{ fontSize: '11.5px', color: '#64748B' }}>
-                  {CLASS_SHORT[p.classYear]}
-                  {!p.academics.isEligible && ' · Ineligible'} · {p.academics.gradeFix ? `${GRADE_FIXES[p.academics.gradeFix].label} booked` : 'No fix yet'}
-                </div>
-              </div>
-              <div style={{ flex: '0 0 auto', fontWeight: 900, fontSize: '15px', color: '#9A3412', fontVariantNumeric: 'tabular-nums' }}>GPA {p.academics.gpa.toFixed(2)}</div>
-            </div>
+        <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* The shared player row: the grade trouble chip carries the GPA */}
+          {watch.map((p) => (
+            <PlayerRow
+              key={p.id}
+              className="pl-row-bare"
+              {...playerRowProps(p, {
+                atRiskGpa: stateRules.academics.atRiskGpa,
+                noPotential: true,
+                extra: [p.academics.gradeFix ? `${GRADE_FIXES[p.academics.gradeFix].label} booked` : 'No fix yet']
+              })}
+            />
           ))}
         </div>
       ),
