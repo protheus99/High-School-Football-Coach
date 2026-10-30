@@ -24,6 +24,7 @@ import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { dilemmaChoiceEffects } from '../sim/dilemmaEngine';
 import { ChoiceEffects } from './ui/ChoiceEffects';
 import { ScoutingReport } from './ScoutingReport';
+import { gameStakes } from '../sim/talkPicker';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, seasonLength } from '../sim/league';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
@@ -473,13 +474,15 @@ export const WeeklyAgenda: React.FC<{
         : currentWeek === FIRST_DISTRICT_WEEK
           ? `${stateRules.districtLabel} opener: ${openerRule}`
           : undefined;
+    // Homecoming, Senior Night or the rivalry game (the playoffs already name the round)
+    const night = game.isPlayoff ? null : (gameStakes(store)?.banner ?? null);
     const opp = game.opponent;
     headline = {
       id: 'game',
       icon: game.isPlayoff ? '🏆' : '🏈',
       // A nationally ranked opponent carries its rank: "vs #18 Midland Legacy"
       title: `${game.label ? `${game.label}: ` : ''}${game.isHome ? 'vs' : 'at'} ${rankedName(opp, polls)} (${recordText(opp, playoffs)})`,
-      detail: note,
+      detail: [night, note].filter(Boolean).join(' · ') || undefined,
       tone: 'todo',
       counted: true,
       // The film study, right here: no extra tap before choosing to play or sim

@@ -15,7 +15,8 @@ Most events carry `season` (1 = the career's first) and `week`.
 | `open_screen` | A tab or section opens | `screen`, `section` |
 | `week_advance` | Advance Week | `season`, `week` (the new one), `phase` |
 | `game_played` | The coach's game ends | `mode` (live / sim), `result` (win / loss / tie), `margin`, `playoff` |
-| `halftime_talk` | A halftime talk is picked | `talk`, `score_diff` (the coach's side) |
+| `pregame_talk` | A pre-game speech is picked in the Strategy Room | `talk` |
+| `halftime_talk` | A halftime speech is picked | `talk`, `score_diff` (the coach's side) |
 | `playoffs_start` | The bracket is drawn | `made` |
 | `season_end` | The banquet opens | `wins`, `losses`, `state_champion`, `national_rank`, `national_title` |
 | `career_complete` | The contract's last season ends | `seasons` |

@@ -34,7 +34,8 @@ export const GamePlanPicker: React.FC<{
   weather: WeatherType;
   bench: number | null;
   onBench: (lead: number | null) => void;
-}> = ({ offense, onOffense, focus, onFocus, opponent, usualOffense, weather, bench, onBench }) => {
+  showBench?: boolean; // the strategy room shows the bench line in its own section
+}> = ({ offense, onOffense, focus, onFocus, opponent, usualOffense, weather, bench, onBench, showBench = true }) => {
   const theirDefense = opponent.schemeDefense;
   const best = bestOffense(theirDefense, weather);
   const fits = fitsTheirOffense(opponent.schemeOffense);
@@ -69,36 +70,43 @@ export const GamePlanPicker: React.FC<{
       </div>
       <div style={note}>{DEFENSE_FOCUS_NOTES[focus]}</div>
 
-      <GroupLabel title="Play second string when leading by" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px' }}>
-        {SECOND_STRING_LEADS.map((lead) => {
-          const selected = bench === lead;
-          return (
-            <button
-              key={lead ?? 'never'}
-              onClick={() => onBench(lead)}
-              aria-pressed={selected}
-              style={{
-                minHeight: '44px',
-                borderRadius: '10px',
-                border: selected ? '2px solid #0F172A' : '1px solid #CBD5E1',
-                background: selected ? '#F1F5F9' : '#fff',
-                color: '#0F172A',
-                cursor: 'pointer',
-                font: 'inherit',
-                fontWeight: 800,
-                fontSize: '15px'
-              }}
-            >
-              {lead ?? 'Never'}
-            </button>
-          );
-        })}
-      </div>
-      <div style={note}>{secondStringNote(bench)}</div>
+      {showBench && <SecondStringPicker bench={bench} onBench={onBench} />}
     </>
   );
 };
+
+/** The lead that sends in the second string: 28, 35, 42 or Never, and a line on what the choice does. */
+export const SecondStringPicker: React.FC<{ bench: number | null; onBench: (lead: number | null) => void; label?: boolean }> = ({ bench, onBench, label = true }) => (
+  <>
+    {label && <GroupLabel title="Play second string when leading by" />}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px' }}>
+      {SECOND_STRING_LEADS.map((lead) => {
+        const selected = bench === lead;
+        return (
+          <button
+            key={lead ?? 'never'}
+            onClick={() => onBench(lead)}
+            aria-pressed={selected}
+            style={{
+              minHeight: '44px',
+              borderRadius: '10px',
+              border: selected ? '2px solid #0F172A' : '1px solid #CBD5E1',
+              background: selected ? '#F1F5F9' : '#fff',
+              color: '#0F172A',
+              cursor: 'pointer',
+              font: 'inherit',
+              fontWeight: 800,
+              fontSize: '15px'
+            }}
+          >
+            {lead ?? 'Never'}
+          </button>
+        );
+      })}
+    </div>
+    <div style={note}>{secondStringNote(bench)}</div>
+  </>
+);
 
 const GroupLabel: React.FC<{ title: string; keyText?: string }> = ({ title, keyText }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '10px 0 6px' }}>

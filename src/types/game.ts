@@ -14,8 +14,8 @@ export type DefensiveScheme = 'FOUR_THREE' | 'FOUR_FOUR' | 'THREE_THREE_FIVE' | 
 export type WeatherType = 'CLEAR' | 'HEAVY_RAIN' | 'HIGH_WIND' | 'EXTREME_HEAT' | 'FREEZING_SNOW';
 export type MomentumTier = -2 | -1 | 0 | 1 | 2;
 
-/** The halftime locker-room message (sim/halftime.ts): momentum, offense, defense or the big play. */
-export type HalftimeTalk = 'FIRE_UP' | 'OFFENSE' | 'DEFENSE' | 'BIG_PLAY';
+/** A locker-room speech's id (sim/talks.ts): before kickoff or at halftime. */
+export type HalftimeTalk = string;
 export type InjurySeverity = 'HEALTHY' | 'DINGED' | 'MODERATE' | 'SEASON_ENDING';
 export type CollegeTier = 'POWER_4' | 'GROUP_OF_5' | 'FCS' | 'DIVISION_2' | 'DIVISION_3' | 'PWO'; // PWO = preferred walk-on at a Division I program
 
@@ -346,7 +346,8 @@ export interface GameSimulationState {
   offensiveGamePlan?: Record<string, OffensiveScheme>; // teamId -> scheme chosen for this game (defaults to the team's)
   playerGameStats?: Record<string, PlayerStats>; // playerId -> this game's stat line
   gameDayForm?: Record<string, number>; // teamId -> 'Any Given Friday' play-quality offset for this game
-  halftimeTalks?: Record<string, HalftimeTalk>; // teamId -> the halftime message, for the second half
+  pregameTalks?: Record<string, HalftimeTalk>; // teamId -> the pre-game speech, for the first half
+  halftimeTalks?: Record<string, HalftimeTalk>; // teamId -> the halftime speech, for the second half and overtime
   secondStringLead?: Record<string, number | null>; // teamId -> the lead that sends in the backups (null: never; default 35)
 }
 

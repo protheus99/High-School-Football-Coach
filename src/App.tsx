@@ -17,6 +17,8 @@ import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { TeamProfileSheet } from './components/TeamProfileSheet';
 import { LiveMatchScreen } from './components/LiveMatchScreen';
+import type { PregameSpeech } from './components/PreGameStrategyModal';
+import { rememberTalks } from './sim/talkPicker';
 import { SaveLoadManagerModal } from './components/SaveLoadManagerModal';
 import { CoachRPGSkillTreeModal } from './components/CoachRPGSkillTreeModal';
 import { programRating } from './sim/programMeters';
@@ -117,7 +119,7 @@ export const App: React.FC = () => {
     return null;
   })();
 
-  const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED', offensiveScheme?: OffensiveScheme) => {
+  const handleLaunchMatch = (focus: DefensiveFocus = 'BALANCED', offensiveScheme?: OffensiveScheme, speech?: PregameSpeech) => {
     if (!userTeam) return;
     // A suspended coach doesn't coach: his coordinator's games are simulated
     if (isCoachBenched(useGameStore.getState().coachBench, currentYear)) return;
@@ -148,8 +150,15 @@ export const App: React.FC = () => {
       // Balanced: the staff calls the defense by down and distance (no fixed call)
       ...(FOCUS_CALL[focus] && { defensiveGamePlan: { [userTeam.id]: FOCUS_CALL[focus]! } }),
       offensiveGamePlan: { [userTeam.id]: offensiveScheme ?? userTeam.schemeOffense },
-      secondStringLead: { [userTeam.id]: useGameStore.getState().secondStringLead }
+      secondStringLead: { [userTeam.id]: useGameStore.getState().secondStringLead },
+      // The pre-game speech plays the first half; the next game's offer steers clear of this one's
+      ...(speech && { pregameTalks: { [userTeam.id]: speech.given.talk.id } })
     };
+    if (speech) {
+      const s = useGameStore.getState();
+      s.setRecentTalks(rememberTalks(s.recentTalks, 'PRE', speech.offered, speech.given));
+      track('pregame_talk', { talk: speech.given.talk.id });
+    }
 
     // A game counts once it kicks off: it's written down outside the saves right away
     useGameStore.getState().markGameLive(newGame, true);

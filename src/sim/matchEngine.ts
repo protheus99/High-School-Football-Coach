@@ -17,7 +17,7 @@ import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 import { compareDepth } from './depthChart';
 import { disciplinePlayQualityPenalty } from './programMeters';
 import { enforcedYards, rollFoul } from './penalties';
-import { talkEffect } from './halftime';
+import { talkEffect } from './talks';
 import { rulesForState } from './stateRules';
 
 // Teams resting their starters on the current snap (set at the start of each simulateSnap call)
@@ -243,6 +243,8 @@ const MAX_FIELD_GOAL_ATTEMPT_YARDS = 47;
 export const REST_STARTERS_LEAD = 35; // lead at which a coach pulls his starters (five scores), unless he picks another
 const KILL_CLOCK_LEAD = 21; // second-half lead at which the offense keeps the ball on the ground
 const BAD_SNAP_OR_BLOCK_CHANCE = 0.03;
+const SPECIAL_TEAMS_KICK = 4; // field goal and extra point percentage points per unit of a special-teams speech
+const SPECIAL_TEAMS_RETURN = 2; // kickoff return yards per unit
 
 const SCRIMMAGE_CONCEPTS: PlayConcept[] = ['INSIDE_RUN', 'OUTSIDE_RUN', 'SHORT_PASS', 'DEEP_PASS'];
 type ScrimmageConcept = 'INSIDE_RUN' | 'OUTSIDE_RUN' | 'SHORT_PASS' | 'DEEP_PASS';
@@ -355,14 +357,15 @@ const isPassConcept = (c: PlayConcept) => c === 'SHORT_PASS' || c === 'DEEP_PASS
 export function resolveFieldGoal(
   kicker: Player,
   distanceYards: number,
-  windSpeed: number
+  windSpeed: number,
+  specialTeams = 0
 ): { isSuccess: boolean; text: string } {
   if (Math.random() < BAD_SNAP_OR_BLOCK_CHANCE) {
     return { isSuccess: false, text: `The ${distanceYards}-yard kick by K ${kicker.lastName} is BLOCKED!` };
   }
 
   const prob = clamp(
-    92 - (distanceYards - 20) * 3.2 - windSpeed * 0.75 + kicker.attributes.kickingAccuracy * 0.35,
+    92 - (distanceYards - 20) * 3.2 - windSpeed * 0.75 + kicker.attributes.kickingAccuracy * 0.35 + specialTeams * SPECIAL_TEAMS_KICK,
     5,
     96
   );
@@ -407,9 +410,15 @@ export function resolveKickoff(
   }
 
   const coverageSpeed = getUnitAverage(kicking, ['LB', 'S', 'CB'], 'speed');
-  const returnYards = Math.max(0, Math.round(15 + returner.attributes.speed * 0.15 - coverageSpeed * 0.12 + calculateGaussianVariance(0, 6)));
+  // A special-teams speech: longer returns and tighter coverage, and a returner who holds on to the ball
+  const kickingEdge = talkEffect(state, kicking.id).specialTeams;
+  const receivingEdge = talkEffect(state, receiving.id).specialTeams;
+  const returnYards = Math.max(
+    0,
+    Math.round(15 + returner.attributes.speed * 0.15 - coverageSpeed * 0.12 + (receivingEdge - kickingEdge) * SPECIAL_TEAMS_RETURN + calculateGaussianVariance(0, 6))
+  );
   const spot = clamp(100 - landing + returnYards, 1, 99);
-  const fumbleChance = state.weather === 'HEAVY_RAIN' ? 0.05 : 0.025;
+  const fumbleChance = (state.weather === 'HEAVY_RAIN' ? 0.05 : 0.025) * Math.max(0.2, 1 - receivingEdge * 0.25);
 
   if (Math.random() < fumbleChance) {
     setFirstDown(state, kicking.id, 100 - spot);
@@ -559,7 +568,10 @@ export function simulateSnap(
   let defensiveCall: DefensiveCall | undefined;
   let foul: ReturnType<typeof rollFoul> = null;
   let penalty: PlayEvent['penalty'];
-  let timeElapsed = state.isMercyRuleActive ? MERCY_RULE_RUNOFF : randomInt(PLAY_CLOCK_RUNOFF.min, PLAY_CLOCK_RUNOFF.max);
+  // A tempo speech: a hurry-up uses less clock a snap (more snaps), a grind uses more
+  let timeElapsed = state.isMercyRuleActive
+    ? MERCY_RULE_RUNOFF
+    : Math.round(randomInt(PLAY_CLOCK_RUNOFF.min, PLAY_CLOCK_RUNOFF.max) * talkEffect(state, offense.id).tempo);
 
   // The kickoff after a score or a try. None in overtime (possession is reset by the overtime rules below), and none
   // when time runs out on the play at the end of a half: the half is over (NFHS), and the halftime kickoff or the
@@ -582,7 +594,7 @@ export function simulateSnap(
     timeElapsed = 0;
     if (concept === 'PAT_KICK') {
       const kicker = getActivePlayer(offense, 'K');
-      const res = resolveFieldGoal(kicker, 20, state.windSpeedMph);
+      const res = resolveFieldGoal(kicker, 20, state.windSpeedMph, talkEffect(state, offense.id).specialTeams);
       commentary = res.isSuccess ? `K ${kicker.lastName}'s extra point is GOOD.` : `K ${kicker.lastName}'s extra point is NO GOOD!`;
       if (res.isSuccess) {
         isScore = true;
@@ -592,7 +604,8 @@ export function simulateSnap(
     } else {
       const tryConcept: PlayConcept = Math.random() < 0.5 ? 'INSIDE_RUN' : 'SHORT_PASS';
       const { delta } = calculateMatchupDelta(tryConcept, offense, defense);
-      const quality = delta + getContextualModifier(state.weather, state.teamMomentum, tryConcept) + calculateGaussianVariance(0, EXECUTION_STDEV);
+      const quality =
+        delta + getContextualModifier(state.weather, state.teamMomentum, tryConcept) + calculateGaussianVariance(0, EXECUTION_STDEV) + talkEffect(state, offense.id).shortYardage;
       if (quality > 2) {
         isScore = true;
         scoreType = 'TWO_POINT';
@@ -608,7 +621,7 @@ export function simulateSnap(
   else if (concept === 'FIELD_GOAL') {
     const kicker = getActivePlayer(offense, 'K');
     const fgDist = (100 - state.yardLine) + 17; // 17 yards for snap/endzone depth
-    const fgRes = resolveFieldGoal(kicker, fgDist, state.windSpeedMph);
+    const fgRes = resolveFieldGoal(kicker, fgDist, state.windSpeedMph, talkEffect(state, offense.id).specialTeams);
     commentary = fgRes.text;
     credit(state, kicker, { fieldGoalsAttempted: 1, fieldGoalsMade: fgRes.isSuccess ? 1 : 0 });
 
@@ -651,7 +664,10 @@ export function simulateSnap(
     }
   }
   // A flag: blown dead before the snap, or the play is called back and the penalty walked off
-  else if ((foul = !isTryDown ? rollFoul(offense, defense, isPassConcept(concept), !isHomeOffense, getPositionGroup, (t) => talkEffect(state, t.id).foulRate) : null)) {
+  else if ((foul = !isTryDown ? rollFoul(offense, defense, isPassConcept(concept), !isHomeOffense, getPositionGroup, (t, timing) => {
+    const e = talkEffect(state, t.id);
+    return timing === 'PRE_SNAP' ? e.preSnapFouls : e.liveFouls;
+  }) : null)) {
     const { rule, team, player } = foul;
     // The defense was lined up in its call when the flag came out
     defensiveCall = chosenDefensiveCall ?? state.defensiveGamePlan?.[defense.id] ?? selectAIDefensiveCall(state);
@@ -695,10 +711,18 @@ export function simulateSnap(
     const contextMod = getContextualModifier(state.weather, state.teamMomentum, concept) + DEFENSIVE_CALL_MODIFIERS[defensiveCall][scrimmageConcept];
     const variance = calculateGaussianVariance(0, EXECUTION_STDEV + (defensiveCall === 'BLITZ' ? BLITZ_EXTRA_STDEV : 0));
     const form = (state.gameDayForm?.[offense.id] ?? 0) - (state.gameDayForm?.[defense.id] ?? 0);
-    // The halftime talks: the offense's message lifts (or costs) its plays, the defense's takes off (or adds)
-    const offenseTalk = talkEffect(state, offense.id);
-    const talk = offenseTalk.offense - talkEffect(state, defense.id).defense;
+    // The speeches: the offense's lifts (or costs) its plays, the defense's takes off (or adds); some only on runs or
+    // passes, inside the 20, or with 3 yards or less to go
     const isPass = isPassConcept(concept);
+    const offenseTalk = talkEffect(state, offense.id);
+    const defenseTalk = talkEffect(state, defense.id);
+    const inRedZone = state.yardLine >= RED_ZONE_YARD_LINE;
+    const talk =
+      offenseTalk.offense -
+      defenseTalk.defense +
+      (isPass ? offenseTalk.pass : offenseTalk.run) +
+      (inRedZone ? offenseTalk.redZone - defenseTalk.redZoneDefense : 0) +
+      (state.distance <= 3 ? offenseTalk.shortYardage : 0);
     const offScheme = offensiveSchemeOf(state, offense);
     const schemeMod =
       OFFENSIVE_SCHEME_MODIFIERS[offScheme][scrimmageConcept] +
@@ -722,9 +746,9 @@ export function simulateSnap(
 
     // Catastrophic Turnover Check
     // Undisciplined offenses are closer to a fumble or interception on every snap
-    const sloppiness = disciplinePlayQualityPenalty(offense) + offenseTalk.ballSecurity;
+    const sloppiness = disciplinePlayQualityPenalty(offense) + offenseTalk.ballSecurity + defenseTalk.takeaways;
     const fumbleThreshold = RUN_THRESHOLDS.fumble - (offScheme === 'POWER_I' ? 4 : 0) + sloppiness;
-    const explosiveThreshold = EXPLOSIVE_PLAY_QUALITY - (offScheme === 'AIR_RAID' || offScheme === 'SPREAD' ? 3 : 0) - offenseTalk.explosive;
+    const explosiveThreshold = EXPLOSIVE_PLAY_QUALITY - (offScheme === 'AIR_RAID' || offScheme === 'SPREAD' ? 3 : 0) - offenseTalk.explosive - defenseTalk.giveUpBig;
     // A talk that holds an offense back makes it conservative, not careless: it doesn't add turnovers (only the
     // big-play talk does, through ball security)
     const turnoverQuality = playQuality - Math.min(0, talk);

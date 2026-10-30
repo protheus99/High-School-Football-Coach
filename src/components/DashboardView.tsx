@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { rulesForState } from '../sim/stateRules';
 import { OffensiveScheme } from '../types/game';
-import { PreGameStrategyModal } from './PreGameStrategyModal';
+import { PreGameStrategyModal, PregameSpeech } from './PreGameStrategyModal';
 import { Sheet } from './ui/Sheet';
 import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
 import { StaffWindowCard } from './StaffWindowCard';
@@ -17,7 +17,7 @@ import { benchNote, isCoachBenched } from '../sim/billyMartin';
 import type { DefensiveFocus } from '../sim/gamePlan';
 
 export const DashboardView: React.FC<{
-  onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme) => void;
+  onLaunchGame: (focus: DefensiveFocus, offensiveScheme: OffensiveScheme, speech?: PregameSpeech) => void;
   onResumeGame: () => void;
   onNavigate: (tab: AgendaTab) => void;
   advanceRequest?: number; // the top bar's Advance, while something blocks the week: this screen takes it from here
@@ -156,7 +156,7 @@ export const DashboardView: React.FC<{
           forecast={{ weather: 'CLEAR', temp: 68, wind: 8 }}
           onKickoff={(strategy) => {
             setShowPreGameModal(false);
-            onLaunchGame(strategy.focusTarget, strategy.selectedOffScheme);
+            onLaunchGame(strategy.focusTarget, strategy.selectedOffScheme, strategy.speech);
           }}
           onCancel={() => setShowPreGameModal(false)}
         />
