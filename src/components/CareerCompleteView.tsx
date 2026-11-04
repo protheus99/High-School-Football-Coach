@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { coachTitle, useGameStore } from '../store/gameStore';
+import { track } from '../services/analytics';
 import { CareerLength, CONTRACT_LENGTHS, careerPoints } from '../sim/careerScore';
 import { OFFER_NOTES, OfferTier } from '../sim/jobMarket';
 import { findDistrict } from '../sim/league';
@@ -21,6 +22,7 @@ export const CareerCompleteView: React.FC<{ onMainMenu: () => void }> = ({ onMai
   const [extension, setExtension] = useState<CareerLength>(3);
   const [lengths, setLengths] = useState<Record<string, CareerLength>>({});
   const board = useHallOfFame(career?.length ?? 3, career);
+  const endChoice = (choice: 'extend' | 'new_job' | 'leave') => track('career_end_choice', { choice, fired: false, seasons: career?.seasons.length ?? 0 });
   if (!career) return null;
   const place = board.findIndex((e) => e.careerId === career.id) + 1;
   const team = leagueTeams.find((t) => t.id === userTeamId);
@@ -66,7 +68,7 @@ export const CareerCompleteView: React.FC<{ onMainMenu: () => void }> = ({ onMai
               </div>
               <div style={{ fontSize: '12.5px', color: '#334155', marginTop: '4px' }}>{OFFER_NOTES[o.tier]}</div>
               <LengthPicker value={length} onChange={(n) => setLengths({ ...lengths, [o.teamId]: n })} />
-              <button className="ui-btn ui-btn-primary ui-btn-block" style={{ marginTop: '8px', minHeight: '44px' }} onClick={() => (acceptJob(o.teamId, length), top())}>
+              <button className="ui-btn ui-btn-primary ui-btn-block" style={{ marginTop: '8px', minHeight: '44px' }} onClick={() => (endChoice('new_job'), acceptJob(o.teamId, length), top())}>
                 Accept · {length} years at {o.name}
               </button>
             </div>
@@ -114,7 +116,7 @@ export const CareerCompleteView: React.FC<{ onMainMenu: () => void }> = ({ onMai
         {contractRenewable && (
           <>
             <LengthPicker value={extension} onChange={setExtension} />
-            <button className="ui-btn ui-btn-primary ui-btn-block" style={{ marginTop: '8px', minHeight: '44px' }} onClick={() => (extendContract(extension), top())}>
+            <button className="ui-btn ui-btn-primary ui-btn-block" style={{ marginTop: '8px', minHeight: '44px' }} onClick={() => (endChoice('extend'), extendContract(extension), top())}>
               Sign {extension}-year extension
             </button>
           </>
@@ -122,7 +124,7 @@ export const CareerCompleteView: React.FC<{ onMainMenu: () => void }> = ({ onMai
       </div>
       <Option icon="💼" tint="#DBEAFE" edge="#2563EB" title="See job offers" badge={`${jobOffers.length} offers`} text="Other schools in this world. Each contract is a new Hall of Fame entry." onClick={() => (setView('OFFERS'), top())} />
       <Option icon="📇" tint="#EDE9FE" title="Coach career" text={`Every school you have coached${careerHistory.length ? ` (${careerHistory.length + 1})` : ''}, side by side.`} onClick={() => (setView('CAREER'), top())} />
-      <Option icon="🏁" tint="#FEF3C7" title="Leave this world" text="Back to the main menu: a new coach, a new world." onClick={onMainMenu} />
+      <Option icon="🏁" tint="#FEF3C7" title="Leave this world" text="Back to the main menu: a new coach, a new world." onClick={() => (endChoice('leave'), onMainMenu())} />
     </div>
   );
 };

@@ -146,10 +146,13 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   };
 
   const remove = async (id: string) => {
+    track('save_deleted', { saves: saves?.length ?? 0 });
     await deleteAnySave(id);
     setConfirmDelete(null);
     setSaves((list) => list?.filter((s) => s.id !== id) ?? null);
   };
+  // The title menu's choice (Continue: the game in memory, or the newest save)
+  const menuChoice = (choice: 'continue' | 'new' | 'load' | 'hall_of_fame') => track('menu_choice', { choice, ...(choice === 'continue' && { from_save: !canContinue }) });
 
   return (
     <div className="ui-on-dark" style={pageStyle}>
@@ -209,7 +212,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
             {/* Continue: the game in progress, or (after a refresh or a new visit) the newest save */}
             {(canContinue || latest) && (
-              <button onClick={() => (canContinue ? onEnterGame() : latest && load(latest))} disabled={busy} style={menuBtn('#F59E0B', '#0F172A')}>
+              <button onClick={() => (menuChoice('continue'), canContinue ? onEnterGame() : latest && load(latest))} disabled={busy} style={menuBtn('#F59E0B', '#0F172A')}>
                 ▶️ {busy ? 'Loading…' : 'Continue'}
                 {!canContinue && latest && (
                   <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginTop: '2px' }}>
@@ -220,13 +223,13 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               </button>
             )}
             {error && <div style={{ color: '#FCA5A5', fontSize: '13px', textAlign: 'center' }}>{error}</div>}
-            <button onClick={() => setView('NEW')} style={menuBtn('#15803D', '#fff')}>
+            <button onClick={() => (menuChoice('new'), setView('NEW'))} style={menuBtn('#15803D', '#fff')}>
               🆕 New Game
             </button>
-            <button onClick={() => setView('LOAD')} style={menuBtn('#334155', '#fff')}>
+            <button onClick={() => (menuChoice('load'), setView('LOAD'))} style={menuBtn('#334155', '#fff')}>
               📂 Load Game
             </button>
-            <button onClick={() => setHallOfFame(career?.length ?? 3)} style={{ ...menuBtn('#05060F', '#FACC15'), border: '2px solid #FACC15' }}>
+            <button onClick={() => (menuChoice('hall_of_fame'), setHallOfFame(career?.length ?? 3))} style={{ ...menuBtn('#05060F', '#FACC15'), border: '2px solid #FACC15' }}>
               🏆 Hall of Fame
             </button>
             {account.user && account.options.cloudSaves ? (

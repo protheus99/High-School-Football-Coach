@@ -3,7 +3,8 @@ import { Sheet } from './ui/Sheet';
 import { SignInSheet } from './AccountPanels';
 import { DUCAT_PACKS, DucatPackId, formatDucats } from '../data/ducats';
 import { useAccount } from '../services/account';
-import { buyDucats, CheckoutPhase, clearCheckout, refreshDucats, useDucats } from '../services/ducats';
+import { buyDucats, CheckoutPhase, clearCheckout, packItem, refreshDucats, useDucats } from '../services/ducats';
+import { track } from '../services/analytics';
 import { sitePage } from '../utils/site';
 
 // The ducat store (packs, bought through Stripe), the balance card on the Staff screen, and the sheet that says how
@@ -100,6 +101,8 @@ export const DucatStoreSheet: React.FC<{ onClose: () => void; onSignIn: () => vo
   const { balance } = useDucats();
   const [busy, setBusy] = useState<DucatPackId | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The store opened: the first step of the funnel to a checkout and a purchase
+  useEffect(() => track('view_item_list', { item_list_name: 'ducat_packs', signed_in: !!user, items: DUCAT_PACKS.map(packItem) }), []); // eslint-disable-line react-hooks/exhaustive-deps
   const open = !!user && options.ducats;
   const best = DUCAT_PACKS[DUCAT_PACKS.length - 1].id;
 

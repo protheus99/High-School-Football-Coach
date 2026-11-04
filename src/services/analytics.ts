@@ -7,7 +7,14 @@ import { cookieChoice } from './consent';
 // only the game's own ids, counts and results. The dev server logs each event to the console instead.
 // ---------------------------------------------------------------------------
 
-type EventParams = Record<string, string | number | boolean | undefined>;
+/** GA4's standard list of items (ecommerce and virtual-currency events). */
+export interface AnalyticsItem {
+  item_id: string;
+  item_name?: string;
+  price?: number;
+  quantity?: number;
+}
+type EventParams = Record<string, string | number | boolean | undefined | AnalyticsItem[]>;
 
 declare global {
   interface Window {
@@ -24,7 +31,7 @@ export function setEntrySource(source: string | undefined, variant?: string): vo
 }
 export const entrySource = () => entry;
 
-/** Sends one game event (snake_case name, up to 40 characters; values are ids, counts or results). */
+/** Sends one game event (snake_case name, up to 40 characters; values are ids, bands, counts or results). */
 export function track(event: string, params: EventParams = {}): void {
   const clean = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined));
   if (devLog) console.debug('[analytics]', event, clean);

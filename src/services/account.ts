@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { SaveSummary, decodeCloudSave, deleteSaveGame, listSaveSummaries, loadSaveGame, persistSaveGame, readSaveForUpload, setSaveListener } from './db';
 import type { GameSaveRecord } from './db';
+import { track } from './analytics';
 
 // ---------------------------------------------------------------------------
 // The player's optional account (the sign-in server, auth-worker/, on /api/auth) and cloud saves. Signed out, the
@@ -236,6 +237,9 @@ export function initAccount(): void {
   if (result) update({ result });
   setSaveListener(queueUpload);
   void refreshAccount().then(() => {
+    // Back from a sign-in: GA4's login event (the method is the account's sign-in, or several when it has more)
+    if (result === 'ok') track('login', { method: state.user?.providers.length === 1 ? state.user.providers[0] : state.user ? 'multiple' : 'unknown' });
+    else if (result) track('login_failed', { result });
     if (result === 'ok') void uploadLocalSaves();
   });
 }

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { track } from '../services/analytics';
+import { moment } from '../services/analyticsParams';
 import { Sheet } from './ui/Sheet';
 import { MusicSettingsPanel } from './MusicSettingsPanel';
 import { AccountCard, CookiesCard, SignInSheet } from './AccountPanels';
@@ -40,6 +42,7 @@ export const SaveLoadManagerModal: React.FC<{ onClose: () => void; onMainMenu?: 
             className="ui-btn"
             style={{ width: '100%', marginTop: '8px', background: '#1E293B', borderColor: '#1E293B', color: '#fff' }}
             onClick={async () => {
+              track('main_menu', moment(useGameStore.getState()));
               await autosave().catch(() => undefined);
               onMainMenu();
             }}

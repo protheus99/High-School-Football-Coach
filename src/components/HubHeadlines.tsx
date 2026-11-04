@@ -1,5 +1,7 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
+import { track } from '../services/analytics';
+import { moment } from '../services/analyticsParams';
 import { NewsCategory, newsCategory, pickHeadlines } from '../sim/newsEngine';
 import type { AgendaTab } from './WeeklyAgenda';
 
@@ -42,7 +44,13 @@ export const HubHeadlines: React.FC<{ onNavigate: (tab: AgendaTab) => void }> = 
         {headlines.map((a, i) => {
           const s = a.rivalry ? RIVALRY_STYLE : STYLE[newsCategory(a)];
           return (
-            <button key={a.id} onClick={() => onNavigate(s.target)} style={{ ...row, borderTop: i === 0 ? 'none' : '1px solid #F1F5F9' }}>
+            <button
+              key={a.id}
+              onClick={() => {
+                track('hub_card', { card: 'headline', action: s.label.toLowerCase(), ...moment(useGameStore.getState()) });
+                onNavigate(s.target);
+              }}
+              style={{ ...row, borderTop: i === 0 ? 'none' : '1px solid #F1F5F9' }}>
               <span aria-hidden="true" style={{ ...circle, background: s.tint }}>
                 {s.icon}
               </span>

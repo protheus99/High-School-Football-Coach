@@ -34,6 +34,7 @@ import { ADVANCE_LABEL, advanceBlocker } from './sim/advanceGate';
 import { isCoachBenched } from './sim/billyMartin';
 import { FiredScreen } from './components/FiredScreen';
 import { track } from './services/analytics';
+import { gameContext, liveTally, moment, secondString, talkParams } from './services/analyticsParams';
 import { AUTOSAVE_ID, loadSaveGame } from './services/db';
 import { loadLiveState } from './services/playedGames';
 import { lockKey } from './sim/gameLock';
@@ -154,11 +155,22 @@ export const App: React.FC = () => {
       // The pre-game speech plays the first half; the next game's offer steers clear of this one's
       ...(speech && { pregameTalks: { [userTeam.id]: speech.given.talk.id } })
     };
+    const s = useGameStore.getState();
+    const game = gameContext(s);
     if (speech) {
-      const s = useGameStore.getState();
       s.setRecentTalks(rememberTalks(s.recentTalks, 'PRE', speech.offered, speech.given));
-      track('pregame_talk', { talk: speech.given.talk.id });
+      track('pregame_talk', { ...talkParams(speech.given, speech.offered), ...game, ...moment(s) });
     }
+    // The plan the coach kicks off with (the strategy room set the second string just before)
+    liveTally.reset();
+    track('kickoff', {
+      offense: offensiveScheme ?? userTeam.schemeOffense,
+      focus,
+      second_string: secondString(s.secondStringLead),
+      talk_family: speech?.given.talk.family ?? 'none',
+      ...game,
+      ...moment(s)
+    });
 
     // A game counts once it kicks off: it's written down outside the saves right away
     useGameStore.getState().markGameLive(newGame, true);
@@ -174,6 +186,7 @@ export const App: React.FC = () => {
       useGameStore.getState().advanceWeek();
       return;
     }
+    track('advance_blocked', { blocker, ...moment(useGameStore.getState()) });
     // Starters who could be ineligible: straight to Team › Grades (opening it is the week's review)
     if (blocker === 'GRADES') {
       setTeamSection('GRADES');

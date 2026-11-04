@@ -1,5 +1,7 @@
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
+import { track } from '../services/analytics';
+import { moment } from '../services/analyticsParams';
 import { formatCP } from '../sim/coachPoints';
 import { SELF_REPORT } from '../sim/compliance';
 import { Sheet } from './ui/Sheet';
@@ -45,7 +47,10 @@ export const ComplianceDecisionSheet: React.FC = () => {
   const team = leagueTeams.find((t) => t.id === userTeamId);
   const inquiry = decision === 'INQUIRY';
   const terms = SELF_REPORT[compliance.stage];
-  const sayNothing = () => useGameStore.setState({ compliance: { ...compliance, pendingDecision: null, decisionDeferred: false } });
+  const sayNothing = () => {
+    track('compliance_action', { action: 'say_nothing', stage: compliance.stage, ...moment(useGameStore.getState()) });
+    useGameStore.setState({ compliance: { ...compliance, pendingDecision: null, decisionDeferred: false } });
+  };
   return (
     <Sheet
       title={inquiry ? 'A formal inquiry is open' : 'The state has questions'}

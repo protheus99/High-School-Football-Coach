@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { feederEventsOpen, useGameStore } from '../store/gameStore';
+import { track } from '../services/analytics';
+import { labelId, moment } from '../services/analyticsParams';
 import {
   FEEDER_SIGNING_WEEK,
   FIRST_DISTRICT_WEEK,
@@ -834,7 +836,10 @@ export const WeeklyAgenda: React.FC<{
             {buttons.map((a) => (
               <button
                 key={a.label}
-                onClick={a.onClick}
+                onClick={() => {
+                  track('hub_card', { card: item.id, action: labelId(a.label), ...moment(useGameStore.getState()) });
+                  a.onClick();
+                }}
                 disabled={'disabled' in a ? a.disabled : false}
                 style={actionBtn('primary' in a ? !!a.primary : false, 'disabled' in a ? !!a.disabled : false, item.id === 'dilemma')}
               >

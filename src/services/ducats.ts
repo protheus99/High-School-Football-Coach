@@ -1,7 +1,8 @@
 import { useSyncExternalStore } from 'react';
 import { accountState, subscribeAccount } from './account';
-import { DUCAT_PACKS, DucatPackId, ducatPack } from '../data/ducats';
-import { track } from './analytics';
+import { COACH_DUCAT_PRICES, DUCAT_PACKS, DucatPack, DucatPackId, ducatPack } from '../data/ducats';
+import { AnalyticsItem, track } from './analytics';
+import { moment } from './analyticsParams';
 import type { CoachGrade } from '../sim/coachingStaff';
 import { useGameStore } from '../store/gameStore';
 
@@ -59,6 +60,9 @@ export async function refreshDucats(): Promise<void> {
   if (store) update({ balance: store.balance });
 }
 
+/** A pack as GA4's ecommerce reports list it. */
+export const packItem = (p: DucatPack): AnalyticsItem => ({ item_id: p.id, item_name: `${p.ducats} ducats`, price: p.cents / 100, quantity: 1 });
+
 /**
  * Off to Stripe's checkout for a pack (the game in progress is saved first). Resolves only if it couldn't go,
  * with the reason to show.
@@ -68,8 +72,8 @@ export async function buyDucats(pack: DucatPackId): Promise<string> {
     const res = await fetch(`${API}/checkout`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pack }) });
     const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
     if (!res.ok || !body.url) return body.error ?? "Checkout couldn't open. Try again in a minute.";
-    const cents = ducatPack(pack)?.cents ?? 0;
-    track('begin_checkout', { currency: 'USD', value: cents / 100, pack });
+    const bought = ducatPack(pack);
+    track('begin_checkout', { currency: 'USD', value: (bought?.cents ?? 0) / 100, pack, ...(bought && { items: [packItem(bought)] }), ...moment(useGameStore.getState()) });
     await useGameStore.getState().autosave().catch(() => undefined);
     location.assign(body.url);
     return '';
@@ -84,14 +88,18 @@ const paymentId = () => `pay-${Date.now().toString(36)}-${Math.random().toString
  * Pays a season for each coach (by grade) from the account's ducats. Resolves to null when paid, else the reason.
  * A dropped connection is retried with the same payment id, which the server only ever charges once.
  */
-export async function spendDucats(grades: CoachGrade[]): Promise<string | null> {
+export async function spendDucats(grades: CoachGrade[], item: 'coach_hire' | 'staff_renewal'): Promise<string | null> {
   const id = paymentId();
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const res = await fetch(`${API}/spend`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, grades }) });
       const body = (await res.json().catch(() => ({}))) as { balance?: number; error?: string };
       if (typeof body.balance === 'number') update({ balance: body.balance });
-      if (res.ok) return null;
+      if (res.ok) {
+        const value = grades.reduce((sum, g) => sum + (COACH_DUCAT_PRICES[g] ?? 0), 0);
+        track('spend_virtual_currency', { virtual_currency_name: 'ducats', value, item_name: item, coaches: grades.length, ...moment(useGameStore.getState()) });
+        return null;
+      }
       if (res.status === 401) return 'Sign in to pay in ducats.';
       return body.error ?? "The payment didn't go through. Try again.";
     } catch {
@@ -111,7 +119,7 @@ async function confirm(session: string): Promise<void> {
     if (store?.checkout?.status === 'paid') {
       // The pack is known by the ducats it added (a pack's ducats include its bonus)
       const pack = DUCAT_PACKS.find((p) => p.ducats === store.checkout?.added);
-      track('purchase', { transaction_id: session, currency: 'USD', value: (pack?.cents ?? 0) / 100, pack: pack?.id, ducats: store.checkout.added });
+      track('purchase', { transaction_id: session, currency: 'USD', value: (pack?.cents ?? 0) / 100, pack: pack?.id, ducats: store.checkout.added, ...(pack && { items: [packItem(pack)] }) });
       return update({ checkout: { phase: 'paid', added: store.checkout.added } });
     }
     if (store?.checkout?.status === 'blocked') return update({ checkout: { phase: 'blocked' } });

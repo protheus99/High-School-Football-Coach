@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { track } from '../services/analytics';
+import { moment } from '../services/analyticsParams';
 import { rulesForState } from '../sim/stateRules';
 import { OffensiveScheme } from '../types/game';
 import { PreGameStrategyModal, PregameSpeech } from './PreGameStrategyModal';
@@ -80,6 +82,8 @@ export const DashboardView: React.FC<{
     else advanceWeek();
   }
   const handleSimGame = () => (activeDilemma ? goToDecision() : gradesBlocked ? onNavigate('GRADES') : advanceWeek());
+  // What the coach does with this week's game: play it, sim it, resume it, or not yet
+  const gameChoice = (choice: 'play' | 'sim' | 'resume' | 'cancel', from: 'hub' | 'warning') => track('game_choice', { choice, from, ...moment(useGameStore.getState()) });
 
   return (
     <div className="ui-screen" style={{ maxWidth: '1000px' }}>
@@ -92,13 +96,20 @@ export const DashboardView: React.FC<{
               <button
                 className="ui-btn ui-btn-primary"
                 onClick={() => {
+                  gameChoice('resume', 'warning');
                   setShowSimWarning(false);
                   onResumeGame();
                 }}
               >
                 ▶ Resume Game
               </button>
-              <button className="ui-btn" onClick={() => setShowSimWarning(false)}>
+              <button
+                className="ui-btn"
+                onClick={() => {
+                  gameChoice('cancel', 'warning');
+                  setShowSimWarning(false);
+                }}
+              >
                 Cancel
               </button>
             </div>
@@ -120,6 +131,7 @@ export const DashboardView: React.FC<{
                 <button
                   className="ui-btn ui-btn-primary"
                   onClick={() => {
+                    gameChoice('play', 'warning');
                     setShowSimWarning(false);
                     setShowPreGameModal(true);
                   }}
@@ -130,13 +142,20 @@ export const DashboardView: React.FC<{
               <button
                 className="ui-btn ui-btn-dark"
                 onClick={() => {
+                  gameChoice('sim', 'warning');
                   setShowSimWarning(false);
                   advanceWeek();
                 }}
               >
                 ⏭️ Auto-Sim &amp; Advance
               </button>
-              <button className="ui-btn" onClick={() => setShowSimWarning(false)}>
+              <button
+                className="ui-btn"
+                onClick={() => {
+                  gameChoice('cancel', 'warning');
+                  setShowSimWarning(false);
+                }}
+              >
                 Cancel
               </button>
             </div>
@@ -197,9 +216,18 @@ export const DashboardView: React.FC<{
               }
             : null
         }
-        onPlayGame={() => setShowPreGameModal(true)}
-        onResumeGame={onResumeGame}
-        onAutoSim={handleSimGame}
+        onPlayGame={() => {
+          gameChoice('play', 'hub');
+          setShowPreGameModal(true);
+        }}
+        onResumeGame={() => {
+          gameChoice('resume', 'hub');
+          onResumeGame();
+        }}
+        onAutoSim={() => {
+          gameChoice('sim', 'hub');
+          handleSimGame();
+        }}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}
         phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek)].replace('District', rulesForState(league?.state).districtLabel)}

@@ -3,6 +3,7 @@ import { Sheet } from './ui/Sheet';
 import { useGameStore } from '../store/gameStore';
 import { clearSignInResult, deleteAccount, sendSignInLink, setMarketing, signInAvailable, signInWith, signOut, useAccount } from '../services/account';
 import { cookieChoice, reopenCookieBanner, subscribeConsent } from '../services/consent';
+import { track } from '../services/analytics';
 import { sitePage } from '../utils/site';
 
 const PROVIDER_NAMES: Record<string, string> = { google: 'Google', facebook: 'Facebook', email: 'email link' };
@@ -19,6 +20,7 @@ export const SignInSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   // Leaving the page for Google or Facebook: the game in progress is saved first
   const goTo = async (provider: 'google' | 'facebook') => {
     setBusy(true);
+    track('sign_in_start', { method: provider, marketing });
     await useGameStore.getState().autosave().catch(() => undefined);
     signInWith(provider, marketing);
   };
@@ -34,7 +36,10 @@ export const SignInSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const problem = await sendSignInLink(email.trim(), marketing);
     setBusy(false);
     if (problem) setError(problem);
-    else setSentTo(email.trim());
+    else {
+      track('sign_in_start', { method: 'email', marketing });
+      setSentTo(email.trim());
+    }
   };
 
   if (sentTo)
@@ -173,6 +178,7 @@ export const AccountCard: React.FC<{ onSignIn: () => void }> = ({ onSignIn }) =>
               style={{ background: '#DC2626', borderColor: '#DC2626', color: '#fff' }}
               onClick={async () => {
                 const ok = await deleteAccount();
+                if (ok) track('account_deleted');
                 setConfirmDelete(false);
                 setNote(ok ? null : "Couldn't delete the account. Try again.");
               }}
@@ -186,7 +192,13 @@ export const AccountCard: React.FC<{ onSignIn: () => void }> = ({ onSignIn }) =>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
-          <button className="ui-btn" onClick={() => void signOut()}>
+          <button
+            className="ui-btn"
+            onClick={() => {
+              track('logout');
+              void signOut();
+            }}
+          >
             Sign out
           </button>
           <button className="ui-btn" style={{ background: '#FEF2F2', borderColor: '#FCA5A5', color: '#B91C1C' }} onClick={() => setConfirmDelete(true)}>

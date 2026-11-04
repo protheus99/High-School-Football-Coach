@@ -4,6 +4,7 @@ import { toEntry } from '../services/leaderboard';
 import { useHallOfFame } from '../utils/useHallOfFame';
 import { ordinal, schoolWithState } from '../utils/format';
 import { coachTitle } from '../store/gameStore';
+import { track } from '../services/analytics';
 import { HallOfFameArcade } from './HallOfFameBoard';
 import { Sheet } from './ui/Sheet';
 
@@ -15,6 +16,7 @@ import { Sheet } from './ui/Sheet';
 export const FiredScreen: React.FC<{ school: string; misconduct: boolean; career: Career | null; onMainMenu: () => void }> = ({ school, misconduct, career, onMainMenu }) => {
   const [hallOfFame, setHallOfFame] = useState<CareerLength | null>(null);
   const scored = career && career.seasons.length > 0 ? career : null;
+  const endChoice = (choice: 'main_menu' | 'hall_of_fame') => track('career_end_choice', { choice, fired: true, misconduct, seasons: career?.seasons.length ?? 0 });
   return (
     <div style={screen}>
       <div style={{ ...column, maxWidth: '420px' }}>
@@ -31,11 +33,11 @@ export const FiredScreen: React.FC<{ school: string; misconduct: boolean; career
             : "After a second straight season without the board's confidence, the board has decided to make a change. Thank you for your service, Coach."}
         </p>
         {scored && <CareerLine career={scored} />}
-        <button onClick={onMainMenu} style={{ ...arcadeBtn, borderColor: '#FACC15', color: '#FACC15', boxShadow: '0 0 10px rgba(250,204,21,.35) inset' }}>
+        <button onClick={() => (endChoice('main_menu'), onMainMenu())} style={{ ...arcadeBtn, borderColor: '#FACC15', color: '#FACC15', boxShadow: '0 0 10px rgba(250,204,21,.35) inset' }}>
           <span className="game-over-blink">▶ MAIN MENU</span>
         </button>
         {scored && (
-          <button onClick={() => setHallOfFame(scored.length)} style={arcadeBtn}>
+          <button onClick={() => (endChoice('hall_of_fame'), setHallOfFame(scored.length))} style={arcadeBtn}>
             🏆 HALL OF FAME
           </button>
         )}

@@ -99,7 +99,7 @@ export const StaffView: React.FC = () => {
       // The first season comes off the account's ducats before the coach joins
       setPaying(true);
       setHireError(null);
-      const problem = await spendDucats([coachGrade(coach.rating)]);
+      const problem = await spendDucats([coachGrade(coach.rating)], 'coach_hire');
       setPaying(false);
       if (problem) return setHireError(problem);
     }
@@ -417,7 +417,7 @@ const SettlePanel: React.FC<{ due: HiredCoach[]; onOpen: (sheet: DucatSheetKind)
     setError(null);
     if (cost.ducats > 0) {
       setPaying(true);
-      const problem = await spendDucats(keep.filter((c) => coachPrice(c.rating).currency === 'DUCATS').map((c) => coachGrade(c.rating)));
+      const problem = await spendDucats(keep.filter((c) => coachPrice(c.rating).currency === 'DUCATS').map((c) => coachGrade(c.rating)), 'staff_renewal');
       setPaying(false);
       if (problem) return setError(problem);
     }

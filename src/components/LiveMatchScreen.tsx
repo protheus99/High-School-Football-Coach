@@ -27,6 +27,7 @@ import { FlagCall } from './FlagCall';
 import { FLAG_STAGE_MS, FlagStage, flagStages } from '../sim/flagSequence';
 import { PenaltyFlag } from './ui/PenaltyFlag';
 import { track } from '../services/analytics';
+import { gameContext, liveTally, moment, scoreBand, secondString, talkParams } from '../services/analyticsParams';
 import { finalWhistleTune, soundsForPlay } from '../utils/playSounds';
 
 interface LiveMatchProps {
@@ -220,6 +221,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   }, [autoPlay, leveragePrompt, showHalftimeModal, flag, gameState.isGameOver]);
 
   const handleDefensiveCall = (call: DefensiveCall) => {
+    liveTally.defCalls++;
     simWorkerBridge.stepPlay(undefined, call);
   };
 
@@ -235,6 +237,22 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     simWorkerBridge.stepPlay(concept);
     resumeAutoSim();
   };
+  // The coach's side of the score, for game events
+  const scoreDiff = () => (gameState.homeTeam.id === userTeamId ? 1 : -1) * (gameState.homeScore - gameState.awayScore);
+  // A big moment's call (the point after, 4th down, goal to go, the two-minute drill): tracked, then played
+  const handleLeverageCall = (concept: PlayConcept) => {
+    if (leveragePrompt) {
+      const toGo = gameState.yardLine + gameState.distance >= 100 ? 'goal' : gameState.distance <= 2 ? '1-2' : gameState.distance <= 5 ? '3-5' : '6+';
+      track('leverage_call', {
+        situation: leveragePrompt === 'PAT_DECISION' ? 'pat' : leveragePrompt.toLowerCase(),
+        call: concept.toLowerCase(),
+        quarter: String(gameState.currentQuarter),
+        score_diff: scoreBand(scoreDiff()),
+        ...(leveragePrompt !== 'PAT_DECISION' && { down: gameState.down, to_go: toGo, field_zone: gameState.yardLine < 50 ? 'own_half' : gameState.yardLine < 80 ? 'opponent_half' : 'red_zone' })
+      });
+    }
+    handleDecision(concept);
+  };
 
   // Sim ahead (the staff calls every play): the rest of the quarter, the half, or the game
   const firstHalf = gameState.currentQuarter === 1 || gameState.currentQuarter === 2;
@@ -245,6 +263,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     setConfirmEnd(false);
     resumeAutoRef.current = false;
     simmingToEndRef.current = true;
+    liveTally.simmed(to === 'QUARTER' ? 'quarter' : to === 'HALF' ? 'half' : 'end');
     setAlertQueue([]);
     clearFlag();
     if (to === 'QUARTER') simWorkerBridge.simQuarter();
@@ -276,6 +295,14 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   };
   const applyPlan = (offense: OffensiveScheme, focus: DefensiveFocus, bench: number | null) => {
     if (showHalftimeModal) changedPlanAtHalftimeRef.current = true; // the press may ask about it
+    track('game_plan_change', {
+      offense,
+      focus,
+      second_string: secondString(bench),
+      when: showHalftimeModal ? 'halftime' : 'in_game',
+      quarter: String(gameState.currentQuarter),
+      score_diff: scoreBand(scoreDiff())
+    });
     const call = FOCUS_CALL[focus];
     simWorkerBridge.setGamePlan(userTeamId, offense, call, bench);
     useGameStore.getState().setSecondStringLead(bench); // the bench line carries over to the next game
@@ -367,7 +394,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
             const store = useGameStore.getState();
             store.setRecentTalks(rememberTalks(store.recentTalks, 'HALF', offered, given));
             simWorkerBridge.setHalftimeTalk(userTeamId, talk);
-            track('halftime_talk', { talk, score_diff: (gameState.homeTeam.id === userTeamId ? 1 : -1) * (gameState.homeScore - gameState.awayScore) });
+            track('halftime_talk', { ...talkParams(given, offered), score_diff: scoreDiff(), ...gameContext(store), ...moment(store) });
             setGameState((s) => ({ ...s, halftimeTalks: { ...s.halftimeTalks, [userTeamId]: talk } }));
             useGameStore.getState().markGameLive({ ...gameState, halftimeTalks: { ...gameState.halftimeTalks, [userTeamId]: talk } }, true);
             setShowHalftimeModal(false);
@@ -466,8 +493,8 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
             Kick the extra point, or go for two from the 3-yard line?
           </p>
           <div style={decisionGrid}>
-            <button onClick={() => handleDecision('PAT_KICK')} style={btnStyle}>👟 Kick Extra Point</button>
-            <button onClick={() => handleDecision('TWO_POINT_TRY')} style={btnStyle}>✌️ Go for Two</button>
+            <button onClick={() => handleLeverageCall('PAT_KICK')} style={btnStyle}>👟 Kick Extra Point</button>
+            <button onClick={() => handleLeverageCall('TWO_POINT_TRY')} style={btnStyle}>✌️ Go for Two</button>
           </div>
         </div>
       )}
@@ -481,16 +508,16 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
             . Choose your tactical call:
           </p>
           <div style={decisionGrid}>
-            <button onClick={() => handleDecision('INSIDE_RUN')} style={btnStyle}>🏈 Power Run</button>
-            <button onClick={() => handleDecision('SHORT_PASS')} style={btnStyle}>🎯 Quick Pass</button>
+            <button onClick={() => handleLeverageCall('INSIDE_RUN')} style={btnStyle}>🏈 Power Run</button>
+            <button onClick={() => handleLeverageCall('SHORT_PASS')} style={btnStyle}>🎯 Quick Pass</button>
             {leveragePrompt !== 'RED_ZONE_GOAL_TO_GO' && (
-              <button onClick={() => handleDecision('DEEP_PASS')} style={btnStyle}>🚀 Deep Shot</button>
+              <button onClick={() => handleLeverageCall('DEEP_PASS')} style={btnStyle}>🚀 Deep Shot</button>
             )}
             {gameState.down === 4 && 100 - gameState.yardLine + 17 <= MAX_FIELD_GOAL_PROMPT_YARDS && (
-              <button onClick={() => handleDecision('FIELD_GOAL')} style={btnStyle}>👟 Field Goal ({100 - gameState.yardLine + 17} yds)</button>
+              <button onClick={() => handleLeverageCall('FIELD_GOAL')} style={btnStyle}>👟 Field Goal ({100 - gameState.yardLine + 17} yds)</button>
             )}
             {gameState.down === 4 && gameState.yardLine < 80 && (
-              <button onClick={() => handleDecision('PUNT')} style={btnStyle}>🛡️ Punt</button>
+              <button onClick={() => handleLeverageCall('PUNT')} style={btnStyle}>🛡️ Punt</button>
             )}
           </div>
         </div>
@@ -501,7 +528,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         <>
           <PlayCallingPanel
             side={gameState.possessionTeamId === userTeamId ? 'OFFENSE' : 'DEFENSE'}
-            onCallPlay={(concept) => handleDecision(concept)}
+            onCallPlay={(concept) => {
+              liveTally.plays++;
+              handleDecision(concept);
+            }}
             onCallDefense={handleDefensiveCall}
             disabled={flag !== null}
           />
