@@ -1,6 +1,6 @@
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 
 // The About page (public/about.html) shows the game's version: written in from package.json at build time, and served
@@ -57,6 +57,30 @@ function dropLicensedMusic(): Plugin {
       } catch {
         // no music folder in this build
       }
+    }
+  };
+}
+
+// The match field's play library (replay-data/library.json) is kept out of git but goes out with the site: each build
+// copies it in. A build without it (CI, a fresh clone) still works: the field then shows each snap's result only.
+function shipPlayLibrary(): Plugin {
+  let root = process.cwd();
+  let outDir = 'dist';
+  return {
+    name: 'ship-play-library',
+    apply: 'build',
+    configResolved(config) {
+      root = config.root;
+      outDir = resolve(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      const src = join(root, 'replay-data', 'library.json');
+      if (!existsSync(src)) {
+        console.warn('\n⚠️  No replay-data/library.json: this build has no plays for the match field.\n');
+        return;
+      }
+      mkdirSync(join(outDir, 'replay-data'), { recursive: true });
+      copyFileSync(src, join(outDir, 'replay-data', 'library.json'));
     }
   };
 }
@@ -118,7 +142,7 @@ function teamPages(): Plugin {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), dropLicensedMusic(), googleTag(), aboutPageVersion(), teamPages()],
+  plugins: [react(), dropLicensedMusic(), shipPlayLibrary(), googleTag(), aboutPageVersion(), teamPages()],
   worker: {
     format: 'es'
   },

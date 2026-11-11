@@ -269,6 +269,16 @@ export interface PlayEvent {
   leverageType?: LeverageType;
   penalty?: PenaltyCall; // a flag: the snap is blown dead or called back (sim/penalties)
   substitution?: { teamId: string; in: boolean; lead: number }; // after this play the team's second string goes in (or its starters come back)
+  // PLAYTEST: a player hurt on this play (he leaves the game; his backup takes over)
+  injury?: { playerId: string; teamId: string; name: string; severity: InjurySeverity; role: 'carrier' | 'receiver' | 'tackler' | 'sacker' | 'intercepter' | 'qb' };
+  // PLAYTEST: the seconds a timeout right after this play gives back (the time between the whistle and the next snap;
+  // 0 when the clock stopped anyway: an incompletion, a score, a change of possession, the end of a quarter)
+  clockRunoff?: number;
+  // PLAYTEST: a timeout called right after this play (by the coach, or by a staff: the opponent's, or the coach's own
+  // while he sims ahead)
+  timeout?: { teamId: string; left: number; saved: number; by: 'coach' | 'staff' };
+  // PLAYTEST: the defense's staff called a timeout before this field goal (icing the kicker)
+  iceTimeout?: { teamId: string; left: number };
 }
 
 export interface PenaltyCall {
@@ -349,6 +359,7 @@ export interface GameSimulationState {
   pregameTalks?: Record<string, HalftimeTalk>; // teamId -> the pre-game speech, for the first half
   halftimeTalks?: Record<string, HalftimeTalk>; // teamId -> the halftime speech, for the second half and overtime
   secondStringLead?: Record<string, number | null>; // teamId -> the lead that sends in the backups (null: never; default 35)
+  timeoutsLeft?: Record<string, number>; // PLAYTEST: teamId -> timeouts left this half (3 a half, 1 each overtime)
 }
 
 /** Kansas Plan overtime: one possession per team per period from the opponent's 10. */

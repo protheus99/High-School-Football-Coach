@@ -1,0 +1,3 @@
+# The match field's play data: never indexed, even when linked from somewhere
+/replay-data/*
+  X-Robots-Tag: noindex, nofollow

@@ -3,18 +3,9 @@ import { GameSimulationState, OffensiveScheme } from '../types/game';
 import { Sheet } from './ui/Sheet';
 import { GamePlanBar } from './GamePlanSheet';
 import { DefensiveFocus } from '../sim/gamePlan';
-import { useGameStore } from '../store/gameStore';
-import {
-  TalkOption,
-  firstHalfLines,
-  gameStakes,
-  halftimeSituation,
-  pickTalks,
-  pregameSituation,
-  stakesFromGame,
-  talkCount
-} from '../sim/talkPicker';
+import { TalkOption } from '../sim/talkPicker';
 import { RECOMMENDS, SectionNote, SheetSection, SpeechList } from './SpeechPicker';
+import { halftimeOffer } from './halftimeOffer';
 
 interface HalftimeSpeechModalProps {
   gameState: GameSimulationState;
@@ -35,15 +26,7 @@ export const HalftimeSpeechModal: React.FC<HalftimeSpeechModalProps> = ({ gameSt
   const margin = userScore - oppScore;
 
   // The first half is read once, when the locker room opens (a reopened game offers the same speeches)
-  const [{ options, lines }] = useState(() => {
-    const s = useGameStore.getState();
-    const stakes = gameStakes(s) ?? stakesFromGame(gameState, userTeamId);
-    const situation = halftimeSituation(pregameSituation(s, stakes, gameState.weather), gameState, userTeamId);
-    return {
-      options: pickTalks(situation, { seed: `${gameState.gameId}:HALF`, count: talkCount('HALF', s.coachingStaff), recent: s.recentTalks }),
-      lines: firstHalfLines(situation, stakes)
-    };
-  });
+  const [{ options, lines }] = useState(() => halftimeOffer(gameState, userTeamId));
   const [speech, setSpeech] = useState<string | null>(null);
   const given = options.find((o) => o.talk.id === speech);
 

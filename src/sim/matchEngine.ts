@@ -17,6 +17,24 @@ import { addPlayerStats, createEmptyPlayerStats } from './playerStats';
 import { compareDepth } from './depthChart';
 import { disciplinePlayQualityPenalty } from './programMeters';
 import { enforcedYards, rollFoul } from './penalties';
+import { fatigueInjuryMultiplier } from './training';
+
+/**
+ * PLAYTEST ONLY: the replay test's switches, set from the live screen through the sim worker. `injuries`: how often a
+ * player is hurt on a contact play during the game (0: never, as in the real game, which rolls injuries once after the
+ * final whistle; 1: about one a team a game; more to see them often). `penalties`: a multiplier on every flag's odds.
+ */
+export const testRates = { injuries: 0, penalties: 1 };
+/**
+ * PLAYTEST ONLY: the teams whose staff may call timeouts by the rules below (the opponent's, always; the coach's own
+ * while he sims ahead). Empty outside the live screen: other games never call one.
+ */
+export const timeoutStaff: { teams: string[] } = { teams: [] };
+const TIMEOUTS_PER_HALF = 3;
+const PLAY_SECONDS = 6; // the play itself: what a timeout can't give back
+// Per player in the middle of a contact play (the runner or receiver, the tackler, the sacker...): about 55 of those a
+// team a game, so about one injury a team a game (measured over 200 games: 1.28 at 0.017)
+const SNAP_INJURY_ODDS = 0.014;
 import { talkEffect } from './talks';
 import { rulesForState } from './stateRules';
 
@@ -466,6 +484,7 @@ function startOvertimePeriod(state: GameSimulationState, period: number, firstOf
   state.currentQuarter = 'OT';
   state.clockSecondsRemaining = 0;
   state.overtime = { period, possessionsCompleted: 0, firstOffenseTeamId };
+  state.timeoutsLeft = { [state.homeTeam.id]: 1, [state.awayTeam.id]: 1 }; // one each overtime period
   setFirstDown(state, firstOffenseTeamId, 100 - overtimeYardsFromGoal(state));
   const team = firstOffenseTeamId === state.homeTeam.id ? state.homeTeam : state.awayTeam;
   return ` OVERTIME ${period}: ${team.name} ball at the ${overtimeYardsFromGoal(state)}.`;
@@ -523,6 +542,7 @@ export function simulateSnap(
   const restingBefore = restingTeamId(state);
   restingTeamIds = new Set(restingBefore ? [restingBefore] : []);
 
+  state.timeoutsLeft ??= { [state.homeTeam.id]: TIMEOUTS_PER_HALF, [state.awayTeam.id]: TIMEOUTS_PER_HALF };
   state.gameDayForm ??= {
     [state.homeTeam.id]: calculateGaussianVariance(0, GAME_DAY_FORM_STDEV),
     [state.awayTeam.id]: calculateGaussianVariance(0, GAME_DAY_FORM_STDEV)
@@ -567,7 +587,10 @@ export function simulateSnap(
   let commentary = '';
   let defensiveCall: DefensiveCall | undefined;
   let foul: ReturnType<typeof rollFoul> = null;
+  // PLAYTEST: who was in the middle of the contact on this snap (one of them may get hurt)
+  const contact: { p: Player | undefined; team: Team; role: NonNullable<PlayEvent['injury']>['role'] }[] = [];
   let penalty: PlayEvent['penalty'];
+  let iceTimeout: PlayEvent['iceTimeout'];
   // A tempo speech: a hurry-up uses less clock a snap (more snaps), a grind uses more
   let timeElapsed = state.isMercyRuleActive
     ? MERCY_RULE_RUNOFF
@@ -619,6 +642,7 @@ export function simulateSnap(
   }
   // Field Goal execution
   else if (concept === 'FIELD_GOAL') {
+    iceTimeout = iceTheKicker(state, defense.id);
     const kicker = getActivePlayer(offense, 'K');
     const fgDist = (100 - state.yardLine) + 17; // 17 yards for snap/endzone depth
     const fgRes = resolveFieldGoal(kicker, fgDist, state.windSpeedMph, talkEffect(state, offense.id).specialTeams);
@@ -666,7 +690,7 @@ export function simulateSnap(
   // A flag: blown dead before the snap, or the play is called back and the penalty walked off
   else if ((foul = !isTryDown ? rollFoul(offense, defense, isPassConcept(concept), !isHomeOffense, getPositionGroup, (t, timing) => {
     const e = talkEffect(state, t.id);
-    return timing === 'PRE_SNAP' ? e.preSnapFouls : e.liveFouls;
+    return (timing === 'PRE_SNAP' ? e.preSnapFouls : e.liveFouls) * testRates.penalties;
   }) : null)) {
     const { rule, team, player } = foul;
     // The defense was lined up in its call when the flag came out
@@ -758,10 +782,12 @@ export function simulateSnap(
       const defender = isPass ? pickInterceptor(defense) : tackler;
       if (isPass) {
         commentary = `INTERCEPTED! QB ${passer?.lastName} picked off by ${label(defender)}!`;
+        contact.push({ p: defender, team: defense, role: 'intercepter' });
         credit(state, passer, { passAttempts: 1, interceptionsThrown: 1 });
         credit(state, defender, { interceptionsCaught: 1 });
       } else {
         commentary = `FUMBLE! ${label(ballCarrier)} coughs up the football! Recovered by ${label(defender)}.`;
+        contact.push({ p: ballCarrier, team: offense, role: 'carrier' }, { p: defender, team: defense, role: 'tackler' });
         credit(state, ballCarrier, { rushAttempts: 1, fumblesLost: 1 });
         credit(state, defender, { tackles: 1 });
       }
@@ -785,9 +811,11 @@ export function simulateSnap(
         if (isPass) {
           const sacker = pickSacker(defense);
           commentary = `SACKED! ${label(sacker)} drags down QB ${passer?.lastName} for a loss of ${Math.abs(yardsGained)} yds.`;
+          contact.push({ p: passer, team: offense, role: 'qb' }, { p: sacker, team: defense, role: 'sacker' });
           credit(state, sacker, { sacks: 1, tackles: 1, tacklesForLoss: 1 });
         } else {
           commentary = `TACKLED FOR LOSS! ${label(ballCarrier)} stopped behind the line by ${label(tackler)} for ${yardsGained} yds.`;
+          contact.push({ p: ballCarrier, team: offense, role: 'carrier' }, { p: tackler, team: defense, role: 'tackler' });
           credit(state, ballCarrier, { rushAttempts: 1, rushYards: yardsGained });
           credit(state, tackler, { tackles: 1, tacklesForLoss: 1 });
         }
@@ -815,6 +843,7 @@ export function simulateSnap(
           credit(state, ballCarrier, { rushAttempts: 1, rushYards: yardsGained, rushTDs: scores ? 1 : 0 });
         }
         if (!scores) {
+          contact.push({ p: isPass ? receiver : ballCarrier, team: offense, role: isPass ? 'receiver' : 'carrier' }, { p: tackler, team: defense, role: 'tackler' });
           commentary += ` Tackled by ${label(tackler)}.`;
           credit(state, tackler, { tackles: 1 });
         }
@@ -902,6 +931,8 @@ export function simulateSnap(
     } else if (typeof state.currentQuarter === 'number') {
       state.currentQuarter = (state.currentQuarter + 1) as 1 | 2 | 3 | 4;
       state.clockSecondsRemaining = 720; // 12-min quarters
+      // Three new timeouts each for the second half (the first half's don't carry over)
+      if (state.currentQuarter === 3) state.timeoutsLeft = { [state.homeTeam.id]: TIMEOUTS_PER_HALF, [state.awayTeam.id]: TIMEOUTS_PER_HALF };
 
       // Second-half kickoff: the team that opened with the ball kicks to the other
       if (state.currentQuarter === 3) {
@@ -941,6 +972,24 @@ export function simulateSnap(
       ? { teamId: benchTeamId, in: restingAfter === benchTeamId, lead: (benchTeamId === state.homeTeam.id ? 1 : -1) * (state.homeScore - state.awayScore) }
       : undefined;
 
+  // PLAYTEST: a player hurt on the play (tired players more often, kickers rarely): out for the rest of the game
+  let injury: PlayEvent['injury'];
+  if (testRates.injuries > 0 && !penalty && !state.isGameOver) {
+    for (const c of contact) {
+      const pl = c.p;
+      if (!pl || pl.condition.injuryStatus !== 'HEALTHY') continue;
+      const risk = SNAP_INJURY_ODDS * testRates.injuries * fatigueInjuryMultiplier(pl.condition.seasonWear) * (pl.position === 'K' || pl.position === 'P' ? 0.3 : 1);
+      if (Math.random() >= risk) continue;
+      const r = Math.random();
+      const [severity, weeks] = r < 0.04 ? (['SEASON_ENDING', 20] as const) : r < 0.25 ? (['MODERATE', randomInt(2, 4)] as const) : (['DINGED', 1] as const);
+      pl.condition.injuryStatus = severity;
+      pl.condition.injuryWeeksRemaining = weeks;
+      injury = { playerId: pl.id, teamId: c.team.id, name: `${pl.position} ${pl.lastName}`, severity, role: c.role };
+      commentary += ` INJURY: ${injury.name} is down and helped off the field.`;
+      break;
+    }
+  }
+
   const event: PlayEvent = {
     playId,
     quarter: state.currentQuarter,
@@ -966,10 +1015,72 @@ export function simulateSnap(
     ...(defensiveCall && { defensiveCall }),
     ...(penalty && { penalty }),
     ...(substitution && { substitution }),
+    ...(injury && { injury }),
+    ...(iceTimeout && { iceTimeout }),
+    // The time a timeout right after this play would give back: the clock ran on after the whistle
+    clockRunoff:
+      !isOvertime && !isTryDown && !isScore && !isTurnover && !penalty && !state.isGameOver &&
+      state.currentQuarter === snapQuarter && state.possessionTeamId === offense.id &&
+      concept !== 'PUNT' && concept !== 'FIELD_GOAL' && state.clockSecondsRemaining > 0
+        ? Math.max(0, timeElapsed - PLAY_SECONDS)
+        : 0,
     homeScoreAfter: state.homeScore,
     awayScoreAfter: state.awayScore
   };
 
   state.eventLog.push(event);
   return { state, event };
+}
+
+/**
+ * PLAYTEST: a timeout right after the last play. The clock stops at the whistle, so the time it ran on until the next
+ * snap comes back (none when it had stopped anyway). One between snaps; none before the opening kickoff.
+ */
+export function callTimeout(state: GameSimulationState, teamId: string, by: 'coach' | 'staff'): PlayEvent['timeout'] | null {
+  const last = state.eventLog[state.eventLog.length - 1];
+  state.timeoutsLeft ??= { [state.homeTeam.id]: TIMEOUTS_PER_HALF, [state.awayTeam.id]: TIMEOUTS_PER_HALF };
+  const left = state.timeoutsLeft[teamId] ?? 0;
+  if (!last || last.timeout || state.isGameOver || left <= 0) return null;
+  const saved = last.clockRunoff ?? 0;
+  if (saved > 0) {
+    state.clockSecondsRemaining += saved;
+    last.clockTimeRemainingSeconds = state.clockSecondsRemaining;
+    last.clockRunoff = 0;
+  }
+  state.timeoutsLeft = { ...state.timeoutsLeft, [teamId]: left - 1 };
+  last.timeout = { teamId, left: left - 1, saved, by };
+  return last.timeout;
+}
+
+/**
+ * PLAYTEST: a staff's timeout after a play that left the clock running, by these rules:
+ * - Two-minute drill: it has the ball in the last 2:00 of a half, trailing or tied; it keeps its last one for a last
+ *   field goal unless 0:30 or less is left.
+ * - Get the ball back: it's on defense in the last 3:00 of the 4th quarter, down by 1 to 16.
+ * Never when leading in the 4th quarter, nor when the clock stopped anyway. Teams in `timeoutStaff.teams` only.
+ */
+export function staffTimeout(state: GameSimulationState): PlayEvent['timeout'] | null {
+  const last = state.eventLog[state.eventLog.length - 1];
+  const q = state.currentQuarter, clock = state.clockSecondsRemaining;
+  if (!last || last.timeout || !(last.clockRunoff && last.clockRunoff > 0) || state.isGameOver || (q !== 2 && q !== 4)) return null;
+  for (const id of timeoutStaff.teams) {
+    const left = state.timeoutsLeft?.[id] ?? 0;
+    if (left <= 0) continue;
+    const lead = (id === state.homeTeam.id ? 1 : -1) * (state.homeScore - state.awayScore);
+    const hasBall = state.possessionTeamId === id;
+    const twoMinute = hasBall && clock <= 120 && lead <= 0 && (left >= 2 || clock <= 30);
+    const getBallBack = !hasBall && q === 4 && clock <= 180 && lead <= -1 && lead >= -16;
+    if (twoMinute || getBallBack) return callTimeout(state, id, 'staff');
+  }
+  return null;
+}
+
+/** PLAYTEST: icing the kicker: before a field goal in the last 0:30 of a half, game within 3, 2 or more left, half the time. */
+function iceTheKicker(state: GameSimulationState, defenseId: string): PlayEvent['iceTimeout'] {
+  const q = state.currentQuarter;
+  const left = state.timeoutsLeft?.[defenseId] ?? 0;
+  if (!timeoutStaff.teams.includes(defenseId) || (q !== 2 && q !== 4) || state.clockSecondsRemaining > 30) return undefined;
+  if (Math.abs(state.homeScore - state.awayScore) > 3 || left < 2 || Math.random() >= 0.5) return undefined;
+  state.timeoutsLeft = { ...state.timeoutsLeft, [defenseId]: left - 1 };
+  return { teamId: defenseId, left: left - 1 };
 }

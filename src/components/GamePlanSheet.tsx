@@ -5,7 +5,7 @@ import { GamePlanPicker } from './GamePlanPicker';
 import { DefensiveFocus, FOCUS_NAMES, OFFENSE_NAMES, secondStringLabel } from '../sim/gamePlan';
 
 /**
- * "Current Gameplan · Update" over "Offense [Power I] | Defense [Balanced]": the plan a game is running, one tap from
+ * "Current Gameplan · Update" over "Offense [Singleback] | Defense [Balanced]": the plan a game is running, one tap from
  * changing. Update sits on the title line so the plan itself never has to be cut short on a phone.
  */
 export const GamePlanBar: React.FC<{ offense: OffensiveScheme; focus: DefensiveFocus; bench: number | null; onUpdate: () => void }> = ({

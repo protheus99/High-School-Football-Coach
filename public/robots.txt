@@ -1,0 +1,5 @@
+# Football Coach High School Edition: the game and its school pages are open to every search engine.
+# The match field's play data and the playtest pages are not.
+User-agent: *
+Disallow: /replay-data/
+Disallow: /playtest/

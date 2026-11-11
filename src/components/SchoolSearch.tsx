@@ -4,9 +4,9 @@ import { SEARCH_MIN_LETTERS, highlightName, searchSchools } from '../sim/schoolS
 
 const SCHEMES: Record<string, string> = {
   SPREAD: 'Spread',
-  POWER_I: 'Power I',
+  POWER_I: 'Singleback',
   AIR_RAID: 'Air Raid',
-  TRIPLE_OPTION: 'Triple Option',
+  TRIPLE_OPTION: 'I Formation',
   THREE_THREE_FIVE: '3-3-5',
   FOUR_THREE: '4-3',
   FOUR_FOUR: '4-4',

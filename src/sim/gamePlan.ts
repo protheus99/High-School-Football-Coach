@@ -36,7 +36,7 @@ export function focusFromCall(call: DefensiveCall | undefined): DefensiveFocus {
   return call === 'RUN_BLITZ' ? 'STOP_RUN' : call === 'PASS_COVERAGE' ? 'STOP_PASS' : call === 'BLITZ' ? 'BLITZ' : 'BALANCED';
 }
 
-export const OFFENSE_NAMES: Record<OffensiveScheme, string> = { TRIPLE_OPTION: 'Triple Option', POWER_I: 'Power I', SPREAD: 'Spread', AIR_RAID: 'Air Raid' };
+export const OFFENSE_NAMES: Record<OffensiveScheme, string> = { TRIPLE_OPTION: 'I Formation', POWER_I: 'Singleback', SPREAD: 'Spread', AIR_RAID: 'Air Raid' };
 export const OFFENSE_STYLES: Record<OffensiveScheme, string> = { TRIPLE_OPTION: 'Run-heavy', POWER_I: 'Run-first', SPREAD: 'Pass-first', AIR_RAID: 'Pass-heavy' };
 export const DEFENSE_NAMES: Record<DefensiveScheme, string> = { FOUR_THREE: '4-3', FOUR_FOUR: '4-4', THREE_THREE_FIVE: '3-3-5', DROP_EIGHT: 'Drop 8' };
 export const DEFENSE_STYLES: Record<DefensiveScheme, string> = { FOUR_THREE: 'balanced', FOUR_FOUR: 'heavy box', THREE_THREE_FIVE: 'light box', DROP_EIGHT: 'deep coverage' };

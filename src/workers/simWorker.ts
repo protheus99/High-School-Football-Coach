@@ -1,8 +1,19 @@
 import { GameSimulationState, PlayConcept, DefensiveCall, OffensiveScheme, HalftimeTalk } from '../types/game';
-import { simulateSnap, evaluateLeverageTrigger } from '../sim/matchEngine';
+import { simulateSnap, evaluateLeverageTrigger, testRates, timeoutStaff, callTimeout, staffTimeout } from '../sim/matchEngine';
 
 let activeGameState: GameSimulationState | null = null;
 let userTeamId: string | undefined;
+
+/**
+ * PLAYTEST: one snap, then the staffs' timeouts: the opponent's always, the coach's own while his staff runs the game
+ * (Begin, or a sim ahead). When he calls the plays himself, the timeouts are his to call.
+ */
+const snapWithStaff = (state: GameSimulationState, simming: boolean, concept?: PlayConcept, call?: DefensiveCall) => {
+  timeoutStaff.teams = [state.homeTeam.id, state.awayTeam.id].filter((id) => simming || id !== userTeamId);
+  const result = simulateSnap(state, concept, call);
+  staffTimeout(result.state);
+  return result;
+};
 
 self.onmessage = (e: MessageEvent) => {
   const { type, payload } = e.data;
@@ -12,6 +23,12 @@ self.onmessage = (e: MessageEvent) => {
       activeGameState = payload as GameSimulationState;
       userTeamId = e.data.userTeamId;
       self.postMessage({ type: 'GAME_INITIALIZED', payload: activeGameState });
+      break;
+    }
+
+    // PLAYTEST: the replay test's injury and flag rates
+    case 'SET_TEST_RATES': {
+      Object.assign(testRates, payload);
       break;
     }
 
@@ -41,12 +58,20 @@ self.onmessage = (e: MessageEvent) => {
       break;
     }
 
+    // PLAYTEST: the coach calls a timeout: the clock stops at the last whistle
+    case 'CALL_TIMEOUT': {
+      if (!activeGameState) return;
+      const timeout = callTimeout(activeGameState, payload.teamId, 'coach');
+      self.postMessage({ type: 'TIMEOUT_CALLED', payload: { state: activeGameState, timeout } });
+      break;
+    }
+
     case 'SIMULATE_NEXT_PLAY': {
       if (!activeGameState || activeGameState.isGameOver) return;
 
       const chosenConcept = payload?.chosenConcept as PlayConcept | undefined;
       const defensiveCall = payload?.defensiveCall as DefensiveCall | undefined;
-      const { state, event } = simulateSnap(activeGameState, chosenConcept, defensiveCall);
+      const { state, event } = snapWithStaff(activeGameState, !!payload?.staff, chosenConcept, defensiveCall);
       activeGameState = state;
 
       // Check if next snap hits a leverage prompt
@@ -70,7 +95,7 @@ self.onmessage = (e: MessageEvent) => {
       if (!activeGameState) return;
       const quarter = activeGameState.currentQuarter;
       while (!activeGameState.isGameOver && activeGameState.currentQuarter === quarter) {
-        const { state } = simulateSnap(activeGameState);
+        const { state } = snapWithStaff(activeGameState, true);
         activeGameState = state;
       }
       self.postMessage({
@@ -85,7 +110,7 @@ self.onmessage = (e: MessageEvent) => {
       if (!activeGameState) return;
 
       while (!activeGameState.isGameOver && (activeGameState.currentQuarter === 1 || activeGameState.currentQuarter === 2)) {
-        const { state } = simulateSnap(activeGameState);
+        const { state } = snapWithStaff(activeGameState, true);
         activeGameState = state;
       }
 
@@ -100,7 +125,7 @@ self.onmessage = (e: MessageEvent) => {
       if (!activeGameState) return;
 
       while (!activeGameState.isGameOver) {
-        const { state } = simulateSnap(activeGameState);
+        const { state } = snapWithStaff(activeGameState, true);
         activeGameState = state;
       }
 

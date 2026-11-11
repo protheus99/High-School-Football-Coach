@@ -10,7 +10,7 @@ const MAX_ROWS = 10;
  * rest of his bracket's round) and every game with a nationally ranked team in it. The results were simulated
  * ahead; each shows the score at the live game's clock and its final once the live game ends.
  */
-export const AroundTheLeague: React.FC<{ quarter: GameQuarter; clock: number; isOver: boolean }> = ({ quarter, clock, isOver }) => {
+export const AroundTheLeague: React.FC<{ quarter: GameQuarter; clock: number; isOver: boolean; bare?: boolean }> = ({ quarter, clock, isOver, bare }) => {
   const { weekResults, currentWeek, runAhead, league, districtTeams, polls } = useGameStore();
   const [open, setOpen] = useState(() => {
     try {
@@ -37,7 +37,8 @@ export const AroundTheLeague: React.FC<{ quarter: GameQuarter; clock: number; is
     .filter((g) => !local.includes(g) && (rank.has(g.homeId) || rank.has(g.awayId)))
     .sort((a, b) => Math.min(rank.get(a.homeId) ?? 99, rank.get(a.awayId) ?? 99) - Math.min(rank.get(b.homeId) ?? 99, rank.get(b.awayId) ?? 99));
   const rows = [...local, ...ranked].slice(0, MAX_ROWS);
-  if (rows.length === 0) return null;
+  // PLAYTEST: the match page's Other scores sheet shows the list itself (no toggle), or says there are none
+  if (rows.length === 0) return bare ? <div style={{ padding: '12px 0', fontSize: '14px', color: '#64748B' }}>No other scores this week yet.</div> : null;
 
   const toggle = () =>
     setOpen((was) => {
@@ -54,19 +55,20 @@ export const AroundTheLeague: React.FC<{ quarter: GameQuarter; clock: number; is
     return `${r ? `#${r} ` : ''}${side === 'home' ? g.homeName : g.awayName}`;
   };
 
+  const shown = bare || open;
   return (
-    <div style={{ marginBottom: '10px' }}>
-      <button className="ui-btn ui-btn-block" onClick={toggle} aria-expanded={open} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ marginBottom: bare ? 0 : '10px' }}>
+      {!bare && <button className="ui-btn ui-btn-block" onClick={toggle} aria-expanded={open} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>🏟️ Scoreboard ({rows.length})</span>
         <span aria-hidden="true">{open ? '▴' : '▾'}</span>
-      </button>
-      {open && (
-        <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', marginTop: '6px' }}>
+      </button>}
+      {shown && (
+        <div style={bare ? undefined : { background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', marginTop: '6px' }}>
           {rows.map((g, i) => {
             const s = scoreAt(g, quarter, clock, isOver);
             const leader = s.home === s.away ? null : s.home > s.away ? 'home' : 'away';
             return (
-              <div key={g.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', borderTop: i > 0 ? '1px solid #F1F5F9' : undefined, fontSize: '13px' }}>
+              <div key={g.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: bare ? '8px 0' : '6px 10px', borderTop: i > 0 ? '1px solid #F1F5F9' : undefined, fontSize: bare ? '14px' : '13px' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {(['away', 'home'] as const).map((side) => (
                     <div key={side} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontWeight: leader === side ? 'bold' : 'normal' }}>

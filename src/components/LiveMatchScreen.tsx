@@ -1,11 +1,16 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { GameSimulationState, PlayConcept, LeverageType, DefensiveCall, PlayEvent } from '../types/game';
 import { simWorkerBridge } from '../services/workerBridge';
 import { soundFx } from '../utils/soundEngine';
 import { PostGameBoxScoreModal } from './PostGameBoxScoreModal';
 import { HalftimeSpeechModal } from './HalftimeSpeechModal';
-import { rememberTalks } from '../sim/talkPicker';
-import { FieldVisualizer } from './FieldVisualizer';
+import { halftimeOffer } from './halftimeOffer';
+import { TalkOption, rememberTalks } from '../sim/talkPicker';
+import { ReplayField } from '../replayTest/ReplayField';
+import { ReplayOverlay } from '../replayTest/replayGameOverlay';
+import { ReplayOptionsContext, ReplayOptionsSetContext, ReplayPhase, testRatesFor } from '../replayTest/matchOptions';
+import { Chooser, HalftimePanel, MP_CSS, Opt, OptionsBody, PlanBar, Sheet, StatsBody, TimeoutBanner } from '../replayTest/MatchPageParts';
+import { ReplayScoreboard } from '../replayTest/ReplayScoreboard';
 import { PlayAlert } from './PlayAlert';
 import { PlayAlertData, PreSnap, alertsForPlay } from '../sim/playAlerts';
 import { readableOnWhite } from '../utils/color';
@@ -18,7 +23,7 @@ import { useGameStore } from '../store/gameStore';
 import { GameBallCandidate, gameBallCandidates } from '../sim/postGame';
 import { PressQuestion, buildPressContext, pickPressQuestion } from '../sim/pressConference';
 import { DilemmaChoice } from '../types/game';
-import { DefensiveFocus, FOCUS_CALL, focusFromCall } from '../sim/gamePlan';
+import { DefensiveFocus, FOCUS_CALL, FOCUS_NAMES, OFFENSE_NAMES, OFFENSE_STYLES, SECOND_STRING_LEADS, focusFromCall, secondStringLabel } from '../sim/gamePlan';
 import { secondStringLead } from '../sim/matchEngine';
 import { recordAfter } from '../sim/lineScore';
 import { fullRecord } from '../sim/seasonRecord';
@@ -52,6 +57,64 @@ const MAX_FIELD_GOAL_PROMPT_YARDS = 55;
 
 export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTeamId, onExit }) => {
   const [gameState, setGameState] = useState<GameSimulationState>(initialState);
+  // PLAYTEST: each snap is acted out by a real play first; the scoreboard, sounds and banners wait for the whistle
+  const gameStateRef = useRef(gameState);
+  gameStateRef.current = gameState;
+  const [replay, setReplay] = useState<{ event: PlayEvent; pre: GameSimulationState } | null>(null);
+  const pendingRef = useRef<(() => void) | null>(null);
+  // The replay test: the snap that waits while the kickoff before it plays out, and the last snap seen
+  const queuedRef = useRef<{ event: PlayEvent; pre: GameSimulationState } | null>(null);
+  const lastEventRef = useRef<PlayEvent | null>(null);
+  // The replay test's options (null outside the test: the snap plays out, then the field clears)
+  const replayOpts = useContext(ReplayOptionsContext);
+  // With the options: down card ('pre'), the play ('live'), the result banner while the players walk back ('post'), done
+  const [phase, setPhase] = useState<ReplayPhase>('done');
+  const replayOptsRef = useRef(replayOpts);
+  replayOptsRef.current = replayOpts;
+  const setReplayOpts = useContext(ReplayOptionsSetContext);
+  // The match page: a plan choice or a timeout open over the field, a sheet slid up, a timeout banner, halftime's pick
+  const [choice, setChoice] = useState<'offense' | 'defense' | 'bench' | 'timeout' | null>(null);
+  const [sheet, setSheet] = useState<'stats' | 'scores' | 'opts' | 'pbp' | null>(null);
+  const [toBanner, setToBanner] = useState<{ teamId: string; line: string } | null>(null);
+  const toTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shownTimeoutRef = useRef<string | null>(null);
+  const [halftimeTalk, setHalftimeTalk] = useState<{ options: TalkOption[]; lines: string[] } | null>(null);
+  const [halftimePick, setHalftimePick] = useState<string | null>(null);
+  /** A timeout's banner, in the calling school's colors, for a moment (the next snap waits for it) */
+  const showTimeout = useCallback((teamId: string, line: string) => {
+    if (toTimerRef.current) clearTimeout(toTimerRef.current);
+    setToBanner({ teamId, line });
+    soundFx.playWhistle();
+    toTimerRef.current = setTimeout(() => setToBanner(null), TIMEOUT_BANNER_MS);
+  }, []);
+  useEffect(() => () => { if (toTimerRef.current) clearTimeout(toTimerRef.current); }, []);
+  // The replay test: a flag on the grass, an injured player's scene (down, up, off)
+  const [flagDown, setFlagDown] = useState(false);
+  const [injuryStage, setInjuryStage] = useState<string | null>(null);
+  // The replay test's injury and flag rates go to the engine (the real game: no injuries during a game, flags as tuned)
+  useEffect(() => {
+    if (replayOpts?.playtest) simWorkerBridge.setTestRates(testRatesFor(replayOpts));
+  }, [replayOpts]);
+  const runPending = useCallback(() => {
+    const run = pendingRef.current;
+    pendingRef.current = null;
+    run?.();
+  }, []);
+  const finishReplay = useCallback(() => {
+    // A kickoff done: now the snap that came after it
+    const q = queuedRef.current;
+    if (replayOpts && q) {
+      queuedRef.current = null;
+      setReplay(q);
+      setPhase('pre');
+      setFlagDown(false);
+      setInjuryStage(null);
+      return;
+    }
+    if (replayOpts) setPhase('done'); // the last play stays on the field, its players still moving
+    else setReplay(null);
+    runPending();
+  }, [replayOpts, runPending]);
   const [leveragePrompt, setLeveragePrompt] = useState<LeverageType | null>(null);
   const [autoPlay, setAutoPlay] = useState(false);
   // Sim to End asks twice: the first tap arms it for a few seconds
@@ -134,6 +197,8 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   useEffect(() => {
     simWorkerBridge.initialize();
     simWorkerBridge.initGame(initialState, userTeamId);
+    // (the replay test's rates again, now that the worker is there to hear them)
+    if (replayOptsRef.current?.playtest) simWorkerBridge.setTestRates(testRatesFor(replayOptsRef.current));
 
     // A flag plays out stage by stage, then the game carries on
     const runFlag = (event: PlayEvent) => {
@@ -149,18 +214,40 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
 
     // Shared by both play callbacks: update the screen, queue banners (or play out a flag), and open the halftime locker room
     const afterSnap = (state: GameSimulationState, event?: PlayEvent, decision = false) => {
+      const animate = !!event && (!event.penalty || !!replayOptsRef.current) && !simmingToEndRef.current;
+      if (animate) {
+        pendingRef.current?.(); // a snap still playing out gives way to the new one
+        // The replay test: a kickoff came first (the opening kickoff, after a score, to start the second half)
+        const ko = replayOptsRef.current ? kickoffBefore(event!, lastEventRef.current, gameStateRef.current) : null;
+        queuedRef.current = ko ? { event: event!, pre: gameStateRef.current } : null;
+        setReplay({ event: ko ?? event!, pre: gameStateRef.current });
+        setPhase('pre');
+        setFlagDown(false);
+        setInjuryStage(null);
+      } else if (event) {
+        setReplay(null); // a flag or a sim to the end: the field shows the spot
+        setPhase('done');
+      }
+      if (event) lastEventRef.current = event;
       setGameState({ ...state });
       // The play's sounds, from the coach's side (utils/playSounds.ts)
       const moments = event ? alertsForPlay(event, preSnapRef.current, state) : [];
-      soundFx.playAll(soundsForPlay(event, moments, userTeamId, clockBeforeRef.current, state, decision));
+      const sounds = soundsForPlay(event, moments, userTeamId, clockBeforeRef.current, state, decision);
+      const afterWhistle = () => soundFx.playAll(sounds);
       clockBeforeRef.current = { quarter: state.currentQuarter, seconds: state.clockSecondsRemaining };
       useGameStore.getState().markGameLive(state); // a game counts once it kicks off: where it stands is written down
-      if (event?.penalty && !simmingToEndRef.current) {
+      if (event?.penalty && !simmingToEndRef.current && !replayOptsRef.current) {
         setAlertQueue([]);
         runFlag(event);
       }
-      const alerts = event && !event.penalty && !simmingToEndRef.current ? moments : [];
-      if (alerts.length > 0) setAlertQueue(alerts);
+      // (the replay test's result banner on the field already says it: no second banner under it)
+      const alerts = event && !event.penalty && !simmingToEndRef.current && !replayOptsRef.current ? moments : [];
+      const whistle = () => {
+        afterWhistle();
+        if (alerts.length > 0) setAlertQueue(alerts);
+      };
+      if (animate) pendingRef.current = whistle;
+      else whistle();
       preSnapRef.current = {
         possessionTeamId: state.possessionTeamId,
         homeScore: state.homeScore,
@@ -190,6 +277,14 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         if (autoPlayRef.current) resumeAutoRef.current = true;
         setAutoPlay(false);
       },
+      // PLAYTEST: the coach's timeout: the clock goes back to the last whistle
+      onTimeout: ({ state, timeout }) => {
+        setGameState({ ...state });
+        if (timeout) {
+          const team = timeout.teamId === state.homeTeam.id ? state.homeTeam : state.awayTeam;
+          showTimeout(timeout.teamId, timeoutLine(team.name, timeout.left, state.currentQuarter));
+        }
+      },
       onGameOver: ({ state }) => {
         setGameState({ ...state });
         useGameStore.getState().markGameLive(state, true);
@@ -202,7 +297,28 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         setShowBoxScore(true);
       }
     });
-  }, [initialState, userTeamId]);
+  }, [initialState, userTeamId, showTimeout]);
+
+  // PLAYTEST: a staff's timeout shows once its play is over (the kicker iced: before the kick)
+  useEffect(() => {
+    const ev = replay?.event;
+    if (!replayOpts || !ev) return;
+    if (phase === 'pre' && ev.iceTimeout && shownTimeoutRef.current !== `ice-${ev.playId}`) {
+      shownTimeoutRef.current = `ice-${ev.playId}`;
+      const team = ev.iceTimeout.teamId === gameState.homeTeam.id ? gameState.homeTeam : gameState.awayTeam;
+      showTimeout(ev.iceTimeout.teamId, `${team.name} ices the kicker · ${ev.iceTimeout.left} left`);
+    }
+    if (phase === 'done' && ev.timeout?.by === 'staff' && shownTimeoutRef.current !== ev.playId) {
+      shownTimeoutRef.current = ev.playId;
+      const team = ev.timeout.teamId === gameState.homeTeam.id ? gameState.homeTeam : gameState.awayTeam;
+      showTimeout(ev.timeout.teamId, timeoutLine(team.name, ev.timeout.left, gameState.currentQuarter));
+    }
+  }, [phase, replay, replayOpts, gameState.homeTeam, gameState.awayTeam, gameState.currentQuarter, showTimeout]);
+
+  // PLAYTEST: halftime's speeches are picked once, when the second half is next
+  useEffect(() => {
+    if (replayOpts && showHalftimeModal && !halftimeTalk) setHalftimeTalk(halftimeOffer(gameStateRef.current, userTeamId));
+  }, [replayOpts, showHalftimeModal, halftimeTalk, userTeamId]);
 
   useEffect(() => {
     if (logContainerRef.current) {
@@ -212,13 +328,15 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (autoPlay && !leveragePrompt && !showHalftimeModal && !flag && !gameState.isGameOver) {
+    const busy = replayOpts ? phase !== 'done' || !!toBanner || !!choice : !!replay;
+    if (autoPlay && !busy && !leveragePrompt && !showHalftimeModal && !flag && !gameState.isGameOver) {
+      // With the replay test the result has already been read under the banner: the next snap lines up right away
       interval = setInterval(() => {
-        simWorkerBridge.stepPlay();
-      }, 1100);
+        simWorkerBridge.stepPlay(undefined, undefined, true); // (the staff runs the game: it may call a timeout too)
+      }, replayOpts && replay ? 250 : 1100);
     }
     return () => clearInterval(interval);
-  }, [autoPlay, leveragePrompt, showHalftimeModal, flag, gameState.isGameOver]);
+  }, [autoPlay, replay, phase, replayOpts, leveragePrompt, showHalftimeModal, flag, gameState.isGameOver, toBanner, choice]);
 
   const handleDefensiveCall = (call: DefensiveCall) => {
     liveTally.defCalls++;
@@ -234,7 +352,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
 
   const handleDecision = (concept: PlayConcept) => {
     setLeveragePrompt(null);
-    simWorkerBridge.stepPlay(concept);
+    simWorkerBridge.stepPlay(concept, undefined, resumeAutoRef.current); // (back to Begin after it: the staff's game)
     resumeAutoSim();
   };
   // The coach's side of the score, for game events
@@ -272,9 +390,11 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
   };
   // During a flag the field and scoreboard show the snap's spot until the penalty is walked off
   const beforeSpot = flag && flag.stage !== 'SPOT' && flag.event.snapDown !== undefined;
-  const shownDown = beforeSpot ? flag.event.snapDown! : gameState.down;
-  const shownDistance = beforeSpot ? flag.event.snapDistance! : gameState.distance;
-  const shownYardLine = beforeSpot ? flag.event.snapYardLine! : gameState.yardLine;
+  // While a snap plays out, the scoreboard shows the game as it stood at the snap
+  const board = replay && (!replayOpts || phase === 'pre' || phase === 'live') ? replay.pre : gameState;
+  const shownDown = beforeSpot ? flag.event.snapDown! : board.down;
+  const shownDistance = beforeSpot ? flag.event.snapDistance! : board.distance;
+  const shownYardLine = beforeSpot ? flag.event.snapYardLine! : board.yardLine;
 
   // The game plan the coach's team is running (from the strategy room, or changed mid-game)
   const userTeam = gameState.homeTeam.id === userTeamId ? gameState.homeTeam : gameState.awayTeam;
@@ -318,6 +438,22 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       };
     });
     closePlan();
+  };
+  // The speech shapes the second half: the worker plays it, the screen's copy records it, and the next game's offer
+  // steers clear of this one's
+  const applySpeech = (given: TalkOption, offered: TalkOption[]) => {
+    const talk = given.talk.id;
+    const store = useGameStore.getState();
+    store.setRecentTalks(rememberTalks(store.recentTalks, 'HALF', offered, given));
+    simWorkerBridge.setHalftimeTalk(userTeamId, talk);
+    track('halftime_talk', { ...talkParams(given, offered), score_diff: scoreDiff(), ...gameContext(store), ...moment(store) });
+    setGameState((s) => ({ ...s, halftimeTalks: { ...s.halftimeTalks, [userTeamId]: talk } }));
+    useGameStore.getState().markGameLive({ ...gameState, halftimeTalks: { ...gameState.halftimeTalks, [userTeamId]: talk } }, true);
+    setShowHalftimeModal(false);
+    setHalftimeTalk(null);
+    setHalftimePick(null);
+    soundFx.playWhistle();
+    resumeAutoSim();
   };
   const clockLabel =
     gameState.currentQuarter === 'OT'
@@ -372,11 +508,281 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     return `${r.wins}-${r.losses}`;
   };
 
-  const isHomePoss = gameState.possessionTeamId === gameState.homeTeam.id;
-  const currentPossTeam = isHomePoss ? gameState.homeTeam : gameState.awayTeam;
+
+  // ---------- PLAYTEST: the match page (Game Screen Replay): nothing scrolls ----------
+  function matchPage() {
+    const opts = replayOpts!;
+    const markOf = opts.look.marks === 'team' ? (t: { id: string }) => (t.id === gameState.awayTeam.id ? 'O' : 'X') as 'O' | 'X' : undefined;
+    const halftimeUp = showHalftimeModal && (phase === 'done' || !replay);
+    const last = gameState.eventLog[gameState.eventLog.length - 1];
+    const myTimeouts = gameState.timeoutsLeft?.[userTeamId] ?? 3;
+    const canTimeout = !!last && !last.timeout && myTimeouts > 0 && !gameState.isGameOver && !halftimeUp;
+    const halfWord = gameState.currentQuarter === 'OT' ? 'this overtime' : 'this half';
+    const openChoice = (k: NonNullable<typeof choice>) => {
+      if (choice === k) return closeChoice();
+      if (autoPlay) resumeAutoRef.current = true;
+      setAutoPlay(false);
+      setChoice(k);
+    };
+    const closeChoice = () => {
+      setChoice(null);
+      if (!showHalftimeModal) resumeAutoSim();
+    };
+    const pick = (offense = planOffense, focus = planFocus, bench = planBench) => {
+      setChoice(null);
+      applyPlan(offense, focus, bench);
+    };
+    const callTimeout = () => {
+      simWorkerBridge.callTimeout(userTeamId);
+      track('timeout', { quarter: String(gameState.currentQuarter), clock: gameState.clockSecondsRemaining, score_diff: scoreBand(scoreDiff()), left: myTimeouts - 1 });
+      setChoice(null);
+      if (!leveragePrompt) resumeAutoSim();
+    };
+    const toTeam = toBanner && (toBanner.teamId === gameState.homeTeam.id ? gameState.homeTeam : gameState.awayTeam);
+
+    // A decision that's due opens over the field, in the plan choices' format
+    const decision = leveragePrompt && !gameState.isGameOver && phase === 'done' && !halftimeUp ? (
+      leveragePrompt === 'PAT_DECISION' ? (
+        <Chooser due title="⚡ Touchdown! The point after" sub="Kick the extra point, or go for two from the 3?">
+          <Opt name="👟 Kick it" note="Extra point" onClick={() => handleLeverageCall('PAT_KICK')} />
+          <Opt name="✌️ Go for two" note="From the 3" onClick={() => handleLeverageCall('TWO_POINT_TRY')} />
+        </Chooser>
+      ) : (
+        <Chooser
+          due
+          title={`⚡ ${DUE_TITLES[leveragePrompt]}`}
+          sub={`${downLabel(gameState.down)} & ${gameState.yardLine + gameState.distance >= 100 ? 'Goal' : gameState.distance} at ${fieldPosition(gameState.yardLine)}${leveragePrompt === 'TWO_MINUTE_DRILL' ? ` with ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')} left` : ''}`}
+        >
+          <Opt name="🏈 Power run" note="Inside run" onClick={() => handleLeverageCall('INSIDE_RUN')} />
+          <Opt name="🎯 Quick pass" note="Short pass" onClick={() => handleLeverageCall('SHORT_PASS')} />
+          {leveragePrompt !== 'RED_ZONE_GOAL_TO_GO' && <Opt name="🚀 Deep shot" note="Down the field" onClick={() => handleLeverageCall('DEEP_PASS')} />}
+          {gameState.down === 4 && 100 - gameState.yardLine + 17 <= MAX_FIELD_GOAL_PROMPT_YARDS && (
+            <Opt name="🎯 Field goal" note={`${100 - gameState.yardLine + 17} yards`} onClick={() => handleLeverageCall('FIELD_GOAL')} />
+          )}
+          {gameState.down === 4 && gameState.yardLine < 80 && <Opt name="👟 Punt" note="Flip the field" onClick={() => handleLeverageCall('PUNT')} />}
+          {canTimeout && <Opt name="⏱ Timeout" note={`${myTimeouts} left, then decide`} onClick={callTimeout} />}
+        </Chooser>
+      )
+    ) : null;
+
+    // A plan choice or the timeout, over the bottom of the field
+    const chooser =
+      choice === 'offense' ? (
+        <Chooser title="Offense" onClose={closeChoice}>
+          {(['TRIPLE_OPTION', 'POWER_I', 'SPREAD', 'AIR_RAID'] as const).map((k) => (
+            <Opt key={k} name={OFFENSE_NAMES[k]} note={OFFENSE_STYLES[k]} picked={planOffense === k} onClick={() => pick(k)} />
+          ))}
+        </Chooser>
+      ) : choice === 'defense' ? (
+        <Chooser title="Defense" onClose={closeChoice}>
+          {(['BALANCED', 'STOP_RUN', 'STOP_PASS', 'BLITZ'] as const).map((k) => (
+            <Opt key={k} name={FOCUS_NAMES[k]} note={FOCUS_SHORT[k]} picked={planFocus === k} onClick={() => pick(undefined, k)} />
+          ))}
+        </Chooser>
+      ) : choice === 'bench' ? (
+        <Chooser title="2nd string" onClose={closeChoice}>
+          {SECOND_STRING_LEADS.map((lead) => (
+            <Opt key={String(lead)} name={secondStringLabel(lead)} note={lead === null ? 'Starters all game' : `Backups at a ${lead}-point lead`} picked={planBench === lead} onClick={() => pick(undefined, undefined, lead)} />
+          ))}
+        </Chooser>
+      ) : choice === 'timeout' ? (
+        <Chooser title="Timeout" onClose={closeChoice}
+          sub={!started ? 'The game has not started yet.' : myTimeouts === 0 ? `No timeouts left ${halfWord}.` : last?.timeout ? 'A timeout was just called. Wait for the next snap.' : `Stop the clock at the last whistle. ${myTimeouts} left ${halfWord}.`}>
+          <Opt name="Not now" note="Keep playing" onClick={closeChoice} />
+          <Opt name="Call timeout" note={`${Math.max(0, myTimeouts - 1)} left after`} picked={canTimeout} disabled={!canTimeout} onClick={callTimeout} />
+        </Chooser>
+      ) : null;
+
+    // The last two plays, one line each (tap for the whole list)
+    const recent = gameState.eventLog.slice(-2).reverse();
+    return (
+      <div className="mp-page">
+        <style>{MP_CSS}</style>
+        {showBoxScore && (
+          <PostGameBoxScoreModal gameState={gameState} closeLabel="Continue" aroundTheState onClose={() => { setShowBoxScore(false); setPostStep('GAME_BALL'); }} />
+        )}
+        {postStep === 'GAME_BALL' &&
+          (candidates.length > 0 ? (
+            <GameBallSheet candidates={candidates} headline={finalHeadline} year={useGameStore.getState().currentYear} onAward={awardBall} />
+          ) : (
+            <SkipStep onReady={() => askPress()} />
+          ))}
+        {postStep === 'PRESS' && pressQuestion && (
+          <PressConferenceSheet question={pressQuestion} team={useGameStore.getState().districtTeams.find((t) => t.id === userTeamId) ?? userTeam} onAnswer={answerPress} />
+        )}
+
+        <ReplayScoreboard variant={opts.scoreboard} markOf={markOf} board={board} down={shownDown} distance={shownDistance} yardLine={shownYardLine} blankDown={halftimeUp} />
+
+        <div className="mp-field">
+          <ReplayField
+            event={replay?.event ?? null}
+            board={replay ? replay.pre : board}
+            onDone={finishReplay}
+            caption={null}
+            bare
+            fill
+            look={opts.look}
+            kickoffPreview={gameState.eventLog.length === 0}
+            walkBack
+            holdMs={opts.cardMs}
+            afterWhistleMs={opts.bannerMs}
+            showMode={opts.show}
+            onStart={() => setPhase('live')}
+            onWhistle={() => {
+              setPhase('post');
+              if (!queuedRef.current) runPending(); // (a kickoff's whistle isn't the snap's)
+            }}
+            officials
+            onFlag={() => setFlagDown(true)}
+            onInjury={(stage: string) => setInjuryStage(stage)}
+            overlay={<ReplayOverlay event={replay?.event ?? null} phase={phase} home={gameState.homeTeam} away={gameState.awayTeam} flagDown={flagDown} injuryStage={injuryStage} />}
+          />
+          {halftimeUp && halftimeTalk && (
+            <HalftimePanel
+              score={(() => {
+                const ours = gameState.homeTeam.id === userTeamId ? gameState.homeScore : gameState.awayScore;
+                const theirs = gameState.homeTeam.id === userTeamId ? gameState.awayScore : gameState.homeScore;
+                return `${ours}-${theirs} · ${ours > theirs ? `Leading by ${ours - theirs}` : ours < theirs ? `Trailing by ${theirs - ours}` : 'Tied'}`;
+              })()}
+              lines={halftimeTalk.lines}
+              options={halftimeTalk.options}
+              picked={halftimePick}
+              onPick={setHalftimePick}
+            />
+          )}
+          {decision ?? chooser}
+          {toBanner && toTeam && <TimeoutBanner team={toTeam} mark={markOf?.(toTeam)} line={toBanner.line} />}
+        </div>
+
+        {!gameState.isGameOver && (
+          <PlanBar
+            open={choice}
+            onToggle={(k) => openChoice(k as NonNullable<typeof choice>)}
+            items={[
+              { key: 'offense', label: 'Offense', value: OFFENSE_NAMES[planOffense] },
+              { key: 'defense', label: 'Defense', value: FOCUS_NAMES[planFocus] },
+              { key: 'bench', label: '2nd String', value: secondStringLabel(planBench) },
+              { key: 'timeout', label: 'Timeout', value: `${myTimeouts} left`, disabled: halftimeUp }
+            ]}
+          />
+        )}
+
+        {halftimeUp ? (
+          <div className="mp-ctl">
+            <button
+              type="button"
+              className="mp-ret"
+              disabled={!halftimePick}
+              onClick={() => {
+                const given = halftimeTalk?.options.find((o) => o.talk.id === halftimePick);
+                if (given && halftimeTalk) applySpeech(given, halftimeTalk.options);
+              }}
+            >
+              🏈 Return to the Field
+            </button>
+          </div>
+        ) : (
+          <div style={{ flex: 'none' }}>{simButtons}</div>
+        )}
+
+        {/* (at halftime the panel needs the room: the strip comes back with the second half) */}
+        {opts.pbp && recent.length > 0 && !halftimeUp && (
+          <button type="button" className="mp-pbp" onClick={() => setSheet('pbp')} aria-label="The whole play-by-play">
+            {recent.map((ev, i) => (
+              <span key={ev.playId} style={i ? { color: '#94A3B8' } : undefined}>
+                {i === 0 ? '📜 ' : ''}
+                {snapLabel(ev) && <b style={{ color: i ? '#94A3B8' : '#1D4ED8' }}>{snapLabel(ev)} </b>}
+                {ev.textCommentary}
+              </span>
+            ))}
+          </button>
+        )}
+
+        <div className="mp-bottom">
+          <button type="button" className="mp-qb" onClick={() => setSheet('stats')}>📊 Stats</button>
+          <button type="button" className="mp-qb" onClick={() => setSheet('scores')}>🏟️ Other scores</button>
+          <button type="button" className="mp-qb mp-opts" onClick={() => setSheet('opts')}>⚙️ Options</button>
+        </div>
+
+        <Sheet open={sheet === 'stats'} title="📊 Game stats" onClose={() => setSheet(null)}>
+          <StatsBody state={gameState} markOf={markOf} when={gameState.isGameOver ? 'FINAL' : halftimeUp ? 'HALFTIME' : clockLabel.toUpperCase()} />
+        </Sheet>
+        <Sheet open={sheet === 'scores'} title="🏟️ Other scores" onClose={() => setSheet(null)}>
+          <AroundTheLeague bare quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={gameState.isGameOver} />
+        </Sheet>
+        <Sheet open={sheet === 'opts'} title="⚙️ Options" onClose={() => setSheet(null)}>
+          {setReplayOpts && <OptionsBody opts={opts} set={setReplayOpts} />}
+        </Sheet>
+        <Sheet open={sheet === 'pbp'} title="📜 Play-by-play" onClose={() => setSheet(null)}>
+          {gameState.eventLog.slice().reverse().map((ev, i) => (
+            <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #EEF2F6', fontSize: 13.5, lineHeight: 1.4, ...(ev.penalty ? { background: '#FEF9C3' } : {}) }}>
+              {ev.timeout && (
+                <div style={{ fontWeight: 800, color: '#0F172A', marginBottom: 3 }}>
+                  ⏱ Timeout, {ev.timeout.teamId === gameState.homeTeam.id ? gameState.homeTeam.name : gameState.awayTeam.name} ({ev.timeout.left} left)
+                </div>
+              )}
+              {ev.penalty && <PenaltyFlag size={14} />}{' '}
+              <span style={{ fontWeight: 800, color: '#64748B' }}>
+                {ev.quarter === 'OT' ? 'OT' : `Q${ev.quarter} ${Math.floor(ev.clockTimeRemainingSeconds / 60)}:${(ev.clockTimeRemainingSeconds % 60).toString().padStart(2, '0')}`}
+              </span>{' '}
+              {snapLabel(ev) && <strong style={{ color: '#1D4ED8' }}>{snapLabel(ev)}</strong>} {ev.textCommentary}
+              {ev.substitution && <div style={{ fontWeight: 700, marginTop: 3 }}>{substitutionLine(ev.substitution, ev.substitution.teamId === userTeamId ? null : opponent.name)}</div>}
+            </div>
+          ))}
+        </Sheet>
+      </div>
+    );
+  }
+
+  // Begin / Pause, Sim Quarter, Sim Half (or Sim to End), or the box score at the final whistle
+  const simButtons = (
+    <div style={{ display: 'flex', gap: '8px' }}>
+      {!gameState.isGameOver ? (
+        <>
+          {flag ? (
+            <button disabled style={{ ...controlBtnStyle, background: '#FDE68A', color: '#713F12', border: '1px solid #EAB308', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+              <PenaltyFlag size={20} /> Flag…
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                resumeAutoRef.current = false;
+                setAutoPlay(!autoPlay);
+              }}
+              style={{ ...controlBtnStyle, ...(autoPlay ? { background: '#F59E0B', color: '#0F172A' } : { background: '#16A34A' }) }}
+            >
+              {autoPlay ? '⏸ Pause' : started ? '▶ Resume' : '▶ Begin'}
+            </button>
+          )}
+          <button onClick={() => simAhead('QUARTER')} disabled={!!flag} style={{ ...controlBtnStyle, ...(flag ? dimmed : {}) }}>
+            {gameState.currentQuarter === 'OT' ? '⏩ Sim OT' : '⏩ Sim Quarter'}
+          </button>
+          {firstHalf ? (
+            <button onClick={() => simAhead('HALF')} disabled={!!flag} style={{ ...controlBtnStyle, ...(flag ? dimmed : {}) }}>
+              ⏭ Sim Half
+            </button>
+          ) : confirmEnd ? (
+            <button onClick={() => simAhead('END')} style={{ ...controlBtnStyle, background: '#DC2626' }}>
+              Tap again to sim
+            </button>
+          ) : (
+            <button onClick={() => setConfirmEnd(true)} disabled={!!flag} style={{ ...controlBtnStyle, ...(flag ? dimmed : {}) }}>
+              🏁 Sim to End
+            </button>
+          )}
+        </>
+      ) : (
+        <button onClick={() => setShowBoxScore(true)} style={{ ...controlBtnStyle, background: '#047857', color: '#fff' }}>
+          📊 Final Box Score
+        </button>
+      )}
+    </div>
+  );
+
+  if (replayOpts) return matchPage();
 
   return (
-    <div style={{ padding: '16px', maxWidth: '840px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div style={{ padding: replayOpts ? '16px 8px' : '16px', maxWidth: '840px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       {showBoxScore && (
         <PostGameBoxScoreModal gameState={gameState} closeLabel="Continue" aroundTheState onClose={() => { setShowBoxScore(false); setPostStep('GAME_BALL'); }} />
       )}
@@ -387,20 +793,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
           userTeamId={userTeamId}
           plan={{ offense: planOffense, focus: planFocus, bench: planBench }}
           onUpdatePlan={() => setPlanOpen(true)}
-          onApplySpeech={(given, offered) => {
-            // The speech shapes the second half: the worker plays it, the screen's copy records it, and the next
-            // game's offer steers clear of this one's
-            const talk = given.talk.id;
-            const store = useGameStore.getState();
-            store.setRecentTalks(rememberTalks(store.recentTalks, 'HALF', offered, given));
-            simWorkerBridge.setHalftimeTalk(userTeamId, talk);
-            track('halftime_talk', { ...talkParams(given, offered), score_diff: scoreDiff(), ...gameContext(store), ...moment(store) });
-            setGameState((s) => ({ ...s, halftimeTalks: { ...s.halftimeTalks, [userTeamId]: talk } }));
-            useGameStore.getState().markGameLive({ ...gameState, halftimeTalks: { ...gameState.halftimeTalks, [userTeamId]: talk } }, true);
-            setShowHalftimeModal(false);
-            soundFx.playWhistle();
-            resumeAutoSim();
-          }}
+          onApplySpeech={applySpeech}
         />
       )}
 
@@ -431,25 +824,25 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       {/* Scoreboard: away on the left, home on the right; light background so every school color reads; the ball marks who has possession */}
       <div style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', alignItems: 'center', gap: '8px' }}>
-          {[gameState.awayTeam, null, gameState.homeTeam].map((team, i) =>
+          {[board.awayTeam, null, board.homeTeam].map((team, i) =>
             team ? (
               <div key={team.id} style={{ minWidth: 0, textAlign: i === 0 ? 'left' : 'right' }}>
                 {/* The ball icon sits outside the truncated name so long school names never hide it */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: i === 0 ? 'flex-start' : 'flex-end', minWidth: 0 }}>
-                  {i === 2 && gameState.possessionTeamId === team.id && <span style={{ flex: '0 0 auto' }} aria-label="has the ball">🏈</span>}
+                  {i === 2 && board.possessionTeamId === team.id && <span style={{ flex: '0 0 auto' }} aria-label="has the ball">🏈</span>}
                   <span style={teamNameStyle(readableOnWhite(team.primaryColor, team.secondaryColor))}>{team.name}</span>
-                  {i === 0 && gameState.possessionTeamId === team.id && <span style={{ flex: '0 0 auto' }} aria-label="has the ball">🏈</span>}
+                  {i === 0 && board.possessionTeamId === team.id && <span style={{ flex: '0 0 auto' }} aria-label="has the ball">🏈</span>}
                 </div>
                 {/* Record coming into the game (with this game at the final whistle) */}
                 <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>({seasonOf(i === 0 ? 'away' : 'home')})</div>
-                <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1, color: '#0F172A' }}>{i === 0 ? gameState.awayScore : gameState.homeScore}</div>
+                <div style={{ fontSize: '30px', fontWeight: 'bold', lineHeight: 1.1, color: '#0F172A' }}>{i === 0 ? board.awayScore : board.homeScore}</div>
               </div>
             ) : (
               <div key="clock" style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#B45309' }}>
-                  {gameState.currentQuarter === 'OT'
-                    ? `OT ${gameState.overtime?.period ?? 1}`
-                    : `Q${gameState.currentQuarter} ${Math.floor(gameState.clockSecondsRemaining / 60)}:${(gameState.clockSecondsRemaining % 60).toString().padStart(2, '0')}`}
+                  {board.currentQuarter === 'OT'
+                    ? `OT ${board.overtime?.period ?? 1}`
+                    : `Q${board.currentQuarter} ${Math.floor(board.clockSecondsRemaining / 60)}:${(board.clockSecondsRemaining % 60).toString().padStart(2, '0')}`}
                 </div>
                 <div className={flag?.stage === 'SPOT' ? 'down-flash' : undefined} style={{ fontSize: '13px', color: '#334155', fontWeight: 'bold', padding: '0 4px' }}>
                   {shownDown}
@@ -462,31 +855,29 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         </div>
       </div>
 
-      {/* 2D SVG Interactive Field Visualizer */}
-      <FieldVisualizer
-        yardLine={shownYardLine}
-        distance={shownDistance}
-        possessionColor={currentPossTeam.primaryColor}
-        flagYardLine={flag && flag.stage !== 'PLAY' ? flag.event.snapYardLine : undefined}
+      {/* PLAYTEST: the coach's diagram, each snap acted out by a matched real play */}
+      {/* The replay test: the field as wide as the scoreboard and the boxes under it, all on one edge */}
+      <div style={replayOpts ? { borderRadius: 10, overflow: 'hidden', marginBottom: 12 } : undefined}>
+      <ReplayField
+        event={replay?.event ?? null}
+        board={replayOpts && replay ? replay.pre : board}
+        onDone={finishReplay}
         caption={
           flag ? (
             <FlagCall event={flag.event} stage={flag.stage} teams={[gameState.homeTeam, gameState.awayTeam]} />
           ) : playAlert ? (
             <PlayAlert alert={playAlert} userTeamId={userTeamId} onDone={clearPlayAlert} />
-          ) : (
+          ) : replayOpts ? null : (
             <div className="play-latest" aria-live="polite">
-              {gameState.eventLog[gameState.eventLog.length - 1]?.textCommentary ?? 'Kickoff! The game is under way.'}
+              {board.eventLog[board.eventLog.length - 1]?.textCommentary ?? 'Kickoff! The game is under way.'}
             </div>
           )
         }
-        possessionIsHome={gameState.possessionTeamId === gameState.homeTeam.id}
-        homeTeamName={gameState.homeTeam.name}
-        homeColor={gameState.homeTeam.primaryColor}
-        homeSecondaryColor={gameState.homeTeam.secondaryColor}
       />
+      </div>
 
       {/* A decision, when one is due: right under the field, where the eye already is */}
-      {leveragePrompt === 'PAT_DECISION' && !gameState.isGameOver && (
+      {leveragePrompt === 'PAT_DECISION' && !gameState.isGameOver && (!replayOpts || phase === 'done') && (
         <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
           <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#92400E' }}>⚡ TOUCHDOWN! POINT-AFTER DECISION</h3>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
@@ -499,7 +890,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         </div>
       )}
 
-      {leveragePrompt && leveragePrompt !== 'PAT_DECISION' && !gameState.isGameOver && (
+      {leveragePrompt && leveragePrompt !== 'PAT_DECISION' && !gameState.isGameOver && (!replayOpts || phase === 'done') && (
         <div style={{ background: '#FEF3C7', border: '2px solid #F59E0B', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
           <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#92400E' }}>⚡ {LEVERAGE_HEADINGS[leveragePrompt]}</h3>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px' }}>
@@ -523,8 +914,12 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         </div>
       )}
 
-      {/* While the game is paused (or before it begins) the coach calls each play himself: one snap per call */}
-      {!autoPlay && !gameState.isGameOver && leveragePrompt === null && !showHalftimeModal && (
+      {/* The replay test: Begin and the sims right under the field, so the screen needs no scrolling */}
+      {replayOpts && <div style={{ marginBottom: 12 }}>{simButtons}</div>}
+
+      {/* While the game is paused (or before it begins) the coach calls each play himself: one snap per call (the replay
+          test leaves them out until the game is under way) */}
+      {!autoPlay && !gameState.isGameOver && leveragePrompt === null && !showHalftimeModal && (!replayOpts || started) && (
         <>
           <PlayCallingPanel
             side={gameState.possessionTeamId === userTeamId ? 'OFFENSE' : 'DEFENSE'}
@@ -542,10 +937,10 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       )}
 
       {/* The game plan: below the boxes that pop up, above the scoreboard and the play-by-play */}
-      {!gameState.isGameOver && <GamePlanBar offense={planOffense} focus={planFocus} bench={planBench} onUpdate={openPlan} />}
+      {!replayOpts && !gameState.isGameOver && <GamePlanBar offense={planOffense} focus={planFocus} bench={planBench} onUpdate={openPlan} />}
 
       {/* Other games this week, at this game's clock; at the final whistle, the week's top games (all final) */}
-      {gameState.isGameOver ? <AroundTheState /> : <AroundTheLeague quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={false} />}
+      {!replayOpts && (gameState.isGameOver ? <AroundTheState /> : <AroundTheLeague quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={false} />)}
 
       {/* Play-by-Play Stream (collapsible) */}
       <button
@@ -609,62 +1004,74 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
       </div>
       )}
 
-      {/* Sim controls: pinned to the bottom of the screen so they're always under your thumb */}
-      <div
-        style={{
-          position: 'sticky',
-          bottom: 0,
-          background: '#F8FAFC',
-          padding: '10px 0',
-          paddingBottom: 'calc(10px + env(safe-area-inset-bottom))',
-          zIndex: 20
-        }}
-      >
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {!gameState.isGameOver ? (
-            <>
-              {flag ? (
-                <button disabled style={{ ...controlBtnStyle, background: '#FDE68A', color: '#713F12', border: '1px solid #EAB308', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                  <PenaltyFlag size={20} /> Flag…
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    resumeAutoRef.current = false;
-                    setAutoPlay(!autoPlay);
-                  }}
-                  style={{ ...controlBtnStyle, ...(autoPlay ? { background: '#F59E0B', color: '#0F172A' } : { background: '#16A34A' }) }}
-                >
-                  {autoPlay ? '⏸ Pause' : started ? '▶ Resume' : '▶ Begin'}
-                </button>
-              )}
-              <button onClick={() => simAhead('QUARTER')} disabled={!!flag} style={{ ...controlBtnStyle, ...(flag ? dimmed : {}) }}>
-                {gameState.currentQuarter === 'OT' ? '⏩ Sim OT' : '⏩ Sim Quarter'}
-              </button>
-              {firstHalf ? (
-                <button onClick={() => simAhead('HALF')} disabled={!!flag} style={{ ...controlBtnStyle, ...(flag ? dimmed : {}) }}>
-                  ⏭ Sim Half
-                </button>
-              ) : confirmEnd ? (
-                <button onClick={() => simAhead('END')} style={{ ...controlBtnStyle, background: '#DC2626' }}>
-                  Tap again to sim
-                </button>
-              ) : (
-                <button onClick={() => setConfirmEnd(true)} disabled={!!flag} style={{ ...controlBtnStyle, ...(flag ? dimmed : {}) }}>
-                  🏁 Sim to End
-                </button>
-              )}
-            </>
-          ) : (
-            <button onClick={() => setShowBoxScore(true)} style={{ ...controlBtnStyle, background: '#047857', color: '#fff' }}>
-              📊 Final Box Score
-            </button>
-          )}
+      {/* The replay test: the game plan and the other games under the play-by-play */}
+      {replayOpts && !gameState.isGameOver && <GamePlanBar offense={planOffense} focus={planFocus} bench={planBench} onUpdate={openPlan} />}
+      {replayOpts && (gameState.isGameOver ? <AroundTheState /> : <AroundTheLeague quarter={gameState.currentQuarter} clock={gameState.clockSecondsRemaining} isOver={false} />)}
+
+      {/* Sim controls: pinned to the bottom of the screen so they're always under your thumb (the replay test puts them
+          right under the field instead) */}
+      {!replayOpts && (
+        <div
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            background: '#F8FAFC',
+            padding: '10px 0',
+            paddingBottom: 'calc(10px + env(safe-area-inset-bottom))',
+            zIndex: 20
+          }}
+        >
+          {simButtons}
         </div>
-      </div>
+      )}
     </div>
   );
 };
+
+/**
+ * PLAYTEST: the kickoff before this snap, if there was one: the game's first snap, the first of the second half, or
+ * the snap after a score (the game adds its kickoff to the scoring play's line: "Lewis returns the kickoff 26 yds to
+ * the 32", or a touchback). High school overtime has no kickoffs. The kicking team kicks from its 40; the return ends
+ * where the game spotted the ball for this snap.
+ */
+function kickoffBefore(ev: PlayEvent, prev: PlayEvent | null, state: GameSimulationState): PlayEvent | null {
+  if (ev.quarter === 'OT' || ev.snapQuarter === 'OT' || ev.isTry) return null;
+  const text = prev?.textCommentary ?? '';
+  const afterScore = /returns the kickoff|for a touchback|FUMBLES the kickoff/.test(text);
+  const opening = !prev;
+  const secondHalf = !!prev && prev.snapQuarter !== undefined && Number(prev.snapQuarter) <= 2 && Number(ev.snapQuarter ?? ev.quarter) >= 3;
+  if (!afterScore && !opening && !secondHalf) return null;
+  const [home, away] = [state.homeTeam, state.awayTeam];
+  const receiving = ev.snapTeamId === home.id ? home : away;
+  const kicking = receiving === home ? away : home;
+  const spot = ev.snapYardLine ?? 25; // where the receiving team starts
+  const k = kicking.roster.find((p) => p.position === 'K');
+  const ret = afterScore ? text.match(/ (\S+) returns the kickoff (\d+) yds/) : null;
+  const touchback = afterScore ? /touchback/.test(text) : spot === 20;
+  // (the game's kickoff returner is a running back; with no line from the game, its first one)
+  const returner = ret ? receiving.roster.find((p) => p.lastName === ret[1]) : receiving.roster.filter((p) => p.position === 'RB').sort((a, b) => a.depthChartTier - b.depthChartTier)[0];
+  const words =
+    `${k ? `K ${k.lastName}` : 'The kicker'} kicks off.` +
+    (touchback ? ' Touchback.' : returner ? ` ${returner.position} ${returner.lastName} returns it ${ret ? `${ret[2]} yds` : `to the ${spot}`}.` : '');
+  return {
+    playId: `ko-${ev.playId}`, quarter: ev.quarter, snapQuarter: ev.snapQuarter, clockTimeRemainingSeconds: ev.clockTimeRemainingSeconds,
+    snapTeamId: kicking.id, snapYardLine: 40, snapDown: 1, snapDistance: 10, down: 1, distance: 10, yardLine: spot,
+    possessionTeamId: receiving.id, playConcept: 'KICKOFF' as PlayConcept,
+    yardsGained: 100 - spot - 40, // the return ends this far from the kick spot (the kicking team's view)
+    isTurnover: false, isScore: false, textCommentary: words, isLeverageMoment: false
+  } as PlayEvent;
+}
+
+// PLAYTEST: the match page's decision titles, the defense choices' short notes, and how long a timeout's banner shows
+const DUE_TITLES: Record<Exclude<LeverageType, 'PAT_DECISION'>, string> = {
+  FOURTH_DOWN: '4th down: go for it or kick?',
+  RED_ZONE_GOAL_TO_GO: 'Goal to go: punch it in',
+  TWO_MINUTE_DRILL: 'Two-minute drill'
+};
+const FOCUS_SHORT: Record<DefensiveFocus, string> = { BALANCED: 'Staff picks by situation', STOP_RUN: 'Run blitz', STOP_PASS: 'Pass coverage', BLITZ: 'Sacks, risky' };
+const TIMEOUT_BANNER_MS = 1800;
+const timeoutLine = (team: string, left: number, quarter: GameSimulationState['currentQuarter']) =>
+  `${team} · ${left} left ${quarter === 'OT' ? 'this overtime' : 'this half'}`;
 
 // Decision buttons: two to a row so four or five options fit a phone
 const decisionGrid: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' };

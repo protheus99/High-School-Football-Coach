@@ -17,6 +17,7 @@ import { PlayerLeaderboardView } from './components/PlayerLeaderboardView';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { TeamProfileSheet } from './components/TeamProfileSheet';
 import { LiveMatchScreen } from './components/LiveMatchScreen';
+import { MatchOptionsProvider } from './replayTest/MatchOptionsProvider';
 import type { PregameSpeech } from './components/PreGameStrategyModal';
 import { rememberTalks } from './sim/talkPicker';
 import { SaveLoadManagerModal } from './components/SaveLoadManagerModal';
@@ -300,7 +301,10 @@ export const App: React.FC = () => {
 
   // Render Active Match Screen
   if (activeMatch) {
+    // The match page (the stadium board, the play acted out on the field, the plan boxes, Stats / Other scores /
+    // Options), with this browser's match options
     return (
+      <MatchOptionsProvider storageKey="hsfhc.matchOptions">
       <LiveMatchScreen
         initialState={activeMatch}
         userTeamId={userTeamId}
@@ -313,6 +317,7 @@ export const App: React.FC = () => {
           setActiveMatch(null);
         }}
       />
+      </MatchOptionsProvider>
     );
   }
 
