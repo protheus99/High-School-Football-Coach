@@ -1037,7 +1037,8 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
 function kickoffBefore(ev: PlayEvent, prev: PlayEvent | null, state: GameSimulationState): PlayEvent | null {
   if (ev.quarter === 'OT' || ev.snapQuarter === 'OT' || ev.isTry) return null;
   const text = prev?.textCommentary ?? '';
-  const afterScore = /returns the kickoff|for a touchback|FUMBLES the kickoff/.test(text);
+  // (a kickoff's own words: a punt into the end zone is "for a touchback" too, and is never followed by a kickoff)
+  const afterScore = prev?.playConcept !== 'PUNT' && /returns the kickoff|Kickoff by \S+ sails into the end zone|FUMBLES the kickoff/.test(text);
   const opening = !prev;
   const secondHalf = !!prev && prev.snapQuarter !== undefined && Number(prev.snapQuarter) <= 2 && Number(ev.snapQuarter ?? ev.quarter) >= 3;
   if (!afterScore && !opening && !secondHalf) return null;
