@@ -193,6 +193,40 @@ const deepen = (hex: string, t: number) => {
   const c = [(v >> 16) & 255, (v >> 8) & 255, v & 255].map((x, i) => Math.round(x + (to[i] - x) * t));
   return `rgb(${c.join(',')})`;
 };
+/**
+ * The home school's name in both end zones, kept inside the end zone: a long name gets a smaller size, then loses
+ * words from the end ("CINCINNATI ARCHBISHOP…"). Measured as drawn (an estimate where the text can't be measured).
+ */
+const END_ZONE_TEXT = 47; // yards of the end zone's 53⅓ the name may use
+function fitEndZoneName(top: SVGElement, bottom: SVGElement, name: string) {
+  const width = (size: number, text: string) => {
+    top.setAttribute('font-size', String(size));
+    top.textContent = text;
+    try {
+      const w = (top as SVGTextElement).getComputedTextLength();
+      if (w > 0) return w;
+    } catch {
+      // not drawn yet: estimate below
+    }
+    return text.length * size * 0.68;
+  };
+  let size = 3.6;
+  let text = name;
+  while (size > 2.8 && width(size, text) > END_ZONE_TEXT) size = Math.round((size - 0.2) * 10) / 10;
+  const words = name.split(' ');
+  while (words.length > 1 && width(size, text) > END_ZONE_TEXT) {
+    words.pop();
+    text = `${words.join(' ').replace(/[\s.,'-]+$/, '')}…`;
+  }
+  // (one long word: letters off the end)
+  while (text.length > 4 && width(size, text) > END_ZONE_TEXT) text = `${text.replace(/…$/, '').slice(0, -1)}…`;
+  // the shorter name may fit a bigger size again
+  while (size < 3.6 && width(Math.round((size + 0.2) * 10) / 10, text) <= END_ZONE_TEXT) size = Math.round((size + 0.2) * 10) / 10;
+  width(size, text);
+  bottom.setAttribute('font-size', String(size));
+  bottom.textContent = text;
+}
+
 const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 /** The second half (and overtime): the head linesman, the line judge and the chain crew have switched sidelines */
@@ -263,7 +297,7 @@ function drawField(g: Element, look: FieldLook, home: Team, away: Team, M: numbe
   el('rect', { x: 0, y: 0, width: W, height: 10, fill: home.primaryColor }, g);
   const ezTop = el('text', { x: CX, y: -103.6, 'text-anchor': 'middle', 'font-size': 3.6, 'font-weight': 800, fill: '#fff' }, g);
   const ezBottom = el('text', { x: CX, y: 6.4, 'text-anchor': 'middle', 'font-size': 3.6, 'font-weight': 800, fill: '#fff', transform: `rotate(180 ${CX} 5)` }, g);
-  ezTop.textContent = ezBottom.textContent = home.name.toUpperCase();
+  fitEndZoneName(ezTop, ezBottom, home.name.toUpperCase());
   for (let y = 0; y <= 100; y += 5) el('line', { x1: 0, x2: W, y1: -y, y2: -y, stroke: '#fff', 'stroke-width': y % 50 === 0 ? 0.42 : y % 10 === 0 ? 0.28 : 0.18, 'stroke-opacity': y % 10 === 0 ? 0.85 : 0.6 }, g);
   // Hash marks (high school: 53 ft 4 in in from each sideline) and the short marks along the sidelines
   const hashes = look.style === 'now' ? [0.3, 17.3, 35.5, 52.5] : [0.3, 17.45, W - 17.45 - 0.67, W - 0.3 - 0.67];

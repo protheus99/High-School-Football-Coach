@@ -9,6 +9,9 @@ import { MatchOptionsProvider } from './MatchOptionsProvider';
 
 const freshGame = (): GameSimulationState => {
   const [home, away] = generateDistrictTeams();
+  // (?replaytest&home=Cincinnati Archbishop Moeller: try a school name, e.g. a long one)
+  const name = new URLSearchParams(window.location.search).get('home');
+  if (name) home.name = name;
   return {
     gameId: `replay-${Date.now()}`, homeTeam: home, awayTeam: away, homeScore: 0, awayScore: 0, weather: 'CLEAR',
     temperatureFahrenheit: 64, windSpeedMph: 6, teamMomentum: 0, currentQuarter: 1, clockSecondsRemaining: 720,
