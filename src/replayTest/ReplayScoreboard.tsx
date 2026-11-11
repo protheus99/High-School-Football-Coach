@@ -5,6 +5,7 @@
 import React from 'react';
 import { GameSimulationState, Team } from '../types/game';
 import { markColors } from './markColors';
+import { shortName } from '../utils/shortName';
 
 // Seven-segment lamps: which segments light for each character (a top, b top right, c bottom right, d bottom,
 // e bottom left, f top left, g middle)
@@ -97,7 +98,7 @@ export const ReplayScoreboard: React.FC<Props> = ({ variant, board, down, distan
       <div style={{ minWidth: 0, textAlign: right ? 'right' : 'left' }}>
         <div style={{ display: 'flex', gap: 4, justifyContent: right ? 'flex-end' : 'flex-start', alignItems: 'center', minWidth: 0 }}>
           {right && board.possessionTeamId === t.id && <span aria-label="has the ball">🏈</span>}
-          <span style={{ fontWeight: 800, fontSize: 15, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</span>
+          <span style={{ fontWeight: 800, fontSize: 15, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{shortName(t)}</span>
           {!right && board.possessionTeamId === t.id && <span aria-label="has the ball">🏈</span>}
         </div>
         <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1.05, color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>{pts}</div>
@@ -118,8 +119,8 @@ export const ReplayScoreboard: React.FC<Props> = ({ variant, board, down, distan
   if (variant === 'simple') {
     // The generic board: the school names over the score, the timeouts left (TOL), a football lit for possession
     const big = (t: Team) => (
-      <span style={{ display: 'block', maxWidth: '100%', textAlign: 'center', color: '#fff', font: `italic 900 ${t.name.length > 10 ? 15 : 18}px system-ui, sans-serif`, letterSpacing: '.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {t.name.toUpperCase()}
+      <span style={{ display: 'block', maxWidth: '100%', textAlign: 'center', color: '#fff', font: `italic 900 ${shortName(t).length > 10 ? 15 : 18}px system-ui, sans-serif`, letterSpacing: '.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {shortName(t).toUpperCase()}
       </span>
     );
     const tolBox = (t: Team) => (
@@ -176,13 +177,13 @@ export const ReplayScoreboard: React.FC<Props> = ({ variant, board, down, distan
   const plate = (t: Team) => {
     const c = markColors(t), m = markOf?.(t);
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: c.main, border: `2px solid ${c.edge}`, borderRadius: 5, padding: '2px 4px', color: '#fff', font: `900 ${t.name.length > 9 ? 10 : 11}px system-ui, sans-serif`, whiteSpace: 'nowrap', overflow: 'hidden', minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: c.main, border: `2px solid ${c.edge}`, borderRadius: 5, padding: '2px 4px', color: '#fff', font: `900 ${shortName(t).length > 9 ? 10 : 11}px system-ui, sans-serif`, whiteSpace: 'nowrap', overflow: 'hidden', minWidth: 0 }}>
         {m && (
           <span aria-hidden="true" style={{ flex: 'none', width: 12, height: 12, display: 'grid', placeItems: 'center', borderRadius: m === 'O' ? 99 : 2, boxShadow: m === 'O' ? `inset 0 0 0 2.5px ${c.edge}` : 'none', color: c.edge, font: '900 12px system-ui', lineHeight: 1 }}>
             {m === 'X' ? '✕' : ''}
           </span>
         )}
-        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name.toUpperCase()}</span>
+        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{shortName(t).toUpperCase()}</span>
       </div>
     );
   };

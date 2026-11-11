@@ -37,6 +37,7 @@ const PLAY_SECONDS = 6; // the play itself: what a timeout can't give back
 const SNAP_INJURY_ODDS = 0.014;
 import { talkEffect } from './talks';
 import { rulesForState } from './stateRules';
+import { shortName } from '../utils/shortName';
 
 // Teams resting their starters on the current snap (set at the start of each simulateSnap call)
 let restingTeamIds = new Set<string>();
@@ -440,7 +441,7 @@ export function resolveKickoff(
 
   if (Math.random() < fumbleChance) {
     setFirstDown(state, kicking.id, 100 - spot);
-    return { text: ` ${returner.lastName} FUMBLES the kickoff return! ${kicking.name} recovers!`, isTurnover: true };
+    return { text: ` ${returner.lastName} FUMBLES the kickoff return! ${shortName(kicking)} recovers!`, isTurnover: true };
   }
 
   setFirstDown(state, receiving.id, spot);
@@ -487,7 +488,7 @@ function startOvertimePeriod(state: GameSimulationState, period: number, firstOf
   state.timeoutsLeft = { [state.homeTeam.id]: 1, [state.awayTeam.id]: 1 }; // one each overtime period
   setFirstDown(state, firstOffenseTeamId, 100 - overtimeYardsFromGoal(state));
   const team = firstOffenseTeamId === state.homeTeam.id ? state.homeTeam : state.awayTeam;
-  return ` OVERTIME ${period}: ${team.name} ball at the ${overtimeYardsFromGoal(state)}.`;
+  return ` OVERTIME ${period}: ${shortName(team)} ball at the ${overtimeYardsFromGoal(state)}.`;
 }
 
 /**
@@ -633,9 +634,9 @@ export function simulateSnap(
         isScore = true;
         scoreType = 'TWO_POINT';
         addPoints(offense, 2);
-        commentary = `Two-point try is GOOD! ${offense.name} converts.`;
+        commentary = `Two-point try is GOOD! ${shortName(offense)} converts.`;
       } else {
-        commentary = `Two-point try FAILS! ${defense.name} holds at the goal line.`;
+        commentary = `Two-point try FAILS! ${shortName(defense)} holds at the goal line.`;
       }
     }
     kickoffAfterScore(offense, defense);
@@ -680,7 +681,7 @@ export function simulateSnap(
         isTurnover = true;
         turnoverType = 'MUFFED_PUNT'; // the punting team gets it back
         setFirstDown(state, offense.id, landing);
-        commentary = `P ${punter.lastName} punts ${gross} yds... MUFFED by ${returner.lastName}! ${offense.name} recovers!`;
+        commentary = `P ${punter.lastName} punts ${gross} yds... MUFFED by ${returner.lastName}! ${shortName(offense)} recovers!`;
       } else {
         setFirstDown(state, defense.id, 100 - landing);
         commentary = `P ${punter.lastName} punts ${gross} yds to the opponent ${state.yardLine} yd line.`;
@@ -697,7 +698,7 @@ export function simulateSnap(
     defensiveCall = chosenDefensiveCall ?? state.defensiveGamePlan?.[defense.id] ?? selectAIDefensiveCall(state);
     const byOffense = rule.side === 'OFFENSE';
     const yards = enforcedYards(rule.yards, byOffense ? state.yardLine : 100 - state.yardLine);
-    const who = player ? `${player.position} ${player.lastName}` : team.name;
+    const who = player ? `${player.position} ${player.lastName}` : shortName(team);
     let firstDown = false;
     if (byOffense) {
       state.yardLine -= yards;
@@ -711,7 +712,7 @@ export function simulateSnap(
     state.distance = Math.min(state.distance, 100 - state.yardLine);
     timeElapsed = rule.timing === 'PRE_SNAP' ? 0 : randomInt(5, 9);
     const ordinal = ['', '1st', '2nd', '3rd', '4th'][state.down];
-    commentary = `FLAG! ${rule.name}, ${who} (${team.name}). ${rule.timing === 'LIVE' && byOffense ? 'The play comes back: ' : ''}${yards} yards${firstDown ? ', FIRST DOWN' : `, replay ${ordinal} down`}.`;
+    commentary = `FLAG! ${rule.name}, ${who} (${shortName(team)}). ${rule.timing === 'LIVE' && byOffense ? 'The play comes back: ' : ''}${yards} yards${firstDown ? ', FIRST DOWN' : `, replay ${ordinal} down`}.`;
     const play = rule.timing === 'LIVE' ? flaggedPlayText(offense, concept, byOffense, yards) : undefined;
     if (play) commentary = `${play} ${commentary}`;
     penalty = {
@@ -864,7 +865,7 @@ export function simulateSnap(
         isScore = true;
         scoreType = 'TOUCHDOWN';
         addPoints(offense, 6);
-        commentary += ` TOUCHDOWN ${offense.name.toUpperCase()}!`;
+        commentary += ` TOUCHDOWN ${shortName(offense).toUpperCase()}!`;
         setFirstDown(state, offense.id, 97);
       }
       // Advance Down & Distance
@@ -907,7 +908,7 @@ export function simulateSnap(
         const secondTeam = ot.firstOffenseTeamId === state.homeTeam.id ? state.awayTeam : state.homeTeam;
         ot.possessionsCompleted = 1;
         setFirstDown(state, secondTeam.id, 100 - overtimeYardsFromGoal(state));
-        commentary += ` ${secondTeam.name} takes its overtime possession at the 10.`;
+        commentary += ` ${shortName(secondTeam)} takes its overtime possession at the 10.`;
       } else if (state.homeScore !== state.awayScore) {
         state.isGameOver = true;
       } else {

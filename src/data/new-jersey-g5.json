@@ -13,6 +13,7 @@
      "schools": [
       {
        "name": "Bergen Catholic",
+       "shortName": "Bergen Cath.",
        "mascot": "Crusaders",
        "primaryColor": "#C8102E",
        "secondaryColor": "#C0C0C0",
@@ -31,6 +32,7 @@
       },
       {
        "name": "St. Peter's Prep",
+       "shortName": "St. Peter's",
        "mascot": "Marauders",
        "primaryColor": "#8B0000",
        "secondaryColor": "#000000",
@@ -40,6 +42,7 @@
       },
       {
        "name": "Red Bank Catholic",
+       "shortName": "RBC",
        "mascot": "Caseys",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFD700",
@@ -49,6 +52,7 @@
       },
       {
        "name": "Donovan Catholic",
+       "shortName": "Donovan C.",
        "mascot": "Griffins",
        "primaryColor": "#006747",
        "secondaryColor": "#C0C0C0",
@@ -58,6 +62,7 @@
       },
       {
        "name": "Pope John XXIII",
+       "shortName": "Pope John",
        "mascot": "Lions",
        "primaryColor": "#003087",
        "secondaryColor": "#FFFFFF",
@@ -83,6 +88,7 @@
      "schools": [
       {
        "name": "Don Bosco Prep",
+       "shortName": "Don Bosco",
        "mascot": "Ironmen",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFC72C",
@@ -92,6 +98,7 @@
       },
       {
        "name": "St. Joseph Regional",
+       "shortName": "St. Joe Reg.",
        "mascot": "Green Knights",
        "primaryColor": "#00843D",
        "secondaryColor": "#FFC72C",
@@ -101,6 +108,7 @@
       },
       {
        "name": "Seton Hall Prep",
+       "shortName": "Seton Hall",
        "mascot": "Pirates",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFD700",
@@ -110,6 +118,7 @@
       },
       {
        "name": "St. Augustine Prep",
+       "shortName": "St. Aug Prep",
        "mascot": "Hermits",
        "primaryColor": "#00573F",
        "secondaryColor": "#FFD700",
@@ -119,6 +128,7 @@
       },
       {
        "name": "St. Joseph (Metuchen)",
+       "shortName": "St. Joe's",
        "mascot": "Falcons",
        "primaryColor": "#006747",
        "secondaryColor": "#C0C0C0",
@@ -128,6 +138,7 @@
       },
       {
        "name": "Paramus Catholic",
+       "shortName": "Paramus C.",
        "mascot": "Paladins",
        "primaryColor": "#00573F",
        "secondaryColor": "#FFC72C",
@@ -153,6 +164,7 @@
      "schools": [
       {
        "name": "Passaic County Tech",
+       "shortName": "Passaic Tech",
        "mascot": "Bulldogs",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFD700",
@@ -198,6 +210,7 @@
       },
       {
        "name": "Paterson Eastside",
+       "shortName": "Eastside",
        "mascot": "Ghosts",
        "primaryColor": "#8B0000",
        "secondaryColor": "#C0C0C0",
@@ -232,6 +245,7 @@
       },
       {
        "name": "East Orange Campus",
+       "shortName": "East Orange",
        "mascot": "Jaguars",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFFFFF",
@@ -241,6 +255,7 @@
       },
       {
        "name": "Bridgewater-Raritan",
+       "shortName": "Bridgewater",
        "mascot": "Panthers",
        "primaryColor": "#002D62",
        "secondaryColor": "#000000",
@@ -363,6 +378,7 @@
      "schools": [
       {
        "name": "Toms River North",
+       "shortName": "TR North",
        "mascot": "Mariners",
        "primaryColor": "#C8102E",
        "secondaryColor": "#000000",
@@ -390,6 +406,7 @@
       },
       {
        "name": "Southern Regional",
+       "shortName": "Southern",
        "mascot": "Rams",
        "primaryColor": "#6F263D",
        "secondaryColor": "#FFD700",
@@ -399,6 +416,7 @@
       },
       {
        "name": "Hunterdon Central",
+       "shortName": "Hunterdon C.",
        "mascot": "Red Devils",
        "primaryColor": "#003087",
        "secondaryColor": "#FFFFFF",
@@ -417,6 +435,7 @@
       },
       {
        "name": "Egg Harbor Township",
+       "shortName": "Egg Harbor",
        "mascot": "Eagles",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFC72C",
@@ -435,6 +454,7 @@
       },
       {
        "name": "Freehold Township",
+       "shortName": "Freehold Twp",
        "mascot": "Patriots",
        "primaryColor": "#00573F",
        "secondaryColor": "#B3A369",
@@ -444,6 +464,7 @@
       },
       {
        "name": "South Brunswick",
+       "shortName": "S. Brunswick",
        "mascot": "Vikings",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#000000",
@@ -462,6 +483,7 @@
       },
       {
        "name": "Trenton Central",
+       "shortName": "Trenton",
        "mascot": "Tornadoes",
        "primaryColor": "#00843D",
        "secondaryColor": "#FFD700",
@@ -478,6 +500,7 @@
      "schools": [
       {
        "name": "Washington Township",
+       "shortName": "Wash. Twp",
        "mascot": "Minutemen",
        "primaryColor": "#7C2529",
        "secondaryColor": "#C0C0C0",
@@ -496,6 +519,7 @@
       },
       {
        "name": "Rancocas Valley",
+       "shortName": "Rancocas V.",
        "mascot": "Red Devils",
        "primaryColor": "#003087",
        "secondaryColor": "#C0C0C0",
@@ -523,6 +547,7 @@
       },
       {
        "name": "Atlantic County Tech",
+       "shortName": "Atl. Tech",
        "mascot": "Red Hawks",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#FFD700",
@@ -559,6 +584,7 @@
       },
       {
        "name": "Cherry Hill East",
+       "shortName": "CH East",
        "mascot": "Cougars",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#FFD700",
@@ -568,6 +594,7 @@
       },
       {
        "name": "East Brunswick",
+       "shortName": "E. Brunswick",
        "mascot": "Bears",
        "primaryColor": "#C8102E",
        "secondaryColor": "#FFC72C",
@@ -577,6 +604,7 @@
       },
       {
        "name": "Jackson Memorial",
+       "shortName": "Jackson Mem.",
        "mascot": "Jaguars",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#B3A369",

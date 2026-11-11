@@ -10,6 +10,7 @@ import { InjuryFx, stageInjury } from './replayInjury';
 import { PenaltyFlagShape } from '../components/ui/PenaltyFlag';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { addWalkBack, Pt } from './replayFlow';
+import { shortName } from '../utils/shortName';
 
 // Action cues (add ?nocues to the address to compare without them)
 const CUES = typeof window === 'undefined' || !window.location.search.includes('nocues');
@@ -220,7 +221,7 @@ const deepen = (hex: string, t: number) => {
  * words from the end ("CINCINNATI ARCHBISHOP…"). Measured as drawn (an estimate where the text can't be measured).
  */
 const END_ZONE_TEXT = 47; // yards of the end zone's 53⅓ the name may use
-function fitEndZoneName(top: SVGElement, bottom: SVGElement, name: string) {
+function fitEndZoneName(top: SVGElement, bottom: SVGElement, full: string, short: string) {
   const width = (size: number, text: string) => {
     top.setAttribute('font-size', String(size));
     top.textContent = text;
@@ -232,6 +233,8 @@ function fitEndZoneName(top: SVGElement, bottom: SVGElement, name: string) {
     }
     return text.length * size * 0.68;
   };
+  // the full name when it fits at a good size; otherwise the school's short name
+  const name = width(3.2, full) <= END_ZONE_TEXT ? full : short;
   let size = 3.6;
   let text = name;
   while (size > 2.8 && width(size, text) > END_ZONE_TEXT) size = Math.round((size - 0.2) * 10) / 10;
@@ -432,7 +435,7 @@ function drawField(g: Element, look: FieldLook, home: Team, away: Team, M: numbe
   el('rect', { x: 0, y: 0, width: W, height: 10, fill: home.primaryColor }, g);
   const ezTop = el('text', { x: CX, y: -103.6, 'text-anchor': 'middle', 'font-size': 3.6, 'font-weight': 800, fill: '#fff' }, g);
   const ezBottom = el('text', { x: CX, y: 6.4, 'text-anchor': 'middle', 'font-size': 3.6, 'font-weight': 800, fill: '#fff', transform: `rotate(180 ${CX} 5)` }, g);
-  fitEndZoneName(ezTop, ezBottom, home.name.toUpperCase());
+  fitEndZoneName(ezTop, ezBottom, home.name.toUpperCase(), shortName(home).toUpperCase());
   for (let y = 0; y <= 100; y += 5) el('line', { x1: 0, x2: W, y1: -y, y2: -y, stroke: '#fff', 'stroke-width': y % 50 === 0 ? 0.42 : y % 10 === 0 ? 0.28 : 0.18, 'stroke-opacity': y % 10 === 0 ? 0.85 : 0.6 }, g);
   // Hash marks (high school: 53 ft 4 in in from each sideline) and the short marks along the sidelines
   const hashes = look.style === 'now' ? [0.3, 17.3, 35.5, 52.5] : [0.3, 17.45, W - 17.45 - 0.67, W - 0.3 - 0.67];

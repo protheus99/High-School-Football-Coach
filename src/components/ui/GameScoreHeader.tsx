@@ -2,6 +2,7 @@ import React from 'react';
 import { GameSimulationState, Team } from '../../types/game';
 import { lineScore, teamAbbreviation } from '../../sim/lineScore';
 import { DESKTOP_QUERY, useMediaQuery } from '../../hooks/useMediaQuery';
+import { shortName } from '../../utils/shortName';
 
 /**
  * The final score, ESPN style: the away team on the left and the home team on the right, each with its record, the
@@ -37,7 +38,7 @@ export const GameScoreHeader: React.FC<{ game: GameSimulationState; awayRecord?:
   const teamBlock = (team: Team, record: string | undefined, side: 'home' | 'away') => (
     <div style={{ minWidth: 0, textAlign: side === 'away' ? 'left' : 'right' }}>
       <div title={team.name} style={{ fontWeight: 800, fontSize: '15px', lineHeight: 1.3, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {team.name}
+        {shortName(team)}
       </div>
       {record && <div style={{ fontSize: '12px', color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{record}</div>}
     </div>

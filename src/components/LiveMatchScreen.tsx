@@ -34,6 +34,7 @@ import { PenaltyFlag } from './ui/PenaltyFlag';
 import { track } from '../services/analytics';
 import { gameContext, liveTally, moment, scoreBand, secondString, talkParams } from '../services/analyticsParams';
 import { finalWhistleTune, soundsForPlay } from '../utils/playSounds';
+import { shortName } from '../utils/shortName';
 
 interface LiveMatchProps {
   initialState: GameSimulationState;
@@ -282,7 +283,7 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
         setGameState({ ...state });
         if (timeout) {
           const team = timeout.teamId === state.homeTeam.id ? state.homeTeam : state.awayTeam;
-          showTimeout(timeout.teamId, timeoutLine(team.name, timeout.left, state.currentQuarter));
+          showTimeout(timeout.teamId, timeoutLine(shortName(team), timeout.left, state.currentQuarter));
         }
       },
       onGameOver: ({ state }) => {
@@ -306,12 +307,12 @@ export const LiveMatchScreen: React.FC<LiveMatchProps> = ({ initialState, userTe
     if (phase === 'pre' && ev.iceTimeout && shownTimeoutRef.current !== `ice-${ev.playId}`) {
       shownTimeoutRef.current = `ice-${ev.playId}`;
       const team = ev.iceTimeout.teamId === gameState.homeTeam.id ? gameState.homeTeam : gameState.awayTeam;
-      showTimeout(ev.iceTimeout.teamId, `${team.name} ices the kicker · ${ev.iceTimeout.left} left`);
+      showTimeout(ev.iceTimeout.teamId, `${shortName(team)} ices the kicker · ${ev.iceTimeout.left} left`);
     }
     if (phase === 'done' && ev.timeout?.by === 'staff' && shownTimeoutRef.current !== ev.playId) {
       shownTimeoutRef.current = ev.playId;
       const team = ev.timeout.teamId === gameState.homeTeam.id ? gameState.homeTeam : gameState.awayTeam;
-      showTimeout(ev.timeout.teamId, timeoutLine(team.name, ev.timeout.left, gameState.currentQuarter));
+      showTimeout(ev.timeout.teamId, timeoutLine(shortName(team), ev.timeout.left, gameState.currentQuarter));
     }
   }, [phase, replay, replayOpts, gameState.homeTeam, gameState.awayTeam, gameState.currentQuarter, showTimeout]);
 

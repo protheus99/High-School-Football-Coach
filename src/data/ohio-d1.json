@@ -13,6 +13,7 @@
      "schools": [
       {
        "name": "Lakewood St. Edward",
+       "shortName": "St. Edward",
        "mascot": "Eagles",
        "primaryColor": "#7C2529",
        "secondaryColor": "#000000",
@@ -22,6 +23,7 @@
       },
       {
        "name": "Toledo Whitmer",
+       "shortName": "Whitmer",
        "mascot": "Panthers",
        "primaryColor": "#4F2683",
        "secondaryColor": "#C0C0C0",
@@ -58,6 +60,7 @@
       },
       {
        "name": "Parma Normandy",
+       "shortName": "Normandy",
        "mascot": "Invaders",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#FFC72C",
@@ -74,6 +77,7 @@
      "schools": [
       {
        "name": "Archbishop Hoban",
+       "shortName": "Hoban",
        "mascot": "Knights",
        "primaryColor": "#00573F",
        "secondaryColor": "#FFC72C",
@@ -83,6 +87,7 @@
       },
       {
        "name": "Cleveland St. Ignatius",
+       "shortName": "St. Ignatius",
        "mascot": "Wildcats",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFFFFF",
@@ -92,6 +97,7 @@
       },
       {
        "name": "Cleveland Heights",
+       "shortName": "Cleve. Hts",
        "mascot": "Tigers",
        "primaryColor": "#00843D",
        "secondaryColor": "#B3A369",
@@ -101,6 +107,7 @@
       },
       {
        "name": "Berea-Midpark",
+       "shortName": "Berea-MP",
        "mascot": "Titans",
        "primaryColor": "#00573F",
        "secondaryColor": "#FFD700",
@@ -119,6 +126,7 @@
       },
       {
        "name": "Cleveland John Marshall",
+       "shortName": "J. Marshall",
        "mascot": "Lawyers",
        "primaryColor": "#C8102E",
        "secondaryColor": "#B3A369",
@@ -144,6 +152,7 @@
       },
       {
        "name": "Canton McKinley",
+       "shortName": "McKinley",
        "mascot": "Bulldogs",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#FFC72C",
@@ -153,6 +162,7 @@
       },
       {
        "name": "Massillon Jackson",
+       "shortName": "Jackson",
        "mascot": "Polar Bears",
        "primaryColor": "#C8102E",
        "secondaryColor": "#FFD700",
@@ -171,6 +181,7 @@
       },
       {
        "name": "Canton GlenOak",
+       "shortName": "GlenOak",
        "mascot": "Golden Eagles",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#000000",
@@ -214,6 +225,7 @@
       },
       {
        "name": "Hilliard Bradley",
+       "shortName": "Bradley",
        "mascot": "Jaguars",
        "primaryColor": "#C8102E",
        "secondaryColor": "#FFD700",
@@ -223,6 +235,7 @@
       },
       {
        "name": "Kettering Fairmont",
+       "shortName": "Fairmont",
        "mascot": "Firebirds",
        "primaryColor": "#00573F",
        "secondaryColor": "#C0C0C0",
@@ -232,6 +245,7 @@
       },
       {
        "name": "Dublin Coffman",
+       "shortName": "Coffman",
        "mascot": "Shamrocks",
        "primaryColor": "#C8102E",
        "secondaryColor": "#FFFFFF",
@@ -248,6 +262,7 @@
      "schools": [
       {
        "name": "Huber Heights Wayne",
+       "shortName": "Wayne",
        "mascot": "Warriors",
        "primaryColor": "#003087",
        "secondaryColor": "#FFD700",
@@ -275,6 +290,7 @@
       },
       {
        "name": "Hilliard Davidson",
+       "shortName": "Davidson",
        "mascot": "Wildcats",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#FFC72C",
@@ -293,6 +309,7 @@
       },
       {
        "name": "Hilliard Darby",
+       "shortName": "Darby",
        "mascot": "Panthers",
        "primaryColor": "#00843D",
        "secondaryColor": "#B3A369",
@@ -336,6 +353,7 @@
       },
       {
        "name": "Dublin Jerome",
+       "shortName": "Jerome",
        "mascot": "Celtics",
        "primaryColor": "#000000",
        "secondaryColor": "#FFFFFF",
@@ -354,6 +372,7 @@
       },
       {
        "name": "Galloway Westland",
+       "shortName": "Westland",
        "mascot": "Cougars",
        "primaryColor": "#C8102E",
        "secondaryColor": "#B3A369",
@@ -370,6 +389,7 @@
      "schools": [
       {
        "name": "Lewis Center Olentangy Orange",
+       "shortName": "Olen. Orange",
        "mascot": "Pioneers",
        "primaryColor": "#C8102E",
        "secondaryColor": "#FFFFFF",
@@ -379,6 +399,7 @@
       },
       {
        "name": "Lewis Center Olentangy",
+       "shortName": "Olentangy",
        "mascot": "Braves",
        "primaryColor": "#C8102E",
        "secondaryColor": "#FFD700",
@@ -388,6 +409,7 @@
       },
       {
        "name": "Pickerington North",
+       "shortName": "Pick. North",
        "mascot": "Panthers",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFC72C",
@@ -397,6 +419,7 @@
       },
       {
        "name": "Westerville North",
+       "shortName": "Wvl. North",
        "mascot": "Warriors",
        "primaryColor": "#6F263D",
        "secondaryColor": "#FFD700",
@@ -415,6 +438,7 @@
       },
       {
        "name": "Westerville South",
+       "shortName": "Wvl. South",
        "mascot": "Wildcats",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#B3A369",
@@ -431,6 +455,7 @@
      "schools": [
       {
        "name": "Pickerington Central",
+       "shortName": "Pick Central",
        "mascot": "Tigers",
        "primaryColor": "#C8102E",
        "secondaryColor": "#B3A369",
@@ -440,6 +465,7 @@
       },
       {
        "name": "Upper Arlington",
+       "shortName": "Upper Arl.",
        "mascot": "Golden Bears",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#FFD700",
@@ -449,6 +475,7 @@
       },
       {
        "name": "Delaware Olentangy Berlin",
+       "shortName": "Olen. Berlin",
        "mascot": "Bears",
        "primaryColor": "#FF6600",
        "secondaryColor": "#000000",
@@ -458,6 +485,7 @@
       },
       {
        "name": "Westerville Central",
+       "shortName": "Wvl. Central",
        "mascot": "Warhawks",
        "primaryColor": "#00205B",
        "secondaryColor": "#C0C0C0",
@@ -467,6 +495,7 @@
       },
       {
        "name": "Delaware Hayes",
+       "shortName": "Hayes",
        "mascot": "Pacers",
        "primaryColor": "#000000",
        "secondaryColor": "#B3A369",
@@ -492,6 +521,7 @@
      "schools": [
       {
        "name": "Gahanna Lincoln",
+       "shortName": "Gahanna",
        "mascot": "Lions",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFC72C",
@@ -501,6 +531,7 @@
       },
       {
        "name": "Powell Olentangy Liberty",
+       "shortName": "Olen Liberty",
        "mascot": "Patriots",
        "primaryColor": "#002D62",
        "secondaryColor": "#FFFFFF",
@@ -519,6 +550,7 @@
       },
       {
        "name": "Groveport-Madison",
+       "shortName": "Groveport",
        "mascot": "Cruisers",
        "primaryColor": "#6F263D",
        "secondaryColor": "#FFFFFF",
@@ -528,6 +560,7 @@
       },
       {
        "name": "Thomas Worthington",
+       "shortName": "Thomas W.",
        "mascot": "Cardinals",
        "primaryColor": "#003087",
        "secondaryColor": "#C0C0C0",
@@ -553,6 +586,7 @@
      "schools": [
       {
        "name": "Cincinnati Archbishop Moeller",
+       "shortName": "Moeller",
        "mascot": "Crusaders",
        "primaryColor": "#4F2683",
        "secondaryColor": "#000000",
@@ -562,6 +596,7 @@
       },
       {
        "name": "Cincinnati Winton Woods",
+       "shortName": "Winton Woods",
        "mascot": "Warriors",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFFFFF",
@@ -571,6 +606,7 @@
       },
       {
        "name": "Liberty Township Lakota East",
+       "shortName": "Lakota East",
        "mascot": "Thunderhawks",
        "primaryColor": "#006747",
        "secondaryColor": "#FFFFFF",
@@ -589,6 +625,7 @@
       },
       {
        "name": "Cincinnati Colerain",
+       "shortName": "Colerain",
        "mascot": "Cardinals",
        "primaryColor": "#00573F",
        "secondaryColor": "#FFFFFF",
@@ -605,6 +642,7 @@
      "schools": [
       {
        "name": "Cincinnati St. Xavier",
+       "shortName": "St. Xavier",
        "mascot": "Bombers",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFFFFF",
@@ -614,6 +652,7 @@
       },
       {
        "name": "West Chester Lakota West",
+       "shortName": "Lakota West",
        "mascot": "Firebirds",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#FFD700",
@@ -641,6 +680,7 @@
       },
       {
        "name": "Cincinnati West Clermont",
+       "shortName": "W. Clermont",
        "mascot": "Wolves",
        "primaryColor": "#003087",
        "secondaryColor": "#FFD700",
@@ -650,6 +690,7 @@
       },
       {
        "name": "Morrow Little Miami",
+       "shortName": "Little Miami",
        "mascot": "Panthers",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#FFC72C",
@@ -666,6 +707,7 @@
      "schools": [
       {
        "name": "Cincinnati Elder",
+       "shortName": "Elder",
        "mascot": "Panthers",
        "primaryColor": "#8B0000",
        "secondaryColor": "#C0C0C0",
@@ -675,6 +717,7 @@
       },
       {
        "name": "Cincinnati Princeton",
+       "shortName": "Princeton",
        "mascot": "Vikings",
        "primaryColor": "#002D62",
        "secondaryColor": "#C0C0C0",
@@ -693,6 +736,7 @@
       },
       {
        "name": "Cincinnati Oak Hills",
+       "shortName": "Oak Hills",
        "mascot": "Highlanders",
        "primaryColor": "#006747",
        "secondaryColor": "#FFD700",
@@ -702,6 +746,7 @@
       },
       {
        "name": "Cincinnati Western Hills",
+       "shortName": "West. Hills",
        "mascot": "Mustangs",
        "primaryColor": "#006747",
        "secondaryColor": "#FFD700",
@@ -711,6 +756,7 @@
       },
       {
        "name": "Cincinnati Walnut Hills",
+       "shortName": "Walnut Hills",
        "mascot": "Eagles",
        "primaryColor": "#7C2529",
        "secondaryColor": "#C0C0C0",

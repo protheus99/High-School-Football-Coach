@@ -13,6 +13,7 @@
      "schools": [
       {
        "name": "Camden County",
+       "shortName": "Camden Co.",
        "city": "Kingsland",
        "mascot": "Wildcats",
        "primaryColor": "#00205B",
@@ -23,6 +24,7 @@
       },
       {
        "name": "Colquitt County",
+       "shortName": "Colquitt",
        "city": "Moultrie",
        "mascot": "Packers",
        "primaryColor": "#4B0082",
@@ -43,6 +45,7 @@
       },
       {
        "name": "Richmond Hill",
+       "shortName": "Richmond H.",
        "city": "Richmond Hill",
        "mascot": "Wildcats",
        "primaryColor": "#C8102E",
@@ -80,6 +83,7 @@
       },
       {
        "name": "Douglas County",
+       "shortName": "Douglas Co.",
        "city": "Douglasville",
        "mascot": "Tigers",
        "primaryColor": "#000000",
@@ -157,6 +161,7 @@
       },
       {
        "name": "Kennesaw Mountain",
+       "shortName": "Kennesaw Mtn",
        "city": "Kennesaw",
        "mascot": "Mustangs",
        "primaryColor": "#7C2529",
@@ -177,6 +182,7 @@
       },
       {
        "name": "North Atlanta",
+       "shortName": "N. Atlanta",
        "city": "Atlanta",
        "mascot": "Warriors",
        "primaryColor": "#00573F",
@@ -224,6 +230,7 @@
       },
       {
        "name": "Lakeside (DeKalb)",
+       "shortName": "Lakeside",
        "city": "Atlanta",
        "mascot": "Vikings",
        "primaryColor": "#003087",
@@ -244,6 +251,7 @@
       },
       {
        "name": "Rockdale County",
+       "shortName": "Rockdale Co.",
        "city": "Conyers",
        "mascot": "Bulldogs",
        "primaryColor": "#FF6600",
@@ -254,6 +262,7 @@
       },
       {
        "name": "South Gwinnett",
+       "shortName": "S. Gwinnett",
        "city": "Snellville",
        "mascot": "Comets",
        "primaryColor": "#4F2683",
@@ -311,6 +320,7 @@
       },
       {
        "name": "North Paulding",
+       "shortName": "N. Paulding",
        "city": "Dallas",
        "mascot": "Wolfpack",
        "primaryColor": "#006747",
@@ -321,6 +331,7 @@
       },
       {
        "name": "Paulding County",
+       "shortName": "Paulding Co.",
        "city": "Dallas",
        "mascot": "Patriots",
        "primaryColor": "#8B0000",
@@ -368,6 +379,7 @@
       },
       {
        "name": "Forsyth Central",
+       "shortName": "Forsyth C.",
        "city": "Cumming",
        "mascot": "Bulldogs",
        "primaryColor": "#00843D",
@@ -388,6 +400,7 @@
       },
       {
        "name": "North Forsyth",
+       "shortName": "N. Forsyth",
        "city": "Cumming",
        "mascot": "Raiders",
        "primaryColor": "#FF6600",
@@ -398,6 +411,7 @@
       },
       {
        "name": "South Forsyth",
+       "shortName": "S. Forsyth",
        "city": "Cumming",
        "mascot": "War Eagles",
        "primaryColor": "#BA0C2F",
@@ -465,6 +479,7 @@
       },
       {
        "name": "North Gwinnett",
+       "shortName": "N. Gwinnett",
        "city": "Suwanee",
        "mascot": "Bulldogs",
        "primaryColor": "#00573F",
@@ -485,6 +500,7 @@
       },
       {
        "name": "Peachtree Ridge",
+       "shortName": "Peachtree R.",
        "city": "Suwanee",
        "mascot": "Lions",
        "primaryColor": "#7C2529",
@@ -512,6 +528,7 @@
       },
       {
        "name": "Central Gwinnett",
+       "shortName": "C. Gwinnett",
        "city": "Lawrenceville",
        "mascot": "Black Knights",
        "primaryColor": "#4B0082",
@@ -522,6 +539,7 @@
       },
       {
        "name": "Clarke Central",
+       "shortName": "Clarke Cent.",
        "city": "Athens",
        "mascot": "Gladiators",
        "primaryColor": "#000000",

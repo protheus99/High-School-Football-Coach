@@ -10,6 +10,7 @@ import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
 import { getUserMatchup } from '../sim/userMatchup';
 import { gameKey, playoffKey } from '../sim/runAhead';
 import { rivalryName } from '../data/rivalries';
+import { shortName } from '../utils/shortName';
 
 type Scope = 'DISTRICT' | 'REGION' | 'ALL';
 
@@ -175,8 +176,8 @@ export const ScoreboardView: React.FC = () => {
                       key={r.id}
                       style={{ background: isUser ? '#EFF6FF' : '#fff', border: `1px solid ${isUser ? '#93C5FD' : '#E2E8F0'}`, borderRadius: '8px', padding: '10px 12px', fontSize: '14px' }}
                     >
-                      {line(r.awayId, r.awayName, r.awayScore, final && r.awayScore! > r.homeScore!, false)}
-                      {line(r.homeId, r.homeName, r.homeScore, final && r.homeScore! > r.awayScore!, true)}
+                      {line(r.awayId, shortName(r.awayName), r.awayScore, final && r.awayScore! > r.homeScore!, false)}
+                      {line(r.homeId, shortName(r.homeName), r.homeScore, final && r.homeScore! > r.awayScore!, true)}
                       <div style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>
                         {final ? 'Final' : 'Scheduled'}
                         {r.tag ? ` · ${r.tag}` : ''}

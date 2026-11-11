@@ -13,6 +13,7 @@
      "schools": [
       {
        "name": "St. Joseph's Prep",
+       "shortName": "St. Joe's",
        "mascot": "Hawks",
        "primaryColor": "#4F2683",
        "secondaryColor": "#FFC72C",
@@ -22,6 +23,7 @@
       },
       {
        "name": "La Salle College High",
+       "shortName": "La Salle",
        "mascot": "Explorers",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFFFFF",
@@ -31,6 +33,7 @@
       },
       {
        "name": "Roman Catholic",
+       "shortName": "Roman Cath.",
        "mascot": "Cahillites",
        "primaryColor": "#00843D",
        "secondaryColor": "#FFC72C",
@@ -49,6 +52,7 @@
       },
       {
        "name": "Northeast High",
+       "shortName": "Northeast",
        "mascot": "Vikings",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFD700",
@@ -58,6 +62,7 @@
       },
       {
        "name": "Abraham Lincoln",
+       "shortName": "A. Lincoln",
        "mascot": "Railsplitters",
        "primaryColor": "#4B0082",
        "secondaryColor": "#000000",
@@ -76,6 +81,7 @@
       },
       {
        "name": "George Washington",
+       "shortName": "George Wash.",
        "mascot": "Eagles",
        "primaryColor": "#6F263D",
        "secondaryColor": "#FFD700",
@@ -110,6 +116,7 @@
      "schools": [
       {
        "name": "Pittsburgh Central Catholic",
+       "shortName": "Central Cath",
        "mascot": "Vikings",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFFFFF",
@@ -119,6 +126,7 @@
       },
       {
        "name": "North Allegheny",
+       "shortName": "N. Allegheny",
        "mascot": "Tigers",
        "primaryColor": "#4F2683",
        "secondaryColor": "#FFD700",
@@ -128,6 +136,7 @@
       },
       {
        "name": "Seneca Valley",
+       "shortName": "Seneca V.",
        "mascot": "Raiders",
        "primaryColor": "#6F263D",
        "secondaryColor": "#B3A369",
@@ -146,6 +155,7 @@
       },
       {
        "name": "Canon-McMillan",
+       "shortName": "Canon-Mac",
        "mascot": "Big Macs",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFFFFF",
@@ -164,6 +174,7 @@
       },
       {
        "name": "Hempfield Area",
+       "shortName": "Hempfield A.",
        "mascot": "Spartans",
        "primaryColor": "#006747",
        "secondaryColor": "#FFFFFF",
@@ -180,6 +191,7 @@
      "schools": [
       {
        "name": "Central Bucks West",
+       "shortName": "CB West",
        "mascot": "Bucks",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFFFFF",
@@ -189,6 +201,7 @@
       },
       {
        "name": "Downingtown West",
+       "shortName": "D'town West",
        "mascot": "Whippets",
        "primaryColor": "#00573F",
        "secondaryColor": "#B3A369",
@@ -198,6 +211,7 @@
       },
       {
        "name": "Downingtown East",
+       "shortName": "D'town East",
        "mascot": "Cougars",
        "primaryColor": "#7C2529",
        "secondaryColor": "#C0C0C0",
@@ -225,6 +239,7 @@
       },
       {
        "name": "Owen J. Roberts",
+       "shortName": "OJ Roberts",
        "mascot": "Wildcats",
        "primaryColor": "#C8102E",
        "secondaryColor": "#B3A369",
@@ -243,6 +258,7 @@
       },
       {
        "name": "Harry S. Truman",
+       "shortName": "Truman",
        "mascot": "Tigers",
        "primaryColor": "#00573F",
        "secondaryColor": "#000000",
@@ -259,6 +275,7 @@
      "schools": [
       {
        "name": "Central Bucks South",
+       "shortName": "CB South",
        "mascot": "Titans",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#000000",
@@ -268,6 +285,7 @@
       },
       {
        "name": "Garnet Valley",
+       "shortName": "Garnet V.",
        "mascot": "Jaguars",
        "primaryColor": "#006747",
        "secondaryColor": "#B3A369",
@@ -304,6 +322,7 @@
       },
       {
        "name": "Council Rock South",
+       "shortName": "CR South",
        "mascot": "Golden Hawks",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFD700",
@@ -356,6 +375,7 @@
       },
       {
        "name": "Central Bucks East",
+       "shortName": "CB East",
        "mascot": "Patriots",
        "primaryColor": "#4F2683",
        "secondaryColor": "#C0C0C0",
@@ -365,6 +385,7 @@
       },
       {
        "name": "Perkiomen Valley",
+       "shortName": "Perkiomen V.",
        "mascot": "Vikings",
        "primaryColor": "#4F2683",
        "secondaryColor": "#FFC72C",
@@ -374,6 +395,7 @@
       },
       {
        "name": "Haverford High",
+       "shortName": "Haverford",
        "mascot": "Fords",
        "primaryColor": "#6F263D",
        "secondaryColor": "#FFC72C",
@@ -417,6 +439,7 @@
      "schools": [
       {
        "name": "Harrisburg High",
+       "shortName": "Harrisburg",
        "mascot": "Cougars",
        "primaryColor": "#8B0000",
        "secondaryColor": "#000000",
@@ -426,6 +449,7 @@
       },
       {
        "name": "State College Area",
+       "shortName": "State Coll.",
        "mascot": "Little Lions",
        "primaryColor": "#002D62",
        "secondaryColor": "#FFC72C",
@@ -435,6 +459,7 @@
       },
       {
        "name": "Cumberland Valley",
+       "shortName": "Cumb. Valley",
        "mascot": "Eagles",
        "primaryColor": "#002D62",
        "secondaryColor": "#B3A369",
@@ -453,6 +478,7 @@
       },
       {
        "name": "Central Dauphin East",
+       "shortName": "CD East",
        "mascot": "Panthers",
        "primaryColor": "#00843D",
        "secondaryColor": "#B3A369",
@@ -496,6 +522,7 @@
       },
       {
        "name": "Manheim Township",
+       "shortName": "Manheim Twp",
        "mascot": "Blue Streaks",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFFFFF",
@@ -505,6 +532,7 @@
       },
       {
        "name": "Wilson (West Lawn)",
+       "shortName": "Wilson",
        "mascot": "Bulldogs",
        "primaryColor": "#00573F",
        "secondaryColor": "#000000",
@@ -514,6 +542,7 @@
       },
       {
        "name": "Central Dauphin",
+       "shortName": "Central D.",
        "mascot": "Rams",
        "primaryColor": "#003087",
        "secondaryColor": "#B3A369",
@@ -523,6 +552,7 @@
       },
       {
        "name": "Hempfield (D3)",
+       "shortName": "Hempfield",
        "mascot": "Black Knights",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFFFFF",
@@ -575,6 +605,7 @@
       },
       {
        "name": "Bethlehem Freedom",
+       "shortName": "Freedom",
        "mascot": "Patriots",
        "primaryColor": "#006747",
        "secondaryColor": "#B3A369",
@@ -602,6 +633,7 @@
       },
       {
        "name": "East Stroudsburg South",
+       "shortName": "ES South",
        "mascot": "Cavaliers",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFC72C",
@@ -618,6 +650,7 @@
      "schools": [
       {
        "name": "Nazareth Area",
+       "shortName": "Nazareth",
        "mascot": "Blue Eagles",
        "primaryColor": "#6F263D",
        "secondaryColor": "#B3A369",
@@ -645,6 +678,7 @@
       },
       {
        "name": "Bethlehem Liberty",
+       "shortName": "Liberty",
        "mascot": "Hurricanes",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFD700",
@@ -654,6 +688,7 @@
       },
       {
        "name": "Allentown Dieruff",
+       "shortName": "Dieruff",
        "mascot": "Huskies",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFFFFF",
@@ -663,6 +698,7 @@
       },
       {
        "name": "Allentown William Allen",
+       "shortName": "W. Allen",
        "mascot": "Canaries",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFC72C",
@@ -679,6 +715,7 @@
      "schools": [
       {
        "name": "Erie McDowell",
+       "shortName": "McDowell",
        "mascot": "Trojans",
        "primaryColor": "#4F2683",
        "secondaryColor": "#C0C0C0",
@@ -688,6 +725,7 @@
       },
       {
        "name": "Hazleton Area",
+       "shortName": "Hazleton",
        "mascot": "Cougars",
        "primaryColor": "#003087",
        "secondaryColor": "#FFD700",
@@ -697,6 +735,7 @@
       },
       {
        "name": "Wilkes-Barre Area",
+       "shortName": "Wilkes-Barre",
        "mascot": "Wolfpack",
        "primaryColor": "#00205B",
        "secondaryColor": "#C0C0C0",
@@ -715,6 +754,7 @@
       },
       {
        "name": "Scranton High",
+       "shortName": "Scranton",
        "mascot": "Knights",
        "primaryColor": "#00843D",
        "secondaryColor": "#FFD700",
@@ -733,6 +773,7 @@
       },
       {
        "name": "Southern Columbia",
+       "shortName": "S. Columbia",
        "mascot": "Tigers",
        "primaryColor": "#FF6600",
        "secondaryColor": "#000000",

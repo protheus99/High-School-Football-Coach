@@ -13,6 +13,7 @@
      "schools": [
       {
        "name": "Atlantic Coast",
+       "shortName": "Atlantic C.",
        "city": "Jacksonville",
        "mascot": "Stingrays",
        "primaryColor": "#003087",
@@ -43,6 +44,7 @@
       },
       {
        "name": "Flagler Palm Coast",
+       "shortName": "FPC",
        "city": "Palm Coast",
        "mascot": "Bulldogs",
        "primaryColor": "#C8102E",
@@ -147,6 +149,7 @@
       },
       {
        "name": "Lake Brantley",
+       "shortName": "L. Brantley",
        "city": "Altamonte Springs",
        "mascot": "Patriots",
        "primaryColor": "#1C3F94",
@@ -392,6 +395,7 @@
       },
       {
        "name": "Fort Pierce Central",
+       "shortName": "FP Central",
        "city": "Fort Pierce",
        "mascot": "Cobras",
        "primaryColor": "#6F263D",
@@ -402,6 +406,7 @@
       },
       {
        "name": "Treasure Coast",
+       "shortName": "Treasure C.",
        "city": "Port St. Lucie",
        "mascot": "Titans",
        "primaryColor": "#00843D",
@@ -439,6 +444,7 @@
       },
       {
        "name": "George Jenkins",
+       "shortName": "Jenkins",
        "city": "Lakeland",
        "mascot": "Eagles",
        "primaryColor": "#00573F",
@@ -479,6 +485,7 @@
       },
       {
        "name": "Ridge Community",
+       "shortName": "Ridge Comm.",
        "city": "Davenport",
        "mascot": "Bolts",
        "primaryColor": "#FF6600",
@@ -583,6 +590,7 @@
       },
       {
        "name": "George Steinbrenner",
+       "shortName": "Steinbrenner",
        "city": "Lutz",
        "mascot": "Warriors",
        "primaryColor": "#C8102E",
@@ -593,6 +601,7 @@
       },
       {
        "name": "Palm Harbor University",
+       "shortName": "PHU",
        "city": "Palm Harbor",
        "mascot": "Hurricanes",
        "primaryColor": "#4F2683",
@@ -603,6 +612,7 @@
       },
       {
        "name": "Strawberry Crest",
+       "shortName": "Strawberry C",
        "city": "Dover",
        "mascot": "Chargers",
        "primaryColor": "#4B0082",
@@ -630,6 +640,7 @@
       },
       {
        "name": "Lakewood Ranch",
+       "shortName": "Lakewood R.",
        "city": "Bradenton",
        "mascot": "Mustangs",
        "primaryColor": "#4F2683",
@@ -670,6 +681,7 @@
       },
       {
        "name": "Sarasota Riverview",
+       "shortName": "Riverview-S",
        "city": "Sarasota",
        "mascot": "Rams",
        "primaryColor": "#4F2683",
@@ -697,6 +709,7 @@
      "schools": [
       {
        "name": "Palm Beach Lakes",
+       "shortName": "PB Lakes",
        "city": "West Palm Beach",
        "mascot": "Rams",
        "primaryColor": "#00573F",
@@ -707,6 +720,7 @@
       },
       {
        "name": "Dr. Joaquin Garcia",
+       "shortName": "J. Garcia",
        "city": "Lake Worth",
        "mascot": "Bulldogs",
        "primaryColor": "#7C2529",
@@ -737,6 +751,7 @@
       },
       {
        "name": "Palm Beach Central",
+       "shortName": "PB Central",
        "city": "Wellington",
        "mascot": "Broncos",
        "primaryColor": "#4B0082",
@@ -774,6 +789,7 @@
      "schools": [
       {
        "name": "American Heritage",
+       "shortName": "Am. Heritage",
        "city": "Plantation",
        "mascot": "Patriots",
        "primaryColor": "#BA0C2F",
@@ -794,6 +810,7 @@
       },
       {
        "name": "Cardinal Gibbons",
+       "shortName": "Gibbons",
        "city": "Fort Lauderdale",
        "mascot": "Chiefs",
        "primaryColor": "#00843D",
@@ -834,6 +851,7 @@
       },
       {
        "name": "South Plantation",
+       "shortName": "S Plantation",
        "city": "Plantation",
        "mascot": "Paladins",
        "primaryColor": "#4B0082",
@@ -844,6 +862,7 @@
       },
       {
        "name": "Spanish River",
+       "shortName": "Spanish Riv.",
        "city": "Boca Raton",
        "mascot": "Sharks",
        "primaryColor": "#C8102E",
@@ -854,6 +873,7 @@
       },
       {
        "name": "St. Thomas Aquinas",
+       "shortName": "Aquinas",
        "city": "Fort Lauderdale",
        "mascot": "Raiders",
        "primaryColor": "#FF6600",
@@ -871,6 +891,7 @@
      "schools": [
       {
        "name": "Chaminade-Madonna",
+       "shortName": "Chaminade",
        "city": "Hollywood",
        "mascot": "Lions",
        "primaryColor": "#003087",
@@ -891,6 +912,7 @@
       },
       {
        "name": "Doral Academy",
+       "shortName": "Doral Acad.",
        "city": "Doral",
        "mascot": "Firebirds",
        "primaryColor": "#00205B",
@@ -911,6 +933,7 @@
       },
       {
        "name": "Miami Carol City",
+       "shortName": "Carol City",
        "city": "Miami Gardens",
        "mascot": "Chiefs",
        "primaryColor": "#003087",
@@ -921,6 +944,7 @@
       },
       {
        "name": "Miami Central",
+       "shortName": "Miami Cent.",
        "city": "Miami",
        "mascot": "Rockets",
        "primaryColor": "#002D62",
@@ -941,6 +965,7 @@
       },
       {
        "name": "Miami Northwestern",
+       "shortName": "MNW",
        "city": "Miami",
        "mascot": "Bulls",
        "primaryColor": "#4F2683",
@@ -978,6 +1003,7 @@
      "schools": [
       {
        "name": "Booker T. Washington",
+       "shortName": "Booker T.",
        "city": "Miami",
        "mascot": "Tornadoes",
        "primaryColor": "#FF6600",
@@ -1018,6 +1044,7 @@
       },
       {
        "name": "Miami Palmetto",
+       "shortName": "M. Palmetto",
        "city": "Pinecrest",
        "mascot": "Panthers",
        "primaryColor": "#00205B",
@@ -1038,6 +1065,7 @@
       },
       {
        "name": "Southwest Miami",
+       "shortName": "SW Miami",
        "city": "Miami",
        "mascot": "Eagles",
        "primaryColor": "#1C3F94",

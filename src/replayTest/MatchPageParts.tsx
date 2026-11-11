@@ -13,6 +13,7 @@ import { FAMILY_COLORS } from '../sim/talks';
 import { FieldLook } from './ReplayField';
 import { markColors } from './markColors';
 import { DEFAULT_REPLAY_OPTIONS, ReplayOptions } from './matchOptions';
+import { shortName as schoolName } from '../utils/shortName';
 
 export const MP_CSS = `
 .mp-page { position: relative; height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 8px 8px 0; overflow: hidden; background: #F1F5F9; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; box-sizing: border-box }
@@ -223,11 +224,11 @@ export const StatsBody: React.FC<{ state: GameSimulationState; markOf?: (t: Team
   const heads = (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, padding: '12px 0 4px', font: '900 12px system-ui, sans-serif', letterSpacing: '.04em' }}>
       <span style={{ color: ac, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        <MarkIcon mark={markOf?.(away)} color={ac} /> {away.name.toUpperCase()}
+        <MarkIcon mark={markOf?.(away)} color={ac} /> {schoolName(away).toUpperCase()}
       </span>
       <span style={{ color: '#64748B', fontWeight: 700, fontSize: 11, flex: 'none' }}>{when}</span>
       <span style={{ color: hc, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
-        {home.name.toUpperCase()} <MarkIcon mark={markOf?.(home)} color={hc} />
+        {schoolName(home).toUpperCase()} <MarkIcon mark={markOf?.(home)} color={hc} />
       </span>
     </div>
   );

@@ -42,6 +42,7 @@ import { PlayerRow } from './ui/PlayerRow';
 import { playerRowProps } from './ui/playerRowProps';
 import { RIVALRY_WIN_PRESTIGE, isTrophyName, rivalryFor } from '../sim/rivalryEngine';
 import { rivalOf } from '../data/rivalries';
+import { shortName } from '../utils/shortName';
 
 /** Screens the Hub can send the coach to. */
 export type AgendaTab =
@@ -502,9 +503,9 @@ export const WeeklyAgenda: React.FC<{
       counted: true,
       content: (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '6px', marginTop: '8px', background: '#0F172A', color: '#fff', borderRadius: '10px', padding: '8px 10px' }}>
-          {side(team?.name ?? 'You', live.userScore)}
+          {side(team ? shortName(team) : 'You', live.userScore)}
           <div style={{ textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#FACC15', letterSpacing: '0.04em', whiteSpace: 'pre-line' }}>{live.clock.toUpperCase().replace(' · ', '\n')}</div>
-          {side(opp.name, live.opponentScore, true)}
+          {side(shortName(opp), live.opponentScore, true)}
         </div>
       ),
       actions: [{ label: '▶ Resume Game', primary: true, onClick: onResumeGame }],

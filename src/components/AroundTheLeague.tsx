@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { GameQuarter, INTERSTATE, PrecomputedGame, scoreAt } from '../sim/runAhead';
+import { shortName } from '../utils/shortName';
 
 const OPEN_KEY = 'hsfhc.aroundTheLeagueOpen';
 const MAX_ROWS = 10;
@@ -52,7 +53,7 @@ export const AroundTheLeague: React.FC<{ quarter: GameQuarter; clock: number; is
   const name = (g: PrecomputedGame, side: 'home' | 'away') => {
     const id = side === 'home' ? g.homeId : g.awayId;
     const r = rank.get(id);
-    return `${r ? `#${r} ` : ''}${side === 'home' ? g.homeName : g.awayName}`;
+    return `${r ? `#${r} ` : ''}${shortName(side === 'home' ? g.homeName : g.awayName)}`;
   };
 
   const shown = bare || open;

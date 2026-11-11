@@ -22,6 +22,7 @@
       },
       {
        "name": "Dobyns-Bennett",
+       "shortName": "Dobyns-B.",
        "mascot": "Indians",
        "primaryColor": "#00843D",
        "secondaryColor": "#C0C0C0",
@@ -31,6 +32,7 @@
       },
       {
        "name": "Jefferson County",
+       "shortName": "Jeff. County",
        "mascot": "Patriots",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFFFFF",
@@ -49,6 +51,7 @@
       },
       {
        "name": "Morristown-Hamblen East",
+       "shortName": "Morristown E",
        "mascot": "Hurricanes",
        "primaryColor": "#4B0082",
        "secondaryColor": "#000000",
@@ -83,6 +86,7 @@
       },
       {
        "name": "Bradley Central",
+       "shortName": "Bradley C.",
        "mascot": "Bears",
        "primaryColor": "#00573F",
        "secondaryColor": "#C0C0C0",
@@ -92,6 +96,7 @@
       },
       {
        "name": "Cleveland High",
+       "shortName": "Cleveland",
        "mascot": "Blue Raiders",
        "primaryColor": "#4B0082",
        "secondaryColor": "#B3A369",
@@ -119,6 +124,7 @@
       },
       {
        "name": "Hardin Valley Academy",
+       "shortName": "Hardin V.",
        "mascot": "Hawks",
        "primaryColor": "#002D62",
        "secondaryColor": "#FFFFFF",
@@ -171,6 +177,7 @@
       },
       {
        "name": "Hendersonville",
+       "shortName": "Hendersonvl",
        "mascot": "Commandos",
        "primaryColor": "#6F263D",
        "secondaryColor": "#B3A369",
@@ -180,6 +187,7 @@
       },
       {
        "name": "Wilson Central",
+       "shortName": "Wilson Cent.",
        "mascot": "Wildcats",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFFFFF",
@@ -250,6 +258,7 @@
       },
       {
        "name": "Stewarts Creek",
+       "shortName": "Stewarts Cr.",
        "mascot": "Red Hawks",
        "primaryColor": "#006747",
        "secondaryColor": "#C0C0C0",
@@ -372,6 +381,7 @@
       },
       {
        "name": "Brentwood High",
+       "shortName": "Brentwood",
        "mascot": "Bruins",
        "primaryColor": "#006747",
        "secondaryColor": "#C0C0C0",
@@ -399,6 +409,7 @@
       },
       {
        "name": "Franklin High",
+       "shortName": "Franklin",
        "mascot": "Admirals",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFD700",
@@ -417,6 +428,7 @@
       },
       {
        "name": "Dickson County",
+       "shortName": "Dickson Co.",
        "mascot": "Cougars",
        "primaryColor": "#C8102E",
        "secondaryColor": "#C0C0C0",
@@ -426,6 +438,7 @@
       },
       {
        "name": "Brentwood Academy",
+       "shortName": "Brentwood A.",
        "mascot": "Eagles",
        "primaryColor": "#CC0000",
        "secondaryColor": "#002D62",
@@ -442,6 +455,7 @@
      "schools": [
       {
        "name": "Clarksville High",
+       "shortName": "Clarksville",
        "mascot": "Wildcats",
        "primaryColor": "#7C2529",
        "secondaryColor": "#B3A369",
@@ -521,6 +535,7 @@
       },
       {
        "name": "Germantown High",
+       "shortName": "Germantown",
        "mascot": "Red Devils",
        "primaryColor": "#FF6600",
        "secondaryColor": "#000000",
@@ -575,6 +590,7 @@
       },
       {
        "name": "White Station",
+       "shortName": "White Sta.",
        "mascot": "Spartans",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFD700",

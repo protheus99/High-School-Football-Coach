@@ -22,6 +22,7 @@
       },
       {
        "name": "St. John Bosco",
+       "shortName": "Bosco",
        "mascot": "Braves",
        "primaryColor": "#8B0000",
        "secondaryColor": "#B3A369",
@@ -31,6 +32,7 @@
       },
       {
        "name": "Santa Margarita",
+       "shortName": "Santa Marg.",
        "mascot": "Eagles",
        "primaryColor": "#4F2683",
        "secondaryColor": "#000000",
@@ -40,6 +42,7 @@
       },
       {
        "name": "Orange Lutheran",
+       "shortName": "Orange Luth.",
        "mascot": "Lancers",
        "primaryColor": "#4B0082",
        "secondaryColor": "#000000",
@@ -58,6 +61,7 @@
       },
       {
        "name": "JSerra Catholic",
+       "shortName": "JSerra",
        "mascot": "Lions",
        "primaryColor": "#000000",
        "secondaryColor": "#FFC72C",
@@ -74,6 +78,7 @@
      "schools": [
       {
        "name": "Sierra Canyon",
+       "shortName": "Sierra Cyn.",
        "mascot": "Trailblazers",
        "primaryColor": "#00843D",
        "secondaryColor": "#FFD700",
@@ -83,6 +88,7 @@
       },
       {
        "name": "Gardena Serra",
+       "shortName": "Serra",
        "mascot": "Cavaliers",
        "primaryColor": "#6F263D",
        "secondaryColor": "#FFD700",
@@ -119,6 +125,7 @@
       },
       {
        "name": "Sherman Oaks Notre Dame",
+       "shortName": "Notre Dame",
        "mascot": "Knights",
        "primaryColor": "#4F2683",
        "secondaryColor": "#000000",
@@ -128,6 +135,7 @@
       },
       {
        "name": "Encino Crespi",
+       "shortName": "Crespi",
        "mascot": "Celts",
        "primaryColor": "#002D62",
        "secondaryColor": "#FFFFFF",
@@ -144,6 +152,7 @@
      "schools": [
       {
        "name": "Corona Centennial",
+       "shortName": "Centennial",
        "mascot": "Huskies",
        "primaryColor": "#C8102E",
        "secondaryColor": "#C0C0C0",
@@ -153,6 +162,7 @@
       },
       {
        "name": "Murrieta Valley",
+       "shortName": "Murrieta V.",
        "mascot": "Nighthawks",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFFFFF",
@@ -162,6 +172,7 @@
       },
       {
        "name": "Rancho Cucamonga",
+       "shortName": "Rancho Cuca.",
        "mascot": "Cougars",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFC72C",
@@ -198,6 +209,7 @@
       },
       {
        "name": "Vista Murrieta",
+       "shortName": "Vista Murr.",
        "mascot": "Broncos",
        "primaryColor": "#8B0000",
        "secondaryColor": "#000000",
@@ -216,6 +228,7 @@
       },
       {
        "name": "Eastvale Roosevelt",
+       "shortName": "E. Roosevelt",
        "mascot": "Mustangs",
        "primaryColor": "#C8102E",
        "secondaryColor": "#FFFFFF",
@@ -232,6 +245,7 @@
      "schools": [
       {
        "name": "Mission Viejo",
+       "shortName": "Mission V.",
        "mascot": "Diablos",
        "primaryColor": "#000000",
        "secondaryColor": "#FFD700",
@@ -259,6 +273,7 @@
       },
       {
        "name": "Huntington Beach Edison",
+       "shortName": "HB Edison",
        "mascot": "Chargers",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFFFFF",
@@ -268,6 +283,7 @@
       },
       {
        "name": "Newport Harbor",
+       "shortName": "Newport Hbr.",
        "mascot": "Sailors",
        "primaryColor": "#00205B",
        "secondaryColor": "#C0C0C0",
@@ -277,6 +293,7 @@
       },
       {
        "name": "San Juan Hills",
+       "shortName": "SJ Hills",
        "mascot": "Stallions",
        "primaryColor": "#6F263D",
        "secondaryColor": "#FFD700",
@@ -286,6 +303,7 @@
       },
       {
        "name": "Corona del Mar",
+       "shortName": "CdM",
        "mascot": "Sea Kings",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFD700",
@@ -295,6 +313,7 @@
       },
       {
        "name": "Fountain Valley",
+       "shortName": "Fountain V.",
        "mascot": "Barons",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#FFFFFF",
@@ -311,6 +330,7 @@
      "schools": [
       {
        "name": "Long Beach Poly",
+       "shortName": "Poly",
        "mascot": "Jackrabbits",
        "primaryColor": "#6F263D",
        "secondaryColor": "#000000",
@@ -320,6 +340,7 @@
       },
       {
        "name": "Oaks Christian",
+       "shortName": "Oaks Chr.",
        "mascot": "Lions",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFFFFF",
@@ -347,6 +368,7 @@
       },
       {
        "name": "St. Bonaventure",
+       "shortName": "Bonaventure",
        "mascot": "Seraphs",
        "primaryColor": "#00843D",
        "secondaryColor": "#FFFFFF",
@@ -365,6 +387,7 @@
       },
       {
        "name": "Long Beach Millikan",
+       "shortName": "Millikan",
        "mascot": "Rams",
        "primaryColor": "#006747",
        "secondaryColor": "#FFC72C",
@@ -374,6 +397,7 @@
       },
       {
        "name": "Long Beach Jordan",
+       "shortName": "Jordan",
        "mascot": "Panthers",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFFFFF",
@@ -408,6 +432,7 @@
       },
       {
        "name": "Mission Hills",
+       "shortName": "Mission H.",
        "mascot": "Grizzlies",
        "primaryColor": "#003087",
        "secondaryColor": "#FFC72C",
@@ -417,6 +442,7 @@
       },
       {
        "name": "Granite Hills",
+       "shortName": "Granite H.",
        "mascot": "Eagles",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFC72C",
@@ -426,6 +452,7 @@
       },
       {
        "name": "Helix Charter",
+       "shortName": "Helix",
        "mascot": "Highlanders",
        "primaryColor": "#8B0000",
        "secondaryColor": "#B3A369",
@@ -460,6 +487,7 @@
      "schools": [
       {
        "name": "Cathedral Catholic",
+       "shortName": "Cathedral",
        "mascot": "Dons",
        "primaryColor": "#000000",
        "secondaryColor": "#FFC72C",
@@ -478,6 +506,7 @@
       },
       {
        "name": "La Costa Canyon",
+       "shortName": "LCC",
        "mascot": "Mavericks",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFFFFF",
@@ -496,6 +525,7 @@
       },
       {
        "name": "Mater Dei Catholic",
+       "shortName": "MD Catholic",
        "mascot": "Crusaders",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#B3A369",
@@ -521,6 +551,7 @@
      "schools": [
       {
        "name": "San Mateo Serra (Junipero Serra)",
+       "shortName": "SM Serra",
        "mascot": "Padres",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFD700",
@@ -530,6 +561,7 @@
       },
       {
        "name": "Saint Francis",
+       "shortName": "St. Francis",
        "mascot": "Lancers",
        "primaryColor": "#C8102E",
        "secondaryColor": "#000000",
@@ -539,6 +571,7 @@
       },
       {
        "name": "Archbishop Riordan",
+       "shortName": "Riordan",
        "mascot": "Crusaders",
        "primaryColor": "#4B0082",
        "secondaryColor": "#000000",
@@ -557,6 +590,7 @@
       },
       {
        "name": "Valley Christian",
+       "shortName": "Valley Chr.",
        "mascot": "Warriors",
        "primaryColor": "#FF6600",
        "secondaryColor": "#000000",
@@ -566,6 +600,7 @@
       },
       {
        "name": "Bellarmine College Prep",
+       "shortName": "Bellarmine",
        "mascot": "Bells",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#FFC72C",
@@ -575,6 +610,7 @@
       },
       {
        "name": "Archbishop Mitty",
+       "shortName": "Mitty",
        "mascot": "Monarchs",
        "primaryColor": "#8B0000",
        "secondaryColor": "#FFD700",
@@ -584,6 +620,7 @@
       },
       {
        "name": "Sacred Heart Cathedral",
+       "shortName": "SHC",
        "mascot": "Fightin' Irish",
        "primaryColor": "#00573F",
        "secondaryColor": "#FFFFFF",
@@ -618,6 +655,7 @@
       },
       {
        "name": "San Ramon Valley",
+       "shortName": "SRV",
        "mascot": "Wolves",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#C0C0C0",
@@ -636,6 +674,7 @@
       },
       {
        "name": "California High",
+       "shortName": "Cal High",
        "mascot": "Grizzlies",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFFFFF",
@@ -645,6 +684,7 @@
       },
       {
        "name": "Clayton Valley Charter",
+       "shortName": "Clayton V.",
        "mascot": "Ugly Eagles",
        "primaryColor": "#4F2683",
        "secondaryColor": "#C0C0C0",
@@ -654,6 +694,7 @@
       },
       {
        "name": "Amador Valley",
+       "shortName": "Amador V.",
        "mascot": "Dons",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFC72C",
@@ -663,6 +704,7 @@
       },
       {
        "name": "Brentwood Liberty",
+       "shortName": "Brentwood L.",
        "mascot": "Lions",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFD700",
@@ -742,6 +784,7 @@
       },
       {
        "name": "Monterey Trail",
+       "shortName": "Monterey Tr.",
        "mascot": "Mustangs",
        "primaryColor": "#6F263D",
        "secondaryColor": "#000000",
@@ -839,6 +882,7 @@
       },
       {
        "name": "Bakersfield Liberty",
+       "shortName": "Bak. Liberty",
        "mascot": "Patriots",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFD700",
@@ -848,6 +892,7 @@
       },
       {
        "name": "Bakersfield High",
+       "shortName": "Bakersfield",
        "mascot": "Drillers",
        "primaryColor": "#006747",
        "secondaryColor": "#FFFFFF",

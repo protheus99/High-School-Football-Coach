@@ -33,6 +33,7 @@
       },
       {
        "name": "Corinth Holders",
+       "shortName": "Corinth H.",
        "city": "Wendell",
        "mascot": "Pirates",
        "primaryColor": "#FF6600",
@@ -53,6 +54,7 @@
       },
       {
        "name": "Leesville Road",
+       "shortName": "Leesville",
        "city": "Raleigh",
        "mascot": "Pride",
        "primaryColor": "#FF6600",
@@ -110,6 +112,7 @@
       },
       {
        "name": "Apex Friendship",
+       "shortName": "Apex Friend.",
        "city": "Apex",
        "mascot": "Patriots",
        "primaryColor": "#00573F",
@@ -150,6 +153,7 @@
       },
       {
        "name": "Panther Creek",
+       "shortName": "Panther Cr.",
        "city": "Cary",
        "mascot": "Catamounts",
        "primaryColor": "#00843D",
@@ -160,6 +164,7 @@
       },
       {
        "name": "Willow Spring",
+       "shortName": "Willow Spr.",
        "city": "Fuquay-Varina",
        "mascot": "Storm",
        "primaryColor": "#7C2529",
@@ -207,6 +212,7 @@
       },
       {
        "name": "Mallard Creek",
+       "shortName": "Mallard Cr.",
        "city": "Charlotte",
        "mascot": "Mavericks",
        "primaryColor": "#C8102E",
@@ -227,6 +233,7 @@
       },
       {
        "name": "South Mecklenburg",
+       "shortName": "S. Meck",
        "city": "Charlotte",
        "mascot": "Sabres",
        "primaryColor": "#00573F",
@@ -237,6 +244,7 @@
       },
       {
        "name": "West Charlotte",
+       "shortName": "W. Charlotte",
        "city": "Charlotte",
        "mascot": "Lions",
        "primaryColor": "#4F2683",
@@ -264,6 +272,7 @@
       },
       {
        "name": "East Mecklenburg",
+       "shortName": "E. Meck",
        "city": "Charlotte",
        "mascot": "Eagles",
        "primaryColor": "#1C3F94",
@@ -361,6 +370,7 @@
       },
       {
        "name": "Northwest Guilford",
+       "shortName": "NW Guilford",
        "city": "Greensboro",
        "mascot": "Vikings",
        "primaryColor": "#00205B",

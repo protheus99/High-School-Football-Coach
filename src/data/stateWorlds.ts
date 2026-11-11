@@ -20,7 +20,7 @@ export interface StateWorldData {
       number: number;
       name: string;
       area: string;
-      schools: { name: string; city?: string; mascot: string; primaryColor: string; secondaryColor: string; prestige: number; offenseScheme: string; defenseScheme: string }[];
+      schools: { name: string; shortName?: string; city?: string; mascot: string; primaryColor: string; secondaryColor: string; prestige: number; offenseScheme: string; defenseScheme: string }[];
     }[];
   }[];
 }

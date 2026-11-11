@@ -73,6 +73,7 @@
       },
       {
        "name": "Mary G. Montgomery",
+       "shortName": "MGM",
        "city": "Semmes",
        "mascot": "Vikings",
        "primaryColor": "#FF6600",
@@ -120,6 +121,7 @@
       },
       {
        "name": "Carver-Montgomery",
+       "shortName": "Carver-MGM",
        "city": "Montgomery",
        "mascot": "Wolverines",
        "primaryColor": "#003087",
@@ -130,6 +132,7 @@
       },
       {
        "name": "Central-Phenix City",
+       "shortName": "Central-PC",
        "city": "Phenix City",
        "mascot": "Red Devils",
        "primaryColor": "#FF6600",
@@ -160,6 +163,7 @@
       },
       {
        "name": "JAG (Johnson Graetz)",
+       "shortName": "JAG",
        "city": "Montgomery",
        "mascot": "Jaguars",
        "primaryColor": "#C8102E",
@@ -180,6 +184,7 @@
       },
       {
        "name": "Smiths Station",
+       "shortName": "Smiths Sta.",
        "city": "Smiths Station",
        "mascot": "Panthers",
        "primaryColor": "#1C3F94",
@@ -207,6 +212,7 @@
      "schools": [
       {
        "name": "Hewitt-Trussville",
+       "shortName": "Hewitt-T",
        "city": "Trussville",
        "mascot": "Huskies",
        "primaryColor": "#00205B",
@@ -267,6 +273,7 @@
       },
       {
        "name": "Tuscaloosa County",
+       "shortName": "Tusc. County",
        "city": "Northport",
        "mascot": "Wildcats",
        "primaryColor": "#1C3F94",
@@ -277,6 +284,7 @@
       },
       {
        "name": "Vestavia Hills",
+       "shortName": "Vestavia",
        "city": "Vestavia Hills",
        "mascot": "Rebels",
        "primaryColor": "#C8102E",
@@ -344,6 +352,7 @@
       },
       {
        "name": "Huntsville High",
+       "shortName": "Huntsville",
        "city": "Huntsville",
        "mascot": "Panthers",
        "primaryColor": "#FF6600",
@@ -354,6 +363,7 @@
       },
       {
        "name": "James Clemens",
+       "shortName": "J. Clemens",
        "city": "Madison",
        "mascot": "Jets",
        "primaryColor": "#4B0082",

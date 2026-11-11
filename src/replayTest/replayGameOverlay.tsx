@@ -6,6 +6,7 @@ import { PenaltyFlag } from '../components/ui/PenaltyFlag';
 import { flagResult } from '../sim/flagSequence';
 import { PlayEvent, Team } from '../types/game';
 import { ReplayPhase } from './matchOptions';
+import { shortName } from '../utils/shortName';
 
 
 
@@ -21,13 +22,13 @@ const grab = (text: string, ...pats: string[]) => {
 
 /** "on the Westlake 25", "on the Lake Travis 21", "at midfield" (the spot is from the offense's own goal line) */
 const where = (los: number, offense: Team, defense: Team) =>
-  Math.round(los) === 50 ? 'at midfield' : los < 50 ? `on the ${offense.name} ${Math.round(los)}` : `on the ${defense.name} ${Math.round(100 - los)}`;
+  Math.round(los) === 50 ? 'at midfield' : los < 50 ? `on the ${shortName(offense)} ${Math.round(los)}` : `on the ${shortName(defense)} ${Math.round(100 - los)}`;
 
 function downCard(ev: PlayEvent, home: Team, away: Team) {
   const offense = ev.snapTeamId === away.id ? away : home, defense = offense === home ? away : home;
   const los = ev.snapYardLine ?? 25, dist = ev.snapDistance ?? 10;
-  if (ev.isTry) return { big: ev.playConcept === 'TWO_POINT_TRY' ? 'Two-point try' : 'Extra point', small: `${offense.name}` };
-  if ((ev.playConcept as string) === 'KICKOFF') return { big: 'Kickoff', small: `${offense.name} kicks off` };
+  if (ev.isTry) return { big: ev.playConcept === 'TWO_POINT_TRY' ? 'Two-point try' : 'Extra point', small: shortName(offense) };
+  if ((ev.playConcept as string) === 'KICKOFF') return { big: 'Kickoff', small: `${shortName(offense)} kicks off` };
   return { big: `${ORD[ev.snapDown ?? 1]} & ${los + dist >= 100 ? 'Goal' : dist}`, small: where(los, offense, defense) };
 }
 
@@ -140,7 +141,7 @@ const FlagBanners: React.FC<{ event: PlayEvent; home: Team; away: Team }> = ({ e
           <span style={{ font: '900 13px system-ui', color: gain ? '#15803D' : '#B91C1C', whiteSpace: 'nowrap' }}>{gain ? '+' : '−'}{p.yards} yds</span>
         </div>
         <div style={{ font: '900 19px system-ui, sans-serif', color: '#0F172A', lineHeight: 1.15 }}>{p.name}</div>
-        <div style={{ font: '600 13px system-ui', color: '#422006' }}>on <b>{p.player}</b>, <span style={{ color: team.primaryColor, fontWeight: 800 }}>{team.name}</span></div>
+        <div style={{ font: '600 13px system-ui', color: '#422006' }}>on <b>{p.player}</b>, <span style={{ color: team.primaryColor, fontWeight: 800 }}>{shortName(team)}</span></div>
         <div style={{ font: '700 13px system-ui', color: '#422006', marginTop: 1 }}>{flagResult(event)}</div>
       </div>
     </div>
@@ -153,7 +154,7 @@ const InjuryBanner: React.FC<{ event: PlayEvent; stage: string; home: Team; away
   const i = event.injury!;
   const team = i.teamId === home.id ? home : away;
   const [big, sub] =
-    stage === 'trainers' ? [`${i.name} is down`, `The ${team.name} trainers are on the field.`]
+    stage === 'trainers' ? [`${i.name} is down`, `The ${shortName(team)} trainers are on the field.`]
       : stage === 'up' ? [`${i.name} is up`, 'Helped off slowly by the trainers.']
         : [`${i.name} is off the field`, 'He is injured and being evaluated.'];
   return (

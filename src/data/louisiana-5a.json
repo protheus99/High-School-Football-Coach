@@ -13,6 +13,7 @@
      "schools": [
       {
        "name": "Evangel Christian",
+       "shortName": "Evangel",
        "mascot": "Eagles",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFC72C",
@@ -31,6 +32,7 @@
       },
       {
        "name": "Captain Shreve",
+       "shortName": "Capt. Shreve",
        "mascot": "Gators",
        "primaryColor": "#006747",
        "secondaryColor": "#FFC72C",
@@ -58,6 +60,7 @@
       },
       {
        "name": "Natchitoches Central",
+       "shortName": "Natchitoches",
        "mascot": "Chiefs",
        "primaryColor": "#00573F",
        "secondaryColor": "#FFFFFF",
@@ -110,6 +113,7 @@
       },
       {
        "name": "Alexandria Senior High (ASH)",
+       "shortName": "ASH",
        "mascot": "Trojans",
        "primaryColor": "#4B0082",
        "secondaryColor": "#FFC72C",
@@ -137,6 +141,7 @@
       },
       {
        "name": "Ouachita Parish",
+       "shortName": "Ouachita",
        "mascot": "Lions",
        "primaryColor": "#00205B",
        "secondaryColor": "#FFFFFF",
@@ -225,6 +230,7 @@
       },
       {
        "name": "Lafayette High",
+       "shortName": "Lafayette",
        "mascot": "Mighty Lions",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#C0C0C0",
@@ -241,6 +247,7 @@
      "schools": [
       {
        "name": "Catholic-Baton Rouge",
+       "shortName": "Catholic-BR",
        "mascot": "Bears",
        "primaryColor": "#003087",
        "secondaryColor": "#FFD700",
@@ -259,6 +266,7 @@
       },
       {
        "name": "Central-Baton Rouge",
+       "shortName": "Central-BR",
        "mascot": "Wildcats",
        "primaryColor": "#006747",
        "secondaryColor": "#C0C0C0",
@@ -268,6 +276,7 @@
       },
       {
        "name": "Woodlawn-Baton Rouge",
+       "shortName": "Woodlawn-BR",
        "mascot": "Panthers",
        "primaryColor": "#4F2683",
        "secondaryColor": "#FFC72C",
@@ -277,6 +286,7 @@
       },
       {
        "name": "Scotlandville",
+       "shortName": "Scotlandvl.",
        "mascot": "Hornets",
        "primaryColor": "#8B0000",
        "secondaryColor": "#000000",
@@ -286,6 +296,7 @@
       },
       {
        "name": "Liberty Magnet",
+       "shortName": "Liberty",
        "mascot": "Patriots",
        "primaryColor": "#003087",
        "secondaryColor": "#FFC72C",
@@ -329,6 +340,7 @@
       },
       {
        "name": "East Ascension",
+       "shortName": "E. Ascension",
        "mascot": "Spartans",
        "primaryColor": "#006747",
        "secondaryColor": "#B3A369",
@@ -338,6 +350,7 @@
       },
       {
        "name": "Denham Springs",
+       "shortName": "Denham Spr.",
        "mascot": "Yellow Jackets",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#C0C0C0",
@@ -451,6 +464,7 @@
       },
       {
        "name": "Fontainebleau",
+       "shortName": "Fontainebl.",
        "mascot": "Bulldogs",
        "primaryColor": "#7C2529",
        "secondaryColor": "#FFD700",
@@ -494,6 +508,7 @@
       },
       {
        "name": "East St. John",
+       "shortName": "E. St. John",
        "mascot": "Wildcats",
        "primaryColor": "#000000",
        "secondaryColor": "#000000",
@@ -521,6 +536,7 @@
       },
       {
        "name": "Central Lafourche",
+       "shortName": "Central Laf.",
        "mascot": "Trojans",
        "primaryColor": "#00205B",
        "secondaryColor": "#000000",
@@ -530,6 +546,7 @@
       },
       {
        "name": "H.L. Bourgeois",
+       "shortName": "Bourgeois",
        "mascot": "Braves",
        "primaryColor": "#4F2683",
        "secondaryColor": "#FFC72C",
@@ -555,6 +572,7 @@
       },
       {
        "name": "St. Augustine",
+       "shortName": "St. Aug.",
        "mascot": "Purple Knights",
        "primaryColor": "#6F263D",
        "secondaryColor": "#000000",
@@ -564,6 +582,7 @@
       },
       {
        "name": "Archbishop Rummel",
+       "shortName": "Rummel",
        "mascot": "Raiders",
        "primaryColor": "#FF6600",
        "secondaryColor": "#FFFFFF",
@@ -573,6 +592,7 @@
       },
       {
        "name": "John Curtis Christian",
+       "shortName": "John Curtis",
        "mascot": "Patriots",
        "primaryColor": "#1C3F94",
        "secondaryColor": "#FFD700",
@@ -582,6 +602,7 @@
       },
       {
        "name": "Brother Martin",
+       "shortName": "Bro. Martin",
        "mascot": "Crusaders",
        "primaryColor": "#8B0000",
        "secondaryColor": "#B3A369",
@@ -591,6 +612,7 @@
       },
       {
        "name": "Warren Easton",
+       "shortName": "Easton",
        "mascot": "Eagles",
        "primaryColor": "#000000",
        "secondaryColor": "#B3A369",
@@ -634,6 +656,7 @@
       },
       {
        "name": "West Jefferson",
+       "shortName": "W. Jefferson",
        "mascot": "Buccaneers",
        "primaryColor": "#4B0082",
        "secondaryColor": "#B3A369",
@@ -643,6 +666,7 @@
       },
       {
        "name": "East Jefferson",
+       "shortName": "E. Jefferson",
        "mascot": "Warriors",
        "primaryColor": "#BA0C2F",
        "secondaryColor": "#B3A369",
@@ -679,6 +703,7 @@
       },
       {
        "name": "Benjamin Franklin",
+       "shortName": "Ben Franklin",
        "mascot": "Falcons",
        "primaryColor": "#7C2529",
        "secondaryColor": "#B3A369",

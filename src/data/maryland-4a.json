@@ -43,6 +43,7 @@
       },
       {
        "name": "Quince Orchard",
+       "shortName": "QO",
        "city": "Gaithersburg",
        "mascot": "Cougars",
        "primaryColor": "#006747",
@@ -53,6 +54,7 @@
       },
       {
        "name": "Richard Montgomery",
+       "shortName": "RM",
        "city": "Rockville",
        "mascot": "Rockets",
        "primaryColor": "#002D62",
@@ -63,6 +65,7 @@
       },
       {
        "name": "Seneca Valley",
+       "shortName": "Seneca V.",
        "city": "Germantown",
        "mascot": "Screaming Eagles",
        "primaryColor": "#6F263D",
@@ -73,6 +76,7 @@
       },
       {
        "name": "Walter Johnson",
+       "shortName": "W. Johnson",
        "city": "Bethesda",
        "mascot": "Wildcats",
        "primaryColor": "#006747",
@@ -83,6 +87,7 @@
       },
       {
        "name": "Winston Churchill",
+       "shortName": "Churchill",
        "city": "Potomac",
        "mascot": "Bulldogs",
        "primaryColor": "#4B0082",
@@ -100,6 +105,7 @@
      "schools": [
       {
        "name": "Bethesda-Chevy Chase",
+       "shortName": "B-CC",
        "city": "Bethesda",
        "mascot": "Barons",
        "primaryColor": "#003087",
@@ -120,6 +126,7 @@
       },
       {
        "name": "James Hubert Blake",
+       "shortName": "Blake",
        "city": "Silver Spring",
        "mascot": "Bengals",
        "primaryColor": "#6F263D",
@@ -140,6 +147,7 @@
       },
       {
        "name": "Montgomery Blair",
+       "shortName": "Blair",
        "city": "Silver Spring",
        "mascot": "Blazers",
        "primaryColor": "#FF6600",
@@ -197,6 +205,7 @@
       },
       {
        "name": "Charles H. Flowers",
+       "shortName": "Flowers",
        "city": "Springdale",
        "mascot": "Jaguars",
        "primaryColor": "#4B0082",
@@ -207,6 +216,7 @@
       },
       {
        "name": "DeMatha Catholic",
+       "shortName": "DeMatha",
        "city": "Hyattsville",
        "mascot": "Stags",
        "primaryColor": "#BA0C2F",
@@ -217,6 +227,7 @@
       },
       {
        "name": "Dr. Henry A. Wise",
+       "shortName": "Wise",
        "city": "Upper Marlboro",
        "mascot": "Pumas",
        "primaryColor": "#006747",
@@ -237,6 +248,7 @@
       },
       {
        "name": "Eleanor Roosevelt",
+       "shortName": "E. Roosevelt",
        "city": "Greenbelt",
        "mascot": "Raiders",
        "primaryColor": "#002D62",
