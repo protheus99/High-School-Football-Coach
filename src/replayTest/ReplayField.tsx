@@ -77,6 +77,28 @@ const SIDELINE_CSS = `
   .sl-hype.sl-coach .sl-walk { animation-duration: .6s }
   @keyframes sl-hop { 0%, 100% { transform: scale(1) translate(0, 0) } 40% { transform: scale(1.5) translate(0, -.15px) } }
   @media (prefers-reduced-motion: reduce) { .sl-idle, .sl-walk, .sl-hype .sl-idle { animation: none } }
+  .ez-col { animation: ez-sway 3.6s ease-in-out infinite; animation-delay: var(--d) }
+  @keyframes ez-sway { 0%, 100% { transform: translate(0, 0) } 30% { transform: translate(.1px, -.16px) } 65% { transform: translate(-.08px, .12px) } }
+  .ez-arm { opacity: 0 }
+  .ez-excited .ez-col { animation: ez-bounce .8s ease-in-out infinite; animation-delay: var(--d) }
+  .ez-excited .ez-eager { animation: ez-hop .7s ease-in-out infinite; animation-delay: var(--d) }
+  .ez-excited .ez-eager .ez-arm, .ez-cheer .ez-arm, .ez-wave .ez-arm { opacity: 1 }
+  .ez-cheer .ez-col { animation: ez-hop .55s ease-in-out infinite; animation-delay: var(--d) }
+  .ez-wave .ez-col { animation: ez-wave 2.6s ease-in-out infinite; animation-delay: var(--w) }
+  @keyframes ez-bounce { 0%, 100% { transform: translate(0, 0) } 50% { transform: translate(0, -.14px) } }
+  @keyframes ez-hop { 0%, 100% { transform: translate(0, 0) } 40% { transform: translate(0, -.42px) } }
+  @keyframes ez-wave { 0%, 70%, 100% { transform: translate(0, 0) } 12% { transform: translate(0, -.6px) } }
+  .ez-band { transform-box: fill-box; transform-origin: center }
+  .ez-cheer .ez-band, .ez-wave .ez-band, .ez-excited .ez-drum { animation: ez-bounce .46s ease-in-out infinite }
+  .ez-horn { opacity: .55 }
+  .ez-cheer .ez-horn, .ez-wave .ez-horn { opacity: 1 }
+  .ez-cheer .ez-mace, .ez-wave .ez-mace { animation: ez-mace .9s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100% }
+  @keyframes ez-mace { 0%, 100% { transform: rotate(-25deg) } 50% { transform: rotate(25deg) } }
+  .ez-sign { transform-box: fill-box; transform-origin: 50% 100%; animation: ez-sign 9s ease-in-out infinite; opacity: 0 }
+  @keyframes ez-sign { 0%, 6% { opacity: 0; transform: scale(.4) } 10%, 30% { opacity: 1; transform: scale(1) rotate(-5deg) } 20% { transform: scale(1) rotate(5deg) } 34%, 100% { opacity: 0; transform: scale(.4) } }
+  .ez-cheer .ez-sign { animation: ez-shake .5s ease-in-out infinite; opacity: 1 }
+  @keyframes ez-shake { 0%, 100% { transform: rotate(-7deg) } 50% { transform: rotate(7deg) translate(0, -.2px) } }
+  @media (prefers-reduced-motion: reduce) { .ez-col, .ez-eager, .ez-band, .ez-mace { animation: none !important } .ez-sign { animation: none; opacity: 0 } .ez-cheer .ez-sign { opacity: 1 } }
 `;
 const LIMIT = 1.3; // the coaches' strip: from the sideline out to the limit line (yards)
 
@@ -240,20 +262,133 @@ const read = (k: string, d: string) => {
   }
 };
 
+// ---------- the stands behind each end zone ----------
+// Bleachers right behind the end zone (4 yards of grass, the fence, the walkway, then 11 rows of seats), packed with
+// home fans and a few of the visitors'. The home school's marching band sits in the middle of one end's middle section.
+// GO [MASCOT]!, DEFENSE!, #1 and GO [a top player]! signs take turns going up. The crowd's mood (a class on each end:
+// ez-calm, ez-excited, ez-cheer, ez-wave) is set by the field for each snap. Fans move in column groups, so it stays
+// light on a phone, and the wave runs across the columns.
+const EZ = { walk: -114.6, rows: 11, rowH: 1.35 };
+const EZ_GOLD = '#E8B93A';
+function drawStands(g: Element, home: Team, away: Team, withBand: boolean, rnd: () => number) {
+  const x0 = -12, x1 = W + 12;
+  const top = EZ.walk - 1.8 - EZ.rows * EZ.rowH;
+  const homeMain = home.primaryColor, homeTrim = nice(home.secondaryColor) === '#334155' ? '#FFFFFF' : home.secondaryColor;
+  const awayColors = [nice(away.primaryColor), away.secondaryColor && away.secondaryColor.toUpperCase() !== '#FFFFFF' ? away.secondaryColor : '#F8FAFC'];
+  const others = ['#475569', '#1E3A8A', '#94A3B8', '#B45309', '#0F766E', '#6B7280'];
+  // the fence, the walkway and the bleachers
+  el('rect', { x: x0, y: EZ.walk - 1.6, width: x1 - x0, height: 1.6, fill: '#A8B0B8' }, g);
+  el('line', { x1: x0, x2: x1, y1: EZ.walk, y2: EZ.walk, stroke: '#3F4A55', 'stroke-width': 0.22, 'stroke-dasharray': '.25 .2' }, g);
+  el('rect', { x: x0, y: top, width: x1 - x0, height: EZ.walk - 1.6 - top, fill: '#5B6773' }, g);
+  for (let r = 0; r < EZ.rows; r++) {
+    const y = EZ.walk - 1.8 - (r + 1) * EZ.rowH;
+    el('rect', { x: x0, y, width: x1 - x0, height: 0.62, fill: '#D5DBE1' }, g);
+    el('rect', { x: x0, y: y + 0.62, width: x1 - x0, height: 0.12, fill: '#8B96A1' }, g);
+  }
+  const aisles = [W / 3, (2 * W) / 3];
+  for (const ax of aisles) el('rect', { x: ax - 0.6, y: top, width: 1.2, height: EZ.walk - 1.6 - top, fill: '#B9C1C9' }, g);
+  el('rect', { x: x0, y: top - 0.5, width: x1 - x0, height: 0.5, fill: '#2F3641' }, g);
+  const band: [number, number] | null = withBand ? [W / 2 - 3.9, W / 2 + 3.9] : null;
+
+  // the fans, in columns (each column moves together; the eager ones, about a third, stand up with arms raised)
+  const cols = new Map<string, Element>();
+  const column = (x: number, eager: boolean) => {
+    const c = Math.floor((x - x0) / 1.9);
+    const key = `${c}${eager ? 'e' : ''}`;
+    let colG = cols.get(key);
+    if (!colG) {
+      colG = el('g', { class: `ez-col${eager ? ' ez-eager' : ''}`, style: `--d:-${(rnd() * 3.6).toFixed(2)}s;--w:${(((c * 1.9) / W) * 1.2).toFixed(2)}s` }, g);
+      cols.set(key, colG);
+    }
+    return colG;
+  };
+  for (let r = 0; r < EZ.rows; r++) {
+    const y = EZ.walk - 1.8 - (r + 1) * EZ.rowH + 0.28;
+    for (let x = x0 + 0.6; x < x1 - 0.4; x += 0.95) {
+      if (aisles.some((ax) => Math.abs(x - ax) < 0.9)) continue;
+      if (band && x > band[0] - 0.6 && x < band[1] + 0.6) continue;
+      if (rnd() < 0.3) continue;
+      const k = rnd();
+      const fill = k < 0.36 ? homeMain : k < 0.57 ? homeTrim : k < 0.65 ? '#F8FAFC' : k < 0.75 ? awayColors[rnd() < 0.5 ? 0 : 1] : others[Math.floor(rnd() * others.length)];
+      const eager = rnd() < 0.35;
+      const cg = column(x, eager);
+      const fx = x + rnd() * 0.25;
+      el('circle', { cx: fx.toFixed(2), cy: y.toFixed(2), r: 0.42, fill, stroke: 'rgba(15,23,42,.55)', 'stroke-width': 0.08 }, cg);
+      if (eager) el('path', { class: 'ez-arm', d: `M${(fx - 0.45).toFixed(2)} ${(y - 0.1).toFixed(2)} l-0.18 -0.5 M${(fx + 0.45).toFixed(2)} ${(y - 0.1).toFixed(2)} l0.18 -0.5`, stroke: fill, 'stroke-width': 0.18, 'stroke-linecap': 'round' }, cg);
+    }
+  }
+
+  // the signs, taking turns (all of them up on a touchdown)
+  const mascot = home.mascot.toUpperCase();
+  const stars = [...home.roster].sort((a, b) => b.overallRating - a.overallRating).slice(0, 3).map((p) => p.lastName.toUpperCase());
+  const words = [`GO ${mascot}!`, 'DEFENSE!', '#1', `GO ${stars[0] ?? mascot}!`, `GO ${mascot}!`, `GO ${stars[1] ?? mascot}!`, 'DEFENSE!', `GO ${stars[2] ?? mascot}!`];
+  ([[6, 3], [44, 2], [27, 9], [12, 8], [41, 7], [3, 6], [50, 9], [21, 2]] as const).forEach(([x, r], k) => {
+    const y = EZ.walk - 1.8 - (r + 0.5) * EZ.rowH;
+    const sx = band && x > band[0] - 5 && x < band[1] + 5 ? (x < W / 2 ? band[0] - 5.2 : band[1] + 5.2) : x;
+    const text = words[k];
+    const w = Math.max(4.2, Math.min(13, 1.8 + text.length * 0.8)), h = 2.3;
+    const s = el('g', { class: 'ez-sign', style: `animation-delay:${(k * 1.15).toFixed(2)}s` }, g);
+    const defense = text === 'DEFENSE!';
+    el('rect', { x: (sx - w / 2).toFixed(2), y: (y - h).toFixed(2), width: w.toFixed(2), height: h, rx: 0.25, fill: defense ? homeMain : k % 2 ? homeTrim : '#FFFFFF', stroke: homeMain, 'stroke-width': 0.3 }, s);
+    const tx = el('text', { x: sx.toFixed(2), y: (y - h * 0.28).toFixed(2), 'text-anchor': 'middle', 'font-size': 1.32, 'font-weight': 900, fill: defense ? homeTrim : homeMain }, s);
+    if (text.length > 3) {
+      tx.setAttribute('textLength', (w - 1.1).toFixed(2));
+      tx.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+    }
+    tx.textContent = text;
+    for (const hx of [sx - w / 2 + 0.6, sx + w / 2 - 0.6]) el('circle', { cx: hx.toFixed(2), cy: (y + 0.05).toFixed(2), r: 0.3, fill: '#D6A57C' }, s);
+  });
+
+  // the marching band: woodwinds in front, then trumpets and trombones (gold horns toward the field), sousaphones,
+  // the drumline at the back; the drum major on the walkway
+  if (band) {
+    const kinds = ['flute', 'clarinet', 'trumpet', 'trumpet', 'trombone', 'trombone', 'trumpet', 'trumpet', 'trumpet', 'sousa', 'drums'];
+    for (let r = 0; r < EZ.rows; r++) {
+      const y = EZ.walk - 1.8 - (r + 1) * EZ.rowH + 0.28;
+      const kind = kinds[r];
+      const gap = kind === 'sousa' ? 1.7 : kind === 'drums' ? 1.25 : 0.95;
+      let n = 0;
+      for (let x = band[0]; x <= band[1]; x += gap, n++) {
+        const drum = kind === 'drums';
+        const m = el('g', { class: `ez-band${drum ? ' ez-drum' : ''}` }, g);
+        if (kind === 'sousa') el('circle', { cx: x, cy: y - 0.35, r: 0.78, fill: 'none', stroke: EZ_GOLD, 'stroke-width': 0.22, class: 'ez-horn' }, m);
+        if (drum) el('circle', { cx: x, cy: y + 0.6, r: n % 3 === 1 ? 0.58 : 0.32, fill: '#F8FAFC', stroke: n % 3 === 1 ? homeTrim : '#94A3B8', 'stroke-width': 0.12 }, m);
+        if (kind === 'trumpet' || kind === 'trombone') {
+          const len = kind === 'trumpet' ? 1.0 : 1.45;
+          el('line', { x1: x, y1: y + 0.3, x2: x, y2: y + len, stroke: EZ_GOLD, 'stroke-width': 0.13, class: 'ez-horn' }, m);
+          el('circle', { cx: x, cy: y + len + 0.06, r: kind === 'trumpet' ? 0.17 : 0.2, fill: EZ_GOLD, class: 'ez-horn' }, m);
+        }
+        if (kind === 'flute') el('line', { x1: x - 0.6, y1: y + 0.15, x2: x + 0.05, y2: y + 0.15, stroke: '#D7DEE5', 'stroke-width': 0.1, class: 'ez-horn' }, m);
+        if (kind === 'clarinet') el('line', { x1: x, y1: y + 0.25, x2: x + 0.1, y2: y + 0.85, stroke: '#1F2937', 'stroke-width': 0.12, class: 'ez-horn' }, m);
+        el('circle', { cx: x, cy: y, r: 0.42, fill: homeMain, stroke: homeTrim, 'stroke-width': 0.14 }, m);
+        el('circle', { cx: x, cy: y, r: 0.13, fill: '#FFFFFF' }, m);
+      }
+    }
+    const cx = W / 2, cy = EZ.walk - 0.8;
+    el('line', { class: 'ez-mace', x1: cx + 0.5, y1: cy, x2: cx + 0.5, y2: cy - 1.5, stroke: EZ_GOLD, 'stroke-width': 0.14 }, g);
+    el('circle', { cx, cy, r: 0.5, fill: '#F8FAFC', stroke: homeMain, 'stroke-width': 0.16 }, g);
+    el('circle', { cx, cy, r: 0.2, fill: homeTrim }, g);
+  }
+}
+
 /** The grass, lines and everything around them (world y = yards from the offense's own goal; screen y = -world y) */
 function drawField(g: Element, look: FieldLook, home: Team, away: Team, M: number) {
   const VW = W + 2 * M;
-  const sides: Element[] = [], squads: Squad[] = [];
+  const sides: Element[] = [], squads: Squad[] = [], stands: Element[] = [];
   if (look.style === 'now') {
     el('rect', { x: -M - 5, y: -140, width: VW + 10, height: 180, fill: '#256B2A' }, g);
   } else {
     el('rect', { x: -M - 5, y: -140, width: VW + 10, height: 180, fill: '#1D5523' }, g);
     el('rect', { x: 0, y: -114, width: W, height: 128, fill: '#2B7630' }, g); // the grass behind each end line
-    // The running track behind each end zone
-    for (const y0 of [-120, 14]) {
-      el('rect', { x: -M - 5, y: y0, width: VW + 10, height: 6, fill: '#9A3E2B' }, g);
-      for (let k = 1; k < 5; k++) el('line', { x1: -M - 5, x2: W + M + 5, y1: y0 + k * 1.2, y2: y0 + k * 1.2, stroke: '#fff', 'stroke-width': 0.07, 'stroke-opacity': 0.55 }, g);
-    }
+    // The stands right behind each end zone (no running track): the band at the far end; the near end is the same
+    // stands turned around (so its signs read from that side, like the end zone's name)
+    let standSeed = 777;
+    const standRnd = () => ((standSeed = (standSeed * 16807) % 2147483647) - 1) / 2147483646;
+    const farEnd = el('g', { class: 'ez-calm' }, g);
+    drawStands(farEnd, home, away, true, standRnd);
+    const nearEnd = el('g', { class: 'ez-calm', transform: `rotate(180 ${CX} -50)` }, g);
+    drawStands(nearEnd, home, away, false, standRnd);
+    stands.push(farEnd, nearEnd);
     // Each team's sideline in its color: the visitors on the left (where the chain crew works), the home team on the right
     el('rect', { x: -M, y: -114, width: M, height: 128, fill: deepen(away.primaryColor, 0.55) }, g);
     el('rect', { x: W, y: -114, width: M, height: 128, fill: deepen(home.primaryColor, 0.55) }, g);
@@ -351,7 +486,7 @@ function drawField(g: Element, look: FieldLook, home: Team, away: Team, M: numbe
     // Pylons at the corners of each end zone
     for (const y of [-110, -100, 0, 10]) for (const x of [0, W]) el('rect', { x: x - 0.3, y: y - 0.3, width: 0.6, height: 0.6, fill: '#F97316', stroke: '#7C2D12', 'stroke-width': 0.06 }, g);
   }
-  return { ezTop, ezBottom, sides, squads };
+  return { ezTop, ezBottom, sides, squads, stands };
 }
 
 interface Props {
@@ -458,9 +593,14 @@ export const ReplayField: React.FC<Props> = ({ event, board, caption, onDone, cl
   const coachesRef = useRef<{ g: Element; x: number; off: number; side: number }[]>([]);
   const sidesRef = useRef<Element[]>([]);
   const hypeRef = useRef<boolean[]>([false, false]); // [visitors, home]: their sideline goes wild
+  // The end zone stands (home fans): calm, excited, cheering with the home sideline, or the wave
+  const standsRef = useRef<Element[]>([]);
+  const moodRef = useRef('ez-calm');
+  const setStands = (mood: string) => standsRef.current.forEach((s) => s.setAttribute('class', mood));
   const setHype = (side: number, on: boolean) => {
     if (hypeRef.current[side] === on) return;
     hypeRef.current[side] = on;
+    if (side === 1) setStands(on ? 'ez-cheer' : moodRef.current);
     sidesRef.current[side]?.setAttribute('class', on ? 'sl-hype' : '');
     for (const c of coachesRef.current) if (c.side === side) c.g.setAttribute('class', on ? 'sl-coach sl-hype' : 'sl-coach');
   };
@@ -486,8 +626,9 @@ export const ReplayField: React.FC<Props> = ({ event, board, caption, onDone, cl
     const L = layers.current;
     // Everything on the ground turns together when the field flips; names, cue tags and TOUCHDOWN! stay upright on top
     L.world = el('g', {}, svg) as SVGElement;
-    const { ezTop, ezBottom, sides, squads } = drawField(el('g', {}, L.world), look, board.homeTeam, board.awayTeam, M);
+    const { ezTop, ezBottom, sides, squads, stands } = drawField(el('g', {}, L.world), look, board.homeTeam, board.awayTeam, M);
     sidesRef.current = sides;
+    standsRef.current = stands;
     hypeRef.current = [false, false];
     // The cheerleaders never stop (between plays and while paused too)
     let cheerRaf = 0;
@@ -768,6 +909,16 @@ export const ReplayField: React.FC<Props> = ({ event, board, caption, onDone, cl
     setChain(los, g, ev.snapDown ?? board.down, !ev.isTry && !kickoff);
     setHype(0, false);
     setHype(1, false);
+    // The stands' mood for this snap: excited in the home red zone, on 3rd and 4th down when the home team defends, and
+    // in the last two minutes of a close game; the wave now and then in a home blowout; calm otherwise
+    {
+      const homeId = board.homeTeam.id, homeBall = ev.snapTeamId === homeId;
+      const lead = board.homeScore - board.awayScore;
+      const q = ev.snapQuarter ?? ev.quarter;
+      const excited = !kickoff && !ev.isTry && ((homeBall && los >= 80) || (!homeBall && (ev.snapDown ?? 1) >= 3) || (q === 4 && board.clockSecondsRemaining <= 120 && Math.abs(lead) <= 8));
+      moodRef.current = lead >= 21 && Math.random() < 0.2 ? 'ez-wave' : excited ? 'ez-excited' : 'ez-calm';
+      setStands(moodRef.current);
+    }
     const nw = look.style === 'new';
     const X = (x10: number) => onGrass(mirror ? W - x10 / 10 : x10 / 10, nw ? -0.5 : -1, nw ? W + 0.5 : W + 1, nw ? 1.1 : 1.6);
     const stretch = (f: number) => (plan.delta && f > plan.stretchFrom ? plan.delta * Math.min(1, (f - plan.stretchFrom) / Math.max(1, play.end - plan.stretchFrom)) : 0);
