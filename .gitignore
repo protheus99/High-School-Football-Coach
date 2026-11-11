@@ -14,5 +14,5 @@ coverage/
 # Licensed music: the MP3s live in Cloudflare R2 behind music-worker/ and must never be in this public repo
 public/music/*.mp3
 
-# The match field's play library: shipped with each site build (vite.config.ts), never in this public repo
+# The match field's play library: the live game loads it from the music Worker (R2), never from this public repo
 replay-data/

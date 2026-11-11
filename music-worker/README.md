@@ -9,6 +9,13 @@ They live in a private R2 bucket (`hsfhc-music`), and this Worker streams them t
   asking for it from another website or a download tool, gets "403 This music plays in the game only".
 - Songs are sent to play, never as downloads.
 
+The same Worker also serves the match field's play library: `GET /plays/library.json` (the object
+`plays/library.json` in the same bucket), to the game's pages only. To put up a new library (no redeploy needed):
+
+```bash
+npx wrangler r2 object put hsfhc-music/plays/library.json --file ../replay-data/library.json --content-type application/json --remote
+```
+
 A browser has to receive a song to play it, so this keeps the files from being offered as downloads; it can't stop
 someone recording what they hear.
 

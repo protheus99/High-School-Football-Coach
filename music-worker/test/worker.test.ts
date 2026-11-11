@@ -6,11 +6,13 @@ import soundtrack from '../../public/music/soundtrack.json';
 const GAME = 'https://high-school-football-coach.protheus99.workers.dev';
 const SONG = (soundtrack as { songs: { file: string }[] }).songs[0]?.file ?? 'missing.mp3';
 const BYTES = new Uint8Array(1000).map((_, i) => i % 256);
+const PLAYS = '{"plays":[{"id":"p0001"}]}';
 
 // An R2 stand-in: one stored song, byte ranges read from the Range header the way R2 does
 function fakeBucket(): Env['MUSIC'] {
   return {
     async get(key, options) {
+      if (key === 'plays/library.json') return { body: new Blob([PLAYS]).stream(), size: PLAYS.length, httpEtag: '"plays"' };
       if (key !== SONG) return null;
       const header = options?.range?.get('Range');
       const m = header?.match(/^bytes=(\d*)-(\d*)$/);
@@ -35,6 +37,23 @@ function fakeBucket(): Env['MUSIC'] {
 const env: Env = { MUSIC: fakeBucket(), ALLOWED_ORIGINS: `${GAME},http://localhost:3000` };
 const get = (path: string, headers: Record<string, string> = {}) => worker.fetch(new Request(`https://music.example${path}`, { headers }), env);
 const songPath = `/music/${encodeURIComponent(SONG)}`;
+
+describe('Play library', () => {
+  it('sends the play library to the game', async () => {
+    const res = await get('/plays/library.json', { Origin: GAME, 'Sec-Fetch-Dest': 'empty' });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(GAME);
+    expect(res.headers.get('Content-Type')).toBe('application/json');
+    expect(await res.json()).toEqual({ plays: [{ id: 'p0001' }] });
+  });
+
+  it('refuses another site, a pasted link and anything else in the bucket', async () => {
+    expect((await get('/plays/library.json', { Origin: 'https://example.com' })).status).toBe(403);
+    expect((await get('/plays/library.json', { Origin: GAME, 'Sec-Fetch-Dest': 'document' })).status).toBe(403);
+    expect((await get('/plays/library.json')).status).toBe(403);
+    expect((await get('/plays/other.json', { Origin: GAME })).status).toBe(404);
+  });
+});
 
 describe('Music worker', () => {
   it('streams a soundtrack song to the game, to play in place', async () => {

@@ -3,6 +3,7 @@ import soundtrack from '../../public/music/soundtrack.json';
 // ---------------------------------------------------------------------------
 // The game's music (Cloudflare Worker + R2).
 //   GET /music/<file>   one song from soundtrack.json, streamed (with byte ranges) to the game's own pages
+//   GET /plays/library.json   the match field's play library (kept out of the public repo), to the game's own pages
 // The licensed MP3s sit in a private R2 bucket, never in the public repo or the site's files. Only songs in the
 // soundtrack can be fetched (nothing can be listed), only requests from the game's pages are answered (a pasted
 // link, another website or a download tool gets 403), and every song is sent to play, never as a download. A
@@ -30,6 +31,10 @@ export interface Env {
   MUSIC: R2Bucket;
   ALLOWED_ORIGINS: string; // comma-separated origins of the game's pages
 }
+
+/** The match field's play library: one file in the same bucket (replacing it needs no redeploy). */
+const PLAYS_PATH = '/plays/library.json';
+const PLAYS_KEY = 'plays/library.json';
 
 /** The songs that can be played: the soundtrack's list (adding a song means redeploying this Worker). */
 const SONGS = new Set((soundtrack as { songs: { file: string }[] }).songs.map((s) => s.file));
@@ -69,6 +74,20 @@ export default {
     }
     if (request.method !== 'GET' && request.method !== 'HEAD') return deny(405, 'Method not allowed');
     if (url.pathname === '/health') return new Response('ok', { headers: { 'Cache-Control': 'no-store' } });
+    if (url.pathname === PLAYS_PATH) {
+      if (!allowed || request.headers.get('Sec-Fetch-Dest') === 'document') return deny(403, 'These plays load in the game only');
+      const plays = await env.MUSIC.get(PLAYS_KEY);
+      if (!plays) return deny(404, 'Not found');
+      const headers = new Headers({
+        ...cors,
+        'Content-Type': 'application/json',
+        'Cache-Control': 'private, max-age=86400',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Robots-Tag': 'noindex, nofollow',
+        ETag: plays.httpEtag
+      });
+      return new Response(request.method === 'HEAD' ? null : plays.body, { headers });
+    }
     if (!url.pathname.startsWith('/music/')) return deny(404, 'Not found');
 
     let file: string;

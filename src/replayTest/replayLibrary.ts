@@ -1,6 +1,7 @@
 // The match field's plays: real tracking plays matched to each simulated snap.
-// The library lives in replay-data/library.json: kept out of git (.gitignore), served by the dev server, and copied
-// into each site build (vite.config.ts). Without it the field still works: each snap shows where it ended.
+// The library is kept out of the public repo. The live game loads it from the music Worker (R2, see music-worker/);
+// the dev server and local builds read replay-data/library.json (git-ignored). Without it the field still works:
+// each snap shows where it ended.
 import { PlayEvent, Team } from '../types/game';
 
 export interface LibPlay {
@@ -23,9 +24,13 @@ export interface LibPlay {
   ball: number[][];
 }
 
+// (an empty VITE_PLAYS_URL, as the local playtest builds set, reads the local copy)
+const PLAYS_HOST: string = import.meta.env.VITE_PLAYS_URL ?? (import.meta.env.PROD ? 'https://hsfhc-music.protheus99.workers.dev' : '');
+const PLAYS_URL = PLAYS_HOST ? `${PLAYS_HOST}/plays/library.json` : `${import.meta.env.BASE_URL}replay-data/library.json`;
+
 let cache: Promise<LibPlay[]> | null = null;
 export const loadReplayLibrary = () =>
-  (cache ??= fetch(`${import.meta.env.BASE_URL}replay-data/library.json`)
+  (cache ??= fetch(PLAYS_URL)
     .then((r) => (r.ok ? r.json() : { plays: [] }))
     .then((d) => (Array.isArray(d?.plays) ? (d.plays as LibPlay[]) : []))
     // (no library in this build: the site answers with its own page, which isn't JSON)
