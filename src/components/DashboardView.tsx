@@ -8,10 +8,10 @@ import { PreGameStrategyModal, PregameSpeech } from './PreGameStrategyModal';
 import { Sheet } from './ui/Sheet';
 import { AgendaTab, WeeklyAgenda } from './WeeklyAgenda';
 import { StaffWindowCard } from './StaffWindowCard';
+import { HubTeamBanner } from './HubTeamBanner';
 import { needsSettling } from '../sim/staffContracts';
 import { getSeasonPhase, SEASON_PHASE_LABELS } from '../sim/scheduleEngine';
 import { getUserMatchup } from '../sim/userMatchup';
-import { findDistrict, findRegion } from '../sim/league';
 import { liveClockLabel, lockKey } from '../sim/gameLock';
 import { gradesNeedReview } from '../sim/advanceGate';
 import { benchNote, isCoachBenched } from '../sim/billyMartin';
@@ -46,8 +46,6 @@ export const DashboardView: React.FC<{
   const written = careerKey && opponent ? playedGames[lockKey(careerKey, currentYear, currentWeek, opponent.id)] : undefined;
   const inProgress = !isPlayed && written?.status === 'LIVE' ? written : undefined;
   const resultStands = isPlayed && lockNotice?.year === currentYear && lockNotice.week === currentWeek;
-  const district = league ? findDistrict(league, userTeamId) : undefined;
-  const region = league ? findRegion(league, userTeamId) : undefined;
 
   // No moving on with a decision open: every way forward takes the coach to the dilemma instead (lit up for a moment)
   const goToDecision = () => {
@@ -181,16 +179,8 @@ export const DashboardView: React.FC<{
         />
       )}
 
-      {/* Header Banner: the team (Advance is in the top bar, on every screen) */}
-      <div style={{ marginBottom: '20px' }}>
-        <h1 className="ui-page-title" style={{ overflowWrap: 'anywhere' }} title={`${userTeam.name} ${userTeam.mascot}`}>
-          {userTeam.name} {userTeam.mascot}
-        </h1>
-        <div style={{ color: '#6B7280', marginTop: '2px' }}>
-          {district?.name ?? 'Class 6A'}
-          {region ? ` · ${region.name}` : ''}
-        </div>
-      </div>
+      {/* The team: its name, record and national top 25 rank, on its own color (Advance is in the top bar, on every screen) */}
+      <HubTeamBanner team={userTeam} />
 
       {/* Staff contracts waiting on the coach come first; otherwise the staff's status follows the week's to-do list */}
       {staffDue && <StaffWindowCard onOpenStaff={() => onNavigate('STAFF')} />}

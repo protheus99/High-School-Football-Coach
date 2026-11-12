@@ -17,7 +17,6 @@ import { inUserPipeline } from '../sim/feederEngine';
 import { recruitScore } from '../sim/collegeRecruitingEngine';
 import { rankedName } from '../sim/newsEngine';
 import { HubHeadlines } from './HubHeadlines';
-import { SeasonCard } from './SeasonCard';
 import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
 import { recordText } from '../sim/seasonRecord';
 import { PracticePicker } from './PracticePicker';
@@ -856,12 +855,10 @@ export const WeeklyAgenda: React.FC<{
 
   return (
     <section aria-labelledby="this-week-title" style={{ marginBottom: '24px' }}>
-      <h2 id="this-week-title" className="ui-section-title">
-        Week {currentWeek} <span style={{ color: '#4F46E5', fontSize: '0.75em' }}>| {phaseLabel}</span>
-      </h2>
-      <SeasonCard team={team} standingRank={myRow?.rank} districtName={districtName} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '14px 2px 8px' }}>
-        <h3 style={{ margin: 0, fontSize: '16px' }}>To do this week</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', margin: '0 2px 8px' }}>
+        <h2 id="this-week-title" style={{ margin: 0, fontSize: '17px', fontWeight: 900, lineHeight: 1.2 }}>
+          {phaseLabel}
+        </h2>
         {tasks.length > 0 && (
           <span style={progressPill}>
             {doneCount} of {tasks.length} done
@@ -950,7 +947,7 @@ const donePill: React.CSSProperties = {
   padding: '3px 8px'
 };
 
-const progressPill: React.CSSProperties = { fontSize: '12px', fontWeight: 700, color: '#1D4ED8', background: '#DBEAFE', borderRadius: '999px', padding: '2px 8px' };
+const progressPill: React.CSSProperties = { flex: 'none', whiteSpace: 'nowrap', fontSize: '12px', fontWeight: 700, color: '#1D4ED8', background: '#DBEAFE', borderRadius: '999px', padding: '2px 8px' };
 
 const actionBtn = (primary: boolean, disabled: boolean, amber = false): React.CSSProperties => ({
   minHeight: '40px', // comfortable tap target
