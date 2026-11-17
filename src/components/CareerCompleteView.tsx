@@ -21,7 +21,7 @@ export const CareerCompleteView: React.FC<{ onMainMenu: () => void }> = ({ onMai
   const [view, setView] = useState<'DONE' | 'OFFERS' | 'CAREER'>('DONE');
   const [extension, setExtension] = useState<CareerLength>(3);
   const [lengths, setLengths] = useState<Record<string, CareerLength>>({});
-  const board = useHallOfFame(career?.length ?? 3, career);
+  const board = useHallOfFame(career?.length || 3, career);
   const endChoice = (choice: 'extend' | 'new_job' | 'leave') => track('career_end_choice', { choice, fired: false, seasons: career?.seasons.length ?? 0 });
   if (!career) return null;
   const place = board.findIndex((e) => e.careerId === career.id) + 1;

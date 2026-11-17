@@ -37,7 +37,7 @@ export const FiredScreen: React.FC<{ school: string; misconduct: boolean; career
           <span className="game-over-blink">▶ MAIN MENU</span>
         </button>
         {scored && (
-          <button onClick={() => (endChoice('hall_of_fame'), setHallOfFame(scored.length))} style={arcadeBtn}>
+          <button onClick={() => (endChoice('hall_of_fame'), setHallOfFame(scored.length || 3))} style={arcadeBtn}>
             🏆 HALL OF FAME
           </button>
         )}
@@ -53,7 +53,7 @@ export const FiredScreen: React.FC<{ school: string; misconduct: boolean; career
 
 /** The career on the Hall of Fame: its score and record, then its strikes (an invalid playthrough) or its rank. */
 const CareerLine: React.FC<{ career: Career }> = ({ career }) => {
-  const board = useHallOfFame(career.length, career);
+  const board = useHallOfFame(career.length || 3, career); // an unlimited career is on no board (no rank)
   const entry = toEntry(career);
   const invalid = invalidReckonings(career).length > 0;
   const rank = board.filter((e) => !(e.reckonings ?? 0)).findIndex((e) => e.careerId === career.id) + 1;
@@ -66,7 +66,7 @@ const CareerLine: React.FC<{ career: Career }> = ({ career }) => {
         <span style={invalid ? { color: '#94A3B8', textDecoration: 'line-through', textDecorationColor: '#F87171' } : { color: '#FACC15' }}>{careerPoints(career)}</span>
       </div>
       <div style={sub}>
-        {schoolWithState(career.startingProgram, career.state).toUpperCase()} · {career.seasons.length} OF {career.length} SEASONS
+        {schoolWithState(career.startingProgram, career.state).toUpperCase()} · {career.length ? `${career.seasons.length} OF ${career.length}` : career.seasons.length} SEASONS
       </div>
       <div style={sub}>
         RECORD <b style={{ color: '#4ADE80' }}>{entry.wins}-{entry.losses}</b>

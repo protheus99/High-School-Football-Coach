@@ -108,7 +108,7 @@ import { HiredCoach, coachGrade, staffBonuses, staffGameDayEdge } from '../sim/c
 import { NO_RECENT_TALKS, RecentTalks } from '../sim/talkPicker';
 import { entrySource, track } from '../services/analytics';
 import { commitStatus, gameContext, gpaBand, liveTally, moment, secondString, talkFamily, playerParams, pointsBand, prospectAfter, prospectParams, rankBand, ratingBand } from '../services/analyticsParams';
-import { Career, CareerLength, careerPoints, isCareerComplete, scoreSeason, vacateSeason } from '../sim/careerScore';
+import { Career, CareerLength, CareerTerm, careerPoints, isCareerComplete, scoreSeason, vacateSeason } from '../sim/careerScore';
 import {
   BoosterOffer,
   COMPLIANCE_TRAINING,
@@ -570,7 +570,7 @@ interface GameStoreState {
   // Actions
   startNewSeason: (world?: GameWorld) => void; // default: the Texas 6A world
   newGame: (difficulty: Difficulty, state?: string) => string; // random school in the state (Texas by default) for the difficulty; returns its name
-  newScenarioGame: (scenario: ScenarioId, state: string, school: string, coachName: string, length: CareerLength) => void; // a scored career at a scenario program
+  newScenarioGame: (scenario: ScenarioId, state: string, school: string, coachName: string, length: CareerTerm) => void; // a scored career at a scenario program (UNLIMITED: no end, no Hall of Fame)
   loadGame: (save: GameSaveRecord) => void;
   saveGame: (saveName?: string) => Promise<string>; // new save slot; returns its id
   autosave: () => Promise<void>; // the autosave slot, now (before leaving the page, e.g. to sign in)
@@ -937,7 +937,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const team = get().leagueTeams.find((t) => t.id === get().userTeamId);
     if (team) team.staff.headCoachName = coachTitle(career.coachName);
     if (team) set({ career: { ...career, startingPrestige: team.prestige } });
-    track('new_game', { mode: 'career', scenario: scenarioId, state, length, ...entrySource() });
+    track('new_game', { mode: 'career', scenario: scenarioId, state, length: length || 'unlimited', ...entrySource() });
   },
 
   // League saves restore the whole world; older saves get a world built around their district

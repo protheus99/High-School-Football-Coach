@@ -83,7 +83,7 @@ export const CoachCareerView: React.FC = () => {
 };
 
 const ContractCard: React.FC<{ contract: Career; current: boolean }> = ({ contract: c, current }) => {
-  const board = useHallOfFame(c.length, c);
+  const board = useHallOfFame(c.length || 3, c); // an unlimited career is on no board
   const place = board.findIndex((e) => e.careerId === c.id) + 1;
   const { wins, losses } = record(c);
   const color = stateSchool(c.state, c.startingSchool)?.primaryColor ?? '#2563EB';
@@ -96,7 +96,7 @@ const ContractCard: React.FC<{ contract: Career; current: boolean }> = ({ contra
         <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', whiteSpace: 'nowrap' }}>Start prestige {c.startingPrestige ?? '—'}</div>
       </div>
       <div style={{ fontSize: '12.5px', color: '#475569' }}>
-        {years} · {c.length}-year contract{current ? ' · coaching now' : ''}
+        {years} · {c.length ? `${c.length}-year contract` : 'No time limit'}{current ? ' · coaching now' : ''}
       </div>
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '8px', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '20px', fontWeight: 900 }}>{c.seasons.length ? `${wins}-${losses}` : 'First season'}</span>
@@ -109,7 +109,7 @@ const ContractCard: React.FC<{ contract: Career; current: boolean }> = ({ contra
               · {ordinal(place).toUpperCase()} {c.length}-YEAR
             </span>
           ) : (
-            <span style={{ color: '#94A3B8' }}> · {c.seasons.length} OF {c.length}</span>
+            <span style={{ color: '#94A3B8' }}> · {c.length ? `${c.seasons.length} OF ${c.length}` : `${c.seasons.length} ${c.seasons.length === 1 ? 'SEASON' : 'SEASONS'}`}</span>
           )}
         </span>
       </div>

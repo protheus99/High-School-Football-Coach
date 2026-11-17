@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SCENARIOS } from '../../data/scenarios';
 import { PLAYABLE_STATES } from '../stateRules';
 import { stateSchool } from '../league';
-import { Career, careerPoints, prestigeMultiplier, scoreSeason, seasonPoints } from '../careerScore';
+import { Career, careerPoints, isCareerComplete, prestigeMultiplier, scoreSeason, seasonPoints, UNLIMITED } from '../careerScore';
 import type { PlayoffBracketState } from '../playoffEngine';
 import type { Team } from '../../types/game';
 import { localLeaderboard, loadLocalCareers, recordCareer } from '../../services/leaderboard';
@@ -107,6 +107,15 @@ describe('Hall of Fame', () => {
     expect(localLeaderboard(3).map((e) => e.coachName)).toEqual(['bo']);
   });
 
+  it('an unlimited career is on no board, but stays on the device for Team › Career', () => {
+    recordCareer(career('ann', 'Odessa Permian', [40, 60, 70, 80, 90, 100], UNLIMITED));
+    recordCareer(career('bo', 'Odessa Permian', [90], 5));
+    expect(loadLocalCareers().map((c) => c.coachName)).toEqual(['ann', 'bo']);
+    expect(localLeaderboard(5).map((e) => e.coachName)).toEqual(['bo']);
+    expect(localLeaderboard().map((e) => e.coachName)).toEqual(['bo']); // every length: still not there
+    expect(isCareerComplete(career('ann', 'Odessa Permian', Array(12).fill(50), UNLIMITED))).toBe(false);
+  });
+
   it('scales the score up for programs that started with less prestige', () => {
     expect(prestigeMultiplier(99)).toBe(1);
     expect(prestigeMultiplier(87)).toBeCloseTo(1.12);
@@ -183,6 +192,20 @@ describe('Scenario careers', () => {
     expect(store.getState().jobOffers).toHaveLength(3);
     expect(store.getState().jobOffers.every((o) => o.teamId !== store.getState().userTeamId)).toBe(true);
   }, 180_000);
+
+  it('an unlimited career keeps going past three seasons, with no contract end and no Hall of Fame entry', () => {
+    localStorage.clear();
+    const store = useGameStore;
+    store.getState().newScenarioGame('POWERHOUSE', 'Maryland', 'Quince Orchard', 'Tester', UNLIMITED);
+    for (let i = 0; i < 260 && (store.getState().career?.seasons.length ?? 0) < 4 && !store.getState().firedFrom; i++) {
+      if (store.getState().isBanquetActive) store.getState().finishBanquet();
+      else store.getState().advanceWeek();
+    }
+    const { career, careerComplete, firedFrom } = store.getState();
+    expect(careerComplete).toBe(false);
+    if (!firedFrom) expect(career!.seasons.map((s) => s.year)).toEqual([2026, 2027, 2028, 2029]);
+    expect(localLeaderboard()).toEqual([]);
+  }, 240_000);
 
   it('a contract ends with offers: a new job is a new Hall of Fame entry at the new school', () => {
     const store = useGameStore;

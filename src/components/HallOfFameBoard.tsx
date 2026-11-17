@@ -39,7 +39,7 @@ export const TitleCounts: React.FC<{ state: string; titles: number; nationalTitl
  */
 export const HallOfFameBoard: React.FC = () => {
   const career = useGameStore((s) => s.career);
-  const [length, setLength] = useState<CareerLength>(career?.length ?? 3);
+  const [length, setLength] = useState<CareerLength>(career?.length || 3);
   const account = useAccount();
   const [signingIn, setSigningIn] = useState(false);
   // Signed out, careers stay on this device: they post to the Hall of Fame only for a signed-in player

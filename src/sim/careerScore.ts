@@ -12,6 +12,12 @@ export const CAREER_POINTS = { win: 5, loss: 1, playoffWin: 8, stateTitle: 10, n
 
 /** How many seasons a career runs (chosen at New Game; careers of the same length compete with each other). */
 export type CareerLength = 3 | 5 | 10;
+/** A career with no end, chosen at New Game: it never completes and is on no Hall of Fame board (there is no
+ *  unlimited board). Its seasons are still scored, for the scorecard and Team › Career. */
+export const UNLIMITED = 0 as const;
+/** A career's term: a length, or unlimited. */
+export type CareerTerm = CareerLength | typeof UNLIMITED;
+export const isUnlimited = (career: Pick<Career, 'length'>) => career.length === UNLIMITED;
 export const CAREER_LENGTHS: CareerLength[] = [3, 5, 10];
 /** Contracts offered after a career ends (ten years is only for new games). */
 export const CONTRACT_LENGTHS: CareerLength[] = [3, 5];
@@ -41,7 +47,7 @@ export interface Career {
   startingSchool: string; // the world name
   startingProgram: string; // the name the program is known by
   startedYear: number;
-  length: CareerLength; // seasons in the career (the contract)
+  length: CareerTerm; // seasons in the career (the contract); UNLIMITED (0): no end, never on the Hall of Fame
   startingPrestige?: number; // the program's prestige when the contract began (older careers: none, x1.00)
   coachId?: string; // the coach across contracts in one save (Team › Career lists them together)
   token?: string; // the career's secret for the global leaderboard (only this device can update it)
@@ -73,7 +79,7 @@ export const careerBasePoints = (career: Career) => career.seasons.reduce((sum, 
 export const careerPoints = (career: Career) => Math.round(careerBasePoints(career) * prestigeMultiplier(career.startingPrestige));
 export const careerTitles = (career: Career) => career.seasons.filter((s) => s.stateTitle).length;
 export const careerNationalTitles = (career: Career) => career.seasons.filter((s) => s.nationalTitle).length;
-export const isCareerComplete = (career: Career) => career.seasons.length >= career.length;
+export const isCareerComplete = (career: Career) => !isUnlimited(career) && career.seasons.length >= career.length;
 
 /**
  * The coach's season once the state championship games are decided: the regular-season record, the playoff

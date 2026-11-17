@@ -45,7 +45,7 @@ export const SeasonScorecard: React.FC<{ team: Team }> = ({ team }) => {
   const losses = team.record.losses + (lastLoss ? 1 : 0);
 
   // Where the career stands on its Hall of Fame board: this device's careers and, when there's a server, everyone's
-  const board = useHallOfFame(career?.length ?? 3, career);
+  const board = useHallOfFame(career?.length || 3, career); // an unlimited career is on no board (no place)
   const place = career ? board.findIndex((e) => e.careerId === career.id) + 1 : 0;
 
   const lines: [string, string, number][] = season
@@ -63,7 +63,7 @@ export const SeasonScorecard: React.FC<{ team: Team }> = ({ team }) => {
     <section aria-label="Season scorecard">
       <div style={{ ...card, borderTop: `5px solid ${tone}` }}>
         <div style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '0.06em', color: '#475569' }}>
-          SEASON SCORECARD{career && season ? ` · YEAR ${career.seasons.indexOf(season) + 1} OF ${career.length}` : ''}
+          SEASON SCORECARD{career && season ? ` · YEAR ${career.seasons.indexOf(season) + 1}${career.length ? ` OF ${career.length}` : ''}` : ''}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '17px', fontWeight: 900, marginTop: '4px', flexWrap: 'wrap' }}>
           {headline}

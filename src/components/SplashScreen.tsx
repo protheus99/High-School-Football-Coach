@@ -8,7 +8,7 @@ import { MusicTapHint } from './MusicTapHint';
 import { HallOfFameArcade } from './HallOfFameBoard';
 import { Sheet } from './ui/Sheet';
 import { useScrollTopOnScreenChange } from '../utils/pageScroll';
-import { CAREER_LENGTHS, CareerLength } from '../sim/careerScore';
+import { CAREER_LENGTHS, CareerLength, CareerTerm, UNLIMITED } from '../sim/careerScore';
 
 // The classic game (a random school at a difficulty, unranked) is hidden for now; flip this to bring it back
 const SHOW_CLASSIC_GAME = false;
@@ -80,7 +80,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   const [pick, setPick] = useState<{ scenario: ScenarioId; school: string } | null>(null);
   const [coachName, setCoachName] = useState('');
   const [nameMissing, setNameMissing] = useState(false); // Start was tapped without a coach name
-  const [length, setLength] = useState<CareerLength>(5);
+  const [length, setLength] = useState<CareerTerm>(5);
   const [showClassic, setShowClassic] = useState(false);
   // Pick any program: search every school in the state instead of the featured programs
   const [anyProgram, setAnyProgram] = useState(false);
@@ -229,7 +229,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
             <button onClick={() => (menuChoice('load'), setView('LOAD'))} style={menuBtn('#334155', '#fff')}>
               📂 Load Game
             </button>
-            <button onClick={() => (menuChoice('hall_of_fame'), setHallOfFame(career?.length ?? 3))} style={{ ...menuBtn('#05060F', '#FACC15'), border: '2px solid #FACC15' }}>
+            <button onClick={() => (menuChoice('hall_of_fame'), setHallOfFame(career?.length || 3))} style={{ ...menuBtn('#05060F', '#FACC15'), border: '2px solid #FACC15' }}>
               🏆 Hall of Fame
             </button>
             {account.user && account.options.cloudSaves ? (
@@ -336,11 +336,15 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
                 Game length
                 <div className="ui-chips" role="group" aria-label="Game length" style={{ marginTop: '4px' }}>
                   {CAREER_LENGTHS.map((years) => (
-                    <button key={years} className="ui-chip" aria-pressed={length === years} onClick={() => setLength(years)} style={{ flex: 1, justifyContent: 'center' }}>
+                    <button key={years} className="ui-chip" aria-pressed={length === years} onClick={() => setLength(years)} style={lengthChip}>
                       {years} years
                     </button>
                   ))}
+                  <button className="ui-chip" aria-pressed={length === UNLIMITED} onClick={() => setLength(UNLIMITED)} style={lengthChip}>
+                    Unlimited
+                  </button>
                 </div>
+                {length === UNLIMITED && <div style={{ marginTop: '4px', fontSize: '12px', color: '#94A3B8' }}>No end and no Hall of Fame: coach as long as you like.</div>}
               </div>
               <label style={{ color: '#CBD5E1', fontSize: '13px' }}>
                 Coach name{' '}
@@ -542,6 +546,9 @@ const anyProgramBtn = (open: boolean): React.CSSProperties => ({
   font: 'inherit',
   cursor: 'pointer'
 });
+
+// Game length: four chips across a phone, so a little less padding than the usual chip
+const lengthChip: React.CSSProperties = { flex: 1, justifyContent: 'center', padding: '8px 6px' };
 
 const sectionTitle: React.CSSProperties = { textAlign: 'center', color: '#F8FAFC', margin: '0 0 8px 0', fontSize: '20px' };
 
