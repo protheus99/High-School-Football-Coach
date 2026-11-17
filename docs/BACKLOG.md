@@ -2,6 +2,66 @@
 
 Work that's decided but parked. Newest first.
 
+## Coach trophies (ideas parked 2026-11-17; to expand later)
+
+Awards for the coach, not the school, earned by finishing goals. Waits for the new classifications in each state.
+Every idea below is a draft; the user will pick, cut and add before a mockup.
+
+Championships (one classification at a time):
+- **State Champion (6A)**: win state in a classification; one trophy per classification, so a shelf shows each.
+- **Back-to-Back**: win state two seasons in a row at one school. **Three-Peat**: three in a row.
+- **Dynasty**: five state titles at one school.
+- **Perfect Season**: an undefeated state champion.
+- **Wire to Wire**: #1 in the state poll every week, and win state.
+- **National Champions**: finish #1 in the National Top 25.
+
+Career combos (moving from school to school):
+- **Georgia Domination** (one per state): win state in every classification of the state in one career.
+- **Climb the Ladder**: win state in the lowest classification, then work up and win the top one.
+- **Turnaround Artist**: take a losing team to a state title within 3 seasons.
+- **Fixer**: win state at three different schools.
+- **Kingmaker**: leave a school as champion, then beat it in the playoffs with your new team.
+- **Hometown Hero**: a 10-year career at one school with 3 or more titles.
+- **Reclaim the Crown** / **The Bar Is Raised**: win state in the Reclaim / Powerhouse scenario.
+
+Dilemmas and conduct:
+- **Super Booster**: the worst option on every dilemma for one season (getting fired doesn't count).
+- **Boy Scout**: the cleanest option on every dilemma for a whole career.
+- **Teflon Coach**: 10 worst options without a single Billy Martin strike.
+- **On Thin Ice**: reach two strikes, then win state the same season.
+- **You're Fired… Again**: fired at two schools in one career (a badge of shame).
+- **Vacated**: a title taken away for improper booster offers.
+
+On the field:
+- **Shutout Season**: three shutouts in one season.
+- **Comeback Kid**: win after trailing by 21 or more.
+- **Hail Mary**: win on the last play.
+- **Rivalry Week Owner**: beat your rival 5 years in a row.
+- **Upset Special**: beat a national top 25 team while unranked.
+- **Halftime Hero**: trailing at the half, pick a speech, win by 14 or more.
+- **Clean Game**: win the state final with no penalties.
+
+Program building:
+- **Talent Pipeline**: 10 players to college in one career.
+- **Blue Chip**: a prospect you found becomes All-State.
+- **Honor Roll**: nobody ineligible on a report card for a full season.
+- **Iron Roster**: a season with no season-ending injuries.
+- **Full Staff**: every staff spot filled at the top level.
+
+Endurance (unlimited careers only):
+- **Lifer**: 25 seasons. **Legend**: 50 seasons. **Wall of Titles**: 20 state titles in one career.
+
+Notes from the code:
+- A "career" is one contract today (a new job or an extension starts a new Hall of Fame entry). Combo trophies need
+  a coach record that spans contracts; `careerHistory` is part of one, but it lives on the device.
+- Job offers come from schools in the same state's world; for Domination they must reach the other classifications.
+- The Trophy Case (Team › Hall of Fame) holds the program's titles and rivalry trophies. Coach trophies likely need
+  their own home (Team › Career or a coach card).
+
+Open decisions: the name (Trophies, which overlaps the Trophy Case; Awards; Achievements), tiers (bronze/silver/
+gold or equal), hidden awards (Super Booster, Vacated secret until earned?), rewards (cosmetic only or CP).
+Mockup first: the shelf and the pop-up when one is earned.
+
 ## Notes sent 2026-10-14 (from 2026-10-13's sessions): all done
 
 Captured as sent, then built in v1.17.1 through v1.18.3. Every item below is done; each says where it shipped.
