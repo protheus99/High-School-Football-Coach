@@ -20,6 +20,9 @@ describe('site map', () => {
     const texas = readFileSync(join(root, 'public', 'sitemaps', 'texas.xml'), 'utf8');
     expect(texas).toContain('<loc>https://footballcoachgame.com/texas/cypress-lakes/</loc>');
     expect(texas).not.toContain('/start/');
+    // The start steps tell search engines not to list them; the team pages don't
+    expect(readFileSync(join(root, 'public', 'texas', 'cypress-lakes', 'start', 'index.html'), 'utf8')).toContain('<meta name="robots" content="noindex, follow" />');
+    expect(readFileSync(join(root, 'public', 'texas', 'cypress-lakes', 'index.html'), 'utf8')).not.toContain('noindex');
     expect(readFileSync(join(root, 'public', 'robots.txt'), 'utf8')).toContain('Sitemap: https://footballcoachgame.com/sitemap.xml');
   });
 });

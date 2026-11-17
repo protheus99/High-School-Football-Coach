@@ -16,7 +16,7 @@ to it, or feature it. A page that isn't built yet allows neither.
 | info | yes | yes | About the game |
 | legal | yes | no | Privacy and terms: open to read, not for promotion |
 | school | yes | yes | One page per school: "Can you help ... win state?" |
-| start | no | no | A school page's "what to expect" step: reached only from its school page (and part of a test) |
+| start | no | no | A school page's "what to expect" step: reached only from its school page (and part of a test); the page carries noindex |
 | private | no | no | Test tools and match data: blocked in robots.txt |
 
 Exceptions (`OVERRIDES` in `pages.mjs`): none.

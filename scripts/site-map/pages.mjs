@@ -19,7 +19,7 @@ export const RULES = {
   info: { index: true, vendors: true, about: 'About the game' },
   legal: { index: true, vendors: false, about: 'Privacy and terms: open to read, not for promotion' },
   school: { index: true, vendors: true, about: 'One page per school: "Can you help ... win state?"' },
-  start: { index: false, vendors: false, about: 'A school page\'s "what to expect" step: reached only from its school page (and part of a test)' },
+  start: { index: false, vendors: false, about: 'A school page\'s "what to expect" step: reached only from its school page (and part of a test); the page carries noindex' },
   private: { index: false, vendors: false, about: 'Test tools and match data: blocked in robots.txt' }
 };
 

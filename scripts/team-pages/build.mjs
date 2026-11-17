@@ -79,7 +79,8 @@ function luminance(hex) {
   return (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
 }
 
-function head(t, title, description, path, color) {
+// noindex: the page stays out of search results (the start step is reached only from its team page)
+function head(t, title, description, path, color, noindex = false) {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -88,7 +89,7 @@ function head(t, title, description, path, color) {
 <title>${esc(title)} · Football Coach High School Edition</title>
 <meta name="description" content="${esc(description)}" />
 <link rel="canonical" href="${SITE}${path}" />
-<link rel="icon" href="/favicon.ico" />
+${noindex ? '<meta name="robots" content="noindex, follow" />\n' : ''}<link rel="icon" href="/favicon.ico" />
 <meta name="theme-color" content="${color}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Football Coach High School Edition" />
@@ -154,7 +155,7 @@ for (const t of TEAMS) {
     ['Take the field', 'Call the plays on Friday night.'],
     ['Lead them to glory', t.goal ? `Win state at ${t.venue}, then win it again.` : `Win the playoffs and lift the trophy at ${t.venue}.`]
   ];
-  const startPage = `${head(t, `Welcome to ${t.full}, Coach`, description, `${path}start/`, darken(field))}
+  const startPage = `${head(t, `Welcome to ${t.full}, Coach`, description, `${path}start/`, darken(field), true)}
 <body ${data} data-page="start" class="start" style="${style}">
 <main>
   <section class="hero">

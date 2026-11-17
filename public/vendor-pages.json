@@ -20,7 +20,7 @@
     },
     "start": {
       "vendors": false,
-      "about": "A school page's \"what to expect\" step: reached only from its school page (and part of a test)"
+      "about": "A school page's \"what to expect\" step: reached only from its school page (and part of a test); the page carries noindex"
     },
     "private": {
       "vendors": false,
