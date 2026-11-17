@@ -1,3 +1,7 @@
+# The list of pages outside vendors may use: readable from any site
+/vendor-pages.json
+  Access-Control-Allow-Origin: *
+
 # The match field's play data: never indexed, even when linked from somewhere
 /replay-data/*
   X-Robots-Tag: noindex, nofollow

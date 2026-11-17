@@ -2,6 +2,7 @@
 // ("what to expect", then New Game). Run it after changing the teams below: `node scripts/team-pages/build.mjs`.
 // The pages share public/team-pages/team.css and team.js. Copy rules: written for the team's fans, no game terms or
 // stats, never the word "bracket", never the number of states.
+import { execFileSync } from 'child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -182,3 +183,6 @@ ${steps.map(([b, line], i) => `      <li><span class="n">${i + 1}</span><div><b>
 }
 writeFileSync(join(root, 'src', 'data', 'teamPages.json'), JSON.stringify(links, null, 2) + '\n');
 console.log(`src/data/teamPages.json  (${links.length} teams)`);
+
+// The sitemap and the vendor list pick up the pages just written
+execFileSync(process.execPath, [join(root, 'scripts', 'site-map', 'build.mjs')], { stdio: 'inherit' });

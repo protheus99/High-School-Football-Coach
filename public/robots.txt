@@ -3,3 +3,5 @@
 User-agent: *
 Disallow: /replay-data/
 Disallow: /playtest/
+
+Sitemap: https://footballcoachgame.com/sitemap.xml

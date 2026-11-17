@@ -1,0 +1,78 @@
+{
+  "site": "https://footballcoachgame.com",
+  "about": "The pages of Football Coach High School Edition that outside vendors may link to, send traffic or ads to, or feature. Pages not listed here are not for vendor use.",
+  "rules": {
+    "game": {
+      "vendors": true,
+      "about": "The game itself (one address; its screens have no addresses of their own)"
+    },
+    "info": {
+      "vendors": true,
+      "about": "About the game"
+    },
+    "legal": {
+      "vendors": false,
+      "about": "Privacy and terms: open to read, not for promotion"
+    },
+    "school": {
+      "vendors": true,
+      "about": "One page per school: \"Can you help ... win state?\""
+    },
+    "start": {
+      "vendors": false,
+      "about": "A school page's \"what to expect\" step: reached only from its school page (and part of a test)"
+    },
+    "private": {
+      "vendors": false,
+      "about": "Test tools and match data: blocked in robots.txt"
+    }
+  },
+  "count": 7,
+  "pages": [
+    {
+      "url": "https://footballcoachgame.com/",
+      "kind": "game",
+      "title": "Football Coach High School Football Sim"
+    },
+    {
+      "url": "https://footballcoachgame.com/about",
+      "kind": "info",
+      "title": "About the Game"
+    },
+    {
+      "url": "https://footballcoachgame.com/alabama/thompson/",
+      "kind": "school",
+      "title": "Can you help Thompson High School build a dynasty?",
+      "state": "Alabama",
+      "school": "Thompson"
+    },
+    {
+      "url": "https://footballcoachgame.com/california/folsom/",
+      "kind": "school",
+      "title": "Can you help Folsom High School win state?",
+      "state": "California",
+      "school": "Folsom"
+    },
+    {
+      "url": "https://footballcoachgame.com/florida/jupiter/",
+      "kind": "school",
+      "title": "Can you help Jupiter High School win state?",
+      "state": "Florida",
+      "school": "Jupiter"
+    },
+    {
+      "url": "https://footballcoachgame.com/georgia/valdosta/",
+      "kind": "school",
+      "title": "Can you help Valdosta High School win state?",
+      "state": "Georgia",
+      "school": "Valdosta"
+    },
+    {
+      "url": "https://footballcoachgame.com/texas/cypress-lakes/",
+      "kind": "school",
+      "title": "Can you help Cypress Lakes High School win state?",
+      "state": "Texas",
+      "school": "Cypress Lakes"
+    }
+  ]
+}
