@@ -18,7 +18,7 @@ short name) is who has an opinion: "Football Coach likes Lowndes, barely.", "Foo
 Football Coach?". "We" is the people behind it: "We simulated the rest of the 2027 season. Here is what we found:".
 Banter is welcome ("Upsets happen."). Labels stay short: no feature names such as "Friday Night Sim" on school pages.
 
-Mockups (version 2, 2026-11-20): https://claude.ai/artifact/A3ENPa5eC3jAfbiLA3HbVK
+Mockups (revised through 2026-11-20): https://claude.ai/artifact/A3ENPa5eC3jAfbiLA3HbVK
 
 ---
 
@@ -76,6 +76,12 @@ What the page says (fan language, one idea per line):
 - **The game that decides the season:** the closest game on the schedule, named ("The Winnersville Classic against
   Lowndes is a coin flip").
 - **Best and worst seasons we saw:** "Best: 14-0, state champions. Worst: 3-7."
+- **National lines, for powerhouses only:** "Duncanville finishes in Football Coach's national top 25 most years." and
+  "Duncanville won the national title in 1 of every 26 seasons." In season: "Football Coach's national top 25 this
+  week: #6." High school football has no national playoff; as in the game, the national title is #1 in the final
+  national top 25 (the game's computer rankings, `src/sim/nationalRankingEngine.ts`, solved from every result). The
+  lines appear only for teams that reach the national top 25 in enough runs (threshold to set, for example 1 run in
+  10); the title line only if they won it at least once.
 - **The average coach:** "The average coach takes 11 seasons to win state with Valdosta. Can you do better?" (the
   approved line; it goes in the "You can do it." card).
 
@@ -114,18 +120,27 @@ How the outlook runner (3.1) builds it from the thousands of runs:
   most common record); see Decisions.
 
 On the page:
-- **Scoreboard:** the away team on top, the home team at the bottom (marked "Home"), as on a real scoreboard. A rivalry
-  game shows its name ("⚔️ Winnersville Classic").
+- **Scoreboard:** the away team on top, the home team at the bottom, as on a real scoreboard, with no "Home" label. A
+  regular-season rivalry game shows its name ("⚔️ Winnersville Classic").
 - **Game list** under it: every game with its forecast score, filling in as the scoreboard plays. "Regular season" and
   "Playoffs" dividers keep the two apart; a team that misses shows "Missed the playoffs". Rivalry games are marked
-  (⚔️ and the rivalry's name, from `src/data/rivalries.ts` and the rivalry names collected for new schools).
+  (⚔️ and the rivalry's name, from `src/data/rivalries.ts` and the rivalry names collected for new schools), in the
+  regular season only: no rivalry notice in the playoffs, even in a rematch.
+- **Losing teams** (mockup: Wisdom, forecast 1-9): the outlook stays honest ("In 10,000 seasons, Wisdom never won
+  state"; "The average coach doesn't win state with Wisdom in 20 seasons. Can you be the first?") and the story turns
+  it into the dare ("Wisdom is due."). A school with no rivalry on file gets "The game to circle" instead: its
+  closest game, the best shot at a win.
 - **In season (from Week 6, for example):** the games already played show "Final", the real score, and what Football
   Coach said before the game ("Football Coach said W 31-17 ✓" or "✗"); a line above the list keeps count ("Football
   Coach's picks so far: 3 of 5 right"). A dashed "Forecast from Week 6" divider follows, then the forecast for the
   rest, recomputed from the real record. The scoreboard plays only the games still to come. Owning the misses in
   public is part of the fun and keeps the forecasts honest. (The picks shown for played games are the ones published
   before each game, so the outlook runner keeps every week's forecast, never overwriting it.)
-- The control under it reads "Replay season".
+- **Suspense:** before it plays, the scoreboard waits at the first game to come and the list shows only the regular
+  season, scores empty. The playoff games appear one by one as they're reached; "Missed the playoffs" and the final
+  line ("1-9 is the forecast...") only after the last game. It plays once when the scoreboard is fully in view;
+  with reduced motion it shows the finished season.
+- The control under it reads "🔄 Replay season".
 
 Unique per school: its real opponents, its forecast scores, its ending, and in season its real results and how
 Football Coach's picks did.
@@ -302,7 +317,8 @@ node scripts/outlook/run.mjs --states texas,georgia --classes 6a-division-1,7a -
 | `--results` | The results file to start from (default: the latest the agent wrote) | latest |
 | `--avg-coach` | Also measure "seasons the average coach needs to win state" (multi-season worlds) | off |
 | `--avg-coach-worlds`, `--avg-coach-years` | How many worlds and how many seasons each, for that measure | 200, 20 |
-| `--montage` | Also pick and save each school's "season in a minute" season | on |
+| `--montage` | Also save each school's game-by-game forecast ("season in a minute") | on |
+| `--national` | Also run the national rankings: every selected state in the same seasons, the game's computer rankings at the end of each, counting national top 25 finishes and national titles. Needs every state that can produce a top-25 team in the run (in practice the top classifications of every state) | off |
 | `--picks` | Only this week's games (Week N picks), fast | off |
 | `--strength` | The team-strength file to use (section 4) | latest |
 | `--workers` | Parallel workers | cores - 1 |
@@ -560,39 +576,45 @@ Settled by the user on 2026-11-20:
 - The outlook always says whether Football Coach has the team in the playoffs.
 - The season in a minute lists every game with its score, regular season and playoffs apart; its control reads
   "Replay season".
-- The season in a minute is Football Coach's forecast built from all the simulated seasons, not one season. In
-  season it shows the games already played (real score and Football Coach's pick) and forecasts from the current
-  week. On the scoreboard the home team is at the bottom. Rivalry games are marked.
+- The season in a minute is Football Coach's forecast built from all the simulated seasons, not one season. The
+  playoffs part and the verdict stay hidden until the regular season has played (suspense); "🔄 Replay season".
+  Powerhouses also get national top 25 and national title lines.
+- In season the season in a minute shows the games already played (real score and Football Coach's pick) and
+  forecasts from the current week. On the scoreboard the home team is at the bottom, with no "Home" label. Rivalry
+  games are marked in the regular season only, never in the playoffs.
 - Star ratings are an input to the hidden strength formula, never shown (section 4); license them or rate them
   ourselves.
 
 Still open:
-1. **Approve the page designs** (mockups version 2).
+1. **Approve the page designs** (the mockups, latest version).
 2. **Preseason headline:** "We simulated Valdosta's 2027 season. Here is what we found:" (the in-season wording, used
    before the season too).
 3. **The playoff verdict words:** "Playoffs" / "Long shot" / "No playoffs", or add "On the bubble"?
 4. **The forecast's record:** the picks' total can differ by a game from the outlook's "Most years" record. Use the
    picks' total in both places so the page never disagrees with itself? Show the most likely playoff opponents ("most
    likely at Carrollton"), or only the round where it ends?
-5. **Title counts on school pages** ("In 10,000 seasons, Cypress Lakes won state 4 times"): allowed, or only the
+5. **National lines:** how often must a team reach the national top 25 in the runs before its page shows the national
+   lines (suggested: 1 run in 10)? And `--national` runs every state's top classifications together, which costs more
+   per run (to measure).
+6. **Title counts on school pages** ("In 10,000 seasons, Cypress Lakes won state 4 times"): allowed, or only the
    "average coach" line?
-6. **Star ratings:** ask for license quotes now and test our own ratings on the pilot state, as recommended? Who on
+7. **Star ratings:** ask for license quotes now and test our own ratings on the pilot state, as recommended? Who on
    the team would rate players?
-7. **Serving:** B (edge-rendered, recommended) or A (static files)? Which Cloudflare plan is the account on?
-8. **The "average coach" number:** AI-only multi-season worlds for every school, calibrated with the bot harness? It
+8. **Serving:** B (edge-rendered, recommended) or A (static files)? Which Cloudflare plan is the account on?
+9. **The "average coach" number:** AI-only multi-season worlds for every school, calibrated with the bot harness? It
    waits for the recruiting fix.
-9. **The results agent:** run it as a Claude Code scheduled task on this computer, or as a cloud routine? Who reviews
+10. **The results agent:** run it as a Claude Code scheduled task on this computer, or as a cloud routine? Who reviews
    its weekly report?
-10. **Venue names on the pages** ("lift the state trophy at AT&T Stadium"): keep in page text, or switch to "lift the
+11. **Venue names on the pages** ("lift the state trophy at AT&T Stadium"): keep in page text, or switch to "lift the
     state trophy"? (Recommended: keep text mentions, never in videos.)
-11. **December videos:** agree to the wording and limits in 5, and to a short lawyer's review (with the star-input
+12. **December videos:** agree to the wording and limits in 5, and to a short lawyer's review (with the star-input
     question) before the first one?
-12. **Pilot state:** Alabama, or another?
-13. **Maryland:** it is in the game but not on the target list. Keep building its pages?
-14. **The hub page's one button:** "Share the top 10" (shown), or "Coach a team in [class]"?
-15. **The montage:** play by itself when scrolled into view (silent, respects reduced motion), or wait for a tap?
-16. **Footer links on school pages** (state, classification, district rivals in small text under the button), or none?
-17. **Coaches who took over (2.9):** show the best run with the player's coach name when they chose to show it on the
+13. **Pilot state:** Alabama, or another?
+14. **Maryland:** it is in the game but not on the target list. Keep building its pages?
+15. **The hub page's one button:** "Share the top 10" (shown), or "Coach a team in [class]"?
+16. **The montage:** play by itself when scrolled into view (silent, respects reduced motion), or wait for a tap?
+17. **Footer links on school pages** (state, classification, district rivals in small text under the button), or none?
+18. **Coaches who took over (2.9):** show the best run with the player's coach name when they chose to show it on the
     leaderboard, or counts only?
 
 ## Sources (checked 2026-11-20)
