@@ -101,15 +101,34 @@ sameness in the sentences around them; see 2.11.
 
 ### 2.2 ★ "The 2027 season in a minute": the scoreboard montage
 
-One simulated season (the run closest to the school's typical season) played as a 15-second scoreboard: week by week,
-the opponent, the score ticking up, the record growing, then the playoff run and how it ends. Template, not a match
-replay: an HTML/CSS animation fed by about 40 numbers.
+**Football Coach's forecast, game by game**, played as a 15-second scoreboard: week by week, the opponent, the score
+ticking up, the record growing, then the playoff run and how it ends. It is not one simulated season: it is the
+consensus of all of them. Template, not a match replay: an HTML/CSS animation fed by about 40 numbers.
 
-Under the scoreboard, every game is listed with its score (filling in as the scoreboard plays), the regular season and
-the playoffs clearly apart ("Regular season" and "Playoffs" dividers; a team that misses them shows "Missed the
-playoffs" under the second divider). The control under it reads "Replay season".
+How the outlook runner (3.1) builds it from the thousands of runs:
+- **Each regular-season game:** the winner is the team that won it in more runs; the score is the typical score of the
+  runs that team won (median points for each side).
+- **The playoffs:** the round reached most often decides how far the forecast goes; each round's opponent is the one
+  met most often in that round. The run ends with the most common result there ("most likely at Carrollton").
+- **The record** is what the picks add up to. It can differ by a game from the outlook's "Most years" line (the single
+  most common record); see Decisions.
 
-Unique per school: its real district opponents, its scores, its ending.
+On the page:
+- **Scoreboard:** the away team on top, the home team at the bottom (marked "Home"), as on a real scoreboard. A rivalry
+  game shows its name ("⚔️ Winnersville Classic").
+- **Game list** under it: every game with its forecast score, filling in as the scoreboard plays. "Regular season" and
+  "Playoffs" dividers keep the two apart; a team that misses shows "Missed the playoffs". Rivalry games are marked
+  (⚔️ and the rivalry's name, from `src/data/rivalries.ts` and the rivalry names collected for new schools).
+- **In season (from Week 6, for example):** the games already played show "Final", the real score, and what Football
+  Coach said before the game ("Football Coach said W 31-17 ✓" or "✗"); a line above the list keeps count ("Football
+  Coach's picks so far: 3 of 5 right"). A dashed "Forecast from Week 6" divider follows, then the forecast for the
+  rest, recomputed from the real record. The scoreboard plays only the games still to come. Owning the misses in
+  public is part of the fun and keeps the forecasts honest. (The picks shown for played games are the ones published
+  before each game, so the outlook runner keeps every week's forecast, never overwriting it.)
+- The control under it reads "Replay season".
+
+Unique per school: its real opponents, its forecast scores, its ending, and in season its real results and how
+Football Coach's picks did.
 
 Cost, by format:
 - **On the page (recommended for all):** CSS + a few lines of JS in the shared `team.js`; the data is in the
@@ -117,8 +136,8 @@ Cost, by format:
 - **As MP4 for social:** a headless browser records the same animation: about 20 s per school, so 12,000 schools =
   about 65 machine-hours. Make the MP4 only for share moments (the top 10s, a requested school, the rivalry weeks).
 
-Refresh: with the outlook (yearly); in season the montage can switch to "the rest of the season", from the real record
-so far (needs real results; see 2.4).
+Refresh: with the outlook (yearly before the season); weekly in season, after the results agent (3.2) brings in the
+week's scores.
 
 Risk: none for search (it is the same data as 2.1). Video on the page should not autoplay sound (it has none) and must
 respect reduced motion.
@@ -295,8 +314,9 @@ node scripts/outlook/run.mjs --states texas,georgia --classes 6a-division-1,7a -
 Run with no options, it asks: which states (a checklist), which classifications, how many seasons, then shows the
 estimate and asks to go. It can stop and resume (finished classifications are skipped, like the title-odds harness).
 Output: one JSON file per state and classification, with each school's outlook (record spread, playoff share, round
-reached, titles, best and worst season, the rival game, the montage season) and the run's settings, so any page can
-say which run it came from.
+reached, titles, best and worst season, the rival game, the game-by-game forecast of 2.2) and the run's settings, so
+any page can say which run it came from. Each week's forecast is kept beside the earlier ones (`week-00` preseason,
+`week-05`, ...), never overwritten, so the pages can show what Football Coach said before each game.
 
 ### 3.2 The results agent: real records, standings and rankings every week
 
@@ -540,6 +560,9 @@ Settled by the user on 2026-11-20:
 - The outlook always says whether Football Coach has the team in the playoffs.
 - The season in a minute lists every game with its score, regular season and playoffs apart; its control reads
   "Replay season".
+- The season in a minute is Football Coach's forecast built from all the simulated seasons, not one season. In
+  season it shows the games already played (real score and Football Coach's pick) and forecasts from the current
+  week. On the scoreboard the home team is at the bottom. Rivalry games are marked.
 - Star ratings are an input to the hidden strength formula, never shown (section 4); license them or rate them
   ourselves.
 
@@ -548,8 +571,9 @@ Still open:
 2. **Preseason headline:** "We simulated Valdosta's 2027 season. Here is what we found:" (the in-season wording, used
    before the season too).
 3. **The playoff verdict words:** "Playoffs" / "Long shot" / "No playoffs", or add "On the bubble"?
-4. **Scores in the game list:** the scores of the one season on the scoreboard (shown), or Football Coach's typical
-   score for each game (reads as a prediction)?
+4. **The forecast's record:** the picks' total can differ by a game from the outlook's "Most years" record. Use the
+   picks' total in both places so the page never disagrees with itself? Show the most likely playoff opponents ("most
+   likely at Carrollton"), or only the round where it ends?
 5. **Title counts on school pages** ("In 10,000 seasons, Cypress Lakes won state 4 times"): allowed, or only the
    "average coach" line?
 6. **Star ratings:** ask for license quotes now and test our own ratings on the pilot state, as recommended? Who on
