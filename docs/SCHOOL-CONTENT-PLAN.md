@@ -435,6 +435,74 @@ page address, and their `start/` steps to the shared `/start/` step. Links alrea
 
 Hubs (`/texas/`, `/texas/6a-division-1/`) are few enough to stay static files at their path addresses; see Decisions.
 
+### 3.4 The preseason inputs: what each team needs, where it comes from, when it's out (2026-11-20)
+
+Every team needs the same base record before Football Coach can forecast it. Most of it is public; a few parts are
+not, and those decide the cost.
+
+| Layer | What | Where it comes from | How it's gathered | Refresh |
+| --- | --- | --- | --- | --- |
+| 1. Identity | Official name, city, county, address and map point, public or private, grades, enrollment, a stable ID | **NCES Common Core of Data** (public schools; free, public domain; preliminary directory in the spring, full files around December) and the **NCES Private School Survey** (every 2 years) | A script downloads the files and builds the master list; it keeps the NCES ID as the school's lasting ID | Yearly |
+| 2. Football and look | Plays 11-man football; mascot; colors; stadium | The association's classification lists (only schools that play the sport are on them); the association's member directory; the school's website | The **base-data agent** (below) fills mascot, colors and stadium; a person spot-checks a sample per state | Yearly; colors rarely change |
+| 3. Competition | Classification, division, region or district, playoff format | The association's realignment release and playoff rules | The agent reads the release (usually PDF or web tables) into the state's data file; the game's `stateRules.ts` gets the playoff format | Each cycle (2 or 4 years), plus yearly changes (opt-ups, new schools, Ohio and Michigan reset yearly) |
+| 4. Schedule | Every game: date, opponent, home or away | Depends on who makes it (see the calendar): the association itself (Iowa, Nebraska), district or region committees (Texas, Georgia, Florida, Alabama district games), conferences and leagues (Ohio, Michigan, Illinois, Pennsylvania, New Jersey, California) | The results agent (3.2) in its summer mode: association pages first, then district, conference and school sites | Spring and summer, final changes until Week 0 |
+| 5. Results history | Every game's score for the last 3 seasons (2024-2026), for the strength rating (4.1) | Associations whose playoffs use points publish every game (for example Ohio's computer ratings, Michigan's playoff points, Nebraska's wild card points); many publish only the playoffs (Texas). The rest: a licensed scores feed, or school and newspaper sites | One backfill job now; then the weekly results agent | Once now, then weekly in season |
+| 6. Program history | State titles, finals, playoff rounds by year | The associations' record books and playoff archives | The agent, once per state; then one line per year | Yearly (December) |
+| 7. Change flags | New head coach; moved up or down a class; school opened, merged or closed; stopped or restarted 11-man | Association releases, school and district announcements, local news | The agent, in its preseason pass; stored as yes/no flags, never the coach's name | Yearly (January to July) |
+| 8. Star ratings | Talent and consensus (4.2-4.7) | **The user supplies them** (4.3 has the format) | A check script validates the file | When the user sends a new file |
+| 9. Returning starters (optional) | Who is back from last year | Rarely published; preseason magazines own theirs | Skip in the first version; the user's star file can carry it later (4.3, optional column); the backtest decides if it's worth it | Yearly |
+
+**The base-data agent:** the same kind of scheduled AI agent as the results agent (3.2), run per state. Its first job
+is to write each state's source list, `scripts/state-sources/<state>.json`: the association, its realignment cycle and
+next release, who makes the schedules and where they're posted, where scores are posted (if anywhere), the champions
+list. After that it fills layers 2, 3, 4, 6 and 7 from those sources, writes `data/base/<year>/<state>.json`, and
+reports what it couldn't find or match. Rules as in 3.2: facts only, no player names, only sources whose terms allow
+it.
+
+**The one real gap is layer 5, the scores.** Where the association doesn't publish every game, the free routes are
+slow (school sites, newspapers). Two licensed feeds exist: ScoreStream (a crowd-sourced scores API; it supplies the
+Associated Press) and PlayOn, which now owns MaxPreps (aggregated scores and schedules sold to media). Neither
+publishes prices. Recommendation: ask both for a quote for 3 seasons of backfill plus 2027 weekly, for the target
+states, used inside the simulation and shown only as each school's own results. Until then, the backtest starts with
+the states whose association publishes every score.
+
+#### When the information is out (as of 2026-11-20)
+
+Most of the target states realigned for **2026-27 and 2027-28**, so the 2027 classifications are already known in
+most of them. The next big wave comes late 2027 to early 2028 for the 2028-30 cycle.
+
+| State | Cycle and timing (examples checked) | Schedules made by |
+| --- | --- | --- |
+| Texas (UIL) | Every 2 years; 2026-28 districts released Feb 2, 2026 | District committees (district games) and schools, in the spring after realignment |
+| Georgia (GHSA) | Every 2 years; 2026-28 regions set Nov 2025 (appeals Nov 17) | Regions and schools |
+| Florida (FHSAA) | Every 2 years; 2026-28 classes final Dec 17, 2025 (1A and Rural merged Feb 13, 2026) | District coordinators and schools |
+| Alabama (AHSAA) | Every 2 years; 2026-28 alignments released Jan 23, 2026; public and private now separate | Regions and schools |
+| Pennsylvania (PIAA) | Every 2 years; 2026-28 parameters Nov 2025, school numbers soon after, play-ups Dec 2025 to Apr 2026 | Leagues and schools |
+| North Carolina (NCHSAA) | Every 4 years; 2025-29 approved Mar 3, 2025 | Conferences and schools |
+| Ohio (OHSAA) | Divisions every year; 2026 announced Apr 23, 2026, revised Jun 22 after opt-ups; new-school enrollment counted Sep 10 | Leagues and schools |
+| Michigan (MHSAA) | Divisions every year; 2026-27 announced Apr 7, 2026; playoff field by playoff points after the season | Leagues and schools |
+| Iowa (IHSAA) | Every 2 years; 2025-26 districts Mar 2025; next cycle (2027-28) early 2027 | **The association** builds every varsity schedule (posted with the districts) |
+| Nebraska (NSAA) | Every 2 years; 2026-27 schedules released Feb 11, 2026 | **The association** builds every schedule |
+| Illinois (IHSA) | **Classes are set after the regular season** (from the playoff qualifiers' enrollment, with the private-school multiplier) | Conferences and schools |
+| California (CIF sections) | Leagues realign every 2-4 years by section; **playoff divisions are set after the regular season** from computer ratings (Southern Section) | Leagues and schools |
+| The other target states | To fill in: the base-data agent's first pass writes each state's source list | |
+
+Two states need a different preseason page: in **Illinois and California**, the playoff class or division isn't known
+until the season ends. Their outlook says what Football Coach projects ("Football Coach has them in 7A") until the
+association decides, and their hubs group schools by conference before then.
+
+**The 2027 preseason calendar:**
+
+| When | What |
+| --- | --- |
+| Now to January 2027 | Base-data agent writes every state's source list; backfill of 2024-2026 scores (association sources; licensed feed if quoted); program history |
+| January to March 2027 | NCES files for identity and enrollment; classifications for the 2-year states already known; Iowa's 2027-28 districts and schedules |
+| March to April 2027 | Ohio and Michigan divisions (yearly); change flags; first star file from the user |
+| April to July 2027 | Schedules collected as they're posted; backtest on 2025 and 2026 sets the strength weights |
+| Mid-July 2027 | Last star file and schedule pass; the runner builds current strength and the preseason outlooks |
+| Late July 2027 | Preseason outlooks and top 10s published |
+| Late August 2027 on | Weekly results; strength and outlooks refresh every weekend |
+
 ---
 
 ## 4. Team strength: this year's team, from current information
@@ -480,7 +548,7 @@ What that means for the outlook:
 | This season's results | The same rating, from this year's games; it takes over as weeks pass (the preseason number counts as about 3 games) | Results agent, every week | In season |
 | Program history (prestige) | Pulls a team back toward its usual level: one good or bad year is partly luck | Game data, champion lists | Preseason |
 | Returning starters, seniors lost | Who is back from last year | School rosters and the association's preseason data, where published | Preseason |
-| Star counts | Talent and consensus (4.2-4.5 below) | License or our own ratings | Preseason |
+| Star counts | Talent and consensus (4.2-4.5 below) | The user's star file (4.3) | Preseason |
 | New head coach | A coaching change adds doubt (a wider spread) | Results agent collects it | Preseason |
 | Enrollment, classification move | A move up or down a class changes the competition | The association | Preseason |
 
@@ -502,15 +570,52 @@ game's data, so a new career starts from the real program's current level. See D
 If a school has, say, a 5-star prospect at quarterback, the sim gives that team a strong fictional quarterback. The
 real player is never named, shown, highlighted or hinted at anywhere.
 
-### 4.3 Data shape (no names, no IDs)
+### 4.3 The star file the user sends (format)
 
-```json
-{ "season": 2027, "state": "Texas", "school": "Duncanville",
-  "stars": { "QB": { "5": 0, "4": 1, "3": 1 }, "WR": { "4": 2 }, "DL": { "5": 1, "3": 2 } } }
+Decision (user, 2026-11-20): **the user gets the star ratings and supplies them** as a file. The plan doesn't need to
+license or rate them itself.
+
+One CSV file per delivery, one row per school, position and star tier: counts only, never a player's name, ID or
+link. A spreadsheet can save it directly.
+
+File name: `stars-<season>-<date>.csv`, for example `stars-2027-2027-06-15.csv`. A newer file for the same season
+replaces the older one completely (players transfer and ratings change), so each file is the full picture on that
+date.
+
+| Column | Required | Meaning | Example |
+| --- | --- | --- | --- |
+| `season` | yes | The football season the players are on the roster for | `2027` |
+| `state` | yes | Two-letter code, lowercase | `ga` |
+| `school_id` | one of these two | The school's ID from the team list we hand over (`data/base/<year>/teams-<state>.csv`) | `1300720` |
+| `school` | one of these two | The school's name as the source writes it, if there's no ID; add `city` to tell apart repeats | `Valdosta` |
+| `city` | no | The school's city, to match repeated names | `Valdosta` |
+| `position` | yes | One of the positions below | `QB` |
+| `stars` | yes | 2 to 5 | `4` |
+| `count` | yes | How many players at that school, position and tier | `1` |
+| `grad_year` | no | Their graduating class, to know who leaves after the season (if given, one row per class) | `2029` |
+| `returning` | no | How many of `count` started last season (layer 9 in 3.4) | `1` |
+
+Positions: the game's own (`QB RB WR TE OT OG C DE DT LB CB S K P`) or the usual groups, which the game spreads over
+its positions: `OL` (OT, OG, C), `IOL` (OG, C), `DL` (DE, DT), `EDGE` (DE), `DB` (CB, S), `ATH` (the team's thinnest
+skill position).
+
+```csv
+season,state,school_id,school,city,position,stars,count,grad_year,returning
+2027,ga,1300720,Valdosta,Valdosta,QB,4,1,2028,1
+2027,ga,1300720,Valdosta,Valdosta,DL,3,2,,
+2027,tx,4817190,Duncanville,Duncanville,WR,5,1,2028,1
+2027,tx,4817190,Duncanville,Duncanville,EDGE,4,2,2029,0
 ```
 
-Counts per school, position group and star tier, for one season. No name, class year, player ID, height or link: once
-the counts are made the source list is thrown away.
+(The IDs above are made up for the example.) Schools with no rated players need no rows.
+
+**The check:** `node scripts/outlook/check-stars.mjs <file>` reads it before anything uses it and reports, without
+changing it: schools it can't match (with the closest names from the team list), unknown positions, stars outside 2-5,
+counts over the per-team cap, rows repeated, and the totals per state. The runner refuses a file with errors.
+
+**Where it's kept:** outside git, like the music files (`data/stars/` is git-ignored) and never in shared notes: the
+counts come from a third party's product and describe minors' teams. Only the derived team strength reaches the
+outlook files.
 
 ### 4.4 How the game would use it
 
@@ -534,7 +639,7 @@ an input to the formula below. They are never shown, named or hinted at: not as 
 | --- | --- | --- |
 | Results power rating | How good the team has been lately: an Elo-style rating fitted to the last 3-5 seasons of scores, margin capped | Association-published scores, via the results agent (3.2) |
 | Program history | Titles, deep playoff runs, recent records: the program's pull | Association champion lists and results |
-| Talent and consensus | How rated the current players are, and so how highly the team is thought of | Star counts per position (licensed or our own; below) |
+| Talent and consensus | How rated the current players are, and so how highly the team is thought of | Star counts per position (the user's star file, 4.3) |
 | Returning starters (optional) | Turnover from last season | Later, if a source exists |
 | Enrollment and classification | Size of the school and its competition | The association's own data |
 
@@ -548,7 +653,8 @@ so "All players, games and results are fictional" stays true.
 
 ### 4.7 Getting the ratings: license, or rate them ourselves
 
-Scraping the recruiting sites is out: their ratings are their editorial product, their terms limit use to personal,
+Settled (user, 2026-11-20): the user supplies the ratings in the format of 4.3. The background below stays for
+reference. Scraping the recruiting sites is out: their ratings are their editorial product, their terms limit use to personal,
 non-commercial use (247Sports' subscription terms: "non-commercial entertainment"), and their sites forbid scraping.
 Two ways that work:
 
@@ -693,6 +799,7 @@ Settled by the user on 2026-11-20:
 - Each school gets two pages (2.0): a landing page for marketing, with its own button, and an outlook page with the
   information: the outlook, the season in a minute and "You can do it."
 - Strength must come from current information, not the program's prestige alone (4.0-4.1).
+- The user supplies the star ratings, as the CSV file in 4.3.
 - No file per school (3.3): the landing page is `/team_page/?state=ga&school=valdosta&v=direct` and the outlook page
   `/forecast/?state=ga&school=valdosta&v=direct&year=2027&type=base`; `type=base` is today's style, more to come.
 
@@ -717,8 +824,8 @@ Still open:
    per run (to measure).
 9. **Title counts on school pages** ("In 10,000 seasons, Cypress Lakes won state 4 times"): allowed, or only the
    "average coach" line?
-10. **Star ratings:** ask for license quotes now and test our own ratings on the pilot state, as recommended? Who on
-   the team would rate players?
+10. **Scores feed (3.4):** ask ScoreStream and PlayOn (MaxPreps) for quotes on 3 seasons of backfill plus 2027 weekly?
+   Until then, the backtest uses the states whose association publishes every score.
 11. **Cloudflare plan:** which plan is the account on? (With shared pages, either works.)
    **Current strength (4.1):** agree to the rating kept apart from prestige, updated weekly from real scores, with
    the backtest on 2025 and 2026 before launch? Should it also refresh each school's prestige in the game once a
@@ -741,6 +848,28 @@ Still open:
     leaderboard, or counts only?
 
 ## Sources (checked 2026-11-20)
+
+- Preseason inputs and calendars (3.4), checked 2026-11-20:
+  NCES Common Core of Data files: https://nces.ed.gov/ccd/files.asp and
+  https://ies.ed.gov/use-work/resource-library/data/data-file/2024-25-common-core-data-ccd-preliminary-directory-files;
+  UIL 2026-28 realignment: https://www.uiltexas.org/press-releases/detail/2026-2028-uil-reclassification-and-realignment-information
+  and https://www.uiltexas.org/alignments;
+  GHSA 2026-28 regions: https://www.ghsa.net/reclassification and
+  https://www.ajc.com/sports/2025/11/tentative-ghsa-region-alignments-for-2026-28-announced-after-classes-settled;
+  FHSAA 2026-28: https://fhsaa.com/news/2025/12/17/football-classifications-available-for-2026-27-2027-28.aspx and
+  https://fhsaa.com/news/2026/2/13/football-classifications-available-for-2026-27and2027-28.aspx;
+  AHSAA 2026-28: https://www.villagelivingonline.com/sports/ahsaa-releases-new-alignments-for-upcoming-school-years/;
+  PIAA 2026-28: https://tribhssn.triblive.com/new-piaa-classification-parameters-move-11-time-wpial-champion-thomas-jefferson-to-5a-football;
+  NCHSAA 2025-29: https://www.nchsaa.org/wp-content/uploads/2025/03/V2-NCHSAA-Board-of-Directors-Approved-2025-2029-Realignment.pdf;
+  OHSAA 2026 divisions: https://www.ohsaa.org/news-media/ohsaa-announces-2026-football-divisions-and-regions and
+  https://www.ohsaa.org/news-media/eight-schools-opt-up-to-ohsaa-division-i-football;
+  MHSAA 2026-27: https://www.mhsaa.com/topics/mhsaa-news/mhsaa-2026-27-school-year-classifications-announced;
+  Iowa IHSAA schedules: https://www.iahsaa.org/football-2025-2026-schedules/;
+  NSAA schedules: https://www.anewspaper.net/article/1776,nsaa-releases-2026-2027-football-schedules;
+  IHSA classes after the regular season: https://ihsa.org/data/fb/playoffs.htm;
+  CIF Southern Section divisions from computer rankings: https://cifss.org/wp-content/uploads/2016/09/2025Football11Man-Bulletin-1.pdf;
+  ScoreStream API: https://blog.scorestream.com/category/scorestream-2; PlayOn and MaxPreps:
+  https://blog.playonsports.com/playon-acquires-maxpreps-to-elevate-the-high-school-sports-fan-experience
 
 - Cloudflare static asset limits: https://developers.cloudflare.com/changelog/2025-09-02-increased-static-asset-limits/
   and https://developers.cloudflare.com/workers/platform/limits
