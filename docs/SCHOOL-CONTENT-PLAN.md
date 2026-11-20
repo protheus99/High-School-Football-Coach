@@ -1,6 +1,6 @@
 # One page per school: unique content from the game's simulation
 
-Status: plan only (2026-11-20). Nothing here is built. The page designs need the user's approval (mockups first, per
+Status: plan only (2026-11-20, revised the same day after the user's review of the first mockups). Nothing here is built. The page designs need the user's approval (mockups first, per
 CLAUDE.md) before any production page is written.
 
 Goal: one page for every 11-man high school in the target states, listed by classification, each classification with
@@ -12,6 +12,13 @@ opponents and a different story on each, not the same paragraph with a new name.
 Copy rules for everything below (public copy): fan language, not game terms or stats (no prestige, ratings or
 percentages); one decision and one button per school page; "playoffs", never the b-word; never the number of states;
 prospects "join your school"; never name an outside source of the play data.
+
+**Football Coach is the voice.** The pages never talk about "the sim" as a character. Football Coach (the game's
+short name) is who has an opinion: "Football Coach likes Lowndes, barely.", "Football Coach's top 10", "Agree with
+Football Coach?". "We" is the people behind it: "We simulated the rest of the 2027 season. Here is what we found:".
+Banter is welcome ("Upsets happen."). Labels stay short: no feature names such as "Friday Night Sim" on school pages.
+
+Mockups (version 2, 2026-11-20): https://claude.ai/artifact/A3ENPa5eC3jAfbiLA3HbVK
 
 ---
 
@@ -50,12 +57,19 @@ building Texas 6A's whole world (254 schools, light rosters) takes 28 ms (102 ms
 Each method: what makes it unique per school, what it costs at 10,000+ schools, how often it refreshes, and the
 thin-content risk. Starred methods are the recommended launch set.
 
-### 2.1 ★ The season outlook: "We simulated [school]'s 2027 season 10,000 times"
+### 2.1 ★ The season outlook: "We simulated Valdosta's 2027 season. Here is what we found:"
+
+In season the headline counts from the real record: "Valdosta is 4-1. We simulated the rest of the 2027 season. Here
+is what we found:".
 
 What the page says (fan language, one idea per line):
 - **Most years:** the typical record ("Most years: 8-2").
-- **How far:** the round where most seasons end ("Most years the season ends in the second round of the playoffs" /
-  "Most years they miss the playoffs").
+- **The playoff verdict (always shown):** does Football Coach have them in? A colored tag and one line: "Playoffs:
+  Football Coach has Valdosta in." / "Long shot: the Spartans need to win out to get in." / "No playoffs: Football
+  Coach has Cypress Lakes out." The tag comes from the share of runs that reach the playoffs (in: most runs; long
+  shot: some; out: few). Thresholds to set when the first real outlooks exist.
+- **How far:** the round where most seasons end ("Most years the season ends in the second round"; for a team that's
+  out, "When they do get in, the run ends in the first round").
 - **State titles:** as a count or "1 in N" ("In 10,000 seasons, Cypress Lakes won state 4 times." / "Valdosta wins
   state about once every 30 seasons."). Counts read like fan talk and are not percentages. (Decision: is "1 in N" OK
   here? The title-odds plan already approved "1 in N".)
@@ -89,7 +103,11 @@ sameness in the sentences around them; see 2.11.
 
 One simulated season (the run closest to the school's typical season) played as a 15-second scoreboard: week by week,
 the opponent, the score ticking up, the record growing, then the playoff run and how it ends. Template, not a match
-replay: an HTML/CSS animation fed by about 20 numbers.
+replay: an HTML/CSS animation fed by about 40 numbers.
+
+Under the scoreboard, every game is listed with its score (filling in as the scoreboard plays), the regular season and
+the playoffs clearly apart ("Regular season" and "Playoffs" dividers; a team that misses them shows "Missed the
+playoffs" under the second divider). The control under it reads "Replay season".
 
 Unique per school: its real district opponents, its scores, its ending.
 
@@ -107,12 +125,13 @@ respect reduced motion.
 
 ### 2.3 ★ Preseason top 10 per classification (the hub pages)
 
-`/texas/6a-division-1/`: "Texas 6A Division I: the sim's 2027 preseason top 10". Ten cards, each with the school, a
-one-line fan reason ("Wins it all more often than anyone"), and its typical record. Every other team in the class
-follows, by district, each linking to its school page.
+`/texas/6a-division-1/`: "Texas 6A Division I: Football Coach's top 10" (2027 preseason). Ten cards, each with the
+school, a one-line fan reason ("Wins state more often than anyone"), and its typical record. Every other team in the
+class follows, by district, each linking to its school page. The one button: "Share the top 10" ("Agree with
+Football Coach?").
 
-Unique: each classification is a different set of teams and a different order. A ranking is a natural share ("the sim
-has us at #4?!"), so each hub gets a share card image (1200x630) of its top 10.
+Unique: each classification is a different set of teams and a different order. A ranking is a natural share
+("Football Coach has us at #4?!"), so each hub gets a share card image (1200x630) of its top 10.
 
 Cost: free once 2.1 exists (sorting). Share images: about 800 classifications x 1 image, generated at build.
 
@@ -123,27 +142,29 @@ are where search engines find the school pages; they are the internal links that
 
 ### 2.4 Friday Night Sim: weekly sim picks for real games
 
-Each week of the real 2027 season: "The sim's picks for Week 6", every real game in the classification, the sim's pick
-and how close ("Lowndes, in a close one"). The school page gets one line: "This Friday: Valdosta at Lowndes. The sim
-likes Lowndes, barely."
+("Friday Night Sim" is the internal name; it never appears on a school page.)
+
+Each week of the real 2027 season, on the classification hub: "Week 6 picks: Football Coach's picks this week", every
+real game in the classification, Football Coach's pick and how close ("Lowndes, in a close one", "Coin flip."). The
+school page gets one line at the top of its outlook: "This Friday: Valdosta at Lowndes. Football Coach likes Lowndes,
+barely."
 
 Unique: by school and by week; and fresh, which search engines reward on game weeks.
 
-Cost: the sims are seconds. The data is the real problem: **real 2027 schedules and weekly results for 12,000
-schools.** Associations publish schedules and scores unevenly; the big aggregators forbid scraping. Real results also
-let the sim correct itself week to week (a 0-3 team's outlook should fall).
+Cost: the sims are seconds. The data is the real problem: **real 2027 schedules, weekly results and current records
+and standings for every school.** That is the results agent's job (section 3.2). Real results also let the outlook
+correct itself week to week (a 0-3 team's outlook should fall).
 
-Recommendation: start small. In 2027 run Friday Night Sim for **the top 10 games of the week per state** (hand-picked
-from public schedules, about 270 games a week across the target states, or fewer: the pilot states only). Grow it only if
-the pages earn traffic. Keep the copy "the sim's pick", never odds, spreads or anything that reads like betting (high
-school sports betting is banned or restricted in many states; no sportsbook links or ads ever).
+Copy: Football Coach's pick, never odds, spreads or anything that reads like betting (high school sports betting is
+banned or restricted in many states; no sportsbook links or ads ever).
 
 Refresh: weekly, Monday to Thursday. Risk: low for search; moderate work.
 
 ### 2.5 ★ State and classification hubs
 
 - `/texas/` (state hub): every classification and association in the state, its champion last season (real fact,
-  from the association's published results), the sim's preseason favorite, links down to each classification hub.
+  from the association's published results), Football Coach's preseason favorite, links down to each classification
+  hub.
 - `/texas/6a-division-1/` (classification hub): 2.3.
 - School pages link up to their classification hub and across to their district rivals' pages ("Also in District
   11-6A: DeSoto, Lancaster, ...").
@@ -153,7 +174,7 @@ About 27 state hubs + about 800 classification hubs (to count) + 12,000 schools.
 
 ### 2.6 New: the district race
 
-"District 11-6A: who the sim has winning it". The district's teams in the sim's order, the typical district record of
+"District 11-6A: who Football Coach has winning it". The district's teams in Football Coach's order, the typical district record of
 each, the game that decides the district. One block on every school page in the district (its own row highlighted)
 and a section on the classification hub.
 
@@ -226,7 +247,7 @@ of the sitemap until it can.
 | ★ Season outlook | numbers, schedule, rival | ~3.5 h/yr (8 cores); avg-coach line to measure | yearly | low |
 | ★ Season in a minute | opponents, scores, ending | free on page; MP4 ~20 s each, on demand | yearly | none |
 | ★ Preseason top 10 | class, order | free | yearly / weekly | low |
-| Friday Night Sim | week, game | sims free; schedules costly | weekly | low |
+| Friday Night Sim (Week N picks) | week, game | sims free; needs the results agent | weekly | low |
 | ★ State and class hubs | membership | free | yearly | low (with full lists) |
 | District race | district | free | yearly | low |
 | Rivalry outlook | pair | free + rivalry names | yearly | none |
@@ -236,7 +257,73 @@ of the sitemap until it can.
 
 ---
 
-## 3. How the pages are served
+## 3. How the content is made and served
+
+### 3.1 The outlook runner: a script outside the game
+
+The simulations run in a standalone script, not in the game. It lives in `scripts/outlook/` (next to the title-odds
+harness, which it borrows from), imports the game's simulation code headlessly (world building, rosters, schedule,
+`simulateMacroMatch`, playoffs), and writes data files. It never ships in the site build and never runs in a player's
+browser. The page builder (or the edge renderer) only reads its output.
+
+You choose what to run:
+
+```
+node scripts/outlook/run.mjs --states texas,georgia --classes 6a-division-1,7a --seasons 10000
+```
+
+| Option | What it does | Default |
+| --- | --- | --- |
+| `--states` | States to run (slugs), or `all` | asks (see below) |
+| `--classes` | Classifications within them, or `all`; private ones included (`private-division-1`) | `all` |
+| `--schools` | Only these schools (their classification still runs whole, so opponents are simulated too) | all |
+| `--seasons` | Simulated seasons per classification (every school in it gets that many) | 10000 |
+| `--year` | The season to simulate | next season |
+| `--from-week` | In season: start after this week, with the real results so far (from the results agent) | preseason |
+| `--results` | The results file to start from (default: the latest the agent wrote) | latest |
+| `--avg-coach` | Also measure "seasons the average coach needs to win state" (multi-season worlds) | off |
+| `--avg-coach-worlds`, `--avg-coach-years` | How many worlds and how many seasons each, for that measure | 200, 20 |
+| `--montage` | Also pick and save each school's "season in a minute" season | on |
+| `--picks` | Only this week's games (Week N picks), fast | off |
+| `--strength` | The team-strength file to use (section 4) | latest |
+| `--workers` | Parallel workers | cores - 1 |
+| `--seed` | Repeatable runs | random |
+| `--estimate` | Print how many games and about how long, then stop | off |
+| `--out` | Output folder | `scripts/outlook/out/` (git-ignored) |
+| `--list` | List the states and classifications it knows, with school counts | |
+
+Run with no options, it asks: which states (a checklist), which classifications, how many seasons, then shows the
+estimate and asks to go. It can stop and resume (finished classifications are skipped, like the title-odds harness).
+Output: one JSON file per state and classification, with each school's outlook (record spread, playoff share, round
+reached, titles, best and worst season, the rival game, the montage season) and the run's settings, so any page can
+say which run it came from.
+
+### 3.2 The results agent: real records, standings and rankings every week
+
+The in-season pages need every team's real record, results and standings each week, and the agent collects them.
+It's an AI agent run on a schedule (Saturday and Sunday after the Friday games, Claude Code scheduled task or cloud
+routine), one state at a time:
+
+1. Reads each state's list of sources (`scripts/state-sources/`: association score and standings pages, district
+   pages, school schedules) and gathers that week's final scores and next week's schedule.
+2. Matches every game to the game's school names (the trickiest part: "Lowndes" vs "Lowndes County"), and lists what
+   it can't match for a person to fix.
+3. Works out records and district standings itself from the scores, and records published rankings (state polls)
+   only where that source's terms allow.
+4. Writes `data/results/2027/week-06/<state>.json` (games, records, standings, rankings, the source of each line) and
+   a short report: games found per state, unmatched names, conflicts between sources, missing schools.
+5. A person reviews the report (10 minutes a week), then runs the outlook runner with `--from-week`.
+
+Rules: facts only (scores, dates, records). No player names, ever. Only sources whose terms allow it: the
+associations and schools first; the big aggregators forbid scraping, so they're out unless licensed. Football
+Coach's own ranking (from real results plus the outlook) is the ranking the pages show; outside polls are an input,
+not something to republish.
+
+Before the season, the same agent gathers each school's 2027 schedule (summer), which the preseason outlook needs.
+Coverage will be uneven at first: a school whose results the agent can't find shows its preseason outlook with no
+"This Friday" line.
+
+### 3.3 Serving the pages
 
 Cloudflare's current limit (checked 2026-11-20): **20,000 static files per Worker version on the free plan, 100,000 on
 paid plans** (raised from 20,000 on 2025-09-02; needs Wrangler 4.34.0 or newer); 25 MiB per file. Pages sites follow
@@ -292,34 +379,63 @@ year and a generated name. Everything else stays as it is. Effect: the macro sim
 (`teamStarterRating`), so one 5-star starter lifts a team about 1-1.5 rating points (about 5-7 points of margin a game,
 at 4.5 points per rating point). A cap per team keeps a single star from deciding a classification.
 
-### Can the ratings be sourced?
+### Decision (user, 2026-11-20): star ratings go into the strength formula, never onto the page
 
-Not from the recruiting sites, as things stand. Their star ratings are their own editorial product; their terms limit
-use to personal, non-commercial use, and their sites forbid scraping. Using them to power a commercial game, even as
-counts, needs a data license. (Checked: 247Sports' subscription terms say the site and content are for "non-commercial
-entertainment".) A license may exist through their data businesses, but the price and terms are unknown.
+Player ratings measure two things at once: how strong a team's players are, and what the people who follow high
+school football currently think of the team (the consensus). Both belong in a team's starting strength. So they are
+an input to the formula below. They are never shown, named or hinted at: not as a count, not as a position, not as
+"has a star quarterback".
 
-### The risks
+### The team strength formula (hidden; drives the outlook and the school's prestige in the game)
 
-- **They are minors.** Even unnamed, "a 5-star quarterback at a small school" identifies one teenager. Any line on the
-  page that reflects him ("strong at quarterback this year") points at a real kid. So the inputs may never shape
-  position-level copy: pages talk only about the team's outcome.
-- **The fine print says "All players, games and results are fictional."** It stays true only if the real players
-  never surface: generated names, no matching positions or numbers called out, no "inspired by".
-- **Publicity rights and NIL:** using a real athlete's achievements in a commercial product is the core of right-of-
-  publicity cases (the college football video game cases). Counts with no names reduce it but don't remove it.
+| Input | What it measures | Source |
+| --- | --- | --- |
+| Results power rating | How good the team has been lately: an Elo-style rating fitted to the last 3-5 seasons of scores, margin capped | Association-published scores, via the results agent (3.2) |
+| Program history | Titles, deep playoff runs, recent records: the program's pull | Association champion lists and results |
+| Talent and consensus | How rated the current players are, and so how highly the team is thought of | Star counts per position (licensed or our own; below) |
+| Returning starters (optional) | Turnover from last season | Later, if a source exists |
+| Enrollment and classification | Size of the school and its competition | The association's own data |
 
-### Recommendation: don't use star ratings at launch
+The weights are set by backtesting: build last season's preseason strength from the inputs available before it,
+simulate it, and compare with what really happened (records, playoff rounds, champions). Keep the mix that predicts
+best. The star input gets a cap per team, so one great player can't decide a classification on paper.
 
-Use these instead, all public and about teams, not players:
-1. **A team power rating from public results.** The associations publish scores and champions. A rating fitted to the
-   last 3-5 seasons of scores (Elo-style, margin capped) says how strong a program is now. Scores are facts; collect
-   them from the associations' published results, not from sites whose terms forbid it.
-2. **Program history:** state titles, playoff runs, recent records (the same facts as 2.8).
-3. **Enrollment and classification** (the association's own data).
+Inside the game, the strength becomes the school's prestige (as today), and the star counts make the generated
+rosters match (a strong generated quarterback where the counts say so). Every generated player keeps a generated name,
+so "All players, games and results are fictional" stays true.
 
-These become the school's starting prestige in the game, the same way prestige is estimated today. Revisit star counts
-only with a license and a lawyer's review, and even then only as counts inside the sim.
+### Getting the ratings: license, or rate them ourselves
+
+Scraping the recruiting sites is out: their ratings are their editorial product, their terms limit use to personal,
+non-commercial use (247Sports' subscription terms: "non-commercial entertainment"), and their sites forbid scraping.
+Two ways that work:
+
+| Way | How | For | Against |
+| --- | --- | --- | --- |
+| A. License | Ask the recruiting services (and the companies that resell sports data) for a data license: school-level counts by position and star tier for each class year, for use inside a simulation, never displayed | Ratings fans already trust (that's the consensus); covers every school at once; least work each year | Price unknown (could be beyond the $0 budget for now); the deal must allow use inside a game with nothing displayed; coverage of small schools is thin |
+| B. Our own ratings | A person on the team (or a few contract scouts) rates players from public information: offer lists the players announce, all-district and all-state teams the associations and newspapers publish, public film. They record only counts per school and position, not names | No license; we control the method; can cover schools the services ignore | Slow at scale: thousands of rated players a year; it's our opinion, not the consensus; the working notes name minors |
+
+Recommendation: **ask for license quotes now (A) and, in parallel, test B on the pilot state.** B on one state
+shows the cost per state and how much the star input actually improves the backtest. If it barely improves it, the
+results rating plus history is enough and neither route is worth paying for. Until one route is ready, the formula
+runs without the star input.
+
+For B, the working sheet that names players stays private, outside the repo and any shared notes, readable only by the
+person rating; it is deleted once the counts are made. Only the counts reach the data files.
+
+### The risks, and the rules that contain them
+
+- **They are minors.** Even unnamed, "a 5-star quarterback at a small school" points at one teenager. So nothing on
+  any page, video, post or share card reflects an individual: no position-level lines ("strong at quarterback this
+  year"), no "led by", no "inspired by". Pages talk only about the team's outcome.
+- **The fine print stays true** ("All players, games and results are fictional"): generated names, generated numbers,
+  no real player's position or jersey number called out.
+- **Publicity rights and NIL:** using real athletes' achievements in a commercial product is the core of the
+  right-of-publicity cases (the college football video game cases). Counts inside a formula, with nothing displayed,
+  is far from that, but a lawyer should look at it with the playoff-rights review (section 5).
+- **Leaks through the numbers:** if one 5-star transfer moves a small school from "No playoffs" to "Playoffs", fans may
+  connect the dots. The per-team cap limits that; the build can also flag any school whose outlook moves mostly
+  because of the star input, for a person to look at.
 
 ---
 
@@ -345,14 +461,14 @@ only with a license and a lawyer's review, and even then only as counts inside t
 | Naming the association as a fact in small text ("Valdosta plays in the GHSA's Class 7A") | Association names in video titles, thumbnails or the headline |
 | Real champions and scores (facts) | Footage, photos or broadcast graphics from real games |
 | "State champion", "state final", "win state" (ordinary words) | "Official", "UIL State Championship", "presented by", anything that implies a partnership |
-| "The sim's state final", "Simulated in Football Coach" | Venue names and images in videos (text mention on the page is lower risk; see Decisions) |
+| "Football Coach's state final", "Simulated in Football Coach" | Venue names and images in videos (text mention on the page is lower risk; see Decisions) |
 
 ### Recommended wording and limits for the December state-final videos
 
-- Title: "The sim's Texas 6A Division I final: Duncanville vs. North Shore" (no association name, no venue).
+- Title: "Football Coach's Texas 6A Division I final: Duncanville vs. North Shore" (no association name, no venue).
 - First and last frame, and the caption: "Simulated in Football Coach High School Edition. Not a real game."
 - Fictional players only; the game's own field, uniforms in school colors, no school logos.
-- Post before the real final as a preview ("what the sim says"), never styled as a broadcast or a highlight of the
+- Post before the real final as a preview ("what Football Coach says"), never styled as a broadcast or a highlight of the
   real game, and never posted as if it were the result.
 - No betting language, no sportsbook ads or links.
 - One school's fans get the clip from the game's accounts; don't tag the association or ask for its promotion.
@@ -393,9 +509,10 @@ Structure:
 
 ## 7. Rollout: one state at a time
 
-1. **Build the machine on the 12 states the game has** (the top classes it already plays): the template, the edge
-   renderer (if B), the outlook run, the hubs, the sameness guard. Move the 5 live pages onto it. Publish only the
-   classes the game plays.
+1. **Build the machine on the 12 states the game has** (the top classes it already plays): the outlook runner (3.1),
+   the template, the edge renderer (if B), the hubs, the sameness guard. Move the 5 live pages onto it. Publish only
+   the classes the game plays. In parallel: ask for star-rating license quotes, and build the results agent (3.2) and
+   the strength formula's backtest on last season.
 2. **Pilot state (recommended: Alabama).** Mid-sized, one association's public classes plus a private league (AISA),
    clean published results, and already a live page. Add its other classifications to the game, publish every school
    page and hub, submit `/sitemaps/alabama.xml` in Search Console.
@@ -404,33 +521,54 @@ Structure:
    go on: most pages indexed and impressions rising. If many pages sit in "Crawled - not indexed", the content is
    seen as thin: add facts or fix sameness before the next state.
 4. **Then states in waves**, a few at a time, largest audiences first, each with its sitemap submitted on release.
-5. **Season calendar:** outlook and top 10s published in late July 2027 (before the season, when fans search);
-   Friday Night Sim from late August for the pilot states; the December state-final videos (with the limits in 5).
+5. **Season calendar:** the results agent gathers 2027 schedules over the summer; outlooks and top 10s published in
+   late July 2027 (before the season, when fans search); from late August the agent runs every weekend and the
+   outlooks and Week N picks refresh, pilot states first; the December state-final videos (with the limits in 5).
 
 Timeline sketch: data and template now to February 2027; pilot March to April; waves May to July; preseason content
 late July; in-season content August to December.
 
 ---
 
-## 8. Decisions for the user
+## 8. Decisions
 
-1. **Approve the two page designs** (the mockups: school page with the outlook, classification page with the top 10).
-2. **"1 in N" and counts on school pages** ("In 10,000 seasons, Cypress Lakes won state 4 times"): allowed, or only the
+Settled by the user on 2026-11-20:
+- The simulations run in a standalone script with options for states, classifications and seasons per school (3.1).
+- In-season records, results and rankings for every team come from a results agent (3.2).
+- Football Coach is the voice; no "sim" character. Headline: "We simulated the rest of the 2027 season. Here is what
+  we found:". No "Friday Night Sim" label on school pages.
+- The outlook always says whether Football Coach has the team in the playoffs.
+- The season in a minute lists every game with its score, regular season and playoffs apart; its control reads
+  "Replay season".
+- Star ratings are an input to the hidden strength formula, never shown (section 4); license them or rate them
+  ourselves.
+
+Still open:
+1. **Approve the page designs** (mockups version 2).
+2. **Preseason headline:** "We simulated Valdosta's 2027 season. Here is what we found:" (the in-season wording, used
+   before the season too).
+3. **The playoff verdict words:** "Playoffs" / "Long shot" / "No playoffs", or add "On the bubble"?
+4. **Scores in the game list:** the scores of the one season on the scoreboard (shown), or Football Coach's typical
+   score for each game (reads as a prediction)?
+5. **Title counts on school pages** ("In 10,000 seasons, Cypress Lakes won state 4 times"): allowed, or only the
    "average coach" line?
-3. **Serving:** B (edge-rendered, recommended) or A (static files)? Which Cloudflare plan is the account on?
-4. **The "average coach" number:** way B (AI-only worlds) for every school, calibrated with the bot harness? It waits
-   for the recruiting fix.
-5. **Star ratings:** agree to leave them out at launch and use public team results plus program history?
-6. **Venue names on the pages** ("lift the state trophy at AT&T Stadium"): keep in page text, or switch to "lift the
-   state trophy"? (Recommended: keep text mentions, never in videos.)
-7. **December videos:** agree to the wording and limits in 5, and to a short lawyer's review before the first one?
-8. **Friday Night Sim scope:** top 10 games a week in the pilot states, or wait for 2028?
-9. **Pilot state:** Alabama, or another?
-10. **Maryland:** it is in the game but not on the target list. Keep building its pages?
-11. **The hub page's one button:** "Share the top 10" (recommended: the hub's job is sharing and linking to schools),
-    or "Coach a team in [class]"?
-12. **The montage:** play by itself when scrolled into view (silent, respects reduced motion), or wait for a tap?
-13. **Coaches who took over (2.9):** show the best run with the player's coach name when they chose to show it on the
+6. **Star ratings:** ask for license quotes now and test our own ratings on the pilot state, as recommended? Who on
+   the team would rate players?
+7. **Serving:** B (edge-rendered, recommended) or A (static files)? Which Cloudflare plan is the account on?
+8. **The "average coach" number:** AI-only multi-season worlds for every school, calibrated with the bot harness? It
+   waits for the recruiting fix.
+9. **The results agent:** run it as a Claude Code scheduled task on this computer, or as a cloud routine? Who reviews
+   its weekly report?
+10. **Venue names on the pages** ("lift the state trophy at AT&T Stadium"): keep in page text, or switch to "lift the
+    state trophy"? (Recommended: keep text mentions, never in videos.)
+11. **December videos:** agree to the wording and limits in 5, and to a short lawyer's review (with the star-input
+    question) before the first one?
+12. **Pilot state:** Alabama, or another?
+13. **Maryland:** it is in the game but not on the target list. Keep building its pages?
+14. **The hub page's one button:** "Share the top 10" (shown), or "Coach a team in [class]"?
+15. **The montage:** play by itself when scrolled into view (silent, respects reduced motion), or wait for a tap?
+16. **Footer links on school pages** (state, classification, district rivals in small text under the button), or none?
+17. **Coaches who took over (2.9):** show the best run with the player's coach name when they chose to show it on the
     leaderboard, or counts only?
 
 ## Sources (checked 2026-11-20)
