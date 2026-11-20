@@ -4,9 +4,9 @@ Status: plan only (2026-11-20, revised the same day after the user's review of t
 CLAUDE.md) before any production page is written.
 
 Goal: one page for every 11-man high school in the target states, listed by classification, each classification with
-its own state champion. Every page pitches taking over that school ("Can you help Valdosta High School win state?")
-and carries content about that school that only this game can make: what its own simulation says about the school's
-season. The test: a reader who swaps two school pages should find different facts, different numbers, different
+its own state champion. Each school gets two pages (2.0): a **landing page** that pitches taking over the school ("Can
+you help Valdosta High School win state?") with one button, and an **outlook page** that carries content about that
+school only this game can make: what its own simulation says about the school's season. The test: a reader who swaps two school pages should find different facts, different numbers, different
 opponents and a different story on each, not the same paragraph with a new name.
 
 Copy rules for everything below (public copy): fan language, not game terms or stats (no prestige, ratings or
@@ -56,6 +56,30 @@ building Texas 6A's whole world (254 schools, light rosters) takes 28 ms (102 ms
 
 Each method: what makes it unique per school, what it costs at 10,000+ schools, how often it refreshes, and the
 thin-content risk. Starred methods are the recommended launch set.
+
+### 2.0 ★ Two pages per school: the landing page and the outlook page (user, 2026-11-20)
+
+The school's marketing and its information live on separate pages, so the pitch stays a clean landing page with its
+own button, and the simulated content has room to grow without crowding it.
+
+| | Landing page (marketing) | Outlook page (information) |
+| --- | --- | --- |
+| Address (recommended) | `/georgia/valdosta/coach/` | `/georgia/valdosta/` (the school's own address) |
+| Who arrives | Our own promotion: ads, posts, clips, QR codes, emails | Search, the classification hubs (2.3, 2.5), district rivals' outlook pages, shared top 10s and picks |
+| On the page | Today's page: the headline dare, the program's story (2.11), "You can do it." with the average-coach line, the button | Header with the team name ("Valdosta Wildcats"), state, classification and district; the outlook (2.1); the season in a minute (2.2); "You can do it." with the average-coach line and the button; footer links |
+| Changes | Never through the season | Every week in season (3.2), at least once before it |
+| Links out | None: the button is the only choice | Footer links up to the hubs and across to district rivals |
+| Search | Kept out (`noindex`): 12,000 copies of one template are the look-alike pages search engines push down | Indexed and in the sitemap: this is the page with the unique content |
+| The button | 🏈 Coach Valdosta now, tagged with the link's source (which ad, clip or post), so starts are counted per campaign; its wording is A/B tested here | The same button, counted as search starts |
+
+Both buttons go to the same "what to expect" step and then New Game at that school. Later content (the district race
+2.6, the rivalry outlook 2.7, program facts 2.8, coaches who took over 2.9) goes on the outlook page; the landing page
+stays as it is.
+
+The 5 live test pages: under the recommended addresses their address becomes the school's outlook page and their
+current content moves to `coach/`. The other way round (landing page keeps `/georgia/valdosta/`, outlook at
+`/georgia/valdosta/outlook/`) changes nothing live, but gives the search page a longer address and leaves the clean
+one out of search. See Decisions.
 
 ### 2.1 ★ The season outlook: "We simulated Valdosta's 2027 season. Here is what we found:"
 
@@ -200,8 +224,8 @@ Refresh: weekly, Monday to Thursday. Risk: low for search; moderate work.
   from the association's published results), Football Coach's preseason favorite, links down to each classification
   hub.
 - `/texas/6a-division-1/` (classification hub): 2.3.
-- School pages link up to their classification hub and across to their district rivals' pages ("Also in District
-  11-6A: DeSoto, Lancaster, ...").
+- Outlook pages (2.0) link up to their classification hub and across to their district rivals' outlook pages ("Also
+  in District 11-6A: DeSoto, Lancaster, ..."). Landing pages have no links.
 
 This is the page structure that keeps everything linked: state > classification > school, and school <-> district.
 About 27 state hubs + about 800 classification hubs (to count) + 12,000 schools.
@@ -246,8 +270,8 @@ images, minutes) or by an image Worker on request. Counts against the file limit
 
 ### 2.11 The story lines, without hand-writing 12,000 stories
 
-Today each story is hand-written. At scale the story card is chosen by rules from the school's facts and sim results,
-with several wordings per situation:
+The story card is on the landing page (2.0). Today each story is hand-written. At scale the story card is chosen by
+rules from the school's facts and sim results, with several wordings per situation:
 
 | Situation (from facts + sim) | Example headline |
 | --- | --- |
@@ -260,7 +284,7 @@ with several wordings per situation:
 
 Hand-written stories stay for the programs worth it (the 48 scenario programs and any school that sends traffic).
 
-**The sameness guard:** the build measures how alike the pages are. It strips the school's own names, splits each
+**The sameness guard:** the build measures how alike the outlook pages are (the landing pages stay out of search). It strips the school's own names, splits each
 page's text into 5-word shingles and compares every page with its district and classification neighbors. Any pair
 over a set similarity (start at 60%) fails the build until more facts or another wording separate them. A page that
 can't show the minimum set (real facts, the outlook, at least 3 named opponents) is built with `noindex` and left out
@@ -365,27 +389,29 @@ Cloudflare's current limit (checked 2026-11-20): **20,000 static files per Worke
 paid plans** (raised from 20,000 on 2025-09-02; needs Wrangler 4.34.0 or newer); 25 MiB per file. Pages sites follow
 the same split. Which plan the game's account is on decides option A.
 
-At full size, static files would be: about 12,000 school pages + 12,000 `start/` steps + about 830 hubs + about 12,800
-share images + the game's own files: about 38,000. Over the free limit, inside the paid one.
+At full size, static files would be: about 12,000 outlook pages + 12,000 landing pages (2.0) + 12,000 `start/` steps +
+about 830 hubs + about 12,800 share images + the game's own files: about 50,000. Over the free limit, inside the paid
+one.
 
 | Option | How | For | Against |
 | --- | --- | --- | --- |
-| A. Static files (today's way, scaled) | `build.mjs` writes every page into `public/` | Simplest; fastest pages; nothing new to run | ~38,000 files (paid plan needed); every refresh re-uploads thousands of files; the build and repo get heavy |
-| B. Edge-rendered | A Worker in front of the assets renders `/<state>/<school>/` from one data file per state (about 27 JSON files) and one template; Cloudflare's cache keeps each page | Few files; a refresh (weekly picks) replaces a few JSON files; one template for all; share images rendered the same way | New code that runs per request (Workers free plan: 100,000 requests a day; paid: $5 a month for 10 million); a bug breaks every page at once |
+| A. Static files (today's way, scaled) | `build.mjs` writes every page into `public/` | Simplest; fastest pages; nothing new to run | ~50,000 files (paid plan needed); every refresh re-uploads thousands of files; the build and repo get heavy |
+| B. Edge-rendered | A Worker in front of the assets renders `/<state>/<school>/` and its `coach/` landing page from one data file per state (about 27 JSON files) and one template; Cloudflare's cache keeps each page | Few files; a refresh (weekly picks) replaces a few JSON files; one template for all; share images rendered the same way | New code that runs per request (Workers free plan: 100,000 requests a day; paid: $5 a month for 10 million); a bug breaks every page at once |
 | C. One page for all, filled by JavaScript | `/<state>/<school>/` serves one HTML file that fetches the school's data | Fewest files | Search engines index JavaScript-filled pages slower and less reliably; risky for a program whose whole point is search |
 
 **Recommendation: B, edge-rendered**, with the HTML identical to today's static pages (search engines see full HTML,
 no JavaScript needed). Concretely: `wrangler.jsonc` gets a small `main` script with `run_worker_first` limited to the
 state paths, so the game and other files stay plain static assets; the per-state data files ship as assets; pages are
 cached at the edge and purged on each data update. The `start/` step becomes one shared page (`/start/?state=&school=`,
-already noindex) instead of 12,000 copies. The 5 live pages keep their addresses and are moved over to the template.
+already noindex) instead of 12,000 copies. The 5 live pages keep their addresses and are moved over to the template
+(as outlook pages, with their current content at `coach/`, under the recommended addresses in 2.0).
 
-If the user prefers no server code: A on the paid plan, with the `start/` copies merged into one page (about 26,000
+If the user prefers no server code: A on the paid plan, with the `start/` copies merged into one page (about 38,000
 files), works too.
 
 Address rules at scale: school slugs are unique within a state. Many names repeat ("Central", "Lincoln"); a repeated
 name takes its city (`/georgia/central-macon/`). The 5 live addresses never change. A school slug can't equal a hub
-slug (the build checks).
+slug (the build checks), and no school slug can be `coach`.
 
 ---
 
@@ -584,37 +610,46 @@ Settled by the user on 2026-11-20:
   games are marked in the regular season only, never in the playoffs.
 - Star ratings are an input to the hidden strength formula, never shown (section 4); license them or rate them
   ourselves.
+- Each school gets two pages (2.0): a landing page for marketing, with its own button, and an outlook page with the
+  information: the outlook, the season in a minute and "You can do it."
 
 Still open:
 1. **Approve the page designs** (the mockups, latest version).
-2. **Preseason headline:** "We simulated Valdosta's 2027 season. Here is what we found:" (the in-season wording, used
+2. **Addresses (2.0):** the outlook page at the school's own address (`/georgia/valdosta/`) and the landing page at
+   `/georgia/valdosta/coach/` (recommended, shown), or the landing page keeps today's address and the outlook goes to
+   `/georgia/valdosta/outlook/`?
+3. **The landing page in search:** kept out (`noindex`, recommended), or let in?
+4. **A link from the landing page to the outlook page:** none, so the button is its only choice (recommended, shown),
+   or a small "Football Coach's 2027 outlook" text link?
+5. **Preseason headline:** "We simulated Valdosta's 2027 season. Here is what we found:" (the in-season wording, used
    before the season too).
-3. **The playoff verdict words:** "Playoffs" / "Long shot" / "No playoffs", or add "On the bubble"?
-4. **The forecast's record:** the picks' total can differ by a game from the outlook's "Most years" record. Use the
+6. **The playoff verdict words:** "Playoffs" / "Long shot" / "No playoffs", or add "On the bubble"?
+7. **The forecast's record:** the picks' total can differ by a game from the outlook's "Most years" record. Use the
    picks' total in both places so the page never disagrees with itself? Show the most likely playoff opponents ("most
    likely at Carrollton"), or only the round where it ends?
-5. **National lines:** how often must a team reach the national top 25 in the runs before its page shows the national
+8. **National lines:** how often must a team reach the national top 25 in the runs before its page shows the national
    lines (suggested: 1 run in 10)? And `--national` runs every state's top classifications together, which costs more
    per run (to measure).
-6. **Title counts on school pages** ("In 10,000 seasons, Cypress Lakes won state 4 times"): allowed, or only the
+9. **Title counts on school pages** ("In 10,000 seasons, Cypress Lakes won state 4 times"): allowed, or only the
    "average coach" line?
-7. **Star ratings:** ask for license quotes now and test our own ratings on the pilot state, as recommended? Who on
+10. **Star ratings:** ask for license quotes now and test our own ratings on the pilot state, as recommended? Who on
    the team would rate players?
-8. **Serving:** B (edge-rendered, recommended) or A (static files)? Which Cloudflare plan is the account on?
-9. **The "average coach" number:** AI-only multi-season worlds for every school, calibrated with the bot harness? It
+11. **Serving:** B (edge-rendered, recommended) or A (static files)? Which Cloudflare plan is the account on?
+12. **The "average coach" number:** AI-only multi-season worlds for every school, calibrated with the bot harness? It
    waits for the recruiting fix.
-10. **The results agent:** run it as a Claude Code scheduled task on this computer, or as a cloud routine? Who reviews
+13. **The results agent:** run it as a Claude Code scheduled task on this computer, or as a cloud routine? Who reviews
    its weekly report?
-11. **Venue names on the pages** ("lift the state trophy at AT&T Stadium"): keep in page text, or switch to "lift the
+14. **Venue names on the pages** ("lift the state trophy at AT&T Stadium"): keep in page text, or switch to "lift the
     state trophy"? (Recommended: keep text mentions, never in videos.)
-12. **December videos:** agree to the wording and limits in 5, and to a short lawyer's review (with the star-input
+15. **December videos:** agree to the wording and limits in 5, and to a short lawyer's review (with the star-input
     question) before the first one?
-13. **Pilot state:** Alabama, or another?
-14. **Maryland:** it is in the game but not on the target list. Keep building its pages?
-15. **The hub page's one button:** "Share the top 10" (shown), or "Coach a team in [class]"?
-16. **The montage:** play by itself when scrolled into view (silent, respects reduced motion), or wait for a tap?
-17. **Footer links on school pages** (state, classification, district rivals in small text under the button), or none?
-18. **Coaches who took over (2.9):** show the best run with the player's coach name when they chose to show it on the
+16. **Pilot state:** Alabama, or another?
+17. **Maryland:** it is in the game but not on the target list. Keep building its pages?
+18. **The hub page's one button:** "Share the top 10" (shown), or "Coach a team in [class]"?
+19. **The montage:** play by itself when scrolled into view (silent, respects reduced motion), or wait for a tap?
+20. **Footer links on the outlook page** (state, classification, district rivals in small text under the button), or
+   none? The landing page has none either way.
+21. **Coaches who took over (2.9):** show the best run with the player's coach name when they chose to show it on the
     leaderboard, or counts only?
 
 ## Sources (checked 2026-11-20)
