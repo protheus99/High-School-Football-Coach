@@ -68,9 +68,9 @@ own button, and the simulated content has room to grow without crowding it.
 | Who arrives | Our own promotion: ads, posts, clips, QR codes, emails | Search, the classification hubs (2.3, 2.5), district rivals' outlook pages, shared top 10s and picks |
 | On the page | Today's page: the headline dare, the program's story (2.11), "You can do it." with the average-coach line, the button | Header with the team name ("Valdosta Wildcats"), state, classification and district; the outlook (2.1); the season in a minute (2.2); "You can do it." with the average-coach line and the button; footer links |
 | Changes | Never through the season | Every week in season (3.2), at least once before it |
-| Links out | None: the button is the only choice | Footer links up to the hubs and across to district rivals |
+| Links out | None: the button is the only choice | Footer links: the team's state and classification hubs, then random teams from its state and other states (2.5) |
 | Search | Kept out (`noindex`): 12,000 copies of one template are the look-alike pages search engines push down | Indexed and in the sitemap: this is the page with the unique content |
-| The button | 🏈 Coach Valdosta now, tagged with the link's source (which ad, clip or post), so starts are counted per campaign; its wording is A/B tested here | The same button, counted as search starts |
+| The button | 🏈 Coach Valdosta now, tagged with the link's source (which ad, clip or post), so starts are counted per campaign; its wording is A/B tested here | The same button twice: between the outlook and the season in a minute ("Think you can do better than 9-3?") and at the bottom in "You can do it."; both counted as search starts, each apart |
 
 Both buttons go to the same "what to expect" step and then New Game at that school. Later content (the district race
 2.6, the rivalry outlook 2.7, program facts 2.8, coaches who took over 2.9) goes on the outlook page; the landing page
@@ -223,8 +223,13 @@ Refresh: weekly, Monday to Thursday. Risk: low for search; moderate work.
   from the association's published results), Football Coach's preseason favorite, links down to each classification
   hub.
 - `/texas/6a-division-1/` (classification hub): 2.3.
-- Outlook pages (2.0) link up to their classification hub and across to their district rivals' outlook pages ("Also
-  in District 11-6A: DeSoto, Lancaster, ..."). Landing pages have no links.
+- Outlook pages (2.0) link, in the footer, up to their state hub and their classification hub, then to 8 random
+  teams' outlook pages: 4 from the same state, 4 from other states (user, 2026-11-20). The random set changes on every
+  load, so over many crawls every school gets linked from many others, across states. Landing pages have no links.
+- With the Worker's page cache (3.3), "every load" is really every cache refresh: pick the random teams in the Worker
+  when it builds the page, so a cached copy keeps one set until the next refresh (daily, or on each data update).
+  A page served straight from the cache to every visitor still varies day to day, and search engines see it vary
+  across crawls.
 
 This is the page structure that keeps everything linked: state > classification > school, and school <-> district.
 About 27 state hubs + about 800 classification hubs (to count) + 12,000 schools.
@@ -838,6 +843,8 @@ Settled by the user on 2026-11-20:
 - Each school gets two pages (2.0): a landing page for marketing, with its own button, and an outlook page with the
   information: the outlook, the season in a minute and "You can do it."
 - Strength must come from current information, not the program's prestige alone (4.0-4.1).
+- The outlook page gets a second "Coach [school] now" button between the outlook and the season in a minute, and
+  footer links to its state, its classification and random teams from its state and other states (2.0, 2.5).
 - No team is unbeatable: the runner draws strength with doubt and calibrates upsets to real games, and the pages show
   records as a spread, never one certain number (4.1a). No state, classification or district links in the outlook
   page's header (they stay in the footer).
@@ -883,8 +890,9 @@ Still open:
 17. **Maryland:** it is in the game but not on the target list. Keep building its pages?
 18. **The hub page's one button:** "Share the top 10" (shown), or "Coach a team in [class]"?
 19. **The montage:** play by itself when scrolled into view (silent, respects reduced motion), or wait for a tap?
-20. **Footer links on the outlook page** (state, classification, district rivals in small text under the button), or
-   none? The landing page has none either way.
+20. **Footer links:** settled (user, 2026-11-20): state and classification links, then random teams from the
+   state and other states. Open: how many random teams (8 shown), and how often the cached page's set changes
+   (daily suggested)?
 21. **Coaches who took over (2.9):** show the best run with the player's coach name when they chose to show it on the
     leaderboard, or counts only?
 
