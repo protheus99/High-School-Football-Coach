@@ -85,7 +85,8 @@ In season the headline counts from the real record: "Valdosta is 4-1. We simulat
 is what we found:".
 
 What the page says (fan language, one idea per line):
-- **Most years:** the typical record ("Most years: 8-2").
+- **The record, as a spread:** "Most likely 8-2", then how the regular seasons ended across the runs, as short bars
+  ("9-1 or better: 2 in 10, 8-2: 3 in 10, ..."). Never one record on its own: a single number reads as certain (4.1a).
 - **The playoff verdict (always shown):** does Football Coach have them in? A colored tag and one line: "Playoffs:
   Football Coach has Valdosta in." / "Long shot: the Spartans need to win out to get in." / "No playoffs: Football
   Coach has Cypress Lakes out." The tag comes from the share of runs that reach the playoffs (in: most runs; long
@@ -542,6 +543,44 @@ What that means for the outlook:
   preseason, narrower each week as real games come in. That spread is what makes upsets and "1 of every 30 seasons"
   honest.
 
+#### 4.1a No team is unbeatable (user, 2026-11-20)
+
+A team that goes 10-0 in every one of 10,000 runs means the simulation thinks it can't lose, or that nobody can beat
+it. Real high school football doesn't work that way, so the runner must not either.
+
+Measured today in the game's match simulation (`simulateMacroMatch`, 4,000 games per gap, home field cancelled out;
+a temporary test, deleted after the run):
+
+| Rating gap | Favorite wins | Average margin |
+| --- | --- | --- |
+| 0 | 49% | 0 |
+| 1 | 61% | 5 |
+| 2 | 72% | 9 |
+| 3 | 82% | 14 |
+| 4 | 89% | 18 |
+| 5 | 94% | 23 |
+| 6 | 97% | 28 |
+| 8 | 99.5% | 34 |
+| 10 and up | 99.9% | 37-39 |
+
+Up to about 4 points the upset rate looks like real football (a two-touchdown favorite wins about 8 games in 10).
+Past 6 points the underdog all but stops winning, and today's prestige-made rosters open gaps of 10 or more between
+the top and bottom of a district (`programTalent`: prestige 95 against 60 is about 12 points before rolls). A
+powerhouse then goes unbeaten in nearly every run. Three fixes, all in the outlook runner:
+
+1. **Season-level doubt about each team's strength** (4.1): every run draws each team's rating from its spread, so
+   in some runs the powerhouse is simply not as good as we think. That alone makes "unbeaten in every run" impossible.
+2. **Calibrate the upset rate to real games** in the backtest: group real games by forecast margin and check that
+   favorites win as often as Football Coach said (for example, of games where Football Coach had a team by about two
+   touchdowns, about 8 in 10). If the long tail is too certain, widen the per-game randomness for large gaps.
+3. **Pages never show one record as if certain:** the outlook shows the spread of records (2.1); the season in a
+   minute marks games that could go either way, and its ending says when picking every game gives a better record
+   than the seasons do ("Pick every game and they finish 14-1, but in 6 of every 10 seasons something goes wrong
+   first"). The headline record (the cover sticker) is the average across runs, rounded, not the picks' total.
+
+A check in the runner reports any team that is unbeaten (or winless) in more than 9 of 10 runs, for a person to look
+at before publishing.
+
 | Input | What it adds | Source | When |
 | --- | --- | --- | --- |
 | Last season's results rating | How good the team was, adjusted for who it played, margins capped (about 28) so running up the score doesn't count | Scores from the results agent (3.2); we compute it ourselves and never copy anyone's published rating | Preseason |
@@ -799,6 +838,9 @@ Settled by the user on 2026-11-20:
 - Each school gets two pages (2.0): a landing page for marketing, with its own button, and an outlook page with the
   information: the outlook, the season in a minute and "You can do it."
 - Strength must come from current information, not the program's prestige alone (4.0-4.1).
+- No team is unbeatable: the runner draws strength with doubt and calibrates upsets to real games, and the pages show
+  records as a spread, never one certain number (4.1a). No state, classification or district links in the outlook
+  page's header (they stay in the footer).
 - The user supplies the star ratings, as the CSV file in 4.3.
 - No file per school (3.3): the landing page is `/team_page/?state=ga&school=valdosta&v=direct` and the outlook page
   `/forecast/?state=ga&school=valdosta&v=direct&year=2027&type=base`; `type=base` is today's style, more to come.
@@ -816,9 +858,8 @@ Still open:
 5. **Preseason headline:** "We simulated Valdosta's 2027 season. Here is what we found:" (the in-season wording, used
    before the season too).
 6. **The playoff verdict words:** "Playoffs" / "Long shot" / "No playoffs", or add "On the bubble"?
-7. **The forecast's record:** the picks' total can differ by a game from the outlook's "Most years" record. Use the
-   picks' total in both places so the page never disagrees with itself? Show the most likely playoff opponents ("most
-   likely at Carrollton"), or only the round where it ends?
+7. **Playoff opponents:** show the most likely ones ("most likely at Carrollton"), or only the round where it
+   ends? (The record itself is settled: a spread and the average, never the picks' total; 4.1a.)
 8. **National lines:** how often must a team reach the national top 25 in the runs before its page shows the national
    lines (suggested: 1 run in 10)? And `--national` runs every state's top classifications together, which costs more
    per run (to measure).
