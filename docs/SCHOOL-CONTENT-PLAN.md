@@ -82,7 +82,8 @@ pages (`/georgia/valdosta/` and the others) redirect to their landing page addre
 ### 2.0a The outlook page: the preview cover, and four versions to test (user, 2026-11-20)
 
 The outlook page opens with the **preview cover**: the cover of a preseason preview magazine. The team's name in
-varsity block letters, the mascot outlined under it, three cover lines and a sticker with Football Coach's record. In
+varsity block letters, the mascot outlined under it, three cover lines and a sticker with Football Coach's record, with a small note under it: "Over 10,000 seasons
+simulated" (user, 2026-11-20). The note uses the real number of runs; below the cover, nothing says it again. In
 season it becomes the Week 6 edition and the first cover line is Friday's game. The state, classification and district
 are not in the header (they stay in the footer).
 
