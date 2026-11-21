@@ -79,6 +79,38 @@ stays as it is.
 Both are shared pages filled from the address (3.3), so the number of schools never adds files. The 5 live test
 pages (`/georgia/valdosta/` and the others) redirect to their landing page address.
 
+### 2.0a The outlook page: the preview cover, and four versions to test (user, 2026-11-20)
+
+The outlook page opens with the **preview cover**: the cover of a preseason preview magazine. The team's name in
+varsity block letters, the mascot outlined under it, three cover lines and a sticker with Football Coach's record. In
+season it becomes the Week 6 edition and the first cover line is Friday's game. The state, classification and district
+are not in the header (they stay in the footer).
+
+**No fact twice.** Whatever the cover says (the record, the playoff verdict, the rival game, the title odds, Friday's
+pick, the top 10 rank) is left out of everything below it: the outlook card, the season in a minute's last line and the
+middle button's line. The outlook card keeps the rest (how the seasons spread, how far the run goes, best and worst
+seasons, the game that could go either way, national lines when not on the cover). The page builder checks it: a cover
+line or the sticker's record found again in the text below fails the page. One exception, by design: the season in a
+minute lists every game, so Friday's game and the rival game appear there as games (not restated as text).
+
+**Four versions, tested for clicks on the Coach button:**
+
+| Version | After the cover |
+| --- | --- |
+| v1 | Football Coach's outlook |
+| v2 | The season in a minute |
+| v3 | Football Coach's outlook, the middle button, the season in a minute |
+| v4 | The season in a minute, the middle button, Football Coach's outlook |
+
+All four end with "You can do it." (with the button) and the footer.
+
+How the test runs: the outlook address carries the version in `type` (`type=v1` ... `type=v4`). The sitemap, hubs and
+footer links use the plain address (`type=base`); there the Worker picks a version at random for each new visitor,
+keeps it for that visitor (a cookie), and every version names the `type=base` address as canonical, so search engines
+see one page. `type=v1`-`v4` forces a version (for checking a version, or for an ad that should land on one). Each
+button click is counted with the version and which button (middle or bottom), and compared against visits per
+version. Run it until each version has enough visits to tell them apart, then make the winner the only one.
+
 ### 2.1 ★ The season outlook: "We simulated Valdosta's 2027 season. Here is what we found:"
 
 In season the headline counts from the real record: "Valdosta is 4-1. We simulated the rest of the 2027 season. Here
@@ -843,6 +875,8 @@ Settled by the user on 2026-11-20:
 - Each school gets two pages (2.0): a landing page for marketing, with its own button, and an outlook page with the
   information: the outlook, the season in a minute and "You can do it."
 - Strength must come from current information, not the program's prestige alone (4.0-4.1).
+- The outlook page opens with the preview cover; nothing on the cover is repeated below it; four versions (v1-v4) are
+  tested for button clicks (2.0a).
 - The outlook page gets a second "Coach [school] now" button between the outlook and the season in a minute, and
   footer links to its state, its classification and random teams from its state and other states (2.0, 2.5).
 - No team is unbeatable: the runner draws strength with doubt and calibrates upsets to real games, and the pages show
@@ -854,6 +888,9 @@ Settled by the user on 2026-11-20:
 
 Still open:
 1. **Approve the page designs** (the mockups, latest version).
+   **The sticker and the season in a minute:** in v2 and v4 the cover's record (the sticker) tells the reader where
+   the season in a minute ends before it plays. Keep it (the record is the cover's hook), or show the title odds on
+   the sticker instead in those versions?
 2. **Addresses (3.3):** your example spells the outlook path `/forcast/`; the plan and mockup use `/forecast/` so
    it reads right to fans. Confirm? Who fills the pages: a small Worker (recommended) or the browser? The 5 old
    addresses: redirect with `v=direct`, or their own tag (`v=old_page`) to count them apart? Hubs: keep
