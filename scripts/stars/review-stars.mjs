@@ -16,6 +16,7 @@
 //                      Players on that season's high school rosters are the classes season+1 .. season+4.
 //   --states ga,tx     Only these states (default: all US states and DC).
 //   --top <n>          How many rows in the report's top lists (default 25).
+//   --teams <dir>      The game's team list used to fill school_id (default: src/data; see match-schools.mjs).
 //
 // Writes:
 //   review.md                     The review, all totals: sources, matching, star mix, how often the lists agree,
@@ -28,6 +29,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
+import { DEFAULT_TEAMS, matchFile, matchReport } from './match-schools.mjs';
 
 // ---------- options ----------
 
@@ -406,9 +408,15 @@ md.push(`## 6. Top ${topN} schools for ${season} by star points`, '');
       .map(([k, pts]) => { const [s, school, city] = k.split('|'); return [school, city, s, pts]; }));
 }
 
-md.push('## 7. Files', '');
+// Fill school_id with the game's team IDs (state + school_id identifies a school).
+const matched = matchFile(path.join(outDir, countsFile), path.resolve(opt('teams', DEFAULT_TEAMS)));
+md.push('## 7. Matching to the game\'s teams', '');
+md.push(matchReport(matched));
+
+md.push('## 8. Files', '');
 md.push(`- \`${countsFile}\`: ${roster.length.toLocaleString()} players as counts per school, star tier and class ` +
-  '(no names or positions; `school_id` is blank until the team list is matched, `returning` is unknown).', '');
+  '(no names or positions; `school_id` is the game\'s team ID where the school matched, blank otherwise; ' +
+  '`returning` is unknown).', '');
 
 fs.writeFileSync(path.join(outDir, 'review.md'), `${md.join('\n')}\n`);
 
