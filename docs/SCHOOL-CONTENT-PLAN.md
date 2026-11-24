@@ -644,16 +644,28 @@ game's data, so a new career starts from the real program's current level. See D
 
 ### 4.2 Star-rated players: the idea
 
-If a school has, say, a 5-star prospect at quarterback, the sim gives that team a strong fictional quarterback. The
-real player is never named, shown, highlighted or hinted at anywhere.
+If a school has, say, a 5-star prospect, the sim gives that team more talent: its relative strength goes up. Star
+ratings are used only for that. The real player is never named, shown, highlighted or hinted at anywhere, and the
+game never uses a real player's position.
+
+> **Note (user, 2026-11-24):** the real player information is **in addition to** what the game generates for a team.
+> It is there to make the simulation more realistic, above all for smaller teams, whose prestige alone says little.
+> It is **not** the source of which players or positions on a team have star ratings: the game's generated roster
+> (its players, positions and ratings) stays as the game makes it, and the real star counts only add to the team's
+> strength on top of it.
 
 ### 4.3 The star file the user sends (format)
 
 Decision (user, 2026-11-20): **the user gets the star ratings and supplies them** as a file. The plan doesn't need to
 license or rate them itself.
 
-One CSV file per delivery, one row per school, position and star tier: counts only, never a player's name, ID or
-link. A spreadsheet can save it directly.
+One CSV file per delivery, one row per school, star tier and class: counts only, never a player's name, position, ID
+or link. A spreadsheet can save it directly.
+
+Decision (user, 2026-11-24): **no position.** Names, positions and links may be used while making the file (for
+example to match the same player across lists), then dropped; nothing that identifies a player reaches the file, the
+game or any page. `scripts/stars/review-stars.mjs` makes this file from the user's prospects export and writes a
+review of totals only.
 
 File name: `stars-<season>-<date>.csv`, for example `stars-2027-2027-06-15.csv`. A newer file for the same season
 replaces the older one completely (players transfer and ratings change), so each file is the full picture on that
@@ -666,28 +678,24 @@ date.
 | `school_id` | one of these two | The school's ID from the team list we hand over (`data/base/<year>/teams-<state>.csv`) | `1300720` |
 | `school` | one of these two | The school's name as the source writes it, if there's no ID; add `city` to tell apart repeats | `Valdosta` |
 | `city` | no | The school's city, to match repeated names | `Valdosta` |
-| `position` | yes | One of the positions below | `QB` |
 | `stars` | yes | 2 to 5 | `4` |
-| `count` | yes | How many players at that school, position and tier | `1` |
+| `count` | yes | How many players at that school, tier and class | `1` |
 | `grad_year` | no | Their graduating class, to know who leaves after the season (if given, one row per class) | `2029` |
 | `returning` | no | How many of `count` started last season (layer 9 in 3.4) | `1` |
 
-Positions: the game's own (`QB RB WR TE OT OG C DE DT LB CB S K P`) or the usual groups, which the game spreads over
-its positions: `OL` (OT, OG, C), `IOL` (OG, C), `DL` (DE, DT), `EDGE` (DE), `DB` (CB, S), `ATH` (the team's thinnest
-skill position).
-
 ```csv
-season,state,school_id,school,city,position,stars,count,grad_year,returning
-2027,ga,1300720,Valdosta,Valdosta,QB,4,1,2028,1
-2027,ga,1300720,Valdosta,Valdosta,DL,3,2,,
-2027,tx,4817190,Duncanville,Duncanville,WR,5,1,2028,1
-2027,tx,4817190,Duncanville,Duncanville,EDGE,4,2,2029,0
+season,state,school_id,school,city,stars,count,grad_year,returning
+2027,ga,1300720,Valdosta,Valdosta,4,1,2028,1
+2027,ga,1300720,Valdosta,Valdosta,3,2,2029,
+2027,tx,4817190,Duncanville,Duncanville,5,1,2028,1
+2027,tx,4817190,Duncanville,Duncanville,4,2,2029,0
 ```
 
 (The IDs above are made up for the example.) Schools with no rated players need no rows.
 
 **The check:** `node scripts/outlook/check-stars.mjs <file>` reads it before anything uses it and reports, without
-changing it: schools it can't match (with the closest names from the team list), unknown positions, stars outside 2-5,
+changing it: schools it can't match (with the closest names from the team list), columns it doesn't expect (such as a
+name or position, which it refuses), stars outside 2-5,
 counts over the per-team cap, rows repeated, and the totals per state. The runner refuses a file with errors.
 
 **Where it's kept:** outside git, like the music files (`data/stars/` is git-ignored) and never in shared notes: the
@@ -697,11 +705,15 @@ outlook files.
 ### 4.4 How the game would use it
 
 `generateDistrictTeams` (`src/generators/rosterGenerator.ts`) already rolls every roster from the school's prestige
-(`programTalent`). With star counts, for each count it makes one generated player at that position with an overall
-from a star map (for example 5 stars 88-94, 4 stars 80-86, 3 stars 72-78, against starters at about 66), a random class
-year and a generated name. Everything else stays as it is. Effect: the macro sim uses the lineup's average
-(`teamStarterRating`), so one 5-star starter lifts a team about 1-1.5 rating points (about 5-7 points of margin a game,
-at 4.5 points per rating point). A cap per team keeps a single star from deciding a classification.
+(`programTalent`), and that stays exactly as it is: the generated players, their positions and their ratings are the
+game's own (see the note in 4.2). The star counts are an extra input on top: they add to the team's strength, and
+no generated player is made, picked or re-rated to stand for a real one.
+
+Size of the lift, for calibration: the macro sim uses the lineup's average (`teamStarterRating`), and a 5-star talent
+is worth about what one starter rated 88-94 (against starters at about 66) would add, roughly 1-1.5 rating points
+(about 5-7 points of margin a game, at 4.5 points per rating point); 4 stars about 80-86, 3 stars about 72-78. The
+lift matters most for smaller teams, whose prestige alone says little. A cap per team keeps a single star from
+deciding a classification.
 
 ### 4.5 Decision (user, 2026-11-20): star ratings go into the strength formula, never onto the page
 
@@ -716,7 +728,7 @@ an input to the formula below. They are never shown, named or hinted at: not as 
 | --- | --- | --- |
 | Results power rating | How good the team has been lately: an Elo-style rating fitted to the last 3-5 seasons of scores, margin capped | Association-published scores, via the results agent (3.2) |
 | Program history | Titles, deep playoff runs, recent records: the program's pull | Association champion lists and results |
-| Talent and consensus | How rated the current players are, and so how highly the team is thought of | Star counts per position (the user's star file, 4.3) |
+| Talent and consensus | How rated the current players are, and so how highly the team is thought of | Star counts per tier and class (the user's star file, 4.3) |
 | Returning starters (optional) | Turnover from last season | Later, if a source exists |
 | Enrollment and classification | Size of the school and its competition | The association's own data |
 
@@ -724,9 +736,9 @@ The weights are set by backtesting: build last season's preseason strength from 
 simulate it, and compare with what really happened (records, playoff rounds, champions). Keep the mix that predicts
 best. The star input gets a cap per team, so one great player can't decide a classification on paper.
 
-Inside the game, the strength becomes the school's prestige (as today), and the star counts make the generated
-rosters match (a strong generated quarterback where the counts say so). Every generated player keeps a generated name,
-so "All players, games and results are fictional" stays true.
+Inside the game, the strength becomes the school's prestige (as today), with the star input added on top of the
+generated roster; it never decides which generated players or positions are the strong ones. Every player stays
+generated, so "All players, games and results are fictional" stays true.
 
 ### 4.7 Getting the ratings: license, or rate them ourselves
 
@@ -737,8 +749,8 @@ Two ways that work:
 
 | Way | How | For | Against |
 | --- | --- | --- | --- |
-| A. License | Ask the recruiting services (and the companies that resell sports data) for a data license: school-level counts by position and star tier for each class year, for use inside a simulation, never displayed | Ratings fans already trust (that's the consensus); covers every school at once; least work each year | Price unknown (could be beyond the $0 budget for now); the deal must allow use inside a game with nothing displayed; coverage of small schools is thin |
-| B. Our own ratings | A person on the team (or a few contract scouts) rates players from public information: offer lists the players announce, all-district and all-state teams the associations and newspapers publish, public film. They record only counts per school and position, not names | No license; we control the method; can cover schools the services ignore | Slow at scale: thousands of rated players a year; it's our opinion, not the consensus; the working notes name minors |
+| A. License | Ask the recruiting services (and the companies that resell sports data) for a data license: school-level counts by star tier for each class year, for use inside a simulation, never displayed | Ratings fans already trust (that's the consensus); covers every school at once; least work each year | Price unknown (could be beyond the $0 budget for now); the deal must allow use inside a game with nothing displayed; coverage of small schools is thin |
+| B. Our own ratings | A person on the team (or a few contract scouts) rates players from public information: offer lists the players announce, all-district and all-state teams the associations and newspapers publish, public film. They record only counts per school and star tier, not names or positions | No license; we control the method; can cover schools the services ignore | Slow at scale: thousands of rated players a year; it's our opinion, not the consensus; the working notes name minors |
 
 Recommendation: **ask for license quotes now (A) and, in parallel, test B on the pilot state.** B on one state
 shows the cost per state and how much the star input actually improves the backtest. If it barely improves it, the
