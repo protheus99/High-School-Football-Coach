@@ -15,7 +15,7 @@ import {
   GradeFix,
   MisconductThread
 } from '../types/game';
-import { buildClassWorld, classPlayoffs, classSchedule, classSchoolPrestige, ClassTarget, isLegacyClass, pickClassSchool } from '../sim/classLeague';
+import { buildClassWorld, classPlayoffs, classSchedule, classSchoolPrestige, ClassTarget, isLegacyClass, LEGACY_TOP_CLASS, pickClassSchool } from '../sim/classLeague';
 import { cachedStateTeams } from '../data/teamData';
 import { buildCustomLeague, buildTexasLeague, Difficulty, findDistrict, GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, seasonLength, buildStateWorld, stateSchool, difficultyForPrestige } from '../sim/league';
 import {
@@ -469,6 +469,13 @@ function whenIdle(work: () => void): void {
 }
 
 /** The user's district as team objects (shared with leagueTeams). */
+/** Where a new game starts, for its analytics event: the school (its game id, a public program, never anything about a
+ * person) and its class (an original state's top class has no className: its class name from LEGACY_TOP_CLASS). */
+const startedAt = (s: { league: LeagueStructure | null; userTeamId: string }) => ({
+  school: s.userTeamId,
+  class: s.league?.className ?? LEGACY_TOP_CLASS[s.league?.state ?? 'Texas']
+});
+
 /** The league as the national world and the calibration name it: its state and class (no class: the hand-tuned top class). */
 const leagueRef = (league?: LeagueStructure | null) => ({ state: league?.state ?? 'Texas', className: league?.className });
 
@@ -922,7 +929,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const school = target ? target.name : pickSchoolForDifficulty(difficulty, state);
     set({ currentYear: 2026, difficulty, career: null, careerHistory: [], careerKey: newCareerKey(), playedGames: {}, lockNotice: null });
     get().startNewSeason(data && target ? buildClassWorld(data, className!, target.id) : buildStateWorld(state, school));
-    track('new_game', { mode: 'quick', state, difficulty });
+    track('new_game', { mode: 'quick', state, difficulty, ...startedAt(get()) });
     return school;
   },
 
@@ -951,7 +958,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     const team = get().leagueTeams.find((t) => t.id === get().userTeamId);
     if (team) team.staff.headCoachName = coachTitle(career.coachName);
     if (team) set({ career: { ...career, startingPrestige: team.prestige } });
-    track('new_game', { mode: 'career', scenario: scenarioId, state, length: length || 'unlimited', ...entrySource() });
+    track('new_game', { mode: 'career', scenario: scenarioId, state, length: length || 'unlimited', ...startedAt(get()), ...entrySource() });
   },
 
   // League saves restore the whole world; older saves get a world built around their district

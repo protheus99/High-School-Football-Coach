@@ -29,7 +29,7 @@ screens' buttons. Tests: `src/sim/tests/analyticsEvents.test.ts` and `src/servic
 
 | Event | When | Parameters |
 | --- | --- | --- |
-| `new_game` | A career (or quick game) starts | `mode` (career / quick), `scenario`, `state`, `length` or `difficulty`; `source` (team_page) and `variant` (page / direct) when it came through a team page |
+| `new_game` | A career (or quick game) starts | `mode` (career / quick), `scenario`, `state`, `school` (the school's game id, e.g. `team_ohio_springfield_springfield`; the original 12 states' top classes keep `team_<name>`), `class` (e.g. `5A-D1`, `D1`), `length` (or `unlimited`) or `difficulty`; `source` (team_page) and `variant` (page / direct) when it came through a team page |
 | `menu_choice` | Continue / New Game / Load Game / Hall of Fame on the title menu | `choice`, `from_save` (Continue loaded the newest save) |
 | `load_game` / `save_game` | A save is loaded / a manual save | where the career is |
 | `save_deleted` | A save deleted on the Load screen | `saves` (how many there were) |
@@ -110,6 +110,8 @@ events, and their standard parameters need no registering.
 3. `talk`, `family`, `fit`, `rivalry`, `result`
 4. `blocker`, `fix`, `gpa_band`, `pool`, `source`, `rank_band`, `pack`
 5. `offense`, `focus`, `call`, `situation`, `choice`, `sim_ahead`, `card`, `from`
+6. `mode`, `scenario`, `state`, `class`, `length`, `difficulty`, `variant`, `school` (`school` has about 13,300 values: standard
+   reports lump most into "(other)", so read it in Explorations; the others stay small)
 
 **Custom metrics** (50 allowed), for averages and sums:
 
