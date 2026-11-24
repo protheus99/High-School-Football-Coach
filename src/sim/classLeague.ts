@@ -6,6 +6,7 @@ import { classRulesFor, ClassRules } from './classRules';
 import { buildClassPlayoffs, ClassDistrict, generateClassSchedule } from './classSeason';
 import type { GameWorld, LeagueStructure, StateSchoolEntry } from './league';
 import type { PlayoffBracketState } from './playoffEngine';
+import { rulesForState } from './stateRules';
 
 // ---------------------------------------------------------------------------
 // Leagues built from the team data (src/data/teams): any state's class played on the generalized engine in
@@ -28,6 +29,13 @@ export const LEGACY_TOP_CLASS: Record<string, string> = {
   Louisiana: '5A',
   California: 'Open Division' // the hand-built Open Division; the data's CIF sections are classes of their own
 };
+
+/**
+ * The class a team plays in, for the screens: its class in the team data, or its state's hand-tuned top class (Georgia
+ * 7A, Ohio D1). The stored `classification` isn't trusted: saves before the expansion hold '6A' for every team.
+ */
+export const teamClassLabel = (team: Pick<Team, 'className' | 'state'>): string =>
+  team.className ?? LEGACY_TOP_CLASS[team.state ?? 'Texas'] ?? rulesForState(team.state).classification;
 
 /** True when the (state, class) is one the hand-tuned top-class path already plays. */
 export const isLegacyClass = (state: string, className: string) => LEGACY_TOP_CLASS[state] === className;
@@ -81,6 +89,7 @@ export interface ClassWorldOptions {
 function applySchool(team: Team, s: TeamSchool, className: string) {
   team.id = s.id;
   team.className = className;
+  team.classification = className;
   if (s.shortName) team.shortName = s.shortName;
   if (s.city) team.city = s.city;
   if (s.colorsConfirmed === false) team.colorsConfirmed = false;

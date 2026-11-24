@@ -1,5 +1,6 @@
 import { Team, RankedTeamEntry, StateAndNationalPolls, RankMovement } from '../types/game';
 import { computeRatings, GameResult } from './computerRankings';
+import { teamClassLabel } from './classLeague';
 
 /**
  * The National Top 25 and every state's Top 25 with rank movement: the computer rankings (computerRankings.ts)
@@ -59,7 +60,7 @@ export function generateNationalAndStatePolls(
       teamName: entry.team.name,
       mascot: entry.team.mascot,
       state: entry.team.state || 'Texas',
-      classification: entry.team.classification,
+      classification: teamClassLabel(entry.team),
       record: entry.record,
       pollPoints: entry.pollPoints,
       strengthOfSchedule: entry.sos,
@@ -83,7 +84,7 @@ export function generateNationalAndStatePolls(
       teamName: entry.team.name,
       mascot: entry.team.mascot,
       state: entry.team.state || 'Texas',
-      classification: entry.team.classification,
+      classification: teamClassLabel(entry.team),
       record: entry.record,
       pollPoints: entry.pollPoints,
       strengthOfSchedule: entry.sos,
@@ -117,7 +118,7 @@ export function generateNationalAndStatePolls(
         teamName: entry.team.name,
         mascot: entry.team.mascot,
         state: stateName,
-        classification: entry.team.classification,
+        classification: teamClassLabel(entry.team),
         record: entry.record,
         pollPoints: entry.pollPoints,
         strengthOfSchedule: entry.sos,

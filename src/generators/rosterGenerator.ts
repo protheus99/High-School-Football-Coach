@@ -394,7 +394,7 @@ export const ELITE_PRESTIGE = 90;
 export function generateDistrictTeams(
   districtId = 'tx_6a_d26',
   schools: SchoolIdentity[] = HIGH_SCHOOL_NAMES,
-  options: { talentFromPrestige?: boolean; state?: string; nameProfile?: NameProfile; light?: boolean } = {}
+  options: { talentFromPrestige?: boolean; state?: string; classification?: string; nameProfile?: NameProfile; light?: boolean } = {}
 ): Team[] {
   const schemesOffense: OffensiveScheme[] = ['TRIPLE_OPTION', 'AIR_RAID', 'POWER_I', 'SPREAD'];
   const schemesDefense: DefensiveScheme[] = ['FOUR_THREE', 'FOUR_FOUR', 'THREE_THREE_FIVE', 'DROP_EIGHT'];
@@ -415,7 +415,7 @@ export function generateDistrictTeams(
       id: `team_${hs.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
       name: hs.name,
       mascot: hs.mascot,
-      classification: '6A',
+      classification: options.classification ?? '6A',
       districtId,
       primaryColor: hs.primary,
       secondaryColor: hs.secondary,

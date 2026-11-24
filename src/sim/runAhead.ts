@@ -41,8 +41,22 @@ export interface WeekResults {
   games: Record<string, PrecomputedGame>;
 }
 
-/** The key a game is stored under: its state and its schedule id (playoff games: playoffKey). */
-export const gameKey = (state: string, id: string) => `${state}|${id}`;
+/** A league as run-ahead keys know it: its state, and its class when it's a class built from the team data. */
+export type LeagueRef = { state?: string; className?: string };
+
+/**
+ * The prefix of a league's game keys: its state, plus its class for a class built from the team data. Several classes
+ * of one state play at once and their playoff matchup ids can repeat (Tennessee's classes all call their bracket
+ * 'Division I': 'divisioni_r1_1'), so each class needs its own keys.
+ * The original top classes have no className and keep plain '<state>' keys.
+ */
+export const leagueKey = (league: LeagueRef | null | undefined): string => {
+  const state = league?.state ?? 'Texas';
+  return league?.className ? `${state}|${league.className}` : state;
+};
+
+/** The key a game is stored under: its league (leagueKey, or INTERSTATE) and its schedule id (playoff games: playoffKey). */
+export const gameKey = (league: string, id: string) => `${league}|${id}`;
 /** The 'state' out-of-state games are stored under. */
 export const INTERSTATE = 'Interstate';
 /** A playoff game's id: its division and matchup (Texas's two divisions reuse first-round matchup ids). */
@@ -111,34 +125,36 @@ function precomputed(key: string, state: string, home: Team, away: Team, week: n
 }
 
 /** This week's playoff games in a bracket (all but the coach's own), simulated ahead. */
-function bracketGames(bracket: PlayoffBracketState | null, state: string, week: number, skipTeamId?: string): PrecomputedGame[] {
+function bracketGames(bracket: PlayoffBracketState | null, league: LeagueRef, week: number, skipTeamId?: string): PrecomputedGame[] {
   if (!bracket?.isPlayoffsActive || bracketRoundForWeek(bracket, week) < 0) return [];
+  const state = league.state ?? 'Texas';
   const label = bracketRoundLabel(bracket, bracket.currentRoundIndex, rulesForState(state).playoffs.roundLabels);
   const mine = skipTeamId ? findUserNode(bracket, skipTeamId)?.node : undefined;
   return bracket.divisions.flatMap((d, divisionIndex) =>
     (d.rounds[bracket.currentRoundIndex] ?? [])
       .filter((n) => !n.isBye && !n.winnerTeamId && n !== mine)
-      .map((n) => precomputed(gameKey(state, playoffKey(divisionIndex, n.matchupId)), state, n.team1, n.team2, week, label))
+      .map((n) => precomputed(gameKey(leagueKey(league), playoffKey(divisionIndex, n.matchupId)), state, n.team1, n.team2, week, label))
   );
 }
 
 /** This week's regular-season games in a schedule (all but the coach's own), simulated ahead. */
-function scheduleGames(schedule: ScheduledGame[], teams: Team[], state: string, week: number, skipTeamId?: string): PrecomputedGame[] {
+function scheduleGames(schedule: ScheduledGame[], teams: Team[], league: LeagueRef, week: number, skipTeamId?: string): PrecomputedGame[] {
   if (week > LAST_REGULAR_SEASON_WEEK) return [];
+  const state = league.state ?? 'Texas';
   const byId = new Map(teams.map((t) => [t.id, t]));
   return schedule
     .filter((g) => g.week === week && g.homeScore === undefined && g.homeTeamId !== skipTeamId && g.awayTeamId !== skipTeamId)
     .flatMap((g) => {
       const home = byId.get(g.homeTeamId);
       const away = byId.get(g.awayTeamId);
-      return home && away ? [precomputed(gameKey(state, g.gameId), state, home, away, week)] : [];
+      return home && away ? [precomputed(gameKey(leagueKey(league), g.gameId), state, home, away, week)] : [];
     });
 }
 
 /** Every game this week except the coach's: his league and every other state. */
 export function runAheadWeek(game: {
   currentWeek: number;
-  league: { state?: string } | null;
+  league: LeagueRef | null;
   seasonSchedule: ScheduledGame[];
   leagueTeams: Team[];
   userTeamId: string;
@@ -147,7 +163,7 @@ export function runAheadWeek(game: {
   interstateGames?: ScheduledGame[];
 }): WeekResults {
   const week = game.currentWeek;
-  const userState = game.league?.state ?? 'Texas';
+  const userLeague = { state: game.league?.state ?? 'Texas', className: game.league?.className };
   const everyone = new Map([...game.leagueTeams, ...game.nationalLeagues.flatMap((l) => l.teams)].map((t) => [t.id, t]));
   const interstate = (game.interstateGames ?? [])
     .filter((g) => g.week === week && g.homeScore === undefined && g.homeTeamId !== game.userTeamId && g.awayTeamId !== game.userTeamId)
@@ -158,19 +174,19 @@ export function runAheadWeek(game: {
     });
   const results = [
     ...interstate,
-    ...scheduleGames(game.seasonSchedule, game.leagueTeams, userState, week, game.userTeamId),
-    ...bracketGames(game.playoffBracket, userState, week, game.userTeamId),
-    ...game.nationalLeagues.flatMap((l) => [...scheduleGames(l.schedule, l.teams, l.state, week), ...bracketGames(l.bracket, l.state, week)])
+    ...scheduleGames(game.seasonSchedule, game.leagueTeams, userLeague, week, game.userTeamId),
+    ...bracketGames(game.playoffBracket, userLeague, week, game.userTeamId),
+    ...game.nationalLeagues.flatMap((l) => [...scheduleGames(l.schedule, l.teams, l, week), ...bracketGames(l.bracket, l, week)])
   ];
   return { week, games: Object.fromEntries(results.map((r) => [r.key, r])) };
 }
 
 /** Writes this week's run-ahead playoff results into a bracket's current round (the round's other games are simulated as usual). */
-export function applyRunAheadRound(bracket: PlayoffBracketState, state: string, results: WeekResults | null, week: number): void {
+export function applyRunAheadRound(bracket: PlayoffBracketState, league: LeagueRef | null, results: WeekResults | null, week: number): void {
   if (!results || results.week !== week) return;
   bracket.divisions.forEach((d, divisionIndex) =>
     (d.rounds[bracket.currentRoundIndex] ?? []).forEach((n) => {
-      const r = results.games[gameKey(state, playoffKey(divisionIndex, n.matchupId))];
+      const r = results.games[gameKey(leagueKey(league), playoffKey(divisionIndex, n.matchupId))];
       if (!r || n.winnerTeamId || r.homeId !== n.team1.id || r.awayId !== n.team2.id) return;
       n.team1Score = r.homeScore;
       n.team2Score = r.awayScore;

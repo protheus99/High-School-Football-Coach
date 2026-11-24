@@ -206,7 +206,7 @@ export interface Team {
   id: string;
   name: string;
   mascot: string;
-  classification: '1A' | '2A' | '3A' | '4A' | '5A' | '6A';
+  classification: string; // the class it was built in; old saves store '6A' for every team, so screens read teamClassLabel()
   state?: string; // e.g. 'Texas'; ranking engines default to Texas when unset
   className?: string; // the school's class in its state's data ('5A-D1', 'D3'); teams of the original top classes don't carry one
   shortName?: string; // from the team data (12 characters at most); the original states' short names live in the state data

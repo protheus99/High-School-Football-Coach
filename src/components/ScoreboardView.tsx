@@ -9,7 +9,7 @@ import { nationalTeams } from '../sim/nationalWorld';
 import { recordText } from '../sim/seasonRecord';
 import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
 import { getUserMatchup } from '../sim/userMatchup';
-import { gameKey, playoffKey } from '../sim/runAhead';
+import { gameKey, leagueKey, playoffKey } from '../sim/runAhead';
 import { rivalryName } from '../data/rivalries';
 import { shortName } from '../utils/shortName';
 
@@ -52,7 +52,7 @@ export const ScoreboardView: React.FC = () => {
   const finals = userGameOver && weekResults?.week === currentWeek ? weekResults.games : null;
   /** A row of this week with its run-ahead final, when the row has none yet. */
   const withFinal = (row: ScoreRow, key: string): ScoreRow => {
-    const ahead = finals?.[gameKey(league?.state ?? 'Texas', key)];
+    const ahead = finals?.[gameKey(leagueKey(league), key)];
     if (row.homeScore !== undefined || !ahead || ahead.homeId !== row.homeId || ahead.awayId !== row.awayId) return row;
     return { ...row, homeScore: ahead.homeScore, awayScore: ahead.awayScore };
   };

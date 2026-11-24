@@ -1,9 +1,10 @@
 import { Team, OffensiveScheme, DefensiveScheme } from '../types/game';
 import { generateCompleteTeamRoster } from '../generators/rosterGenerator';
+import { teamClassLabel } from '../sim/classLeague';
 
 export interface CustomDistrictImportSchema {
   state: string;
-  classification: '1A' | '2A' | '3A' | '4A' | '5A' | '6A';
+  classification: string; // the district's class ('6A', 'D3', 'Group 5')
   districtId: string;
   districtName?: string;
   schools: Array<{
@@ -84,7 +85,7 @@ export function importCustomDistrictJSON(jsonString: string): { success: boolean
 export function exportDistrictToJSON(teams: Team[]): string {
   const exportPayload: CustomDistrictImportSchema = {
     state: teams[0]?.state ?? 'Texas',
-    classification: teams[0]?.classification || '6A',
+    classification: teams[0] ? teamClassLabel(teams[0]) : '6A',
     districtId: teams[0]?.districtId || 'tx_6a_d26',
     schools: teams.map((t) => ({
       name: t.name,

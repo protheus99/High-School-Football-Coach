@@ -4,7 +4,7 @@ import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRI
 import { nameProfileForArea } from '../generators/names';
 import { OFF_SEASON_WEEKS, STATE_FINAL_WEEK } from './scheduleEngine';
 import { rulesForState } from './stateRules';
-import { leagueClassRules } from './classLeague';
+import { LEGACY_TOP_CLASS, leagueClassRules } from './classLeague';
 
 export interface LeagueDistrict {
   id: string;
@@ -147,7 +147,7 @@ export function buildStateWorld(state: string, userSchool?: string, light = fals
           offenseScheme: s.offenseScheme as OffensiveScheme,
           defenseScheme: s.defenseScheme as DefensiveScheme
         })),
-        { talentFromPrestige: true, state: stateName, nameProfile: nameProfileForArea(district.area), light }
+        { talentFromPrestige: true, state: stateName, classification: LEGACY_TOP_CLASS[stateName], nameProfile: nameProfileForArea(district.area), light }
       );
       teams.push(...districtTeams);
       return { id: `${world.idPrefix}${district.number}`, name: district.name, area: district.area, teamIds: districtTeams.map((t) => t.id) };

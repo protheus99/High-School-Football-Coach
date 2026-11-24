@@ -9,7 +9,7 @@ import { buildClassWorld, classPlayoffs, classSchedule, isLegacyClass } from './
 import { classRulesFor } from './classRules';
 import { programTalent } from '../generators/rosterGenerator';
 import { prestigeReversion } from './programMeters';
-import { applyRunAheadRound, gameKey, WeekResults } from './runAhead';
+import { applyRunAheadRound, gameKey, leagueKey, WeekResults } from './runAhead';
 
 // ---------------------------------------------------------------------------
 // The national world: every playable state other than the user's plays the same calendar as a light league,
@@ -113,7 +113,7 @@ export function simulateLightWeek(light: LightLeague, week: number, ahead: WeekR
         const home = byId.get(g.homeTeamId);
         const away = byId.get(g.awayTeamId);
         if (!home || !away) return;
-        const pre = ahead?.week === week ? ahead.games[gameKey(light.state, g.gameId)] : undefined;
+        const pre = ahead?.week === week ? ahead.games[gameKey(leagueKey(light), g.gameId)] : undefined;
         const box = pre ?? simulateMacroMatch(g.gameId, g.week, home, away);
         g.homeScore = box.homeScore;
         g.awayScore = box.awayScore;
@@ -132,7 +132,7 @@ export function simulateLightWeek(light: LightLeague, week: number, ahead: WeekR
     return;
   }
   if (light.bracket?.isPlayoffsActive && bracketRoundForWeek(light.bracket, week) >= 0) {
-    applyRunAheadRound(light.bracket, light.state, ahead, week);
+    applyRunAheadRound(light.bracket, light, ahead, week);
     light.bracket = advancePlayoffRound(light.bracket);
   }
 }

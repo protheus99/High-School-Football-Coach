@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { PrecomputedGame, gameKey } from '../sim/runAhead';
+import { PrecomputedGame, gameKey, leagueKey } from '../sim/runAhead';
 import { TopGameTag, gameRivalry, otherStateOf, topGameTagLabel, topGames } from '../sim/topGames';
 import { userDivisionIndex } from '../sim/playoffEngine';
 
@@ -33,9 +33,9 @@ export const AroundTheState: React.FC = () => {
       userState,
       districtIds: new Set(districtTeams.map((t) => t.id)),
       polls,
-      divisionKey: division === undefined ? undefined : gameKey(userState, `po_${division}_`)
+      divisionKey: division === undefined ? undefined : gameKey(leagueKey(league), `po_${division}_`)
     });
-  }, [weekResults, currentWeek, playoffBracket, userTeamId, userState, districtTeams, polls]);
+  }, [weekResults, currentWeek, playoffBracket, userTeamId, userState, league, districtTeams, polls]);
   if (rows.length === 0) return null;
 
   const rank = new Map((polls?.nationalTop25 ?? []).map((e) => [e.teamId, e.rank]));

@@ -8,6 +8,7 @@ import {
   PlayerRankingsAndStatsState
 } from '../types/game';
 import { clamp } from './math/variance';
+import { teamClassLabel } from './classLeague';
 
 /**
  * Calculates a player's Composite Recruit Score (0 to 1000)
@@ -104,7 +105,7 @@ export function generatePlayerRankingsAndLeaderboards(
       teamId: entry.team.id,
       teamName: entry.team.name,
       state: entry.state,
-      classification: entry.team.classification,
+      classification: teamClassLabel(entry.team),
       primaryStatLine: getPlayerPrimaryStatLine(entry.player),
       compositeRecruitScore: entry.recruitScore
     }));
@@ -133,7 +134,7 @@ export function generatePlayerRankingsAndLeaderboards(
         teamId: entry.team.id,
         teamName: entry.team.name,
         state: stateName,
-        classification: entry.team.classification,
+        classification: teamClassLabel(entry.team),
         primaryStatLine: getPlayerPrimaryStatLine(entry.player),
         compositeRecruitScore: entry.recruitScore
       }));
@@ -157,7 +158,7 @@ export function generatePlayerRankingsAndLeaderboards(
         teamId: entry.team.id,
         teamName: entry.team.name,
         state: entry.state,
-        classification: entry.team.classification,
+        classification: teamClassLabel(entry.team),
         primaryStatLine: getPlayerPrimaryStatLine(entry.player),
         compositeRecruitScore: entry.recruitScore
       }));
@@ -175,7 +176,7 @@ export function generatePlayerRankingsAndLeaderboards(
           teamId: entry.team.id,
           teamName: entry.team.name,
           state: stateName,
-          classification: entry.team.classification,
+          classification: teamClassLabel(entry.team),
           primaryStatLine: getPlayerPrimaryStatLine(entry.player),
           compositeRecruitScore: entry.recruitScore
         }));
@@ -198,7 +199,7 @@ export function generatePlayerRankingsAndLeaderboards(
       teamId: entry.team.id,
       teamName: entry.team.name,
       state: entry.state,
-      classification: entry.team.classification,
+      classification: teamClassLabel(entry.team),
       primaryStatLine: getPlayerPrimaryStatLine(entry.player),
       compositeRecruitScore: entry.recruitScore
     }));

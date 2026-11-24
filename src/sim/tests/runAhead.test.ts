@@ -1,9 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 vi.mock('../../services/db', () => ({ persistSaveGame: vi.fn(async () => undefined) }));
 import { useGameStore } from '../../store/gameStore';
-import { gameKey, INTERSTATE, playoffKey, PrecomputedGame, scoreAt, scoreTimeline, scoringPlays } from '../runAhead';
-import { FIRST_NON_DISTRICT_WEEK } from '../scheduleEngine';
-import { findUserNode } from '../playoffEngine';
+import { gameKey, INTERSTATE, leagueKey, playoffKey, PrecomputedGame, runAheadWeek, scoreAt, scoreTimeline, scoringPlays } from '../runAhead';
+import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK } from '../scheduleEngine';
+import { bracketRoundForWeek, findUserNode } from '../playoffEngine';
+import { loadStateTeams } from '../../data/teamData';
+import { buildLightLeague, simulateLightWeek } from '../nationalWorld';
 
 describe('Run-ahead', () => {
   it('breaks any football score into scoring plays that add up', () => {
@@ -86,5 +88,36 @@ describe('Run-ahead', () => {
     // Georgia's first round is next week (its open week is now): nothing to run ahead there yet
     expect(Object.keys(ahead.games).some((k) => k.startsWith('Georgia|po_'))).toBe(false);
     expect(Object.keys(ahead.games).filter((k) => k.startsWith('Texas|po_')).length).toBeGreaterThan(60); // both divisions
+  }, 120000);
+
+  it('two classes of one state in the playoffs the same week each keep their own results', async () => {
+    await loadStateTeams('Tennessee');
+    const leagues = ['5A', '4A'].map((c) => buildLightLeague('Tennessee', 2026, undefined, c)); // both call their playoff 'Division I'
+    let week = 1;
+    const bothInPlayoffs = () => leagues.every((l) => l.bracket?.isPlayoffsActive && bracketRoundForWeek(l.bracket, week) >= 0);
+    for (; week <= LAST_REGULAR_SEASON_WEEK || (!bothInPlayoffs() && week < 30); week++) leagues.forEach((l) => simulateLightWeek(l, week));
+    expect(bothInPlayoffs()).toBe(true);
+    const round = leagues.map((l) => l.bracket!.currentRoundIndex);
+    const games = leagues.map((l, i) => l.bracket!.divisions.flatMap((d, divisionIndex) => (d.rounds[round[i]] ?? []).filter((n) => !n.isBye).map((n) => ({ divisionIndex, n }))));
+    // The classes' playoff games share matchup ids: only the class in the key tells them apart
+    const ids = games.map((g) => new Set(g.map(({ divisionIndex, n }) => playoffKey(divisionIndex, n.matchupId))));
+    expect([...ids[0]].some((id) => ids[1].has(id))).toBe(true);
+
+    const ahead = runAheadWeek({ currentWeek: week, league: { state: 'Texas' }, seasonSchedule: [], leagueTeams: [], userTeamId: '', playoffBracket: null, nationalLeagues: leagues });
+    const pre = leagues.map((l, i) =>
+      games[i].map(({ divisionIndex, n }) => {
+        const r = ahead.games[gameKey(leagueKey(l), playoffKey(divisionIndex, n.matchupId))];
+        expect(r?.homeId).toBe(n.team1.id);
+        expect(r.state).toBe('Tennessee');
+        return { divisionIndex, matchupId: n.matchupId, r };
+      })
+    );
+    leagues.forEach((l) => simulateLightWeek(l, week, ahead));
+    leagues.forEach((l, i) =>
+      pre[i].forEach(({ divisionIndex, matchupId, r }) => {
+        const node = l.bracket!.divisions[divisionIndex].rounds[round[i]].find((n) => n.matchupId === matchupId)!;
+        expect([node.team1Score, node.team2Score]).toEqual([r.homeScore, r.awayScore]);
+      })
+    );
   }, 120000);
 });

@@ -102,7 +102,6 @@ import { gameResultNews, generateWeeklyNewsStream, NewsArticle, rankingNews, riv
 import { RivalryResult, applyRivalryWin, isTrophyName, rivalrySeries } from '../sim/rivalryEngine';
 import { rivalryName } from '../data/rivalries';
 import { calculateSeasonAwards, honoredPlayers, SeasonAwardsRecord } from '../sim/awardsEngine';
-import { processStateRealignment } from '../sim/realignmentEngine';
 import { generateNationalAndStatePolls } from '../sim/nationalRankingEngine';
 import { collectResults } from '../sim/computerRankings';
 import { advanceWidePool, generateWidePool, resolveWidePool } from '../sim/widePool';
@@ -132,7 +131,7 @@ import { JobOffer, jobOffers, newContract } from '../sim/jobMarket';
 import { coachPrice, contractTerms, ContractYears, FIRST_OFF_SEASON_WEEK, needsSettling, seasonCost, settled, settleKind, staffWindowOpen, withContract } from '../sim/staffContracts';
 import { ScenarioId, scenarioById } from '../data/scenarios';
 import { recordCareer } from '../services/leaderboard';
-import { applyRunAheadRound, gameKey, INTERSTATE, runAheadWeek, WeekResults } from '../sim/runAhead';
+import { applyRunAheadRound, gameKey, INTERSTATE, leagueKey, runAheadWeek, WeekResults } from '../sim/runAhead';
 import { expandToFullRoster, INTERSTATE_WEEK, scheduleInterstateGames } from '../sim/interstate';
 import {
   applyLightCalibration,
@@ -1102,7 +1101,6 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     // Finish this week's schedule: every unplayed game (including the user's, if skipped) is simulated, or
     // takes its run-ahead result
     const ahead = get().weekResults?.week === currentWeek ? get().weekResults : null;
-    const userState = league?.state ?? 'Texas';
     const teamsById = new Map(leagueTeams.map((t) => [t.id, t]));
     seasonSchedule
       .filter((g) => g.week === currentWeek && g.homeScore === undefined)
@@ -1110,7 +1108,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         const home = teamsById.get(g.homeTeamId);
         const away = teamsById.get(g.awayTeamId);
         if (!home || !away) return;
-        const box = ahead?.games[gameKey(userState, g.gameId)] ?? simulateMacroMatch(g.gameId, g.week, home, away);
+        const box = ahead?.games[gameKey(leagueKey(league), g.gameId)] ?? simulateMacroMatch(g.gameId, g.week, home, away);
         rollGameInjuries(home, g.week);
         rollGameInjuries(away, g.week);
         g.homeScore = box.homeScore;
@@ -1229,7 +1227,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       const linked = relinkBracketTeams(playoffBracket, leagueTeams);
       // Games played ahead keep their results (their injuries are rolled here, as the round is decided)
       const before = new Set(linked.divisions.flatMap((d) => d.rounds[linked.currentRoundIndex] ?? []).filter((n) => n.winnerTeamId).map((n) => n.matchupId));
-      applyRunAheadRound(linked, league?.state ?? 'Texas', get().weekResults, currentWeek);
+      applyRunAheadRound(linked, league, get().weekResults, currentWeek);
       linked.divisions
         .flatMap((d) => d.rounds[linked.currentRoundIndex] ?? [])
         .filter((n) => n.winnerTeamId && !n.isBye && !before.has(n.matchupId))
@@ -1767,9 +1765,6 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     // The coach's booster evidence fades by a quarter; a playoff ban found after last season's regular season starts now
     const { pendingUserBan, userProbationUntil } = get();
     const compliance = complianceSeasonEnd(get().compliance);
-    if (currentYear % 2 === 0) {
-      processStateRealignment(districtTeams);
-    }
 
     leagueTeams.forEach((t) => {
       t.record = emptyRecord();
