@@ -7,6 +7,9 @@ import type { RankedTeamEntry, StateAndNationalPolls } from '../types/game';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// Each state's top class, as the polls carry it
+const TOP_CLASS: Record<string, string> = { Georgia: '7A', Ohio: 'D1', California: 'Open Division' };
+
 const entry = (rank: number, teamName: string, mascot: string, state: string, previousRank: number | null, firstPlaceVotes = 0): RankedTeamEntry => ({
   rank,
   previousRank,
@@ -16,7 +19,7 @@ const entry = (rank: number, teamName: string, mascot: string, state: string, pr
   teamName,
   mascot,
   state,
-  classification: '6A',
+  classification: TOP_CLASS[state] ?? '6A',
   record: { wins: 8, losses: 1 },
   pollPoints: 0,
   strengthOfSchedule: 0,
@@ -52,24 +55,35 @@ describe('the polls: one line per team', () => {
     const { host, rows } = show(week9);
     expect(host.querySelector('h3')?.textContent).toBe('National Top 25 - Week 9 rankings');
     const [aquinas, grayson, img, moeller] = rows();
-    expect(aquinas).toBe('1St. Thomas Aquinas(FL)▲ 1(31)8-1');
-    expect(grayson).toBe('2Grayson(GA)▼ 1(18)8-1');
-    expect(img).toBe('3IMG Academy(FL)8-1'); // held its spot: no mark
-    expect(moeller).toContain('(OH)new');
+    expect(aquinas).toBe('1St. Thomas Aquinas(FL) 6A▲ 1(31)8-1');
+    expect(grayson).toBe('2Grayson(GA) 7A▼ 1(18)8-1');
+    expect(img).toBe('3IMG Academy(FL) 6A8-1'); // held its spot: no mark
+    expect(moeller).toContain('(OH) D1new');
     expect(host.textContent).not.toContain('Raiders');
     expect(host.textContent).not.toContain('NEW');
   });
 
-  it("a state's poll drops the state: every team is from that state", () => {
+  it("a state's poll drops the state (every team is from that state) but keeps the class", () => {
     const { host, rows, pick } = show(week9);
     pick('Georgia');
     expect(host.querySelector('h3')?.textContent).toBe('Georgia Top 25 - Week 9 rankings');
-    expect(rows()).toEqual(['1Grayson(22)8-1', '2Collins Hillnew8-1', '3Buford▲ 18-1']);
+    expect(rows()).toEqual(['1Grayson7A(22)8-1', '2Collins Hill7Anew8-1', '3Buford7A▲ 18-1']);
   });
 
   it('the first poll has nothing to compare with: no marks at all', () => {
     const first: StateAndNationalPolls = { ...week9, week: 1, nationalTop25: week9.nationalTop25.map((e) => ({ ...e, previousRank: null, movement: 'NEW_ENTRY', movementDelta: 0 })) };
     const { rows } = show(first);
     expect(rows().join(' ')).not.toMatch(/new|▲|▼/);
+  });
+
+  it("each team shows its own class; a phone shortens California's Open Division to Open", () => {
+    const tennessee = [entry(1, 'Maryville', 'Tigers', 'Tennessee', 1), entry(2, 'Creek Wood', 'Red Hawks', 'Tennessee', 2)];
+    tennessee[1].classification = '4A';
+    const polls: StateAndNationalPolls = { ...week9, nationalTop25: [entry(1, 'Mater Dei', 'Monarchs', 'California', 1)], stateRankings: { Tennessee: tennessee } };
+    const { host, rows, pick } = show(polls);
+    expect(rows()).toEqual(['1Mater Dei(CA) Open8-1']);
+    expect(host.textContent).toContain('California (Open Division)'); // the wide table keeps the full name
+    pick('Tennessee');
+    expect(rows()).toEqual(['1Maryville6A8-1', '2Creek Wood4A8-1']);
   });
 });

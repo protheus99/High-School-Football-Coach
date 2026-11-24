@@ -12,6 +12,7 @@ import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
 import { CLASS_SHORT, fullName, starsLabel } from '../utils/playerFormat';
 import { PlayerRow, PosChip } from './ui/PlayerRow';
 import { playerRowProps } from './ui/playerRowProps';
+import { shortClassLabel } from '../utils/format';
 
 interface PlayerLeaderboardProps {
   rankingsState: PlayerRankingsAndStatsState;
@@ -150,7 +151,7 @@ export const PlayerLeaderboardView: React.FC<PlayerLeaderboardProps> = ({
           {entries.map((e) => (
             <PlayerRow
               key={e.player.id}
-              {...playerRowProps(e.player, { own: false, extra: [e.teamName] })}
+              {...playerRowProps(e.player, { own: false, extra: [e.teamName, shortClassLabel(e.classification)] })}
               rank={e.rank}
               tone={e.teamId === userTeamId ? 'mine' : undefined}
               onClick={() => onSelectPlayer(e)}

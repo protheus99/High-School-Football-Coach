@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StateAndNationalPolls, RankedTeamEntry } from '../types/game';
 import { DataList } from './ui/DataList';
-import { schoolWithState } from '../utils/format';
+import { schoolWithState, shortClassLabel } from '../utils/format';
 import { shortName } from '../utils/shortName';
 
 interface RankingsViewProps {
@@ -31,14 +31,17 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
   };
 
   /** The school as the poll shows it: "St. Thomas Aquinas" and "(FL)" in the national poll, just the school in a state's
-   *  poll (every team there is from that state). A name too long for one line on a phone uses the school's short name. */
+   *  poll (every team there is from that state). A phone adds the class after it in the same gray ("(FL) 6A", "4A"); a
+   *  name too long for one line there uses the school's short name. */
   const school = (e: RankedTeamEntry, phone: boolean) => {
     const full = national ? schoolWithState(e.teamName, e.state) : e.teamName;
     const cut = national ? full.lastIndexOf(' (') : full.length;
     let name = full.slice(0, cut);
-    const extras = (national ? 5 : 0) + (e.movement === 'UP' || e.movement === 'DOWN' ? 4 : e.movement === 'NEW_ENTRY' && !firstPoll ? 4 : 0) + (e.firstPlaceVotes > 0 ? 5 : 0);
+    const cls = shortClassLabel(e.classification);
+    const extras = (national ? 5 : 0) + (phone ? cls.length + 1 : 0) + (e.movement === 'UP' || e.movement === 'DOWN' ? 4 : e.movement === 'NEW_ENTRY' && !firstPoll ? 4 : 0) + (e.firstPlaceVotes > 0 ? 5 : 0);
     if (phone && name.length + extras > 36) name = shortName({ name: e.teamName, state: e.state });
-    return { name, state: national ? full.slice(cut + 1) : '' };
+    const state = national ? full.slice(cut + 1) : '';
+    return { name, state, tag: phone ? `${state} ${cls}`.trim() : state };
   };
   const votes = (e: RankedTeamEntry) => e.firstPlaceVotes > 0 && <span style={{ color: '#B45309', fontSize: '12px', fontWeight: 'normal' }}>({e.firstPlaceVotes})</span>;
 
@@ -63,7 +66,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
         ))}
       </div>
 
-      {/* Phones: one line per team, "St. Thomas Aquinas (FL) ▲ 1" */}
+      {/* Phones: one line per team, "St. Thomas Aquinas (FL) 6A ▲ 1" */}
       <div className="ui-standings">
         {activeEntries.map((entry) => {
           const isUserTeam = entry.teamId === userTeamId;
@@ -74,7 +77,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({ polls, userTeamId })
               <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '5px' }}>
                 <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                 <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'baseline', gap: '5px', whiteSpace: 'nowrap' }}>
-                  {s.state && <span style={{ color: '#64748B', fontSize: '12.5px', fontWeight: 'bold' }}>{s.state}</span>}
+                  {s.tag && <span style={{ color: '#64748B', fontSize: '12.5px', fontWeight: 'bold' }}>{s.tag}</span>}
                   {renderMovementBadge(entry)}
                   {votes(entry)}
                 </span>
