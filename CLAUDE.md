@@ -43,6 +43,17 @@ Bug fixes, wording changes and behind-the-scenes work don't need a mockup, but s
 - Don't lock in powerhouses: high school programs rise and fall. Measure title turnover in multi-season runs before
   changing growth, recruiting or training.
 
+## Real player data (star ratings)
+
+- Real recruits' star ratings are used only to work out a team's relative strength.
+- They come in addition to what the game generates, to make the simulation more realistic (above all for smaller
+  teams). They never decide which generated players or positions are the strong ones: rosters stay as generated.
+- Nothing that can identify a real player is ever shown or stored in the game, on the site or in any output:
+  no names, no positions, no single player's school and rating together, no profile links or IDs.
+- Names, positions and links may be used inside a calculation (e.g. matching the same player across lists), then
+  dropped. Outputs are totals only: counts per school, star tier and class (`scripts/stars/review-stars.mjs`).
+- The raw prospects files stay outside the repo and are never committed.
+
 ## Music
 
 - Songs go in `public/music`, covers in `public/music/covers`; `public/music/soundtrack.json` explains the format.
