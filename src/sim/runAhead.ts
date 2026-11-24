@@ -1,6 +1,6 @@
 import { ScheduledGame, Team } from '../types/game';
 import { simulateMacroMatch } from './macroSim';
-import { bracketRoundForWeek, currentRound, findUserNode, PlayoffBracketState } from './playoffEngine';
+import { bracketRoundForWeek, bracketRoundLabel, findUserNode, PlayoffBracketState } from './playoffEngine';
 import { LAST_REGULAR_SEASON_WEEK } from './scheduleEngine';
 import { randomInt } from './math/variance';
 import type { LightLeague } from './nationalWorld';
@@ -113,7 +113,7 @@ function precomputed(key: string, state: string, home: Team, away: Team, week: n
 /** This week's playoff games in a bracket (all but the coach's own), simulated ahead. */
 function bracketGames(bracket: PlayoffBracketState | null, state: string, week: number, skipTeamId?: string): PrecomputedGame[] {
   if (!bracket?.isPlayoffsActive || bracketRoundForWeek(bracket, week) < 0) return [];
-  const label = rulesForState(state).playoffs.roundLabels[currentRound(bracket)];
+  const label = bracketRoundLabel(bracket, bracket.currentRoundIndex, rulesForState(state).playoffs.roundLabels);
   const mine = skipTeamId ? findUserNode(bracket, skipTeamId)?.node : undefined;
   return bracket.divisions.flatMap((d, divisionIndex) =>
     (d.rounds[bracket.currentRoundIndex] ?? [])

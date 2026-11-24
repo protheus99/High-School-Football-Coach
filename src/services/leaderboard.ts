@@ -101,8 +101,8 @@ export const hasRemoteLeaderboard = () => !!REMOTE_URL;
 // Posting needs a signed-in player: it goes through the game's own domain (/api/hof), where the sign-in cookie is sent.
 // Signed out, careers stay on this device.
 async function submitRemote(career: Career): Promise<void> {
-  // An unlimited career is on no Hall of Fame board
-  if (!REMOTE_URL || !career.token || career.seasons.length === 0 || career.length === 0 || !accountState().user) return;
+  // An unlimited career is on no Hall of Fame board. A career in a class from the team data waits for the Worker to know those schools
+  if (career.className || !REMOTE_URL || !career.token || career.seasons.length === 0 || career.length === 0 || !accountState().user) return;
   try {
     const entry = { ...toEntry(career), isLocal: undefined, updatedAt: undefined, token: career.token };
     await fetch('/api/hof/careers', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) });

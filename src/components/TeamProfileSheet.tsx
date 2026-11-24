@@ -1,3 +1,4 @@
+import { rulesForLeague } from '../sim/leagueRules';
 import React from 'react';
 import { Sheet } from './ui/Sheet';
 import { useGameStore } from '../store/gameStore';
@@ -5,8 +6,8 @@ import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
 import { recordText } from '../sim/seasonRecord';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { findDistrict, leagueRegionTeams } from '../sim/league';
-import { bracketRoundWeek } from '../sim/playoffEngine';
-import { rulesForState } from '../sim/stateRules';
+import { bracketRoundLabel, bracketRoundWeek } from '../sim/playoffEngine';
+
 import { nationalTeams } from '../sim/nationalWorld';
 import { Player, PlayerStats, Team } from '../types/game';
 import { playerMention } from '../utils/playerFormat';
@@ -38,8 +39,8 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
   const team = leagueTeams.find((t) => t.id === teamId);
   if (!team) return null;
   const isUser = team.id === userTeamId;
-  const ROUND_LABELS = rulesForState(league?.state).playoffs.roundLabels;
-  const districtLabel = rulesForState(league?.state).districtLabel;
+  const ROUND_LABELS = rulesForLeague(league).playoffs.roundLabels;
+  const districtLabel = rulesForLeague(league).districtLabel;
 
   const district = league ? findDistrict(league, team.id) : undefined;
   const districtTeams = league && district ? leagueRegionTeams(league, leagueTeams).flat().find((d) => d.some((t) => t.id === team.id)) ?? [] : [];
@@ -77,7 +78,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
           const theirs = isHome ? n.team2Score : n.team1Score;
           games.push({
             week: bracketRoundWeek(playoffBracket, i),
-            label: ROUND_LABELS[playoffBracket.roundNames[i]],
+            label: bracketRoundLabel(playoffBracket, i, ROUND_LABELS),
             opponent,
             isHome,
             ...(n.winnerTeamId && { won: n.winnerTeamId === team.id, result: `${mine}-${theirs}` })
@@ -103,7 +104,7 @@ export const TeamProfileSheet: React.FC<{ teamId: string; onClose: () => void; o
 
   return (
     <Sheet
-      title={`${team.name} ${team.mascot}`}
+      title={`${team.name}${team.mascot ? ` ${team.mascot}` : ''}`}
       subtitle={
         <>
           {recordText(team, playoffs)}

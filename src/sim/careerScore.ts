@@ -45,6 +45,8 @@ export interface Career {
   scenario: ScenarioId;
   state: string;
   startingSchool: string; // the world name
+  className?: string; // a class built from the team data ('5A-D1'); unset: the state's hand-tuned top class
+  startingSchoolId?: string; // that school's id in the team data
   startingProgram: string; // the name the program is known by
   startedYear: number;
   length: CareerTerm; // seasons in the career (the contract); UNLIMITED (0): no end, never on the Hall of Fame

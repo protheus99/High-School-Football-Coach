@@ -1,9 +1,10 @@
+import { rulesForLeague } from '../sim/leagueRules';
 import React, { useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { canBookFix, GRADE_FIX_ORDER, GRADE_FIXES, gpaTrend, gradeList, weeksToReportCard } from '../sim/grades';
 import { isAcademicallyAtRisk } from '../sim/playerEngine';
 import { seasonLength } from '../sim/league';
-import { rulesForState } from '../sim/stateRules';
+
 import { PlayerRow } from './ui/PlayerRow';
 import { playerRowProps } from './ui/playerRowProps';
 
@@ -17,7 +18,7 @@ export const GradesView: React.FC = () => {
   useEffect(() => markGradesReviewed(), [markGradesReviewed, currentWeek]);
   const team = districtTeams.find((t) => t.id === userTeamId);
   if (!team) return null;
-  const rules = rulesForState(league?.state);
+  const rules = rulesForLeague(league);
   const players = gradeList(team, rules);
   const weeks = weeksToReportCard(currentWeek, league ? seasonLength(league) : 28);
 

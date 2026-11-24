@@ -1,9 +1,10 @@
+import { rulesForLeague } from '../sim/leagueRules';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { findDistrict, findRegion } from '../sim/league';
 import { FIRST_NON_DISTRICT_WEEK, LAST_REGULAR_SEASON_WEEK, STATE_FINAL_WEEK } from '../sim/scheduleEngine';
-import { bracketRoundForWeek } from '../sim/playoffEngine';
-import { rulesForState } from '../sim/stateRules';
+import { bracketRoundForWeek, bracketRoundLabel } from '../sim/playoffEngine';
+
 import { nationalTeams } from '../sim/nationalWorld';
 import { recordText } from '../sim/seasonRecord';
 import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
@@ -40,7 +41,7 @@ export const ScoreboardView: React.FC = () => {
   const district = league ? findDistrict(league, userTeamId) : undefined;
   const region = league ? findRegion(league, userTeamId) : undefined;
   const lastGameWeek = STATE_FINAL_WEEK;
-  const ROUND_LABELS = rulesForState(league?.state).playoffs.roundLabels;
+  const ROUND_LABELS = rulesForLeague(league).playoffs.roundLabels;
 
   // Once the coach's game is over, this week's other games show their finals: the results simulated ahead, the same
   // ones Advance Week applies
@@ -88,7 +89,7 @@ export const ScoreboardView: React.FC = () => {
           awayName: names.get(g.awayTeamId) ?? 'Unknown',
           homeScore: g.homeScore,
           awayScore: g.awayScore,
-          tag: g.forfeitedByTeamId ? 'Forfeit' : g.isDistrictGame ? rulesForState(league?.state).districtLabel : undefined
+          tag: g.forfeitedByTeamId ? 'Forfeit' : g.isDistrictGame ? rulesForLeague(league).districtLabel : undefined
         };
         return week === currentWeek ? withFinal(row, g.gameId) : row;
       });
@@ -114,7 +115,7 @@ export const ScoreboardView: React.FC = () => {
   const weekLabel = (w: number) => {
     const round = w > LAST_REGULAR_SEASON_WEEK && playoffBracket ? bracketRoundForWeek(playoffBracket, w) : -1;
     if (w > LAST_REGULAR_SEASON_WEEK && playoffBracket && round < 0) return `Open week (week ${w})`;
-    return round >= 0 && playoffBracket?.roundNames[round] ? `${ROUND_LABELS[playoffBracket.roundNames[round]]} (week ${w})` : `Week ${w}`;
+    return round >= 0 && playoffBracket?.roundNames[round] ? `${bracketRoundLabel(playoffBracket, round, ROUND_LABELS)} (week ${w})` : `Week ${w}`;
   };
   const sections = [
     { key: 'last', title: 'Last week', week: currentWeek - 1 },

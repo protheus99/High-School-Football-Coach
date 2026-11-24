@@ -4,6 +4,9 @@ import { applyGameResult, FIRST_NON_DISTRICT_WEEK, generateSeasonSchedule, LAST_
 import { simulateMacroMatch, teamStarterRating } from './macroSim';
 import { advancePlayoffRound, bracketRoundForWeek, buildPlayoffBracket, PlayoffBracketState, relinkBracketTeams } from './playoffEngine';
 import { PLAYABLE_STATES, rulesForState } from './stateRules';
+import { cachedStateTeams } from '../data/teamData';
+import { buildClassWorld, classPlayoffs, classSchedule, isLegacyClass } from './classLeague';
+import { classRulesFor } from './classRules';
 import { programTalent } from '../generators/rosterGenerator';
 import { prestigeReversion } from './programMeters';
 import { applyRunAheadRound, gameKey, WeekResults } from './runAhead';
@@ -17,6 +20,7 @@ import { applyRunAheadRound, gameKey, WeekResults } from './runAhead';
 
 export interface LightLeague {
   state: string;
+  className?: string; // a class built from the team data (classSeason.ts); unset: the state's hand-tuned top class
   league: LeagueStructure;
   teams: Team[];
   schedule: ScheduledGame[];
@@ -51,12 +55,15 @@ export function seasonPrestigeNudge(team: Team, schedule: ScheduledGame[], teams
  * A state's whole top class as a light league with this year's schedule. Programs keep last year's prestige
  * (with a nudge for how the season went) when `previous` is given.
  */
-export function buildLightLeague(state: string, year: number, previous?: LightLeague): LightLeague {
-  const { league, teams } = buildStateWorld(state, undefined, true);
-  // Team ids come from school names, which repeat across states (West Forsyth: Georgia and North Carolina)
+export function buildLightLeague(state: string, year: number, previous?: LightLeague, className?: string): LightLeague {
+  const { league, teams } = className ? buildClassWorld(cachedStateTeams(state)!, className, undefined, { light: true }) : buildStateWorld(state, undefined, true);
+  // Team ids come from school names, which repeat across states (West Forsyth: Georgia and North Carolina); the team data's
+  // ids already carry their state and class
   const suffix = `__${state.toLowerCase().replace(/[^a-z]+/g, '_')}`;
-  teams.forEach((t) => (t.id += suffix));
-  league.regions.forEach((r) => r.districts.forEach((d) => (d.teamIds = d.teamIds.map((id) => id + suffix))));
+  if (!className) {
+    teams.forEach((t) => (t.id += suffix));
+    league.regions.forEach((r) => r.districts.forEach((d) => (d.teamIds = d.teamIds.map((id) => id + suffix))));
+  }
   const before = new Map((previous?.teams ?? []).map((t) => [t.id, t]));
   const champions = new Set(previous?.bracket?.divisions.map((d) => d.championTeamId).filter(Boolean));
   teams.forEach((t) => {
@@ -70,18 +77,29 @@ export function buildLightLeague(state: string, year: number, previous?: LightLe
     t.prestige = prestige;
   });
   // Week 8 stays open for the national out-of-state week
-  return { state, league, teams, schedule: generateSeasonSchedule(leagueRegionTeams(league, teams), year, { reservedWeeks: [FIRST_NON_DISTRICT_WEEK] }), bracket: null };
+  const schedule = className ? classSchedule(league, teams, year, [FIRST_NON_DISTRICT_WEEK]) : generateSeasonSchedule(leagueRegionTeams(league, teams), year, { reservedWeeks: [FIRST_NON_DISTRICT_WEEK] });
+  return { state, ...(className && { className }), league, teams, schedule, bracket: null };
 }
 
-/** Every playable state except the user's, as light leagues. */
-export function buildNationalWorld(userState: string, year: number, previous: LightLeague[] = []): LightLeague[] {
-  return PLAYABLE_STATES.filter((s) => s !== userState).map((s) =>
-    buildLightLeague(
-      s,
-      year,
-      previous.find((l) => l.state === s)
-    )
-  );
+/** The coach's league: its state and, for a class built from the team data, its class (unset: the hand-tuned top class). */
+export type UserLeagueRef = string | { state: string; className?: string };
+
+/**
+ * The background world, as light leagues: every original state's hand-tuned top class (but the coach's), plus every other
+ * class of the coach's state from the team data. Those classes need the state's team file loaded (loadStateTeams); the
+ * other 29 states' classes are not simulated (see the README note in the report: loading and saving ~11,000 more teams
+ * every season is the cost, measured in scripts/measure-national.test.ts).
+ */
+export function buildNationalWorld(userLeague: UserLeagueRef, year: number, previous: LightLeague[] = []): LightLeague[] {
+  const { state: userState, className: userClass } = typeof userLeague === 'string' ? { state: userLeague, className: undefined } : userLeague;
+  const find = (s: string, c?: string) => previous.find((l) => l.state === s && l.className === c);
+  const legacy = PLAYABLE_STATES.filter((s) => !(s === userState && !userClass)).map((s) => buildLightLeague(s, year, find(s)));
+  const data = cachedStateTeams(userState);
+  const classes = (data?.classes ?? [])
+    .map((c) => c.className)
+    .filter((c) => c !== userClass && !(isLegacyClass(userState, c) && PLAYABLE_STATES.includes(userState)) && classRulesFor(userState, c));
+  // The team data's classes leave out an original state's hand-tuned top-class schools (onOriginalTopClass), so no school plays twice
+  return [...legacy, ...classes.map((c) => buildLightLeague(userState, year, find(userState, c), c))];
 }
 
 /** Plays one week of a light league: its regular-season games, then (from week 17) its playoffs. Games already
@@ -104,10 +122,12 @@ export function simulateLightWeek(light: LightLeague, week: number, ahead: WeekR
     // The regular season is over: seed the playoffs (the first round is played in the bracket's first week)
     if (week === LAST_REGULAR_SEASON_WEEK) {
       const regionTeams = leagueRegionTeams(light.league, light.teams);
-      light.bracket = buildPlayoffBracket(
-        light.league.regions.map((region, i) => ({ name: region.name, districts: regionTeams[i] })),
-        { splitDivisions: light.league.splitDivisions, rules: rulesForState(light.state), schedule: light.schedule }
-      );
+      light.bracket = light.className
+        ? classPlayoffs(light.league, light.teams, light.schedule)
+        : buildPlayoffBracket(
+            light.league.regions.map((region, i) => ({ name: region.name, districts: regionTeams[i] })),
+            { splitDivisions: light.league.splitDivisions, rules: rulesForState(light.state), schedule: light.schedule }
+          );
     }
     return;
   }
@@ -146,10 +166,11 @@ export interface LightCalibration {
  * included (talent waves give real leagues more standout teams than rolled ratings have, and a level-and-spread match
  * left the coach's state owning the national polls). Measured at each season's opener, once the freshmen are in.
  */
-export function measureLightCalibration(userState: string, leagueTeams: Team[]): LightCalibration {
+export function measureLightCalibration(userLeague: UserLeagueRef, leagueTeams: Team[]): LightCalibration {
+  const { state: userState, className } = typeof userLeague === 'string' ? { state: userLeague, className: undefined } : userLeague;
   const teamRatings = Object.fromEntries(leagueTeams.map((t) => [t.id, teamStarterRating(t)]));
   return {
-    rolled: buildStateWorld(userState, undefined, true).teams.map((t) => t.lightRating ?? 0).sort((a, b) => a - b),
+    rolled: (className ? buildClassWorld(cachedStateTeams(userState)!, className, undefined, { light: true }) : buildStateWorld(userState, undefined, true)).teams.map((t) => t.lightRating ?? 0).sort((a, b) => a - b),
     real: Object.values(teamRatings).sort((a, b) => a - b),
     teamRatings
   };

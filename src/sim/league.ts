@@ -4,12 +4,14 @@ import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRI
 import { nameProfileForArea } from '../generators/names';
 import { OFF_SEASON_WEEKS, STATE_FINAL_WEEK } from './scheduleEngine';
 import { rulesForState } from './stateRules';
+import { leagueClassRules } from './classLeague';
 
 export interface LeagueDistrict {
   id: string;
   name: string;
   area?: string;
   teamIds: string[];
+  synthetic?: boolean; // the data has no district for these schools: they were grouped in list order (the name is a placeholder)
 }
 
 export interface LeagueRegion {
@@ -22,6 +24,7 @@ export interface LeagueRegion {
 export interface LeagueStructure {
   name: string;
   state: string;
+  className?: string; // a league built from the team data's class (played by classSeason.ts); the original top classes have none
   splitDivisions: boolean;
   regions: LeagueRegion[];
 }
@@ -66,12 +69,14 @@ export function stateSchool(state: string, name: string): { mascot: string; prim
 
 /** A school in a playable state's top class, as the New Game search lists it. */
 export interface StateSchoolEntry {
+  id?: string; // a school from the team data: its stable id (names repeat within some classes)
   name: string;
   mascot: string;
   city?: string;
-  district: string;
+  district: string; // '' when the data has none
   prestige: number;
   primaryColor: string;
+  colorsConfirmed?: boolean;
   offenseScheme: string;
   defenseScheme: string;
 }
@@ -293,12 +298,24 @@ export function findDistrict(league: LeagueStructure, teamId: string): LeagueDis
   return undefined;
 }
 
+/** The name of the team's district, or undefined when the data has none (a grouped district's name is only a placeholder). */
+export function districtNameOf(league: LeagueStructure, teamId: string): string | undefined {
+  const d = findDistrict(league, teamId);
+  return d && !d.synthetic && d.name ? d.name : undefined;
+}
+
 export function findRegion(league: LeagueStructure, teamId: string): LeagueRegion | undefined {
   return league.regions.find((region) => region.districts.some((d) => d.teamIds.includes(teamId)));
 }
 
 /** Rounds needed: each region's qualifiers play down to a champion, then region champions meet. */
 export function playoffRoundCount(league: LeagueStructure): number {
+  const classRules = leagueClassRules(league);
+  if (classRules) {
+    // A class league's real round count is set when its bracket is built: estimate it from the data (at most the calendar's six)
+    const p = classRules.playoffs;
+    return Math.max(1, Math.min(6, p.rounds.length || Math.ceil(Math.log2(p.fieldSize ?? 16))));
+  }
   const { playoffs } = rulesForState(league.state);
   if (playoffs.format === 'STATEWIDE_RANKING') return Math.log2(playoffs.bracketSize);
   if (playoffs.format === 'REGIONAL_SEEDED' && playoffs.regional) return Math.log2(playoffs.regional.regions.length * playoffs.regional.regionBracketSize);

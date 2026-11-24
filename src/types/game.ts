@@ -208,6 +208,10 @@ export interface Team {
   mascot: string;
   classification: '1A' | '2A' | '3A' | '4A' | '5A' | '6A';
   state?: string; // e.g. 'Texas'; ranking engines default to Texas when unset
+  className?: string; // the school's class in its state's data ('5A-D1', 'D3'); teams of the original top classes don't carry one
+  shortName?: string; // from the team data (12 characters at most); the original states' short names live in the state data
+  city?: string;
+  colorsConfirmed?: boolean; // false: the school's colors are not on file and the neutral slate/white pair stands in
   enrollment?: number; // drives the UIL 6A Division 1 / Division 2 playoff split
   historicalPrestige?: number; // the school's prestige in the data: AI programs' prestige drifts back toward it
   lastSeason?: { year: number; stateChampion: boolean; nationalRank?: number }; // last full season: recruits who want to win notice

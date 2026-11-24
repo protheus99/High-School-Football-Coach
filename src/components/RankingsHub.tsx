@@ -1,12 +1,13 @@
+import { rulesForLeague } from '../sim/leagueRules';
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
-import { findDistrict } from '../sim/league';
+import { districtNameOf } from '../sim/league';
 import { DistrictStandingsView } from './DistrictStandingsView';
 import { AllDistrictsStandingsView } from './AllDistrictsStandingsView';
 import { RankingsView } from './RankingsView';
 import { PageHeader } from './ui/PageHeader';
-import { rulesForState } from '../sim/stateRules';
+
 import { ScoreboardView } from './ScoreboardView';
 import { PlayoffsView } from './PlayoffsView';
 
@@ -30,12 +31,12 @@ export const RankingsHub: React.FC<{ section: RankingsSection; onSection: (secti
 }) => {
   const { league, districtTeams, userTeamId, polls, playoffBracket } = useGameStore();
   const active = section === 'HOME' ? 'DISTRICT' : section;
-  const label = rulesForState(league?.state).districtLabel;
+  const label = rulesForLeague(league).districtLabel;
   const tabs = TABS.map((t) =>
     t.id === 'DISTRICT' ? { ...t, label: `🏆 ${label}`, short: label } : t.id === 'ALL_DISTRICTS' ? { ...t, label: `🗺️ All ${label}s`, short: `All ${label}s` } : t
   );
   const myRow = calculateDistrictStandings(districtTeams).find((r) => r.teamId === userTeamId);
-  const districtName = (league && findDistrict(league, userTeamId)?.name) ?? 'Your district';
+  const districtName = (league && districtNameOf(league, userTeamId)) ?? 'Your district';
   const subtitles: Record<typeof active, string> = {
     DISTRICT: `${districtName} standings${myRow ? ` · you're ${ordinal(myRow.rank)} (${myRow.districtRecord})` : ''}`,
     POLLS: 'State and national polls',

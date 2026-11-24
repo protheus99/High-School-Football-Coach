@@ -55,7 +55,7 @@ export const PreGameStrategyModal: React.FC<PreGameStrategyModalProps> = ({ user
   return (
     <Sheet
       title="Game Night Strategy Room"
-      subtitle={`vs. ${opponentTeam.name} ${opponentTeam.mascot} (${recordText(opponentTeam, playoffs)})`}
+      subtitle={`vs. ${opponentTeam.name}${opponentTeam.mascot ? ` ${opponentTeam.mascot}` : ''} (${recordText(opponentTeam, playoffs)})`}
       onClose={onCancel}
       footer={
         <button

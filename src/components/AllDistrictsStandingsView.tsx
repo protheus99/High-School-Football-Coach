@@ -1,8 +1,9 @@
+import { rulesForLeague, leaguePlayoffSpots, leagueQualifyText } from '../sim/leagueRules';
 import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
 import { leagueRegionTeams } from '../sim/league';
-import { districtPlayoffSpots, playoffQualifyText, rulesForState } from '../sim/stateRules';
+
 import { scrollPageTo } from '../utils/pageScroll';
 
 /** Standings for every district in the league, grouped by region. */
@@ -26,7 +27,7 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackB
         id: district.id,
         name: district.name,
         isUser: district.teamIds.includes(userTeamId),
-        standings: calculateDistrictStandings(teamsByRegion[r][d], districtPlayoffSpots(rulesForState(league.state)))
+        standings: calculateDistrictStandings(teamsByRegion[r][d], leaguePlayoffSpots(league))
       }))
     }));
   }, [league, leagueTeams, userTeamId]);
@@ -47,12 +48,12 @@ export const AllDistrictsStandingsView: React.FC<{ onBack: () => void; hideBackB
     <div className="ui-screen">
       {!hideBackButton && (
         <button onClick={onBack} className="ui-btn" style={{ marginBottom: '10px' }}>
-          ← My {rulesForState(league.state).districtLabel.toLowerCase()}
+          ← My {rulesForLeague(league).districtLabel.toLowerCase()}
         </button>
       )}
-      {!hideBackButton && <h2 className="ui-section-title">All {rulesForState(league.state).districtLabel} Standings</h2>}
+      {!hideBackButton && <h2 className="ui-section-title">All {rulesForLeague(league).districtLabel} Standings</h2>}
       <p className="ui-muted" style={{ margin: '0 0 12px 0' }}>
-        {league.name}. {playoffQualifyText(rulesForState(league.state))}
+        {league.name}. {leagueQualifyText(league)}
       </p>
 
       <div className="ui-sticky-nav" style={{ margin: '0 -16px 14px', padding: '8px 16px' }}>

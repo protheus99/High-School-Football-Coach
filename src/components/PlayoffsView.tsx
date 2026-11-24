@@ -1,9 +1,10 @@
+import { rulesForLeague, leagueQualifyText } from '../sim/leagueRules';
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { usePlayoffRecords } from '../hooks/usePlayoffRecords';
 import { recordText } from '../sim/seasonRecord';
-import { BracketNode, PlayoffBracketState, userDivisionIndex } from '../sim/playoffEngine';
-import { playoffQualifyText, rulesForState } from '../sim/stateRules';
+import { BracketNode, bracketRoundLabel, PlayoffBracketState, PlayoffRound, userDivisionIndex } from '../sim/playoffEngine';
+
 import { rankedName } from '../sim/newsEngine';
 import { StateAndNationalPolls, Team } from '../types/game';
 
@@ -14,7 +15,7 @@ import { StateAndNationalPolls, Team } from '../types/game';
 export const PlayoffsView: React.FC<{ onGoToGame: () => void; onStandings: () => void }> = ({ onGoToGame, onStandings }) => {
   const { playoffBracket, userTeamId, league, polls, leagueTeams } = useGameStore();
   const playoffs = usePlayoffRecords();
-  const rules = rulesForState(league?.state);
+  const rules = rulesForLeague(league);
   if (!playoffBracket) {
     const me = leagueTeams.find((t) => t.id === userTeamId);
     return (
@@ -23,7 +24,7 @@ export const PlayoffsView: React.FC<{ onGoToGame: () => void; onStandings: () =>
           <div style={{ ...kicker, color: '#475569' }}>PLAYOFFS</div>
           <div style={statusTitle}>The playoff field is set after the regular season</div>
           <div style={statusDetail}>
-            {playoffQualifyText(rules)}
+            {leagueQualifyText(league)}
             {me ? ` You're ${recordText(me, playoffs)}.` : ''}
           </div>
           <button onClick={onStandings} style={{ ...button, ...secondaryButton }}>
@@ -40,7 +41,7 @@ const Bracket: React.FC<{
   bracket: PlayoffBracketState;
   userTeamId: string;
   polls: StateAndNationalPolls | null;
-  roundLabels: Record<string, string>;
+  roundLabels: Record<PlayoffRound, string>;
   onGoToGame: () => void;
 }> = ({ bracket, userTeamId, polls, roundLabels, onGoToGame }) => {
   const { divisions, roundNames, currentRoundIndex, isPlayoffsActive } = bracket;
@@ -51,6 +52,7 @@ const Bracket: React.FC<{
   const division = divisions[divisionIndex];
   const involves = (n: BracketNode) => n.team1.id === userTeamId || n.team2.id === userTeamId;
   const name = (t: Team) => rankedName(t, polls);
+  const roundLabel = (i: number) => bracketRoundLabel(bracket, i, roundLabels);
 
   // The coach's games, round by round
   const myGames = myDivision === undefined ? [] : roundNames.map((_, i) => divisions[myDivision].rounds[i]?.find(involves));
@@ -77,7 +79,7 @@ const Bracket: React.FC<{
       accent: '#94A3B8',
       tone: '#475569',
       kicker: 'SEASON OVER',
-      title: `Lost in the ${roundLabels[roundNames[lastIndex]]} to ${name(opponentOf(lastGame))}`,
+      title: `Lost in the ${roundLabel(lastIndex)} to ${name(opponentOf(lastGame))}`,
       detail: `${us}-${them} final. The tournament goes on as you advance the weeks.`
     };
   } else if (lastGame && !lastGame.isBye && !lastGame.winnerTeamId) {
@@ -85,16 +87,16 @@ const Bracket: React.FC<{
     status = {
       accent: '#2563EB',
       tone: '#1E40AF',
-      kicker: `THIS WEEK · ${roundLabels[roundNames[lastIndex]].toUpperCase()}`,
+      kicker: `THIS WEEK · ${roundLabel(lastIndex).toUpperCase()}`,
       title: `${lastGame.team1.id === userTeamId ? 'vs' : 'at'} ${name(opp)} (${recordText(opp, bracket)})`,
-      detail: roundNames[lastIndex + 1] ? `Win and advance to the ${roundLabels[roundNames[lastIndex + 1]]}.` : 'Win the state championship.',
+      detail: roundNames[lastIndex + 1] ? `Win and advance to the ${roundLabel(lastIndex + 1)}.` : 'Win the state championship.',
       goToGame: true
     };
   } else {
     status = {
       accent: '#16A34A',
       tone: '#166534',
-      kicker: lastGame?.isBye ? 'FIRST-ROUND BYE' : `WON · ${lastIndex >= 0 ? roundLabels[roundNames[lastIndex]].toUpperCase() : ''}`,
+      kicker: lastGame?.isBye ? 'FIRST-ROUND BYE' : `WON · ${lastIndex >= 0 ? roundLabel(lastIndex).toUpperCase() : ''}`,
       title: lastGame?.isBye ? 'You advance without playing' : 'On to the next round',
       detail: 'Advance the week to play out the rest of the round.'
     };
@@ -121,7 +123,7 @@ const Bracket: React.FC<{
           <div key={d.name} style={championBanner}>
             <div style={{ fontSize: '12px', color: '#92400E', fontWeight: 800 }}>👑 {divisions.length > 1 ? `${d.name.toUpperCase()} ` : ''}STATE CHAMPION</div>
             <div style={{ fontSize: '18px', fontWeight: 800 }}>
-              {champ.name} {champ.mascot}
+              {champ.name}{champ.mascot ? ` ${champ.mascot}` : ''}
             </div>
             {bracket.championshipVenue && <div style={{ fontSize: '12px', color: '#92400E' }}>Crowned at {bracket.championshipVenue}</div>}
           </div>
@@ -176,7 +178,7 @@ const Bracket: React.FC<{
                   {i < roundNames.length - 1 && <div style={{ flex: 1, width: '2px', background: '#E2E8F0', margin: '2px 0' }} />}
                 </div>
                 <div style={{ paddingBottom: '9px', fontSize: '13px', minWidth: 0 }}>
-                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B' }}>{roundLabels[round].toUpperCase()}</div>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B' }}>{roundLabel(i).toUpperCase()}</div>
                   {line}
                 </div>
               </div>
@@ -202,7 +204,9 @@ const Bracket: React.FC<{
           const available = !!division.rounds[i];
           return (
             <button key={round} aria-pressed={i === roundIndex} disabled={!available} onClick={() => setRoundIndex(i)} style={roundChip(i === roundIndex, available)}>
-              <div style={{ fontSize: '12.5px', fontWeight: 800 }}>{roundLabels[round]}</div>
+              <div style={{ fontSize: '12.5px', fontWeight: 800, maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={roundLabel(i)}>
+                {roundLabel(i)}
+              </div>
               <div style={{ fontSize: '10.5px', fontWeight: 700, color: s.color }}>{s.text}</div>
             </button>
           );

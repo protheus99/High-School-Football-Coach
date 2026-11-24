@@ -1,3 +1,4 @@
+import { rulesForLeague } from '../sim/leagueRules';
 import React, { useMemo, useRef, useState } from 'react';
 import { feederEventsOpen, ProgramResult, useGameStore } from '../store/gameStore';
 import { SigningDayBoard } from './SigningDayBoard';
@@ -7,7 +8,7 @@ import { feederEventCost, weeklyCpIncome } from '../sim/coachPoints';
 import { FeederProspect, Player, Position, ProspectSource, Team } from '../types/game';
 import { PositionNeed, priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 import { PageHeader } from './ui/PageHeader';
-import { rulesForState } from '../sim/stateRules';
+
 import {
   FEEDER_EVENTS,
   FeederEventType,
@@ -94,7 +95,7 @@ export const FeedersScoutingView: React.FC<{ section: FeederSection; onSection: 
   const probation = onProbation(userProbationUntil, currentYear);
   const ctx = useMemo(() => (league ? buildRecruitingContext(league, leagueTeams, userTeamId) : undefined), [league, leagueTeams, userTeamId]);
   // The pool scopes in the state's words; a one-region league's "region" pool is the whole state class
-  const districtWord = rulesForState(league?.state).districtLabel;
+  const districtWord = rulesForLeague(league).districtLabel;
   const staff = staffBonuses(coachingStaff);
   const interestBonus = staff.feederInterest;
   const multiRegion = !!league && league.regions.length > 1;

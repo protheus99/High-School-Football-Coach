@@ -1,3 +1,4 @@
+import { rulesForLeague } from '../sim/leagueRules';
 import React from 'react';
 import { readableOnWhite } from '../utils/color';
 import { useGameStore } from '../store/gameStore';
@@ -25,9 +26,9 @@ function weekNote(week: number, phase: SeasonPhase, isLastWeek: boolean, signing
       return 'Bye week';
   }
 }
-import { findDistrict, playoffRoundCount, seasonLength } from '../sim/league';
-import { leagueRoundNames } from '../sim/playoffEngine';
-import { rulesForState } from '../sim/stateRules';
+import { playoffRoundCount, seasonLength, districtNameOf } from '../sim/league';
+import { bracketRoundLabel, leagueRoundNames } from '../sim/playoffEngine';
+
 import { Team } from '../types/game';
 import { rivalryName } from '../data/rivalries';
 import { specialNightLabel, specialNights } from '../sim/talkPicker';
@@ -43,9 +44,9 @@ export const ScheduleView: React.FC = () => {
   const totalWeeks = league ? seasonLength(league) : 20;
   const playoffRounds = league ? playoffRoundCount(league) : 6;
   // The state's round names for the playoff weeks (Texas: Bi-District ... State Championship; Georgia: First Round ... State Championship)
-  const { roundLabels: ROUND_LABELS, roundDescriptions: ROUND_DESCRIPTIONS } = rulesForState(league?.state).playoffs;
+  const { roundLabels: ROUND_LABELS, roundDescriptions: ROUND_DESCRIPTIONS } = rulesForLeague(league).playoffs;
   const leagueRounds = league ? leagueRoundNames(league) : [];
-  const districtName = league ? findDistrict(league, userTeamId)?.name : undefined;
+  const districtName = league ? districtNameOf(league, userTeamId) : undefined;
 
   // Season built from the stored schedule, plus the user's playoff games from the bracket
   const schedule = Array.from({ length: totalWeeks }, (_, i) => {
@@ -65,7 +66,7 @@ export const ScheduleView: React.FC = () => {
       const opponentScore = isHome ? node?.team2Score : node?.team1Score;
       return {
         ...base,
-        label: playoffBracket.roundNames[roundIndex] ? ROUND_LABELS[playoffBracket.roundNames[roundIndex]] : leagueRounds[roundIndex] && ROUND_LABELS[leagueRounds[roundIndex]],
+        label: playoffBracket.roundNames[roundIndex] ? bracketRoundLabel(playoffBracket, roundIndex, ROUND_LABELS) : leagueRounds[roundIndex] && ROUND_LABELS[leagueRounds[roundIndex]],
         opponent,
         isHome,
         result: node?.winnerTeamId ? `${node.winnerTeamId === userTeamId ? 'W' : 'L'} ${userScore}-${opponentScore}` : null
@@ -101,7 +102,7 @@ export const ScheduleView: React.FC = () => {
     <div style={{ maxWidth: '850px', margin: '0 auto' }}>
       <h3 style={{ margin: '0 0 4px 0', fontSize: '17px' }}>{totalWeeks}-week schedule</h3>
       <p className="ui-muted" style={{ margin: '0 0 10px 0' }}>
-        Pre season and Prospect signing day, training camp, non-{rulesForState(league?.state).districtLabel.toLowerCase()} tune-ups, the {districtName ?? rulesForState(league?.state).districtLabel.toLowerCase()} race, the state playoffs and
+        Pre season and Prospect signing day, training camp, non-{rulesForLeague(league).districtLabel.toLowerCase()} tune-ups, the {districtName ?? rulesForLeague(league).districtLabel.toLowerCase()} race, the state playoffs and
         the off season.
       </p>
 
@@ -114,7 +115,7 @@ export const ScheduleView: React.FC = () => {
             {/* A header where each phase begins */}
             {(i === 0 || schedule[i - 1].type !== game.type) && (
               <h4 style={{ margin: i === 0 ? '0' : '10px 0 0', fontSize: '13px', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {SEASON_PHASE_LABELS[game.type].replace('District', rulesForState(league?.state).districtLabel)}{' '}
+                {SEASON_PHASE_LABELS[game.type].replace('District', rulesForLeague(league).districtLabel)}{' '}
                 <span style={{ color: '#475569', fontWeight: 'normal' }}>
                   · {(() => {
                     const last = schedule.filter((g) => g.type === game.type).pop()!.week;
@@ -145,7 +146,7 @@ export const ScheduleView: React.FC = () => {
                   {game.isHome ? 'vs.' : 'at'}{' '}
                   <button onClick={() => openTeamProfile(game.opponent!.id)} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer', minHeight: '40px', display: 'inline-flex', alignItems: 'center', textAlign: 'left' }}>
                     <strong style={{ color: readableOnWhite(game.opponent.primaryColor, game.opponent.secondaryColor), textDecoration: 'underline', textUnderlineOffset: '2px' }}>
-                      {game.opponent.name} {game.opponent.mascot}
+                      {game.opponent.name}{game.opponent.mascot ? ` ${game.opponent.mascot}` : ''}
                     </strong>
                   </button>
                   <div style={{ fontSize: '12px', color: '#475569' }}>

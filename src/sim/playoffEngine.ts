@@ -36,6 +36,9 @@ export interface BracketNode {
   team2Score?: number;
   winnerTeamId?: string;
   isBye?: boolean; // the paired district had no qualifier: team1 advances without playing (team2 repeats team1)
+  // The game's place in its round's full bracket (0-based); the next round pairs slots 2k and 2k + 1. Missing in
+  // older saves and the fixed-format brackets, whose rounds are complete: the node's index is its slot.
+  slot?: number;
 }
 
 export interface PlayoffDivision {
@@ -52,10 +55,32 @@ export interface PlayoffBracketState {
   divisions: PlayoffDivision[];
   championshipTitle?: string;
   championshipVenue?: string;
+  // The real round names, one per round (per-class brackets); older saves and the fixed formats use the state's
+  // roundLabels by PlayoffRound (see bracketRoundLabel)
+  roundLabels?: string[];
 }
+
+/** A round's display name: the bracket's own round names when it has them, else the state's label for the round. */
+export function bracketRoundLabel(bracket: Pick<PlayoffBracketState, 'roundNames' | 'roundLabels'>, roundIndex: number, labels: Record<PlayoffRound, string>): string {
+  const own = bracket.roundLabels?.[roundIndex];
+  if (own) return own;
+  const round = bracket.roundNames[roundIndex];
+  return round ? labels[round] : '';
+}
+
+/** Plays one bracket game: the home team is team1 (default: the macro engine, with game injuries). */
+export type PlayoffGameSim = (node: BracketNode, week: number) => { homeScore: number; awayScore: number };
+
+const macroPlayoffGame: PlayoffGameSim = (node, week) => {
+  const res = simulateMacroMatch(`po_${node.matchupId}`, week, node.team1, node.team2, 'CLEAR');
+  rollGameInjuries(node.team1, week);
+  rollGameInjuries(node.team2, week);
+  return res;
+};
 
 /** The rounds a league's playoffs will have (before the bracket exists): by its state's format and size. */
 export function leagueRoundNames(league: LeagueStructure): PlayoffRound[] {
+  if (league.className) return bracketRoundNames(playoffRoundCount(league)); // a class league's bracket is a single bracket by size
   const rules = rulesForState(league.state);
   if (rules.playoffs.format !== 'DISTRICT_FINISH') return bracketRoundNames(playoffRoundCount(league));
   const stateRounds = Math.log2(league.regions.length);
@@ -205,7 +230,7 @@ export function powerRatings(teams: Team[], schedule: ScheduledGame[]): Map<stri
 }
 
 /** Standard bracket order for seeds 1..n: adjacent pairs meet, and the top seeds can only meet late. */
-function seedOrder(n: number): number[] {
+export function seedOrder(n: number): number[] {
   let order = [1];
   while (order.length < n) {
     const size = order.length * 2;
@@ -418,29 +443,28 @@ export function recordPlayoffResult(
  * Resolves every undecided game in the current round across all divisions (including the user's, if it
  * was not played live), then seeds the next round from adjacent winners or crowns each division's champion.
  */
-export function advancePlayoffRound(bracketState: PlayoffBracketState): PlayoffBracketState {
+export function advancePlayoffRound(bracketState: PlayoffBracketState, play: PlayoffGameSim = macroPlayoffGame): PlayoffBracketState {
   if (!bracketState.isPlayoffsActive) return bracketState;
   const roundIndex = bracketState.currentRoundIndex;
   const isFinalRound = roundIndex === bracketState.roundNames.length - 1;
   const nextRound = bracketState.roundNames[roundIndex + 1];
 
   for (const division of bracketState.divisions) {
-    const nodes = division.rounds[roundIndex];
+    const nodes = division.rounds[roundIndex] ?? [];
     nodes.forEach((node) => {
       if (node.winnerTeamId) return;
-      const week = bracketRoundWeek(bracketState, roundIndex);
-      const res = simulateMacroMatch(`po_${node.matchupId}`, week, node.team1, node.team2, 'CLEAR');
-      rollGameInjuries(node.team1, week);
-      rollGameInjuries(node.team2, week);
+      const res = play(node, bracketRoundWeek(bracketState, roundIndex));
       node.team1Score = res.homeScore;
       node.team2Score = res.awayScore;
       node.winnerTeamId = res.homeScore > res.awayScore ? node.team1.id : node.team2.id;
     });
-    const winners = nodes.map((n) => (n.winnerTeamId === n.team1.id ? n.team1 : n.team2));
+    const winnerOf = (n: BracketNode) => (n.winnerTeamId === n.team1.id ? n.team1 : n.team2);
 
     if (isFinalRound) {
-      division.championTeamId = winners[0]?.id;
-    } else {
+      if (nodes[0]) division.championTeamId = winnerOf(nodes[0]).id;
+    } else if (nodes.every((n) => n.slot === undefined)) {
+      // Complete rounds (the fixed formats and older saves): adjacent games feed the next one
+      const winners = nodes.map(winnerOf);
       division.rounds[roundIndex + 1] = Array.from({ length: winners.length / 2 }, (_, i) => {
         const left = nodes[i * 2];
         const sameRegion = left.region !== undefined && left.region === nodes[i * 2 + 1].region;
@@ -452,6 +476,26 @@ export function advancePlayoffRound(bracketState: PlayoffBracketState): PlayoffB
           team2: winners[i * 2 + 1]
         };
       });
+    } else {
+      // Slotted rounds (per-class brackets): slots 2k and 2k + 1 meet in slot k; a lone winner has a bye
+      const bySlot = new Map(nodes.map((n, i) => [n.slot ?? i, n]));
+      const lastSlot = Math.max(-1, ...bySlot.keys());
+      const next: BracketNode[] = [];
+      for (let k = 0; 2 * k <= lastSlot; k++) {
+        const left = bySlot.get(2 * k);
+        const right = bySlot.get(2 * k + 1);
+        if (!left && !right) continue;
+        const matchupId = `${division.name.replace(/\s+/g, '').toLowerCase()}_${nextRound}_${k + 1}`;
+        if (left && right) {
+          const sameRegion = left.region !== undefined && left.region === right.region;
+          next.push({ matchupId, round: nextRound, ...(sameRegion && { region: left.region }), team1: winnerOf(left), team2: winnerOf(right), slot: k });
+        } else {
+          const only = (left ?? right)!;
+          const team = winnerOf(only);
+          next.push({ matchupId, round: nextRound, ...(only.region !== undefined && { region: only.region }), team1: team, team2: team, isBye: true, winnerTeamId: team.id, slot: k });
+        }
+      }
+      division.rounds[roundIndex + 1] = next;
     }
   }
 

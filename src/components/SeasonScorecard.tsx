@@ -1,9 +1,11 @@
+import { rulesForLeague } from '../sim/leagueRules';
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { CAREER_POINTS, careerBasePoints, careerPoints, prestigeMultiplier } from '../sim/careerScore';
 import { calculateDistrictStandings } from '../sim/districtEngine';
-import { findDistrict } from '../sim/league';
-import { rulesForState } from '../sim/stateRules';
+import { districtNameOf } from '../sim/league';
+import { bracketRoundLabel } from '../sim/playoffEngine';
+
 import { Team } from '../types/game';
 import { StatePennant, UsFlag } from './ui/TitleMarks';
 import { ordinal } from '../utils/format';
@@ -16,9 +18,9 @@ import { useHallOfFame } from '../utils/useHallOfFame';
 export const SeasonScorecard: React.FC<{ team: Team }> = ({ team }) => {
   const { career, currentYear, playoffBracket, polls, districtTeams, league, userTeamId } = useGameStore();
   const season = career?.seasons.find((s) => s.year === currentYear);
-  const rules = rulesForState(league?.state);
+  const rules = rulesForLeague(league);
   const myRow = calculateDistrictStandings(districtTeams).find((r) => r.teamId === userTeamId);
-  const districtName = (league && findDistrict(league, userTeamId)?.name) ?? rules.districtLabel;
+  const districtName = (league && districtNameOf(league, userTeamId)) ?? rules.districtLabel;
 
   // The playoffs: every round the coach played, and how it ended
   const rounds = playoffBracket?.roundNames ?? [];
@@ -26,7 +28,7 @@ export const SeasonScorecard: React.FC<{ team: Team }> = ({ team }) => {
   const playoffWins = games.filter((g) => g.n.winnerTeamId === team.id).length;
   const champion = !!playoffBracket?.divisions.some((d) => d.championTeamId === team.id);
   const lastLoss = games.find((g) => g.n.winnerTeamId !== team.id);
-  const lostIn = lastLoss ? rules.playoffs.roundLabels[rounds[lastLoss.i]] : null;
+  const lostIn = lastLoss && playoffBracket ? bracketRoundLabel(playoffBracket, lastLoss.i, rules.playoffs.roundLabels) : null;
   const winsLabel = `${playoffWins} playoff win${playoffWins === 1 ? '' : 's'}`;
   const headline = champion
     ? '🏆 State champions'
@@ -37,7 +39,7 @@ export const SeasonScorecard: React.FC<{ team: Team }> = ({ team }) => {
           ? '🏟️ State semifinalists'
           : '🏟️ Playoff team'
       : '📉 Season over';
-  const playoffLine = champion ? `Won the ${rules.playoffs.roundLabels[rounds[rounds.length - 1]]} (${winsLabel})` : lostIn ? `Lost in the ${lostIn} (${winsLabel})` : 'Missed the playoffs';
+  const playoffLine = champion ? `Won the ${playoffBracket ? bracketRoundLabel(playoffBracket, rounds.length - 1, rules.playoffs.roundLabels) : ''} (${winsLabel})` : lostIn ? `Lost in the ${lostIn} (${winsLabel})` : 'Missed the playoffs';
   const tone = champion ? '#F59E0B' : lastLoss ? '#2563EB' : '#94A3B8';
   const ranks = polls?.teamRanks?.[team.id];
   const nationalChampion = polls?.nationalTop25[0]?.teamId === team.id;

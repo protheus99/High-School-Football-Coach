@@ -1,3 +1,4 @@
+import { rulesForLeague, leagueQualifyText } from '../sim/leagueRules';
 import React, { useState } from 'react';
 import { feederEventsOpen, useGameStore } from '../store/gameStore';
 import { track } from '../services/analytics';
@@ -27,11 +28,11 @@ import { ChoiceEffects } from './ui/ChoiceEffects';
 import { ScoutingReport } from './ScoutingReport';
 import { gameStakes, specialNightLabel } from '../sim/talkPicker';
 import { calculateDistrictStandings } from '../sim/districtEngine';
-import { findDistrict, seasonLength } from '../sim/league';
+import { seasonLength, districtNameOf } from '../sim/league';
 import { HOT_SEAT_TRUST, programRating, ratingAlerts } from '../sim/programMeters';
-import { finishSpotsPerDistrict, playoffQualifyText, rulesForState } from '../sim/stateRules';
+import { finishSpotsPerDistrict } from '../sim/stateRules';
 import { nationalTeams } from '../sim/nationalWorld';
-import { bracketRoundForWeek, findUserNode, powerRatings } from '../sim/playoffEngine';
+import { bracketRoundForWeek, bracketRoundLabel, findUserNode, powerRatings } from '../sim/playoffEngine';
 import { Player, Team } from '../types/game';
 import { priorityNeeds, seniorsStillHere, teamNeeds } from '../sim/teamNeeds';
 import { GRADE_FIXES, gradeWatchActive, isReportCardWeek, startersAtRisk, weeksToReportCard } from '../sim/grades';
@@ -136,9 +137,9 @@ function rivalryNote(team: Team, opponent: Team, rivalry: NonNullable<ReturnType
     const own = rivalOf(team)?.school;
     return `${opponent.name} has circled this one: you're their rival.${own ? ` Yours is ${own}.` : ''}`;
   }
-  if (wins + losses === 0) return `${opponent.name} ${opponent.mascot}. Your first ${rivalry.name}.`;
+  if (wins + losses === 0) return `${opponent.name}${opponent.mascot ? ` ${opponent.mascot}` : ''}. Your first ${rivalry.name}.`;
   const standing = wins > losses ? 'lead' : wins < losses ? 'trail' : 'are even in';
-  return `${opponent.name} ${opponent.mascot}. You ${standing} the ${rivalry.name} ${wins}-${losses}.`;
+  return `${opponent.name}${opponent.mascot ? ` ${opponent.mascot}` : ''}. You ${standing} the ${rivalry.name} ${wins}-${losses}.`;
 }
 
 /** Over a rivalry final: "🏆 THE JUBILEE CUP IS YOURS" or "THE JUBILEE CUP GOES TO FAIRHOPE". */
@@ -224,7 +225,7 @@ export const WeeklyAgenda: React.FC<{
   const team = leagueTeams.find((t) => t.id === userTeamId);
   if (!team) return null;
 
-  const stateRules = rulesForState(league?.state);
+  const stateRules = rulesForLeague(league);
   // The district opener's one-line reminder of what's at stake
   const openerRule =
     stateRules.playoffs.format === 'STATEWIDE_RANKING'
@@ -242,7 +243,7 @@ export const WeeklyAgenda: React.FC<{
   const firstOffSeasonWeek = totalWeeks - 3;
   const isGamePhase = phase === 'NON_DISTRICT' || phase === 'DISTRICT_PLAY' || phase === 'STATE_PLAYOFFS';
   const signingThisSeason = currentYear >= feederClassYear;
-  const districtName = (league && findDistrict(league, userTeamId)?.name) ?? 'the district';
+  const districtName = (league && districtNameOf(league, userTeamId)) ?? 'the district';
   const standings = calculateDistrictStandings(districtTeams);
   const myRow = standings.find((r) => r.teamId === userTeamId);
 
@@ -514,8 +515,8 @@ export const WeeklyAgenda: React.FC<{
     const roundIndex = playoffBracket ? bracketRoundForWeek(playoffBracket, currentWeek) : -1;
     const nextRound = playoffBracket?.roundNames[roundIndex + 1];
     const note = game.isPlayoff
-      ? nextRound
-        ? `Win and advance to the ${ROUND_LABELS[nextRound]}`
+      ? nextRound && playoffBracket
+        ? `Win and advance to the ${bracketRoundLabel(playoffBracket, roundIndex + 1, ROUND_LABELS)}`
         : 'Win the state championship'
       : currentWeek === FIRST_NON_DISTRICT_WEEK
         ? 'Season opener'
@@ -660,8 +661,8 @@ export const WeeklyAgenda: React.FC<{
       title: mine ? 'Open week: you made the playoffs' : 'Open week: the playoff field is set',
       detail: mine
         ? mine.isBye
-          ? `You have a first-round bye. Rest up: injuries heal and the ${ROUND_LABELS[playoffBracket.roundNames[1]] ?? 'next round'} is in two weeks.`
-          : `${ROUND_LABELS[playoffBracket.roundNames[0]]} next week ${mine.team1.id === userTeamId ? 'vs' : 'at'} ${opponent!.name} (${recordText(opponent!, playoffs)}). No game this week: rest, heal and study film.`
+          ? `You have a first-round bye. Rest up: injuries heal and the ${bracketRoundLabel(playoffBracket, 1, ROUND_LABELS) || 'next round'} is in two weeks.`
+          : `${bracketRoundLabel(playoffBracket, 0, ROUND_LABELS)} next week ${mine.team1.id === userTeamId ? 'vs' : 'at'} ${opponent!.name} (${recordText(opponent!, playoffs)}). No game this week: rest, heal and study film.`
         : "You didn't make the field. The season ends at the banquet: use the time for college recruiting.",
       tone: 'info',
       link: { label: 'Playoffs', onClick: () => onNavigate('PLAYOFFS') }
@@ -746,7 +747,7 @@ export const WeeklyAgenda: React.FC<{
       id: 'race',
       icon: powerRank <= spots || myRow.rank === 1 ? '📊' : '⚠️',
       title: `Playoff race: #${powerRank} in the ${myRegion ? `${myRegion.name} ` : ''}power ranking`,
-      detail: `${playoffQualifyText(stateRules)} You're ${ordinal(myRow.rank)} in ${districtName} (${myRow.districtRecord}).`,
+      detail: `${leagueQualifyText(league)} You're ${ordinal(myRow.rank)} in ${districtName} (${myRow.districtRecord}).`,
       tone: 'todo',
       link: { label: 'Standings', onClick: () => onNavigate('DISTRICT') }
     });

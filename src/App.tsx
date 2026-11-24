@@ -28,7 +28,8 @@ import { OffSeasonBanquetView } from './components/OffSeasonBanquetView';
 import { AllStateHonorsPage } from './components/AllStateHonorsPage';
 import { calculateSeasonAwards, SeasonAwardsRecord, topPerformers } from './sim/awardsEngine';
 import { GameSimulationState, OffensiveScheme } from './types/game';
-import { rulesForState } from './sim/stateRules';
+import { rulesForLeague } from './sim/leagueRules';
+import { loadTeamsForSave } from './data/teamData';
 import { DucatCheckoutSheet } from './components/DucatStore';
 import { returnedFromCheckout } from './services/ducats';
 import { ADVANCE_LABEL, advanceBlocker } from './sim/advanceGate';
@@ -212,8 +213,9 @@ export const App: React.FC = () => {
   // Back from Stripe's checkout (a page load): reopen the game where the coach left it, on the Staff screen
   useEffect(() => {
     if (!returnedFromCheckout()) return;
-    void loadSaveGame(AUTOSAVE_ID).then((save) => {
+    void loadSaveGame(AUTOSAVE_ID).then(async (save) => {
       if (!save) return;
+      await loadTeamsForSave(save.league); // the state's other classes are rebuilt from the team data
       useGameStore.getState().loadGame(save);
       setTeamSection('STAFF');
       setTab('TEAM');
@@ -275,7 +277,7 @@ export const App: React.FC = () => {
       <AllStateHonorsPage
         awards={awardsRecord}
         userTeam={userTeam}
-        stateName={league ? `${league.state ?? 'Texas'} ${rulesForState(league.state).classification}` : 'The state'}
+        stateName={league ? `${league.state ?? 'Texas'} ${rulesForLeague(league).classification}` : 'The state'}
         performers={topPerformers(userTeam, leagueTeams, awardsRecord)}
         onContinue={() => {
           setAwardsRecord(null);

@@ -19,15 +19,16 @@ const prestigeBadge = (p: number): [string, string] => (p >= 90 ? ['#FEF3C7', '#
  * New Game › Pick any program: search the state's schools by name. Nothing is listed until a couple of letters
  * are typed, and only schools whose name matches are shown, best prestige first.
  */
-export const SchoolSearch: React.FC<{ state: string; selected: string | null; onSelect: (school: StateSchoolEntry) => void; disabled?: boolean; initialQuery?: string }> = ({
+export const SchoolSearch: React.FC<{ state: string; schools?: StateSchoolEntry[]; selected: string | null; onSelect: (school: StateSchoolEntry) => void; disabled?: boolean; initialQuery?: string }> = ({
   state,
+  schools: given,
   selected,
   initialQuery,
   onSelect,
   disabled
 }) => {
   const [query, setQuery] = useState(initialQuery ?? '');
-  const schools = useMemo(() => stateSchools(state), [state]);
+  const schools = useMemo(() => given ?? stateSchools(state), [given, state]);
   const results = searchSchools(schools, query);
   const typed = query.trim().length >= SEARCH_MIN_LETTERS;
   return (
@@ -62,9 +63,9 @@ export const SchoolSearch: React.FC<{ state: string; selected: string | null; on
           </div>
           {results.map((s) => {
             const [bg, fg] = prestigeBadge(s.prestige);
-            const isSelected = selected === s.name;
+            const isSelected = selected === (s.id ?? s.name);
             return (
-              <button key={s.name} aria-pressed={isSelected} disabled={disabled} onClick={() => onSelect(s)} style={{ ...result, ...(isSelected && { outline: '3px solid #F59E0B', outlineOffset: '1px' }) }}>
+              <button key={s.id ?? s.name} aria-pressed={isSelected} disabled={disabled} onClick={() => onSelect(s)} style={{ ...result, ...(isSelected && { outline: '3px solid #F59E0B', outlineOffset: '1px' }) }}>
                 <span aria-hidden="true" style={{ flex: '0 0 8px', alignSelf: 'stretch', borderRadius: '4px', background: s.primaryColor }} />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <b style={{ display: 'block', fontSize: '14.5px' }}>
@@ -79,8 +80,7 @@ export const SchoolSearch: React.FC<{ state: string; selected: string | null; on
                     )}
                   </b>
                   <span style={{ display: 'block', fontSize: '12px', color: '#475569' }}>
-                    {s.mascot}
-                    {s.city ? ` · ${s.city}` : ''} · {s.district}
+                    {[s.mascot, s.city, s.district].filter(Boolean).join(' · ')}
                   </span>
                   <span style={{ display: 'block', fontSize: '11.5px', color: '#64748B' }}>
                     {scheme(s.offenseScheme)} offense · {scheme(s.defenseScheme)} defense

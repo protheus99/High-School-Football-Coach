@@ -1,8 +1,9 @@
+import { rulesForLeague } from '../sim/leagueRules';
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { track } from '../services/analytics';
 import { moment } from '../services/analyticsParams';
-import { rulesForState } from '../sim/stateRules';
+
 import { OffensiveScheme } from '../types/game';
 import { PreGameStrategyModal, PregameSpeech } from './PreGameStrategyModal';
 import { Sheet } from './ui/Sheet';
@@ -220,7 +221,7 @@ export const DashboardView: React.FC<{
         }}
         onAdvanceWeek={handleAdvanceWeek}
         onNavigate={onNavigate}
-        phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek)].replace('District', rulesForState(league?.state).districtLabel)}
+        phaseLabel={SEASON_PHASE_LABELS[getSeasonPhase(currentWeek)].replace('District', rulesForLeague(league).districtLabel)}
       />
       {!staffDue && <StaffWindowCard onOpenStaff={() => onNavigate('STAFF')} />}
 

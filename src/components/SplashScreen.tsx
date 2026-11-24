@@ -1,4 +1,7 @@
 import { PLAYABLE_STATES, rulesForState } from '../sim/stateRules';
+import { classRulesFor } from '../sim/classRules';
+import { classSchools, isLegacyClass, LEGACY_TOP_CLASS } from '../sim/classLeague';
+import { loadStateTeams, loadTeamsForSave, manifestFor, StateTeamData, TEAM_STATES } from '../data/teamData';
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { DIFFICULTY_PRESTIGE, Difficulty, stateSchool } from '../sim/league';
@@ -22,6 +25,16 @@ import { parseTeamLink } from '../sim/teamLink';
 import { AccountSheet, SignInResult, SignInSheet } from './AccountPanels';
 import { version } from '../../package.json';
 import { assetUrl, sitePage } from '../utils/site';
+
+/** Every state a coach can pick: the original 12 and every state with a team list. */
+const ALL_STATES = [...new Set([...PLAYABLE_STATES, ...TEAM_STATES])].sort();
+
+/** A state's classes for New Game: the hand-tuned top class first (where there is one), then the data's classes. */
+function classesOf(st: string): { name: string; schools: number | null }[] {
+  const legacy = LEGACY_TOP_CLASS[st];
+  const fromData = (manifestFor(st)?.classes ?? []).filter((c) => !legacy || c.className !== legacy).map((c) => ({ name: c.className, schools: c.schools }));
+  return legacy ? [{ name: legacy, schools: manifestFor(st)?.classes.find((c) => c.className === legacy)?.schools ?? null }, ...fromData] : fromData;
+}
 
 const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; color: string }[] = [
   { id: 'EASY', label: 'Easy', blurb: 'Take over a powerhouse: deep talent, rich boosters, title expectations.', color: '#15803D' },
@@ -77,7 +90,20 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   };
 
   const [state, setState] = useState('Texas');
-  const [pick, setPick] = useState<{ scenario: ScenarioId; school: string } | null>(null);
+  const [pick, setPick] = useState<{ scenario: ScenarioId; school: string; id?: string } | null>(null);
+  // The class to coach in (the state's hand-tuned top class by default) and the state's team list, loaded when the state is picked
+  const [className, setClassName] = useState(() => classesOf('Texas')[0].name);
+  const [teams, setTeams] = useState<StateTeamData | undefined>(undefined);
+  useEffect(() => {
+    let current = true;
+    setTeams(undefined);
+    if (TEAM_STATES.includes(state)) void loadStateTeams(state).then((d) => current && setTeams(d));
+    return () => {
+      current = false;
+    };
+  }, [state]);
+  const legacyClass = isLegacyClass(state, className);
+  const classRules = classRulesFor(state, className);
   const [coachName, setCoachName] = useState('');
   const [nameMissing, setNameMissing] = useState(false); // Start was tapped without a coach name
   const [length, setLength] = useState<CareerTerm>(5);
@@ -101,6 +127,13 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   }, [teamLink]);
   const chooseState = (st: string) => {
     setState(st);
+    setClassName(classesOf(st)[0]?.name ?? '');
+    setAnyProgram(false);
+    setPick(null);
+  };
+  const chooseClass = (name: string) => {
+    setClassName(name);
+    setAnyProgram(false);
     setPick(null);
   };
   const pickedProgram = pick && SCENARIOS.flatMap((s) => s.programs).find((p) => p.state === state && p.school === pick.school);
@@ -114,20 +147,25 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
       return;
     }
     setBusy(true);
-    setTimeout(() => {
-      newScenarioGame(pick.scenario, state, pick.school, coachName, length);
-      setBusy(false);
-      onEnterGame();
-    }, 20);
+    // The state's other classes play in the background, so its team list must be in before the world is built
+    void loadStateTeams(state).then(() =>
+      setTimeout(() => {
+        newScenarioGame(pick.scenario, state, pick.school, coachName, length, legacyClass || !pick.id ? undefined : { className, schoolId: pick.id });
+        setBusy(false);
+        onEnterGame();
+      }, 20)
+    );
   };
   const startNew = (difficulty: Difficulty) => {
     setBusy(true);
     // Let the button state paint before building the 254-team world
-    setTimeout(() => {
-      newGame(difficulty, state);
-      setBusy(false);
-      onEnterGame();
-    }, 20);
+    void loadStateTeams(state).then(() =>
+      setTimeout(() => {
+        newGame(difficulty, state, className);
+        setBusy(false);
+        onEnterGame();
+      }, 20)
+    );
   };
 
   const load = async (entry: SaveEntry) => {
@@ -136,6 +174,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
     try {
       const save = await loadAnySave(entry);
       if (!save) throw new Error('missing');
+      await loadTeamsForSave(save.league); // its state's other classes are rebuilt from the team data
       loadGame(save);
       onEnterGame();
     } catch {
@@ -245,16 +284,34 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
           <div>
             <h2 style={sectionTitle}>Choose a State</h2>
             <div aria-label="State" className="title-states">
-              {PLAYABLE_STATES.map((st) => (
+              {ALL_STATES.map((st) => (
                 <button key={st} className="ui-chip" aria-pressed={state === st} onClick={() => chooseState(st)} style={{ justifyContent: 'center' }}>
                   {st}
                 </button>
               ))}
             </div>
+            <h2 style={{ ...sectionTitle, marginTop: '8px' }}>Choose a Class</h2>
+            <div aria-label="Class" className="title-states">
+              {classesOf(state).map((c) => (
+                <button key={c.name} className="ui-chip" aria-pressed={className === c.name} onClick={() => chooseClass(c.name)} style={{ justifyContent: 'center', flexDirection: 'column', lineHeight: 1.2 }}>
+                  {c.name}
+                  {c.schools !== null && <span style={{ fontSize: '11px', opacity: 0.75, fontWeight: 600 }}>{c.schools} schools</span>}
+                </button>
+              ))}
+            </div>
             <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
-              {rulesForState(state).governingBody} {/^\d+A$/.test(rulesForState(state).classification) ? 'Class ' : ''}{rulesForState(state).classification} · title game at {rulesForState(state).playoffs.championshipVenue}
+              {legacyClass ? (
+                <>
+                  {rulesForState(state).governingBody} {/^\d+A$/.test(rulesForState(state).classification) ? 'Class ' : ''}{rulesForState(state).classification} · title game at {rulesForState(state).playoffs.championshipVenue}
+                </>
+              ) : (
+                <>
+                  {classRules?.governingBody} {/^\d+A$/.test(className) ? 'Class ' : ''}{className}
+                  {classRules?.playoffs.championshipVenue ? ` · title game at ${classRules.playoffs.championshipVenue}` : ''}
+                </>
+              )}
             </p>
-            <button
+            {legacyClass && <button
               onClick={() => {
                 setAnyProgram(!anyProgram);
                 setPick(null);
@@ -273,11 +330,23 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               <span aria-hidden="true" style={{ marginLeft: 'auto', color: '#93C5FD', fontWeight: 800 }}>
                 {anyProgram ? '▾' : '›'}
               </span>
-            </button>
-            {anyProgram ? (
+            </button>}
+            {anyProgram || !legacyClass ? (
               <div style={{ marginBottom: '18px' }}>
-                <SchoolSearch state={state} initialQuery={teamLink?.scenario === 'OPEN' && teamLink.state === state ? teamLink.school : undefined} selected={pick?.scenario === 'OPEN' ? pick.school : null} onSelect={(s) => setPick({ scenario: 'OPEN', school: s.name })} disabled={busy} />
-                <div style={{ textAlign: 'center' }}>
+                {!legacyClass && !teams ? (
+                  <p style={{ textAlign: 'center', color: '#CBD5E1', fontSize: '13px' }}>Loading {state} schools…</p>
+                ) : (
+                  <SchoolSearch
+                    key={`${state}|${className}`}
+                    state={state}
+                    schools={legacyClass || !teams ? undefined : classSchools(teams, className)}
+                    initialQuery={teamLink?.scenario === 'OPEN' && teamLink.state === state ? teamLink.school : undefined}
+                    selected={pick?.scenario === 'OPEN' ? (pick.id ?? pick.school) : null}
+                    onSelect={(s) => setPick({ scenario: 'OPEN', school: s.name, id: s.id })}
+                    disabled={busy}
+                  />
+                )}
+                {legacyClass && <div style={{ textAlign: 'center' }}>
                   <button
                     onClick={() => {
                       setAnyProgram(false);
@@ -287,7 +356,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
                   >
                     ← Back to featured programs
                   </button>
-                </div>
+                </div>}
               </div>
             ) : (
               <>
@@ -381,7 +450,7 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               )}
               <button
                 onClick={startCareer}
-                disabled={!pick || busy}
+                disabled={!pick || busy || (TEAM_STATES.includes(state) && !teams)}
                 style={{ ...menuBtn('#15803D', '#fff'), opacity: !pick || busy ? 0.5 : 1, cursor: !pick ? 'not-allowed' : busy ? 'wait' : 'pointer' }}
               >
                 {pickedName ? `Start at ${pickedName}` : 'Pick a program'}

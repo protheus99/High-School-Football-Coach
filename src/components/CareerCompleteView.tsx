@@ -3,7 +3,7 @@ import { coachTitle, useGameStore } from '../store/gameStore';
 import { track } from '../services/analytics';
 import { CareerLength, CONTRACT_LENGTHS, careerPoints } from '../sim/careerScore';
 import { OFFER_NOTES, OfferTier } from '../sim/jobMarket';
-import { findDistrict } from '../sim/league';
+import { districtNameOf } from '../sim/league';
 import { ordinal } from '../utils/format';
 import { useHallOfFame } from '../utils/useHallOfFame';
 import { CoachCareerView } from './CoachCareerView';
@@ -56,7 +56,7 @@ export const CareerCompleteView: React.FC<{ onMainMenu: () => void }> = ({ onMai
         </div>
         {jobOffers.map((o) => {
           const length = lengths[o.teamId] ?? 3;
-          const district = league ? findDistrict(league, o.teamId)?.name : undefined;
+          const district = league ? districtNameOf(league, o.teamId) : undefined;
           return (
             <div key={o.teamId} style={card}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>

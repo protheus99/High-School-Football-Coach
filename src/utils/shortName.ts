@@ -18,7 +18,8 @@ for (const [state, data] of Object.entries(STATE_DATA)) {
 }
 
 /** The short name of a school (a team, or just its name), or its full name when it's short enough or isn't known. */
-export function shortName(team: { name: string; state?: string } | string): string {
+export function shortName(team: { name: string; state?: string; shortName?: string } | string): string {
+  if (typeof team !== 'string' && team.shortName) return team.shortName; // teams built from the team data carry theirs
   const name = typeof team === 'string' ? team : team.name;
   const state = typeof team === 'string' ? undefined : team.state;
   return (state && byStateAndName.get(`${state}|${name}`)) || byName.get(name) || (state ? undefined : byStateAndName.get(`Texas|${name}`)) || name;
