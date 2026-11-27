@@ -76,6 +76,10 @@ export function classDistrictsOf(league: LeagueStructure, teams: Team[]): ClassD
   );
 }
 
+/** A class league's playoff rounds before its field is set: its listed rounds, else enough for its field (the calendar has six). */
+export const estimatedClassRounds = (rules: ClassRules): number =>
+  Math.max(1, Math.min(6, rules.playoffs.rounds.length || Math.ceil(Math.log2(rules.playoffs.fieldSize ?? 16))));
+
 /** A class's rules for the league (undefined for the original top classes). */
 export const leagueClassRules = (league?: LeagueStructure): ClassRules | undefined => (league?.className && league.state ? classRulesFor(league.state, league.className) : undefined);
 

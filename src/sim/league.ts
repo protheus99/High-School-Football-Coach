@@ -4,7 +4,7 @@ import { generateDistrictTeams, NEIGHBOR_DISTRICT_SCHOOLS, PLAYOFF_REGION_DISTRI
 import { nameProfileForArea } from '../generators/names';
 import { OFF_SEASON_WEEKS, STATE_FINAL_WEEK } from './scheduleEngine';
 import { rulesForState } from './stateRules';
-import { LEGACY_TOP_CLASS, leagueClassRules } from './classLeague';
+import { estimatedClassRounds, LEGACY_TOP_CLASS, leagueClassRules } from './classLeague';
 
 export interface LeagueDistrict {
   id: string;
@@ -311,11 +311,8 @@ export function findRegion(league: LeagueStructure, teamId: string): LeagueRegio
 /** Rounds needed: each region's qualifiers play down to a champion, then region champions meet. */
 export function playoffRoundCount(league: LeagueStructure): number {
   const classRules = leagueClassRules(league);
-  if (classRules) {
-    // A class league's real round count is set when its bracket is built: estimate it from the data (at most the calendar's six)
-    const p = classRules.playoffs;
-    return Math.max(1, Math.min(6, p.rounds.length || Math.ceil(Math.log2(p.fieldSize ?? 16))));
-  }
+  // A class league's real round count is set when its bracket is built: estimate it from the data
+  if (classRules) return estimatedClassRounds(classRules);
   const { playoffs } = rulesForState(league.state);
   if (playoffs.format === 'STATEWIDE_RANKING') return Math.log2(playoffs.bracketSize);
   if (playoffs.format === 'REGIONAL_SEEDED' && playoffs.regional) return Math.log2(playoffs.regional.regions.length * playoffs.regional.regionBracketSize);

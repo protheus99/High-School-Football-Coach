@@ -1,6 +1,7 @@
-import { leagueClassRules } from './classLeague';
+import { estimatedClassRounds, leagueClassRules } from './classLeague';
 import type { ClassRules } from './classRules';
-import type { PlayoffRound } from './playoffEngine';
+import { fitRoundNames } from './classSeason';
+import { bracketRoundNames, PlayoffRound } from './playoffEngine';
 import { districtPlayoffSpots, playoffQualifyText, rulesForState, StateRules } from './stateRules';
 
 // ---------------------------------------------------------------------------
@@ -18,6 +19,12 @@ export function rulesForLeague(league: LeagueLike): StateRules {
   const base = rulesForState(league?.state);
   const rules = leagueClassRules(league as never);
   if (!rules) return base;
+  // The class's own round names ('Round of 32' ... 'Substate'), on the rounds its playoffs are expected to have; once the
+  // field is set, the bracket carries its own (bracketRoundLabel)
+  const count = estimatedClassRounds(rules);
+  const names = fitRoundNames(rules.playoffs.rounds, count);
+  const roundLabels = { ...base.playoffs.roundLabels };
+  bracketRoundNames(count).forEach((round, i) => (roundLabels[round] = names[i]));
   return {
     ...base,
     governingBody: (rules.governingBody || base.governingBody) as StateRules['governingBody'],
@@ -25,6 +32,7 @@ export function rulesForLeague(league: LeagueLike): StateRules {
     districtLabel: rules.districtLabel,
     playoffs: {
       ...base.playoffs,
+      roundLabels,
       championshipTitle: rules.playoffs.championshipTitle,
       championshipVenue: rules.playoffs.championshipVenue ?? 'the state championship site',
       roundDescriptions: Object.fromEntries(Object.keys(base.playoffs.roundDescriptions).map((k) => [k, GENERIC_ROUND_NOTE])) as Record<PlayoffRound, string>
