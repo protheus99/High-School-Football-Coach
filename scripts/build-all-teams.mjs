@@ -7,6 +7,7 @@
 //   src/data/teams/<state-slug>.json   one file per state: every class, its districts and schools (loaded lazily by
 //                                       src/data/teamData.ts, so Vite splits one chunk per state)
 //   src/data/teamManifest.ts           the small index the New Game screens read without loading any team data
+//   src/data/schoolIndex.json          New Game's national school list, with each school's size level (lib/schoolIndex.mjs)
 //
 // Facts are never invented. A blank mascot stays blank (the game shows nothing); blank colors become one neutral slate/white
 // pair with colorsConfirmed: false; a blank city or district is left out.
@@ -26,6 +27,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findExpansionDir, readCsvRows, slugify } from './lib/expansion.mjs';
+import { buildSchoolIndex } from './lib/schoolIndex.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const expansion = findExpansionDir(repo, process.argv[2]);
@@ -48,6 +50,56 @@ const COLOR_HEX = {
 // A school with no colors on file: one neutral pair for all of them, never a made-up color (colorsConfirmed: false)
 const NEUTRAL_PRIMARY = '#475569';
 const NEUTRAL_SECONDARY = '#FFFFFF';
+
+// ---------------------------------------------------------------------------
+// Game prestige: a bell curve within each state. The research data's PPI ranks programs inside a state but bunches at
+// the top (2.2% at 96+, 44% at 80-87, almost none under 70). The game keeps each school's rank in its state and spreads
+// the ratings on a normal curve (mean 75, spread 12): most programs land in the 70s, real rebuild jobs sit in the 50s
+// and 60s, and above 88 a soft ceiling keeps the top rare (about 1.3% of schools at 96+). Each state's single best
+// program (the top PPI; ties go to the first listed) is 99. Ties share a rank. The research data keeps its PPI.
+// ---------------------------------------------------------------------------
+const CURVE = { mean: 75, spread: 12, knee: 88, soft: 14, ceiling: 100.5 };
+
+/** Inverse of the standard normal CDF (Acklam's approximation, accurate to about 1e-9). */
+function normalQuantile(p) {
+  const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239];
+  const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572];
+  const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
+  const lo = 0.02425;
+  if (p < lo) {
+    const q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  if (p > 1 - lo) return -normalQuantile(1 - p);
+  const q = p - 0.5;
+  const r = q * q;
+  return ((((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q) / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+
+/** Each row's game prestige, from its PPI's rank among the state's schools. */
+function curvedPrestige(rows) {
+  const ppi = (r) => Number(r.PPI) || 70;
+  const sorted = rows.map(ppi).sort((x, y) => x - y);
+  const n = sorted.length;
+  const share = new Map(); // a PPI value -> the mid-rank share of the schools at or below it
+  for (let i = 0; i < n; ) {
+    let j = i;
+    while (j < n && sorted[j] === sorted[i]) j++;
+    share.set(sorted[i], (i + j) / 2 / n);
+    i = j;
+  }
+  const best = rows.reduce((top, r) => (ppi(r) > ppi(top) ? r : top), rows[0]);
+  return new Map(
+    rows.map((r) => {
+      if (r === best) return [r, 99];
+      const z = normalQuantile(Math.min(0.9995, Math.max(0.0005, share.get(ppi(r)))));
+      let x = CURVE.mean + CURVE.spread * z;
+      if (x > CURVE.knee) x = CURVE.knee + (CURVE.ceiling - CURVE.knee) * (1 - Math.exp(-(x - CURVE.knee) / CURVE.soft));
+      return [r, Math.max(40, Math.min(99, Math.round(x)))];
+    })
+  );
+}
 
 /** The first style listed names the scheme; Air Raid keeps its own. */
 function offenseScheme(text) {
@@ -150,6 +202,7 @@ for (const file of stateFiles) {
   const stateSlug = slugify(state);
   const classOrder = [...new Set(rows.map((r) => r.Class))];
   const ids = assignIds(state, rows);
+  const gamePrestige = curvedPrestige(rows);
 
   const out = { state, classes: [] };
   for (const className of classOrder) {
@@ -168,7 +221,7 @@ for (const file of stateFiles) {
             if (!colors) unconfirmed++;
             if (!r.Mascot) noMascot++;
             schools++;
-            const prestige = Math.max(40, Math.min(99, Math.round(Number(r.PPI) || 70)));
+            const prestige = gamePrestige.get(r);
             return {
               id: idFor(r),
               name: r.FullName,
@@ -229,7 +282,8 @@ fs.mkdirSync(path.dirname(idFile), { recursive: true });
 const sortedLock = Object.fromEntries(Object.entries(lock).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
 fs.writeFileSync(idFile, JSON.stringify(sortedLock, null, 1) + '\n');
 
-console.log(`${manifest.length} states, ${schools} schools -> src/data/teams/*.json + src/data/teamManifest.ts`);
+buildSchoolIndex(repo, expansion);
+console.log(`${manifest.length} states, ${schools} schools -> src/data/teams/*.json + src/data/teamManifest.ts + src/data/schoolIndex.json`);
 console.log(`  school ids: ${newIds} new, ${movedKeys} kept through a city change, ${Object.keys(lock).length - usedIds.size} reserved for schools not in this data (scripts/data/school-ids.json)`);
 console.log(`  ${noMascot} without a mascot (shown blank), ${unconfirmed} with neutral colors (colorsConfirmed: false)`);
 if (unknownColors.size) console.log(`  color names without a hex (treated as unconfirmed): ${[...unknownColors].map(([k, n]) => `${k} x${n}`).join(', ')}`);

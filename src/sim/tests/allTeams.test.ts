@@ -47,6 +47,24 @@ describe('Team data', () => {
     expect(ids.size).toBe(schools);
   }, 60_000); // loads all 51 state files: slow when the whole suite runs at once
 
+  it('prestige follows a bell curve in every state: the top stays rare, real rebuild jobs exist', async () => {
+    const all: number[] = [];
+    for (const state of TEAM_STATES) {
+      const data = (await loadStateTeams(state))!;
+      const p = data.classes.flatMap((c) => c.districts.flatMap((d) => d.schools.map((s) => s.prestige)));
+      expect(Math.max(...p), state).toBe(99); // each state's best program
+      expect(p.filter((x) => x === 99), state).toHaveLength(1);
+      all.push(...p);
+    }
+    const share = (test: (x: number) => boolean) => all.filter(test).length / all.length;
+    expect(share((x) => x >= 96)).toBeLessThan(0.02); // 96-99: about 1 school in 70
+    expect(share((x) => x >= 90)).toBeLessThan(0.13);
+    expect(share((x) => x < 70)).toBeGreaterThan(0.25); // rebuild jobs
+    const sorted = [...all].sort((a, b) => a - b);
+    expect(sorted[Math.floor(sorted.length / 2)]).toBeGreaterThanOrEqual(73);
+    expect(sorted[Math.floor(sorted.length / 2)]).toBeLessThanOrEqual(77);
+  }, 60_000);
+
   it('school ids are permanent: from the id file, never the class, and never an original top-class id', async () => {
     const lock: Record<string, string> = JSON.parse(readFileSync(resolve(__dirname, '../../../scripts/data/school-ids.json'), 'utf8'));
     const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');

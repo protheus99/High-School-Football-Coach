@@ -1,20 +1,13 @@
-import { PLAYABLE_STATES, rulesForState } from '../sim/stateRules';
-import { classRulesFor } from '../sim/classRules';
-import { classSchools, isLegacyClass, LEGACY_TOP_CLASS } from '../sim/classLeague';
-import { loadStateTeams, loadTeamsForSave, manifestFor, StateTeamData, TEAM_STATES } from '../data/teamData';
+import { loadStateTeams, loadTeamsForSave } from '../data/teamData';
 import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { DIFFICULTY_PRESTIGE, Difficulty, stateSchool } from '../sim/league';
-import { SCENARIOS, ScenarioId } from '../data/scenarios';
-import { SchoolSearch } from './SchoolSearch';
+import { NewGameScreen } from './NewGameScreen';
+import { applySchoolFacts, careerArgs, NewGameStart } from '../sim/newGameStart';
 import { MusicTapHint } from './MusicTapHint';
 import { HallOfFameArcade } from './HallOfFameBoard';
 import { Sheet } from './ui/Sheet';
 import { useScrollTopOnScreenChange } from '../utils/pageScroll';
-import { CAREER_LENGTHS, CareerLength, CareerTerm, UNLIMITED } from '../sim/careerScore';
-
-// The classic game (a random school at a difficulty, unranked) is hidden for now; flip this to bring it back
-const SHOW_CLASSIC_GAME = false;
+import { CareerLength } from '../sim/careerScore';
 import { deleteAnySave, listAllSaves, loadAnySave, SaveEntry, signInAvailable, useAccount } from '../services/account';
 import { loadAllPlayedGames } from '../services/playedGames';
 import { gamesSince, PlayedGame } from '../sim/gameLock';
@@ -26,30 +19,9 @@ import { AccountSheet, SignInResult, SignInSheet } from './AccountPanels';
 import { version } from '../../package.json';
 import { assetUrl, sitePage } from '../utils/site';
 
-/** Every state a coach can pick: the original 12 and every state with a team list. */
-const ALL_STATES = [...new Set([...PLAYABLE_STATES, ...TEAM_STATES])].sort();
-
-/** A state's classes for New Game: the hand-tuned top class first (where there is one), then the data's classes. */
-function classesOf(st: string): { name: string; schools: number | null }[] {
-  const legacy = LEGACY_TOP_CLASS[st];
-  const fromData = (manifestFor(st)?.classes ?? []).filter((c) => !legacy || c.className !== legacy).map((c) => ({ name: c.className, schools: c.schools }));
-  return legacy ? [{ name: legacy, schools: manifestFor(st)?.classes.find((c) => c.className === legacy)?.schools ?? null }, ...fromData] : fromData;
-}
-
-const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; color: string }[] = [
-  { id: 'EASY', label: 'Easy', blurb: 'Take over a powerhouse: deep talent, rich boosters, title expectations.', color: '#15803D' },
-  { id: 'MEDIUM', label: 'Medium', blurb: 'A solid contender. Good players, but you have to win the big games.', color: '#2563EB' },
-  { id: 'HARD', label: 'Hard', blurb: 'An underdog program. Build it from the ground up.', color: '#DC2626' }
-];
-
-const prestigeRange = (d: Difficulty) => {
-  const { min, max } = DIFFICULTY_PRESTIGE[d];
-  return max >= 100 ? `${min}+` : `${min}–${max}`;
-};
-
 /** Title screen: start a scenario career (or a classic game at a difficulty), continue, or load a saved game. */
 export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: boolean }> = ({ onEnterGame, canContinue }) => {
-  const { newGame, newScenarioGame, loadGame } = useGameStore();
+  const { newScenarioGame, loadGame } = useGameStore();
   const [view, setView] = useState<'MENU' | 'NEW' | 'LOAD'>('MENU');
   useScrollTopOnScreenChange(view);
   const [saves, setSaves] = useState<SaveEntry[] | null>(null);
@@ -89,27 +61,6 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
     return games.length === 1 ? `🔒 ${games[0].year === save.currentYear ? '' : `${games[0].year} `}Week ${games[0].week} already played: the result stands` : `🔒 ${games.length} games already played: results stand`;
   };
 
-  const [state, setState] = useState('Texas');
-  const [pick, setPick] = useState<{ scenario: ScenarioId; school: string; id?: string } | null>(null);
-  // The class to coach in (the state's hand-tuned top class by default) and the state's team list, loaded when the state is picked
-  const [className, setClassName] = useState(() => classesOf('Texas')[0].name);
-  const [teams, setTeams] = useState<StateTeamData | undefined>(undefined);
-  useEffect(() => {
-    let current = true;
-    setTeams(undefined);
-    if (TEAM_STATES.includes(state)) void loadStateTeams(state).then((d) => current && setTeams(d));
-    return () => {
-      current = false;
-    };
-  }, [state]);
-  const legacyClass = isLegacyClass(state, className);
-  const classRules = classRulesFor(state, className);
-  const [coachName, setCoachName] = useState('');
-  const [nameMissing, setNameMissing] = useState(false); // Start was tapped without a coach name
-  const [length, setLength] = useState<CareerTerm>(5);
-  const [showClassic, setShowClassic] = useState(false);
-  // Pick any program: search every school in the state instead of the featured programs
-  const [anyProgram, setAnyProgram] = useState(false);
   // A link from a team page (/?state=texas&school=duncanville) opens New Game with that school and 10 seasons picked,
   // ready for the coach's name; the address is cleaned up so a refresh shows the title screen
   const [teamLink] = useState(() => parseTeamLink(window.location.search));
@@ -117,55 +68,30 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
     if (!teamLink) return;
     setEntrySource(teamLink.source, teamLink.variant);
     setView('NEW');
-    setState(teamLink.state);
-    setPick({ scenario: teamLink.scenario, school: teamLink.school });
-    setAnyProgram(teamLink.scenario === 'OPEN');
-    setLength(10);
     window.history.replaceState(null, '', window.location.pathname);
-    const focus = setTimeout(() => document.getElementById('coach-name')?.focus(), 250);
-    return () => clearTimeout(focus);
   }, [teamLink]);
-  const chooseState = (st: string) => {
-    setState(st);
-    setClassName(classesOf(st)[0]?.name ?? '');
-    setAnyProgram(false);
-    setPick(null);
-  };
-  const chooseClass = (name: string) => {
-    setClassName(name);
-    setAnyProgram(false);
-    setPick(null);
-  };
-  const pickedProgram = pick && SCENARIOS.flatMap((s) => s.programs).find((p) => p.state === state && p.school === pick.school);
-  const pickedName = pick ? (pickedProgram?.displayName ?? pick.school) : null;
-  const startCareer = () => {
-    if (!pick) return;
-    // The coach's name is required: it goes on the team, the awards and the Hall of Fame
-    if (!coachName.trim()) {
-      setNameMissing(true);
-      document.getElementById('coach-name')?.focus();
-      return;
-    }
+  const startCareer = ({ program, coachName, length, facts, path }: NewGameStart) => {
     setBusy(true);
+    setError(null);
+    track('team_pick', { path, group: program.group, state: program.state, level: program.level });
+    const { scenario, school, target } = careerArgs(program);
     // The state's other classes play in the background, so its team list must be in before the world is built
-    void loadStateTeams(state).then(() =>
-      setTimeout(() => {
-        newScenarioGame(pick.scenario, state, pick.school, coachName, length, legacyClass || !pick.id ? undefined : { className, schoolId: pick.id });
+    loadStateTeams(program.state)
+      .then(() =>
+        setTimeout(() => {
+          newScenarioGame(scenario, program.state, school, coachName, length, target);
+          // A mascot or colors looked up during Coach Information go on the coach's team
+          const s = useGameStore.getState();
+          const team = s.leagueTeams.find((t) => t.id === s.userTeamId);
+          if (team && applySchoolFacts(team, facts)) useGameStore.setState({ leagueTeams: [...s.leagueTeams] });
+          setBusy(false);
+          onEnterGame();
+        }, 20)
+      )
+      .catch(() => {
         setBusy(false);
-        onEnterGame();
-      }, 20)
-    );
-  };
-  const startNew = (difficulty: Difficulty) => {
-    setBusy(true);
-    // Let the button state paint before building the 254-team world
-    void loadStateTeams(state).then(() =>
-      setTimeout(() => {
-        newGame(difficulty, state, className);
-        setBusy(false);
-        onEnterGame();
-      }, 20)
-    );
+        setError("That school's team list didn't load. Check your connection and try again.");
+      });
   };
 
   const load = async (entry: SaveEntry) => {
@@ -192,6 +118,17 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
   };
   // The title menu's choice (Continue: the game in memory, or the newest save)
   const menuChoice = (choice: 'continue' | 'new' | 'load' | 'hall_of_fame') => track('menu_choice', { choice, ...(choice === 'continue' && { from_save: !canContinue }) });
+
+  if (view === 'NEW')
+    return (
+      <NewGameScreen
+        onBack={() => (setError(null), setView('MENU'))}
+        onStart={startCareer}
+        busy={busy}
+        error={error}
+        link={teamLink && { state: teamLink.state, school: teamLink.school }}
+      />
+    );
 
   return (
     <div className="ui-on-dark" style={pageStyle}>
@@ -277,214 +214,6 @@ export const SplashScreen: React.FC<{ onEnterGame: () => void; canContinue: bool
               signInAvailable(account.options) && <div style={{ textAlign: 'center', fontSize: '12px', color: '#94A3B8' }}>Sign in to keep your saves on every device</div>
             )}
             <MusicTapHint />
-          </div>
-        )}
-
-        {view === 'NEW' && (
-          <div>
-            <h2 style={sectionTitle}>Choose a State</h2>
-            <div aria-label="State" className="title-states">
-              {ALL_STATES.map((st) => (
-                <button key={st} className="ui-chip" aria-pressed={state === st} onClick={() => chooseState(st)} style={{ justifyContent: 'center' }}>
-                  {st}
-                </button>
-              ))}
-            </div>
-            <h2 style={{ ...sectionTitle, marginTop: '8px' }}>Choose a Class</h2>
-            <div aria-label="Class" className="title-states">
-              {classesOf(state).map((c) => (
-                <button key={c.name} className="ui-chip" aria-pressed={className === c.name} onClick={() => chooseClass(c.name)} style={{ justifyContent: 'center', flexDirection: 'column', lineHeight: 1.2 }}>
-                  {c.name}
-                  {c.schools !== null && <span style={{ fontSize: '11px', opacity: 0.75, fontWeight: 600 }}>{c.schools} schools</span>}
-                </button>
-              ))}
-            </div>
-            <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 16px 0' }}>
-              {legacyClass ? (
-                <>
-                  {rulesForState(state).governingBody} {/^\d+A$/.test(rulesForState(state).classification) ? 'Class ' : ''}{rulesForState(state).classification} · title game at {rulesForState(state).playoffs.championshipVenue}
-                </>
-              ) : (
-                <>
-                  {classRules?.governingBody} {/^\d+A$/.test(className) ? 'Class ' : ''}{className}
-                  {classRules?.playoffs.championshipVenue ? ` · title game at ${classRules.playoffs.championshipVenue}` : ''}
-                </>
-              )}
-            </p>
-            {legacyClass && <button
-              onClick={() => {
-                setAnyProgram(!anyProgram);
-                setPick(null);
-              }}
-              aria-expanded={anyProgram}
-              disabled={busy}
-              style={anyProgramBtn(anyProgram)}
-            >
-              <span aria-hidden="true" style={{ fontSize: '22px' }}>
-                🔍
-              </span>
-              <span style={{ minWidth: 0 }}>
-                <b style={{ display: 'block', fontSize: '15px' }}>Pick any program</b>
-                <span style={{ fontSize: '12px', color: '#CBD5E1' }}>Search for a program in {state} and see if you can take it to the title.</span>
-              </span>
-              <span aria-hidden="true" style={{ marginLeft: 'auto', color: '#93C5FD', fontWeight: 800 }}>
-                {anyProgram ? '▾' : '›'}
-              </span>
-            </button>}
-            {anyProgram || !legacyClass ? (
-              <div style={{ marginBottom: '18px' }}>
-                {!legacyClass && !teams ? (
-                  <p style={{ textAlign: 'center', color: '#CBD5E1', fontSize: '13px' }}>Loading {state} schools…</p>
-                ) : (
-                  <SchoolSearch
-                    key={`${state}|${className}`}
-                    state={state}
-                    schools={legacyClass || !teams ? undefined : classSchools(teams, className)}
-                    initialQuery={teamLink?.scenario === 'OPEN' && teamLink.state === state ? teamLink.school : undefined}
-                    selected={pick?.scenario === 'OPEN' ? (pick.id ?? pick.school) : null}
-                    onSelect={(s) => setPick({ scenario: 'OPEN', school: s.name, id: s.id })}
-                    disabled={busy}
-                  />
-                )}
-                {legacyClass && <div style={{ textAlign: 'center' }}>
-                  <button
-                    onClick={() => {
-                      setAnyProgram(false);
-                      setPick(null);
-                    }}
-                    style={{ background: 'none', border: 'none', color: '#93C5FD', fontWeight: 700, fontSize: '13px', cursor: 'pointer', padding: '8px 0', minHeight: '40px' }}
-                  >
-                    ← Back to featured programs
-                  </button>
-                </div>}
-              </div>
-            ) : (
-              <>
-              <h2 style={{ ...sectionTitle, marginTop: '16px' }}>Choose Your Program</h2>
-              {SCENARIOS.map((scenario) => (
-                <section key={scenario.id} aria-label={scenario.title} style={{ marginBottom: '18px' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                    <h3 style={{ margin: 0, color: scenario.id === 'RECLAIM' ? '#FCA5A5' : '#FCD34D', fontSize: '17px' }}>{scenario.title}</h3>
-                    <span style={{ color: '#94A3B8', fontSize: '13px' }}>{scenario.tagline}</span>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
-                    {scenario.programs
-                      .filter((p) => p.state === state)
-                      .map((program) => {
-                        const school = stateSchool(state, program.school);
-                        const selected = pick?.scenario === scenario.id && pick.school === program.school;
-                        return (
-                          <button
-                            key={program.school}
-                            aria-pressed={selected}
-                            onClick={() => setPick({ scenario: scenario.id, school: program.school })}
-                            disabled={busy}
-                            style={{ ...cardBtn(school?.primaryColor ?? '#334155', busy), outline: selected ? '3px solid #F59E0B' : 'none', outlineOffset: '2px' }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline' }}>
-                              <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#0F172A' }}>{program.displayName}</span>
-                              <span style={{ ...badge(scenario.id === 'RECLAIM' ? '#FEE2E2' : '#FEF3C7', scenario.id === 'RECLAIM' ? '#991B1B' : '#92400E'), whiteSpace: 'nowrap' }}>
-                                Prestige {scenario.startingPrestige(school?.prestige ?? 0)}
-                              </span>
-                            </div>
-                            <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 8px 0' }}>
-                              {school?.mascot}
-                              {school && ` · ${school.district}`}
-                            </div>
-                            <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.45 }}>{program.legacy}</div>
-                          </button>
-                        );
-                      })}
-                  </div>
-                </section>
-              ))}
-              </>
-            )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '420px', margin: '0 auto' }}>
-              <div style={{ color: '#CBD5E1', fontSize: '13px' }}>
-                Game length
-                <div className="ui-chips" role="group" aria-label="Game length" style={{ marginTop: '4px' }}>
-                  {CAREER_LENGTHS.map((years) => (
-                    <button key={years} className="ui-chip" aria-pressed={length === years} onClick={() => setLength(years)} style={lengthChip}>
-                      {years} years
-                    </button>
-                  ))}
-                  <button className="ui-chip" aria-pressed={length === UNLIMITED} onClick={() => setLength(UNLIMITED)} style={lengthChip}>
-                    Unlimited
-                  </button>
-                </div>
-                {length === UNLIMITED && <div style={{ marginTop: '4px', fontSize: '12px', color: '#94A3B8' }}>No end and no Hall of Fame: coach as long as you like.</div>}
-              </div>
-              <label style={{ color: '#CBD5E1', fontSize: '13px' }}>
-                Coach name{' '}
-                <span aria-hidden="true" style={{ color: '#FCA5A5' }}>
-                  *
-                </span>
-                <input
-                  id="coach-name"
-                  value={coachName}
-                  onChange={(e) => {
-                    setCoachName(e.target.value.slice(0, 24));
-                    if (e.target.value.trim()) setNameMissing(false);
-                  }}
-                  placeholder="Your name (required)"
-                  required
-                  aria-invalid={nameMissing}
-                  aria-describedby={nameMissing ? 'coach-name-error' : undefined}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    marginTop: '4px',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: nameMissing ? '2px solid #F87171' : '1px solid #475569',
-                    fontSize: '16px'
-                  }}
-                />
-              </label>
-              {nameMissing && (
-                <div id="coach-name-error" role="alert" style={{ color: '#FCA5A5', fontSize: '13px', marginTop: '-4px' }}>
-                  Enter your coach name to start.
-                </div>
-              )}
-              <button
-                onClick={startCareer}
-                disabled={!pick || busy || (TEAM_STATES.includes(state) && !teams)}
-                style={{ ...menuBtn('#15803D', '#fff'), opacity: !pick || busy ? 0.5 : 1, cursor: !pick ? 'not-allowed' : busy ? 'wait' : 'pointer' }}
-              >
-                {pickedName ? `Start at ${pickedName}` : 'Pick a program'}
-              </button>
-            </div>
-            {busy && <p style={{ textAlign: 'center', color: '#CBD5E1', marginTop: '16px' }}>Building the league…</p>}
-            {SHOW_CLASSIC_GAME && (
-              <div style={{ textAlign: 'center', marginTop: '18px' }}>
-                <button
-                  onClick={() => setShowClassic((v) => !v)}
-                  aria-expanded={showClassic}
-                  style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}
-                >
-                  {showClassic ? 'Hide classic game' : 'Classic game: a random school (not ranked)'}
-                </button>
-              </div>
-            )}
-            {SHOW_CLASSIC_GAME && showClassic && (
-              <div style={{ marginTop: '10px' }}>
-                <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '13px', margin: '0 0 12px 0' }}>
-                  You&apos;ll be hired at a random {state} {rulesForState(state).classification} school in the matching prestige range (or the closest one).
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                  {DIFFICULTIES.map((d) => (
-                    <button key={d.id} onClick={() => startNew(d.id)} disabled={busy} style={cardBtn(d.color, busy)}>
-                      <div style={{ fontSize: '20px', fontWeight: 'bold', color: d.color }}>{d.label}</div>
-                      <div style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 8px 0' }}>School prestige {prestigeRange(d.id)}</div>
-                      <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.4 }}>{d.blurb}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <BackButton onClick={() => setView('MENU')} />
           </div>
         )}
 
@@ -600,25 +329,6 @@ const pageStyle: React.CSSProperties = {
   fontFamily: 'sans-serif'
 };
 
-const anyProgramBtn = (open: boolean): React.CSSProperties => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  width: '100%',
-  minHeight: '56px',
-  borderRadius: '12px',
-  border: `2px ${open ? 'solid' : 'dashed'} #60A5FA`,
-  background: open ? 'rgba(37,99,235,.25)' : 'rgba(37,99,235,.12)',
-  color: '#F8FAFC',
-  padding: '8px 12px',
-  textAlign: 'left',
-  font: 'inherit',
-  cursor: 'pointer'
-});
-
-// Game length: four chips across a phone, so a little less padding than the usual chip
-const lengthChip: React.CSSProperties = { flex: 1, justifyContent: 'center', padding: '8px 6px' };
-
 const sectionTitle: React.CSSProperties = { textAlign: 'center', color: '#F8FAFC', margin: '0 0 8px 0', fontSize: '20px' };
 
 const menuBtn = (background: string, color: string): React.CSSProperties => ({
@@ -630,17 +340,6 @@ const menuBtn = (background: string, color: string): React.CSSProperties => ({
   fontWeight: 'bold',
   fontSize: '16px',
   cursor: 'pointer'
-});
-
-const cardBtn = (accent: string, disabled: boolean): React.CSSProperties => ({
-  textAlign: 'left',
-  background: '#fff',
-  border: 'none',
-  borderTop: `5px solid ${accent}`,
-  borderRadius: '8px',
-  padding: '16px',
-  cursor: disabled ? 'wait' : 'pointer',
-  opacity: disabled ? 0.7 : 1
 });
 
 const saveRow: React.CSSProperties = {

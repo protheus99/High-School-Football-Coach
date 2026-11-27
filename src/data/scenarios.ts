@@ -32,7 +32,8 @@ export const SCENARIOS: Scenario[] = [
     title: 'Reclaiming the Crown',
     tagline: 'Take over a fallen giant and bring it back to the top.',
     difficulty: 'HARD',
-    startingPrestige: (p) => Math.min(p, RECLAIM_PRESTIGE),
+    // A hand-written fallen giant (rated 75 or more) drops to 72; a big school already in the middle keeps its prestige
+    startingPrestige: (p) => (p >= 75 ? RECLAIM_PRESTIGE : p),
     programs: [
       { state: 'Texas', school: 'Odessa Permian', displayName: 'Odessa Permian', legacy: 'The Panthers made "Mojo" famous, winning multiple Texas championships and becoming one of the state’s most iconic football programs.' },
       { state: 'Texas', school: 'Converse Judson', displayName: 'Converse Judson', legacy: 'The Rockets became a Texas powerhouse, winning six state championships from 1983 onward, including three in four seasons during the 1990s.' },

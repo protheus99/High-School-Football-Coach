@@ -30,6 +30,7 @@ screens' buttons. Tests: `src/sim/tests/analyticsEvents.test.ts` and `src/servic
 | Event | When | Parameters |
 | --- | --- | --- |
 | `new_game` | A career (or quick game) starts | `mode` (career / quick), `scenario`, `state`, `school` (the school's game id, e.g. `team_ohio_springfield_springfield`; the original 12 states' top classes keep `team_<name>`), `class` (e.g. `5A-D1`, `D1`), `length` (or `unlimited`) or `difficulty`; `source` (team_page) and `variant` (page / direct) when it came through a team page |
+| `team_pick` | New Game's Start is tapped (just before `new_game`) | `path` (quick: a Quick Pick deal / manual: the state › class listing / search / legend: a ⭐ legend card / link: a team page link), `group` (the Quick Pick job: POWER / RECLAIM / CONTEND / REBUILD), `state`, `level` (the school's national size level, 1-5) |
 | `menu_choice` | Continue / New Game / Load Game / Hall of Fame on the title menu | `choice`, `from_save` (Continue loaded the newest save) |
 | `load_game` / `save_game` | A save is loaded / a manual save | where the career is |
 | `save_deleted` | A save deleted on the Load screen | `saves` (how many there were) |

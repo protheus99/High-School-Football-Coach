@@ -7,6 +7,7 @@ import { initAccount } from './services/account';
 import { initDucats } from './services/ducats';
 import { musicPlayer } from './utils/musicPlayer';
 import './styles/index.css';
+import './styles/newGame.css';
 import { ReplayTestApp } from './replayTest/ReplayTestApp';
 import { ReplayClips } from './replayTest/ReplayClips';
 import { ReplayDemo } from './replayTest/ReplayDemo';
