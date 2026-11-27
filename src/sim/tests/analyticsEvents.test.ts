@@ -138,3 +138,19 @@ describe('Grade, depth chart and game events', () => {
     expect(packItem(DUCAT_PACKS[1])).toEqual({ item_id: 'P5', item_name: '550 ducats', price: 5, quantity: 1 });
   });
 });
+
+describe('Starting a game', () => {
+  it('new_game says which state, school, class and length were picked', async () => {
+    store().newScenarioGame('OPEN', 'Texas', 'Austin Westlake', 'Coach Test', 5);
+    expect(sent('new_game').at(-1)).toMatchObject({ mode: 'career', scenario: 'OPEN', state: 'Texas', length: 5, school: 'team_austin_westlake', class: '6A' });
+
+    const { loadStateTeams } = await import('../../data/teamData');
+    const kansas = (await loadStateTeams('Kansas'))!;
+    const school = kansas.classes.find((c) => c.className === '4A')!.districts[0].schools[0];
+    store().newScenarioGame('OPEN', 'Kansas', school.name, 'Coach Test', 0, { className: '4A', schoolId: school.id });
+    expect(sent('new_game').at(-1)).toMatchObject({ mode: 'career', state: 'Kansas', length: 'unlimited', school: school.id, class: '4A' });
+
+    store().newGame('MEDIUM', 'Ohio');
+    expect(sent('new_game').at(-1)).toMatchObject({ mode: 'quick', state: 'Ohio', difficulty: 'MEDIUM', school: store().userTeamId, class: 'D1' });
+  }, 120_000);
+});
