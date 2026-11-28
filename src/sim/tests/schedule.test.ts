@@ -21,10 +21,10 @@ describe('Texas 6A league', () => {
   it('has 4 regions, 32 districts and every program from the database', () => {
     expect(league.regions).toHaveLength(4);
     expect(league.regions.flatMap((r) => r.districts)).toHaveLength(32);
-    expect(teams.length).toBeGreaterThanOrEqual(250);
+    expect(teams.length).toBeGreaterThanOrEqual(249); // UIL 2026-28 6A
     expect(new Set(teams.map((t) => t.id)).size).toBe(teams.length);
     expect(teams.find((t) => t.id === userTeamId)?.name).toBe('Austin Westlake');
-    expect(findDistrict(league, userTeamId)?.name).toBe('District 26-6A');
+    expect(findDistrict(league, userTeamId)?.name).toBe('District 25-6A');
   });
 
   it('gives powerhouse programs stronger rosters than low-prestige programs', () => {

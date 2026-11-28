@@ -159,25 +159,28 @@ describe('A coach in another class', () => {
       // ...and only those schools are left out
       const inData = data.classes.filter((c) => c.className !== LEGACY_TOP_CLASS[state]).reduce((n, c) => n + c.districts.reduce((m, d) => m + d.schools.length, 0), 0);
       const played = leagues.reduce((n, l) => n + l.teams.length, 0);
-      expect(inData - played, state).toBeGreaterThan(0);
+      const onTop = onOriginalTopClass(state)!;
+      const listedUpTop = data.classes.filter((c) => c.className !== LEGACY_TOP_CLASS[state]).reduce((n, c) => n + c.districts.reduce((m, d) => m + d.schools.filter(onTop).length, 0), 0);
+      expect(inData - played, state).toBe(listedUpTop);
     }
   });
 
   it('a coach in a lower class of an original state: every school plays once, the hand-tuned top-class ones only up top', async () => {
-    const data = (await loadStateTeams('Texas'))!;
-    const onTop = onOriginalTopClass('Texas')!;
-    const moved = data.classes.find((c) => c.className === '5A-D1')!.districts.flatMap((d) => d.schools).filter(onTop);
-    expect(moved.length).toBeGreaterThan(0); // the latest alignment moved some 6A schools down
-    expect(classSchools(data, '5A-D1').some((s) => onTop(s))).toBe(false); // New Game doesn't offer them in 5A-D1
-    for (let i = 0; i < 5; i++) expect(onTop(pickClassSchool(data, '5A-D1', 'MEDIUM'))).toBe(false);
-    const school = classSchools(data, '5A-D1')[0];
+    // Florida's hand-tuned 6A also lists national powers that play in smaller classes (Miami Central, Cardinal Gibbons: 3A)
+    const data = (await loadStateTeams('Florida'))!;
+    const onTop = onOriginalTopClass('Florida')!;
+    const moved = data.classes.find((c) => c.className === '3A')!.districts.flatMap((d) => d.schools).filter(onTop);
+    expect(moved.length).toBeGreaterThan(0);
+    expect(classSchools(data, '3A').some((s) => onTop(s))).toBe(false); // New Game doesn't offer them in 3A
+    for (let i = 0; i < 5; i++) expect(onTop(pickClassSchool(data, '3A', 'MEDIUM'))).toBe(false);
+    const school = classSchools(data, '3A')[0];
     const store = useGameStore;
-    store.getState().newScenarioGame('OPEN', 'Texas', school.name, 'Coach Test', 3, { className: '5A-D1', schoolId: school.id! });
+    store.getState().newScenarioGame('OPEN', 'Florida', school.name, 'Coach Test', 3, { className: '3A', schoolId: school.id! });
     const s = store.getState();
     const key = (t: { name: string; mascot: string }) => `${t.name.toLowerCase().replace(/[^a-z0-9]/g, '')}|${t.mascot.toLowerCase()}`;
-    const texas = [...s.leagueTeams, ...s.nationalLeagues.filter((l) => l.state === 'Texas').flatMap((l) => l.teams)];
+    const florida = [...s.leagueTeams, ...s.nationalLeagues.filter((l) => l.state === 'Florida').flatMap((l) => l.teams)];
     const seen = new Map<string, number>();
-    texas.forEach((t) => seen.set(key(t), (seen.get(key(t)) ?? 0) + 1));
+    florida.forEach((t) => seen.set(key(t), (seen.get(key(t)) ?? 0) + 1));
     expect([...seen].filter(([, n]) => n > 1).map(([k]) => k)).toEqual([]);
     expect(s.leagueTeams.some((t) => t.id !== s.userTeamId && onTop(t))).toBe(false);
   }, 120_000);

@@ -419,3 +419,6 @@ if __name__ == '__main__':
     build_spec_worlds(Path(__file__).resolve().parent.parent / 'public' / 'leagues', Path(__file__).resolve().parent.parent / 'src' / 'data')
     build_texas_world(Path(sys.argv[1]).read_text(encoding='utf-8').split('\n'),
                       Path(__file__).resolve().parent.parent / 'src' / 'data' / 'texas-6a.json')
+    # The spec's Texas lists are the 2024-26 alignment: realign the world and its district files to UIL 2026-28
+    import runpy
+    runpy.run_path(str(Path(__file__).resolve().parent / 'realign-texas-6a.py'), run_name='__main__')

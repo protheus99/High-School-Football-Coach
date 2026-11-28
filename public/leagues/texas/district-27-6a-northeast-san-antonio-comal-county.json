@@ -1,78 +1,78 @@
 {
   "state": "Texas",
   "classification": "6A",
-  "districtId": "texas_district-29-6a-san-antonio-northside-isd-cibolo-group-1",
-  "districtName": "District 29-6A (San Antonio Northside ISD & Cibolo) (Group 1)",
+  "districtId": "texas_district-27-6a-northeast-san-antonio-comal-county",
+  "districtName": "District 27-6A (Northeast San Antonio & Comal County)",
   "schools": [
     {
       "name": "Cibolo Steele",
       "mascot": "Knights",
+      "prestige": 94,
       "primaryColor": "#6F263D",
       "secondaryColor": "#FFC72C",
-      "prestige": 94,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
-      "name": "San Antonio Brennan",
-      "mascot": "Bears",
-      "primaryColor": "#00573F",
-      "secondaryColor": "#FFC72C",
-      "prestige": 91,
+      "name": "Comal Canyon",
+      "mascot": "Cougars",
+      "prestige": 82,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#1D4ED8",
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
-      "name": "San Antonio Harlan",
-      "mascot": "Hawks",
-      "primaryColor": "#002D62",
-      "secondaryColor": "#FFFFFF",
+      "name": "Comal Pieper",
+      "mascot": "Warriors",
       "prestige": 86,
-      "offenseScheme": "SPREAD",
+      "primaryColor": "#6B21A8",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "AIR_RAID",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Converse Judson",
       "mascot": "Rockets",
+      "prestige": 85,
       "primaryColor": "#006747",
       "secondaryColor": "#C0C0C0",
-      "prestige": 85,
       "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "San Antonio Sotomayor",
-      "mascot": "WILDCATS",
-      "primaryColor": "#4B0082",
-      "secondaryColor": "#FFFFFF",
-      "prestige": 82,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "San Antonio Taft",
-      "mascot": "Raiders",
-      "primaryColor": "#C8102E",
-      "secondaryColor": "#FFD700",
-      "prestige": 79,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "San Antonio East Central",
       "mascot": "Hornets",
+      "prestige": 77,
       "primaryColor": "#00843D",
       "secondaryColor": "#FFD700",
-      "prestige": 77,
       "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_THREE"
     },
     {
+      "name": "San Antonio Wagner",
+      "mascot": "Thunderbirds",
+      "prestige": 80,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Marcos",
+      "mascot": "Rattlers",
+      "prestige": 72,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
       "name": "Schertz Clemens",
       "mascot": "Buffaloes",
+      "prestige": 75,
       "primaryColor": "#00573F",
       "secondaryColor": "#000000",
-      "prestige": 75,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     }

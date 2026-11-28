@@ -1,0 +1,71 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-25-6a-round-rock-isd-west-austin",
+  "districtName": "District 25-6A (Round Rock ISD & West Austin)",
+  "schools": [
+    {
+      "name": "Austin Lake Travis",
+      "mascot": "Cavaliers",
+      "prestige": 95,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#B3A369",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Austin Westlake",
+      "mascot": "Chaparrals",
+      "prestige": 98,
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#000000",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Round Rock Cedar Ridge",
+      "mascot": "Raiders",
+      "prestige": 82,
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Round Rock High",
+      "mascot": "Dragons",
+      "prestige": 86,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Round Rock McNeil",
+      "mascot": "Mavericks",
+      "prestige": 74,
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Round Rock Stony Point",
+      "mascot": "Tigers",
+      "prestige": 80,
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Round Rock Westwood",
+      "mascot": "Warriors",
+      "prestige": 81,
+      "primaryColor": "#000000",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

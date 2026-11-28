@@ -1,71 +1,71 @@
 {
   "state": "Texas",
   "classification": "6A",
-  "districtId": "texas_district-25-6a-austin-north-leander-round-rock",
-  "districtName": "District 25-6A (Austin North / Leander & Round Rock)",
+  "districtId": "texas_district-24-6a-leander-cedar-park-hutto",
+  "districtName": "District 24-6A (Leander, Cedar Park & Hutto)",
   "schools": [
     {
       "name": "Austin Vandegrift",
       "mascot": "Vipers",
+      "prestige": 94,
       "primaryColor": "#8B0000",
       "secondaryColor": "#FFC72C",
-      "prestige": 94,
       "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Cedar Park Vista Ridge",
-      "mascot": "Rangers",
-      "primaryColor": "#006747",
-      "secondaryColor": "#C0C0C0",
-      "prestige": 82,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Round Rock Westwood",
-      "mascot": "Warriors",
-      "primaryColor": "#000000",
-      "secondaryColor": "#FFC72C",
-      "prestige": 81,
-      "offenseScheme": "AIR_RAID",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Cedar Park High",
       "mascot": "Timberwolves",
+      "prestige": 80,
       "primaryColor": "#6F263D",
       "secondaryColor": "#FFFFFF",
-      "prestige": 80,
       "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_THREE"
     },
     {
+      "name": "Cedar Park Vista Ridge",
+      "mascot": "Rangers",
+      "prestige": 82,
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Georgetown East View",
+      "mascot": "Patriots",
+      "prestige": 79,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#1D4ED8",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
       "name": "Hutto",
       "mascot": "Hippos",
+      "prestige": 79,
       "primaryColor": "#00573F",
       "secondaryColor": "#FFD700",
-      "prestige": 79,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Leander High",
+      "mascot": "Lions",
+      "prestige": 69,
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#B3A369",
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "Leander Rouse",
       "mascot": "Raiders",
+      "prestige": 76,
       "primaryColor": "#002D62",
       "secondaryColor": "#FFFFFF",
-      "prestige": 76,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Leander High",
-      "mascot": "Lions",
-      "primaryColor": "#8B0000",
-      "secondaryColor": "#B3A369",
-      "prestige": 69,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
     }
   ]
 }

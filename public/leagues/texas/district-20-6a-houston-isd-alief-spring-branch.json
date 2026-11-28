@@ -1,0 +1,89 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-20-6a-houston-isd-alief-spring-branch",
+  "districtName": "District 20-6A (Houston ISD, Alief & Spring Branch)",
+  "schools": [
+    {
+      "name": "Alief Elsik",
+      "mascot": "Rams",
+      "prestige": 65,
+      "primaryColor": "#003087",
+      "secondaryColor": "#B3A369",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Alief Hastings",
+      "mascot": "Bears",
+      "prestige": 68,
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Alief Taylor",
+      "mascot": "Lions",
+      "prestige": 74,
+      "primaryColor": "#003087",
+      "secondaryColor": "#000000",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Houston Bellaire",
+      "mascot": "Cardinals",
+      "prestige": 74,
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Houston Heights",
+      "mascot": "Bulldogs",
+      "prestige": 82,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Houston Lamar",
+      "mascot": "Texans",
+      "prestige": 89,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Houston Memorial",
+      "mascot": "Mustangs",
+      "prestige": 80,
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Houston Stratford",
+      "mascot": "Spartans",
+      "prestige": 87,
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Houston Westside",
+      "mascot": "Wolves",
+      "prestige": 71,
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

@@ -24,7 +24,7 @@ describe('Links into New Game from the team pages', () => {
 
   it('opens any other school in Your Pick', () => {
     expect(parseTeamLink('?state=texas&school=cypress-lakes')).toMatchObject({ state: 'Texas', school: 'Cypress Lakes', scenario: 'OPEN' });
-    expect(parseTeamLink('?state=texas&school=houston-wisdom')?.school).toBe('Houston Wisdom');
+    expect(parseTeamLink('?state=texas&school=houston-heights')?.school).toBe('Houston Heights');
   });
 
   it('ignores links to schools or states that are not in the game, and odd tracking values', () => {

@@ -5,85 +5,85 @@
   "districtName": "District 15-6A (Northwest Houston / Klein & Tomball)",
   "schools": [
     {
-      "name": "Klein Collins",
-      "mascot": "Tigers",
-      "primaryColor": "#FF6600",
-      "secondaryColor": "#FFD700",
-      "prestige": 88,
-      "offenseScheme": "POWER_I",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "Tomball High",
-      "mascot": "Cougars",
-      "primaryColor": "#002D62",
-      "secondaryColor": "#FFD700",
-      "prestige": 87,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
       "name": "Klein Cain",
       "mascot": "Hurricanes",
+      "prestige": 86,
       "primaryColor": "#1C3F94",
       "secondaryColor": "#FFD700",
-      "prestige": 86,
       "offenseScheme": "AIR_RAID",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
-      "name": "Tomball Memorial",
-      "mascot": "Wildcats",
-      "primaryColor": "#00843D",
-      "secondaryColor": "#FFC72C",
-      "prestige": 84,
+      "name": "Klein Collins",
+      "mascot": "Tigers",
+      "prestige": 88,
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Klein Forest",
+      "mascot": "Golden Eagles",
+      "prestige": 70,
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#B3A369",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Klein High",
+      "mascot": "Bearkats",
+      "prestige": 75,
+      "primaryColor": "#006747",
+      "secondaryColor": "#C0C0C0",
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Klein Oak",
       "mascot": "Panthers",
+      "prestige": 81,
       "primaryColor": "#000000",
       "secondaryColor": "#B3A369",
-      "prestige": 81,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "Magnolia High",
       "mascot": "Bulldogs",
+      "prestige": 79,
       "primaryColor": "#4F2683",
       "secondaryColor": "#FFFFFF",
-      "prestige": 79,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "Magnolia West",
       "mascot": "Mustangs",
+      "prestige": 77,
       "primaryColor": "#003087",
       "secondaryColor": "#B3A369",
-      "prestige": 77,
       "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_THREE"
     },
     {
-      "name": "Klein High",
-      "mascot": "Bearkats",
-      "primaryColor": "#006747",
-      "secondaryColor": "#C0C0C0",
-      "prestige": 75,
+      "name": "Tomball High",
+      "mascot": "Cougars",
+      "prestige": 87,
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFD700",
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
-      "name": "Klein Forest",
-      "mascot": "Golden Eagles",
-      "primaryColor": "#BA0C2F",
-      "secondaryColor": "#B3A369",
-      "prestige": 70,
+      "name": "Tomball Memorial",
+      "mascot": "Wildcats",
+      "prestige": 84,
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFC72C",
       "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_FOUR"
+      "defenseScheme": "THREE_THREE_FIVE"
     }
   ]
 }
