@@ -15,7 +15,7 @@ import {
   GradeFix,
   MisconductThread
 } from '../types/game';
-import { buildClassWorld, classPlayoffs, classSchedule, classSchoolPrestige, ClassTarget, isLegacyClass, LEGACY_TOP_CLASS, pickClassSchool } from '../sim/classLeague';
+import { buildClassWorld, classPlayoffRounds, classPlayoffs, classSchedule, classSchoolPrestige, ClassTarget, isLegacyClass, LEGACY_TOP_CLASS, pickClassSchool } from '../sim/classLeague';
 import { cachedStateTeams } from '../data/teamData';
 import { buildCustomLeague, buildTexasLeague, Difficulty, findDistrict, GameWorld, leagueRegionTeams, LeagueStructure, pickSchoolForDifficulty, seasonLength, buildStateWorld, stateSchool, difficultyForPrestige } from '../sim/league';
 import {
@@ -964,6 +964,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   loadGame: (save) => {
     const year = save.currentYear ?? 2026;
     const world = save.league && save.leagueTeams ? { league: save.league, teams: save.leagueTeams } : buildCustomLeague(save.districtTeams, 'Saved District');
+    // 1.24.0 saved class leagues without their playoff rounds
+    if (world.league.className && world.league.playoffRounds === undefined) world.league.playoffRounds = classPlayoffRounds(world.league, world.teams);
     const userTeam = world.teams.find((t) => t.id === save.userTeamId) ?? world.teams[0];
     // A career's coach goes by his own name (saves from before it carry a generated one)
     if (save.career) userTeam.staff.headCoachName = coachTitle(save.career.coachName);

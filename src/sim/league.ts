@@ -25,6 +25,7 @@ export interface LeagueStructure {
   name: string;
   state: string;
   className?: string; // a league built from the team data's class (played by classSeason.ts); the original top classes have none
+  playoffRounds?: number; // a class league's playoff rounds, from a dry run of its playoff selection when it was built
   splitDivisions: boolean;
   regions: LeagueRegion[];
 }
@@ -311,8 +312,8 @@ export function findRegion(league: LeagueStructure, teamId: string): LeagueRegio
 /** Rounds needed: each region's qualifiers play down to a champion, then region champions meet. */
 export function playoffRoundCount(league: LeagueStructure): number {
   const classRules = leagueClassRules(league);
-  // A class league's real round count is set when its bracket is built: estimate it from the data
-  if (classRules) return estimatedClassRounds(classRules);
+  // A class league's rounds are set when its playoffs are seeded; until then, the dry run's (saves before it: the data's estimate)
+  if (classRules) return league.playoffRounds ?? estimatedClassRounds(classRules);
   const { playoffs } = rulesForState(league.state);
   if (playoffs.format === 'STATEWIDE_RANKING') return Math.log2(playoffs.bracketSize);
   if (playoffs.format === 'REGIONAL_SEEDED' && playoffs.regional) return Math.log2(playoffs.regional.regions.length * playoffs.regional.regionBracketSize);

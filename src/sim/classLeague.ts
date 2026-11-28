@@ -76,7 +76,8 @@ export function classDistrictsOf(league: LeagueStructure, teams: Team[]): ClassD
   );
 }
 
-/** A class league's playoff rounds before its field is set: its listed rounds, else enough for its field (the calendar has six). */
+/** A rough count of a class's playoff rounds from its data (its listed rounds, else enough for its field; the calendar has six).
+ *  Leagues carry the real count (classPlayoffRounds); this stands in for one saved without it. */
 export const estimatedClassRounds = (rules: ClassRules): number =>
   Math.max(1, Math.min(6, rules.playoffs.rounds.length || Math.ceil(Math.log2(rules.playoffs.fieldSize ?? 16))));
 
@@ -134,12 +135,16 @@ export function buildClassWorld(data: StateTeamData, className: string, userScho
   const user =
     teams.find((t) => t.id === userSchool) ?? teams.find((t) => t.name === userSchool) ?? [...teams].sort((a, b) => b.prestige - a.prestige)[0];
   const body = rules?.governingBody ?? '';
-  return {
-    league: { name: `${body} ${/^\d+A$/.test(className) ? 'Class ' : ''}${className}`.trim(), state: data.state, className, splitDivisions: false, regions: [{ name: className, districts }] },
-    teams,
-    userTeamId: user.id
-  };
+  const league: LeagueStructure = { name: `${body} ${/^\d+A$/.test(className) ? 'Class ' : ''}${className}`.trim(), state: data.state, className, splitDivisions: false, regions: [{ name: className, districts }] };
+  league.playoffRounds = classPlayoffRounds(league, teams);
+  return { league, teams, userTeamId: user.id };
 }
+
+/**
+ * The playoff rounds a class league will play, before its season: its playoff selection run on the league as it is (the
+ * field's size depends on its districts and rules, not on results). The schedule shows this many playoff weeks.
+ */
+export const classPlayoffRounds = (league: LeagueStructure, teams: Team[]): number => (leagueClassRules(league) ? classPlayoffs(league, teams, []).roundNames.length : 0);
 
 /** A class league's regular season (a legacy league uses the original scheduler instead). */
 export function classSchedule(league: LeagueStructure, teams: Team[], year: number, reservedWeeks: number[] = []): ScheduledGame[] {

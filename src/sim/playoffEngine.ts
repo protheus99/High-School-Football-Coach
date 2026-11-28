@@ -88,7 +88,7 @@ export function leagueRoundNames(league: LeagueStructure): PlayoffRound[] {
 }
 
 /** A single statewide bracket's rounds: up to five use the region slots and the final; six add a state semifinal (Ohio). */
-export const bracketRoundNames = (rounds: number): PlayoffRound[] => (rounds <= 5 ? roundNamesFor(rounds - 1, 1) : roundNamesFor(rounds - 2, 2));
+export const bracketRoundNames = (rounds: number): PlayoffRound[] => (rounds <= 0 ? [] : rounds <= 5 ? roundNamesFor(rounds - 1, 1) : roundNamesFor(rounds - 2, 2));
 
 /** Round names: region rounds count up from Bi-District, state rounds count down to the final. */
 export function roundNamesFor(regionRounds: number, stateRounds: number): PlayoffRound[] {

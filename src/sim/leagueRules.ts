@@ -11,7 +11,7 @@ import { districtPlayoffSpots, playoffQualifyText, rulesForState, StateRules } f
 // their own).
 // ---------------------------------------------------------------------------
 
-type LeagueLike = { state?: string; className?: string } | null | undefined;
+type LeagueLike = { state?: string; className?: string; playoffRounds?: number } | null | undefined;
 
 const GENERIC_ROUND_NOTE = 'Win and advance.';
 
@@ -21,7 +21,7 @@ export function rulesForLeague(league: LeagueLike): StateRules {
   if (!rules) return base;
   // The class's own round names ('Round of 32' ... 'Substate'), on the rounds its playoffs are expected to have; once the
   // field is set, the bracket carries its own (bracketRoundLabel)
-  const count = estimatedClassRounds(rules);
+  const count = league?.playoffRounds ?? estimatedClassRounds(rules);
   const names = fitRoundNames(rules.playoffs.rounds, count);
   const roundLabels = { ...base.playoffs.roundLabels };
   bracketRoundNames(count).forEach((round, i) => (roundLabels[round] = names[i]));
