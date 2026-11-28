@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-23-6a-cy-fair-west-lamar-cisd-waller",
+  "districtName": "District 23-6A (Cy-Fair West, Lamar CISD & Waller)",
+  "schools": [
+    {
+      "name": "Bridgeland",
+      "mascot": "Bears",
+      "prestige": 90,
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#000000",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cypress Park",
+      "mascot": "Tigers",
+      "prestige": 62,
+      "primaryColor": "#003087",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Cypress Ranch",
+      "mascot": "Mustangs",
+      "prestige": 87,
+      "primaryColor": "#000000",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cypress Springs",
+      "mascot": "Panthers",
+      "prestige": 81,
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Fulshear",
+      "mascot": "Chargers",
+      "prestige": 88,
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Richmond Foster",
+      "mascot": "Falcons",
+      "prestige": 80,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Richmond George Ranch",
+      "mascot": "Longhorns",
+      "prestige": 78,
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Waller",
+      "mascot": "Bulldogs",
+      "prestige": 75,
+      "primaryColor": "#6B1F2A",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    }
+  ]
+}

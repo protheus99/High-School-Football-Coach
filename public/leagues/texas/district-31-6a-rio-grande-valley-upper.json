@@ -5,58 +5,58 @@
   "districtName": "District 31-6A (Rio Grande Valley Upper)",
   "schools": [
     {
-      "name": "Weslaco High",
-      "mascot": "Panthers",
-      "primaryColor": "#002D62",
-      "secondaryColor": "#FFD700",
-      "prestige": 82,
-      "offenseScheme": "POWER_I",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "PSJA High",
-      "mascot": "Bears",
-      "primaryColor": "#00573F",
-      "secondaryColor": "#C0C0C0",
-      "prestige": 81,
-      "offenseScheme": "AIR_RAID",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
       "name": "Edinburg Economedes",
       "mascot": "Jaguars",
+      "prestige": 77,
       "primaryColor": "#000000",
       "secondaryColor": "#C0C0C0",
-      "prestige": 77,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Edinburg North",
-      "mascot": "Cougars",
-      "primaryColor": "#00205B",
-      "secondaryColor": "#B3A369",
-      "prestige": 75,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "Edinburg High",
       "mascot": "Bobcats",
+      "prestige": 73,
       "primaryColor": "#00573F",
       "secondaryColor": "#FFC72C",
-      "prestige": 73,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
     },
     {
+      "name": "Edinburg North",
+      "mascot": "Cougars",
+      "prestige": 75,
+      "primaryColor": "#00205B",
+      "secondaryColor": "#B3A369",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Edinburg Vela",
+      "mascot": "SaberCats",
+      "prestige": 86,
+      "primaryColor": "#000000",
+      "secondaryColor": "#C5B358",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
       "name": "La Joya High",
       "mascot": "Coyotes",
+      "prestige": 66,
       "primaryColor": "#002D62",
       "secondaryColor": "#000000",
-      "prestige": 66,
       "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Weslaco High",
+      "mascot": "Panthers",
+      "prestige": 82,
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
     }
   ]
 }

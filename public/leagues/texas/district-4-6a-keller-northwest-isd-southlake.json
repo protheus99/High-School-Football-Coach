@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-4-6a-keller-northwest-isd-southlake",
+  "districtName": "District 4-6A (Keller, Northwest ISD & Southlake)",
+  "schools": [
+    {
+      "name": "Fort Worth Boswell",
+      "mascot": "Pioneers",
+      "prestige": 71,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Justin Northwest",
+      "mascot": "Texans",
+      "prestige": 75,
+      "primaryColor": "#7C2529",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Keller",
+      "mascot": "Indians",
+      "prestige": 82,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Keller Central",
+      "mascot": "Chargers",
+      "prestige": 68,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Keller Timber Creek",
+      "mascot": "Falcons",
+      "prestige": 76,
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Northwest Eaton",
+      "mascot": "Eagles",
+      "prestige": 80,
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#B3A369",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Northwest Nelson (Byron)",
+      "mascot": "Bobcat",
+      "prestige": 88,
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Southlake Carroll",
+      "mascot": "Dragons",
+      "prestige": 97,
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

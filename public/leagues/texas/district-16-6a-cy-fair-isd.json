@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-16-6a-cy-fair-isd",
+  "districtName": "District 16-6A (Cy-Fair ISD)",
+  "schools": [
+    {
+      "name": "Cy-Fair",
+      "mascot": "Bobcats",
+      "prestige": 89,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cypress Creek",
+      "mascot": "Cougars",
+      "prestige": 77,
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cypress Falls",
+      "mascot": "Golden Eagles",
+      "prestige": 84,
+      "primaryColor": "#006747",
+      "secondaryColor": "#000000",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Cypress Lakes",
+      "mascot": "Spartans",
+      "prestige": 66,
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#000000",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cypress Ridge",
+      "mascot": "Rams",
+      "prestige": 72,
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Cypress Woods",
+      "mascot": "Wildcats",
+      "prestige": 83,
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Jersey Village",
+      "mascot": "Falcons",
+      "prestige": 81,
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Langham Creek",
+      "mascot": "Lobos",
+      "prestige": 76,
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

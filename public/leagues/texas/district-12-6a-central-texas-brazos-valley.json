@@ -5,67 +5,67 @@
   "districtName": "District 12-6A (Central Texas / Brazos Valley)",
   "schools": [
     {
-      "name": "Waco Midway",
-      "mascot": "Panthers",
-      "primaryColor": "#BA0C2F",
-      "secondaryColor": "#C0C0C0",
-      "prestige": 84,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Killeen Harker Heights",
-      "mascot": "Knights",
-      "primaryColor": "#1C3F94",
-      "secondaryColor": "#FFD700",
-      "prestige": 83,
-      "offenseScheme": "POWER_I",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "Temple",
-      "mascot": "Wildcats",
-      "primaryColor": "#BA0C2F",
-      "secondaryColor": "#FFC72C",
-      "prestige": 81,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
       "name": "Bryan",
       "mascot": "Vikings",
+      "prestige": 78,
       "primaryColor": "#4F2683",
       "secondaryColor": "#FFD700",
-      "prestige": 78,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "Killeen Shoemaker",
-      "mascot": "Greywolves",
-      "primaryColor": "#00843D",
-      "secondaryColor": "#000000",
-      "prestige": 76,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Copperas Cove",
       "mascot": "Bulldawgs",
+      "prestige": 73,
       "primaryColor": "#00843D",
       "secondaryColor": "#FFC72C",
-      "prestige": 73,
       "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_FOUR"
     },
     {
-      "name": "Killeen High",
-      "mascot": "Kangaroos",
-      "primaryColor": "#002D62",
+      "name": "Killeen Chaparral",
+      "mascot": "Bobcats",
+      "prestige": 75,
+      "primaryColor": "#1D4ED8",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Killeen Harker Heights",
+      "mascot": "Knights",
+      "prestige": 83,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Lake Belton",
+      "mascot": "Broncos",
+      "prestige": 80,
+      "primaryColor": "#C0C0C0",
+      "secondaryColor": "#1D4ED8",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Temple",
+      "mascot": "Wildcats",
+      "prestige": 81,
+      "primaryColor": "#BA0C2F",
       "secondaryColor": "#FFC72C",
-      "prestige": 69,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Waco Midway",
+      "mascot": "Panthers",
+      "prestige": 84,
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
     }
   ]
 }

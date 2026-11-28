@@ -5,67 +5,76 @@
   "districtName": "District 10-6A (East Texas & Rockwall)",
   "schools": [
     {
+      "name": "Forney",
+      "mascot": "Jackrabbits",
+      "prestige": 85,
+      "primaryColor": "#006747",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
       "name": "Longview",
       "mascot": "Lobos",
+      "prestige": 92,
       "primaryColor": "#002D62",
       "secondaryColor": "#000000",
-      "prestige": 92,
       "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mesquite Horn",
+      "mascot": "Jaguars",
+      "prestige": 80,
+      "primaryColor": "#8B0000",
+      "secondaryColor": "#000000",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "North Forney",
+      "mascot": "Falcons",
+      "prestige": 80,
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "Rockwall",
       "mascot": "Yellowjackets",
+      "prestige": 89,
       "primaryColor": "#003087",
       "secondaryColor": "#FFC72C",
-      "prestige": 89,
       "offenseScheme": "AIR_RAID",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Rockwall-Heath",
       "mascot": "Hawks",
+      "prestige": 86,
       "primaryColor": "#8B0000",
       "secondaryColor": "#000000",
-      "prestige": 86,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Forney",
-      "mascot": "Jackrabbits",
-      "primaryColor": "#006747",
-      "secondaryColor": "#FFC72C",
-      "prestige": 85,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "North Forney",
-      "mascot": "Falcons",
-      "primaryColor": "#FF6600",
-      "secondaryColor": "#FFD700",
-      "prestige": 80,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "Tyler Legacy",
-      "mascot": "Red Raiders",
-      "primaryColor": "#00843D",
-      "secondaryColor": "#FFFFFF",
-      "prestige": 79,
-      "offenseScheme": "POWER_I",
-      "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "Royse City",
       "mascot": "Bulldogs",
+      "prestige": 73,
       "primaryColor": "#00573F",
       "secondaryColor": "#000000",
-      "prestige": 73,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Tyler Legacy",
+      "mascot": "Red Raiders",
+      "prestige": 79,
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
     }
   ]
 }

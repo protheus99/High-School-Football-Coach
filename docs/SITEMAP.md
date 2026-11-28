@@ -49,7 +49,7 @@ Exceptions (`OVERRIDES` in `pages.mjs`): none.
 | `/texas/cypress-lakes/` | Can you help Cypress Lakes High School win state? | school | yes | yes |
 | `/texas/cypress-lakes/start/` | Welcome to Cypress Lakes High School, Coach | start | no | no |
 
-## School pages by state (5 of 916 built)
+## School pages by state (5 of 911 built)
 
 Every school in the game already has its address: `/<state>/<school>/`, in lowercase with hyphens
 ("St. Peter's Prep" → `st-peter-s-prep`). A page goes live, and into its state's sitemap, once
@@ -68,4 +68,4 @@ Every school in the game already has its address: `/<state>/<school>/`, in lower
 | Ohio | 0 | 70 | none yet |
 | Pennsylvania | 0 | 74 | none yet |
 | Tennessee | 0 | 58 | none yet |
-| Texas | 1 | 254 | `/sitemaps/texas.xml` |
+| Texas | 1 | 249 | `/sitemaps/texas.xml` |

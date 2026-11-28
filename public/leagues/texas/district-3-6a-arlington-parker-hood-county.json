@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-3-6a-arlington-parker-hood-county",
+  "districtName": "District 3-6A (Arlington, Parker & Hood County)",
+  "schools": [
+    {
+      "name": "Aledo",
+      "mascot": "Bearcats",
+      "prestige": 96,
+      "primaryColor": "#000000",
+      "secondaryColor": "#EA580C",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Arlington Bowie",
+      "mascot": "Volunteers",
+      "prestige": 84,
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Arlington High",
+      "mascot": "Colts",
+      "prestige": 74,
+      "primaryColor": "#00843D",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Arlington Lamar",
+      "mascot": "Vikings",
+      "prestige": 76,
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Arlington Martin",
+      "mascot": "Warriors",
+      "prestige": 89,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Arlington Sam Houston",
+      "mascot": "Texans",
+      "prestige": 54,
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Granbury",
+      "mascot": "Pirates",
+      "prestige": 70,
+      "primaryColor": "#6B21A8",
+      "secondaryColor": "#FFB612",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Weatherford",
+      "mascot": "Kangaroos",
+      "prestige": 73,
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

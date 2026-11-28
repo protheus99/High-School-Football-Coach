@@ -5,49 +5,58 @@
   "districtName": "District 32-6A (Rio Grande Valley Coastal / Lower)",
   "schools": [
     {
-      "name": "Los Fresnos",
-      "mascot": "Falcons",
-      "primaryColor": "#C8102E",
-      "secondaryColor": "#000000",
-      "prestige": 83,
+      "name": "Brownsville Veterans Memorial",
+      "mascot": "Chargers",
+      "prestige": 80,
+      "primaryColor": "#4F2683",
+      "secondaryColor": "#FFFFFF",
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Harlingen High",
       "mascot": "Cardinals",
+      "prestige": 82,
       "primaryColor": "#7C2529",
       "secondaryColor": "#000000",
-      "prestige": 82,
       "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_THREE"
     },
     {
-      "name": "Brownsville Veterans Memorial",
-      "mascot": "Chargers",
-      "primaryColor": "#4F2683",
-      "secondaryColor": "#FFFFFF",
-      "prestige": 80,
+      "name": "Los Fresnos",
+      "mascot": "Falcons",
+      "prestige": 83,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#000000",
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "PSJA High",
+      "mascot": "Bears",
+      "prestige": 81,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "PSJA North",
+      "mascot": "Raiders",
+      "prestige": 86,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#0B1F4B",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "San Benito",
       "mascot": "Greyhounds",
+      "prestige": 79,
       "primaryColor": "#4B0082",
       "secondaryColor": "#B3A369",
-      "prestige": 79,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Harlingen South",
-      "mascot": "Hawks",
-      "primaryColor": "#C8102E",
-      "secondaryColor": "#B3A369",
-      "prestige": 74,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
     }
   ]
 }

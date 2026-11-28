@@ -28,57 +28,57 @@
     "state": "California",
     "districts": [
       {
-        "name": "Southern Section \u2014 Trinity League (Orange County / LA Metro)",
+        "name": "Southern Section — Trinity League (Orange County / LA Metro)",
         "file": "california/southern-section-trinity-league-orange-county-la-metro.json",
         "schools": 6
       },
       {
-        "name": "Southern Section \u2014 Mission League (LA / San Fernando Valley)",
+        "name": "Southern Section — Mission League (LA / San Fernando Valley)",
         "file": "california/southern-section-mission-league-la-san-fernando-valley.json",
         "schools": 7
       },
       {
-        "name": "Southern Section \u2014 Big West & Baseline Leagues (Inland Empire)",
+        "name": "Southern Section — Big West & Baseline Leagues (Inland Empire)",
         "file": "california/southern-section-big-west-baseline-leagues-inland-empire.json",
         "schools": 9
       },
       {
-        "name": "Southern Section \u2014 Sunset & South Coast Leagues (Orange County)",
+        "name": "Southern Section — Sunset & South Coast Leagues (Orange County)",
         "file": "california/southern-section-sunset-south-coast-leagues-orange-county.json",
         "schools": 8
       },
       {
-        "name": "Southern Section \u2014 Moore & Marmonte Leagues (Long Beach / Ventura)",
+        "name": "Southern Section — Moore & Marmonte Leagues (Long Beach / Ventura)",
         "file": "california/southern-section-moore-marmonte-leagues-long-beach-ventura.json",
         "schools": 9
       },
       {
-        "name": "San Diego Section \u2014 Open / Division 1 (Avocado & Western Leagues) (Group 1)",
+        "name": "San Diego Section — Open / Division 1 (Avocado & Western Leagues) (Group 1)",
         "file": "california/san-diego-section-open-division-1-avocado-western-leagues-group-1.json",
         "schools": 6
       },
       {
-        "name": "San Diego Section \u2014 Open / Division 1 (Avocado & Western Leagues) (Group 2)",
+        "name": "San Diego Section — Open / Division 1 (Avocado & Western Leagues) (Group 2)",
         "file": "california/san-diego-section-open-division-1-avocado-western-leagues-group-2.json",
         "schools": 6
       },
       {
-        "name": "Central Coast Section \u2014 West Catholic Athletic League (WCAL / Bay Area)",
+        "name": "Central Coast Section — West Catholic Athletic League (WCAL / Bay Area)",
         "file": "california/central-coast-section-west-catholic-athletic-league-wcal-bay-area.json",
         "schools": 8
       },
       {
-        "name": "North Coast Section \u2014 East Bay (EBAL) & Bay Valley Leagues",
+        "name": "North Coast Section — East Bay (EBAL) & Bay Valley Leagues",
         "file": "california/north-coast-section-east-bay-ebal-bay-valley-leagues.json",
         "schools": 9
       },
       {
-        "name": "Sac-Joaquin Section \u2014 Sierra Foothill & Delta Leagues (Sacramento / Central Valley)",
+        "name": "Sac-Joaquin Section — Sierra Foothill & Delta Leagues (Sacramento / Central Valley)",
         "file": "california/sac-joaquin-section-sierra-foothill-delta-leagues-sacramento-central-valley.json",
         "schools": 10
       },
       {
-        "name": "Central Section \u2014 Tri-River Athletic Conference (TRAC / Fresno Metro)",
+        "name": "Central Section — Tri-River Athletic Conference (TRAC / Fresno Metro)",
         "file": "california/central-section-tri-river-athletic-conference-trac-fresno-metro.json",
         "schools": 8
       }
@@ -308,32 +308,32 @@
         "schools": 7
       },
       {
-        "name": "Public Group 5 \u2014 North Super Section (Sections 1 & 2) (Group 1)",
+        "name": "Public Group 5 — North Super Section (Sections 1 & 2) (Group 1)",
         "file": "new-jersey/public-group-5-north-super-section-sections-1-2-group-1.json",
         "schools": 7
       },
       {
-        "name": "Public Group 5 \u2014 North Super Section (Sections 1 & 2) (Group 2)",
+        "name": "Public Group 5 — North Super Section (Sections 1 & 2) (Group 2)",
         "file": "new-jersey/public-group-5-north-super-section-sections-1-2-group-2.json",
         "schools": 7
       },
       {
-        "name": "Public Group 5 \u2014 North Super Section (Sections 1 & 2) (Group 3)",
+        "name": "Public Group 5 — North Super Section (Sections 1 & 2) (Group 3)",
         "file": "new-jersey/public-group-5-north-super-section-sections-1-2-group-3.json",
         "schools": 7
       },
       {
-        "name": "Public Group 5 \u2014 South Super Section (Central & South) (Group 1)",
+        "name": "Public Group 5 — South Super Section (Central & South) (Group 1)",
         "file": "new-jersey/public-group-5-south-super-section-central-south-group-1.json",
         "schools": 8
       },
       {
-        "name": "Public Group 5 \u2014 South Super Section (Central & South) (Group 2)",
+        "name": "Public Group 5 — South Super Section (Central & South) (Group 2)",
         "file": "new-jersey/public-group-5-south-super-section-central-south-group-2.json",
         "schools": 8
       },
       {
-        "name": "Public Group 5 \u2014 South Super Section (Central & South) (Group 3)",
+        "name": "Public Group 5 — South Super Section (Central & South) (Group 3)",
         "file": "new-jersey/public-group-5-south-super-section-central-south-group-3.json",
         "schools": 8
       }
@@ -438,52 +438,52 @@
     "state": "Pennsylvania",
     "districts": [
       {
-        "name": "District 12 \u2014 Philadelphia (PCL Red Division & Public League)",
+        "name": "District 12 — Philadelphia (PCL Red Division & Public League)",
         "file": "pennsylvania/district-12-philadelphia-pcl-red-division-public-league.json",
         "schools": 10
       },
       {
-        "name": "District 7 / WPIAL \u2014 Class 6A (Western PA / Pittsburgh Metro)",
+        "name": "District 7 / WPIAL — Class 6A (Western PA / Pittsburgh Metro)",
         "file": "pennsylvania/district-7-wpial-class-6a-western-pa-pittsburgh-metro.json",
         "schools": 7
       },
       {
-        "name": "District 1 \u2014 Suburban Philadelphia (Bucks, Montgomery & Chester Counties) (Group 1)",
+        "name": "District 1 — Suburban Philadelphia (Bucks, Montgomery & Chester Counties) (Group 1)",
         "file": "pennsylvania/district-1-suburban-philadelphia-bucks-montgomery-chester-counties-group-1.json",
         "schools": 8
       },
       {
-        "name": "District 1 \u2014 Suburban Philadelphia (Bucks, Montgomery & Chester Counties) (Group 2)",
+        "name": "District 1 — Suburban Philadelphia (Bucks, Montgomery & Chester Counties) (Group 2)",
         "file": "pennsylvania/district-1-suburban-philadelphia-bucks-montgomery-chester-counties-group-2.json",
         "schools": 8
       },
       {
-        "name": "District 1 \u2014 Suburban Philadelphia (Bucks, Montgomery & Chester Counties) (Group 3)",
+        "name": "District 1 — Suburban Philadelphia (Bucks, Montgomery & Chester Counties) (Group 3)",
         "file": "pennsylvania/district-1-suburban-philadelphia-bucks-montgomery-chester-counties-group-3.json",
         "schools": 8
       },
       {
-        "name": "District 3 \u2014 South Central PA (Harrisburg, Lancaster & York) (Group 1)",
+        "name": "District 3 — South Central PA (Harrisburg, Lancaster & York) (Group 1)",
         "file": "pennsylvania/district-3-south-central-pa-harrisburg-lancaster-york-group-1.json",
         "schools": 8
       },
       {
-        "name": "District 3 \u2014 South Central PA (Harrisburg, Lancaster & York) (Group 2)",
+        "name": "District 3 — South Central PA (Harrisburg, Lancaster & York) (Group 2)",
         "file": "pennsylvania/district-3-south-central-pa-harrisburg-lancaster-york-group-2.json",
         "schools": 7
       },
       {
-        "name": "District 11 \u2014 Lehigh Valley (EPC South / Mountain Valley) (Group 1)",
+        "name": "District 11 — Lehigh Valley (EPC South / Mountain Valley) (Group 1)",
         "file": "pennsylvania/district-11-lehigh-valley-epc-south-mountain-valley-group-1.json",
         "schools": 6
       },
       {
-        "name": "District 11 \u2014 Lehigh Valley (EPC South / Mountain Valley) (Group 2)",
+        "name": "District 11 — Lehigh Valley (EPC South / Mountain Valley) (Group 2)",
         "file": "pennsylvania/district-11-lehigh-valley-epc-south-mountain-valley-group-2.json",
         "schools": 5
       },
       {
-        "name": "District 10 & 2 \u2014 Northwest & Northeast PA",
+        "name": "District 10 & 2 — Northwest & Northeast PA",
         "file": "pennsylvania/district-10-2-northwest-northeast-pa.json",
         "schools": 5
       }
@@ -555,17 +555,17 @@
       {
         "name": "District 2-6A (Permian Basin & West Texas)",
         "file": "texas/district-2-6a-permian-basin-west-texas.json",
-        "schools": 6
+        "schools": 5
       },
       {
-        "name": "District 3-6A (Fort Worth & Tarrant County West)",
-        "file": "texas/district-3-6a-fort-worth-tarrant-county-west.json",
-        "schools": 7
+        "name": "District 3-6A (Arlington, Parker & Hood County)",
+        "file": "texas/district-3-6a-arlington-parker-hood-county.json",
+        "schools": 8
       },
       {
-        "name": "District 4-6A (Tarrant / Denton County Corridor)",
-        "file": "texas/district-4-6a-tarrant-denton-county-corridor.json",
-        "schools": 9
+        "name": "District 4-6A (Keller, Northwest ISD & Southlake)",
+        "file": "texas/district-4-6a-keller-northwest-isd-southlake.json",
+        "schools": 8
       },
       {
         "name": "District 5-6A (Denton & Lewisville ISD)",
@@ -575,27 +575,27 @@
       {
         "name": "District 6-6A (Collin County / North DFW)",
         "file": "texas/district-6-6a-collin-county-north-dfw.json",
-        "schools": 9
-      },
-      {
-        "name": "District 7-6A (Dallas / Richardson / Irving)",
-        "file": "texas/district-7-6a-dallas-richardson-irving.json",
         "schools": 8
       },
       {
-        "name": "District 8-6A (Arlington & Grand Prairie)",
-        "file": "texas/district-8-6a-arlington-grand-prairie.json",
+        "name": "District 7-6A (Plano, Richardson & Coppell)",
+        "file": "texas/district-7-6a-plano-richardson-coppell.json",
+        "schools": 8
+      },
+      {
+        "name": "District 8-6A (HEB, Irving & Grand Prairie)",
+        "file": "texas/district-8-6a-heb-irving-grand-prairie.json",
         "schools": 8
       },
       {
         "name": "District 9-6A (Garland & Wylie)",
         "file": "texas/district-9-6a-garland-wylie.json",
-        "schools": 9
+        "schools": 8
       },
       {
         "name": "District 10-6A (East Texas & Rockwall)",
         "file": "texas/district-10-6a-east-texas-rockwall.json",
-        "schools": 7
+        "schools": 8
       },
       {
         "name": "District 11-6A (The DFW \"District of Doom\")",
@@ -610,7 +610,7 @@
       {
         "name": "District 13-6A (North Houston / Conroe ISD)",
         "file": "texas/district-13-6a-north-houston-conroe-isd.json",
-        "schools": 9
+        "schools": 8
       },
       {
         "name": "District 14-6A (North Houston / Spring & Aldine ISD)",
@@ -623,29 +623,29 @@
         "schools": 9
       },
       {
-        "name": "District 16-6A (Cy-Fair ISD North)",
-        "file": "texas/district-16-6a-cy-fair-isd-north.json",
+        "name": "District 16-6A (Cy-Fair ISD)",
+        "file": "texas/district-16-6a-cy-fair-isd.json",
         "schools": 8
       },
       {
-        "name": "District 17-6A (Cy-Fair & Spring Branch ISD)",
-        "file": "texas/district-17-6a-cy-fair-spring-branch-isd.json",
+        "name": "District 17-6A (East Houston & Humble ISD)",
+        "file": "texas/district-17-6a-east-houston-humble-isd.json",
         "schools": 8
       },
       {
-        "name": "District 18-6A (Houston ISD Inner City)",
-        "file": "texas/district-18-6a-houston-isd-inner-city.json",
+        "name": "District 18-6A (Clear Creek ISD & the Bay Area)",
+        "file": "texas/district-18-6a-clear-creek-isd-the-bay-area.json",
         "schools": 8
       },
       {
-        "name": "District 19-6A (Katy ISD)",
-        "file": "texas/district-19-6a-katy-isd.json",
+        "name": "District 19-6A (Pearland, Brazoria & Pasadena)",
+        "file": "texas/district-19-6a-pearland-brazoria-pasadena.json",
         "schools": 9
       },
       {
-        "name": "District 20-6A (Alief, Lamar CISD & Private Invitee)",
-        "file": "texas/district-20-6a-alief-lamar-cisd-private-invitee.json",
-        "schools": 7
+        "name": "District 20-6A (Houston ISD, Alief & Spring Branch)",
+        "file": "texas/district-20-6a-houston-isd-alief-spring-branch.json",
+        "schools": 9
       },
       {
         "name": "District 21-6A (Fort Bend ISD)",
@@ -653,54 +653,49 @@
         "schools": 8
       },
       {
-        "name": "District 22-6A (Pearland, Brazoria & Pasadena)",
-        "file": "texas/district-22-6a-pearland-brazoria-pasadena.json",
+        "name": "District 22-6A (Katy ISD)",
+        "file": "texas/district-22-6a-katy-isd.json",
         "schools": 9
       },
       {
-        "name": "District 23-6A (East Houston & Humble ISD)",
-        "file": "texas/district-23-6a-east-houston-humble-isd.json",
+        "name": "District 23-6A (Cy-Fair West, Lamar CISD & Waller)",
+        "file": "texas/district-23-6a-cy-fair-west-lamar-cisd-waller.json",
         "schools": 8
       },
       {
-        "name": "District 24-6A (Clear Creek ISD & Galveston Coast)",
-        "file": "texas/district-24-6a-clear-creek-isd-galveston-coast.json",
-        "schools": 8
-      },
-      {
-        "name": "District 25-6A (Austin North / Leander & Round Rock)",
-        "file": "texas/district-25-6a-austin-north-leander-round-rock.json",
+        "name": "District 24-6A (Leander, Cedar Park & Hutto)",
+        "file": "texas/district-24-6a-leander-cedar-park-hutto.json",
         "schools": 7
       },
       {
-        "name": "District 26-6A (Central Austin & Hill Country)",
-        "file": "texas/district-26-6a-central-austin-hill-country.json",
+        "name": "District 25-6A (Round Rock ISD & West Austin)",
+        "file": "texas/district-25-6a-round-rock-isd-west-austin.json",
+        "schools": 7
+      },
+      {
+        "name": "District 26-6A (Central Austin & Hays County)",
+        "file": "texas/district-26-6a-central-austin-hays-county.json",
+        "schools": 7
+      },
+      {
+        "name": "District 27-6A (Northeast San Antonio & Comal County)",
+        "file": "texas/district-27-6a-northeast-san-antonio-comal-county.json",
+        "schools": 8
+      },
+      {
+        "name": "District 28-6A (San Antonio North East ISD)",
+        "file": "texas/district-28-6a-san-antonio-north-east-isd.json",
+        "schools": 8
+      },
+      {
+        "name": "District 29-6A (San Antonio Northside ISD)",
+        "file": "texas/district-29-6a-san-antonio-northside-isd.json",
         "schools": 9
-      },
-      {
-        "name": "District 27-6A (Round Rock ISD & Manor)",
-        "file": "texas/district-27-6a-round-rock-isd-manor.json",
-        "schools": 5
-      },
-      {
-        "name": "District 28-6A (San Antonio North East & Comal County)",
-        "file": "texas/district-28-6a-san-antonio-north-east-comal-county.json",
-        "schools": 8
-      },
-      {
-        "name": "District 29-6A (San Antonio Northside ISD & Cibolo) (Group 1)",
-        "file": "texas/district-29-6a-san-antonio-northside-isd-cibolo-group-1.json",
-        "schools": 8
-      },
-      {
-        "name": "District 29-6A (San Antonio Northside ISD & Cibolo) (Group 2)",
-        "file": "texas/district-29-6a-san-antonio-northside-isd-cibolo-group-2.json",
-        "schools": 7
       },
       {
         "name": "District 30-6A (Laredo, Eagle Pass & Del Rio)",
         "file": "texas/district-30-6a-laredo-eagle-pass-del-rio.json",
-        "schools": 7
+        "schools": 8
       },
       {
         "name": "District 31-6A (Rio Grande Valley Upper)",
@@ -710,7 +705,7 @@
       {
         "name": "District 32-6A (Rio Grande Valley Coastal / Lower)",
         "file": "texas/district-32-6a-rio-grande-valley-coastal-lower.json",
-        "schools": 5
+        "schools": 6
       }
     ]
   }

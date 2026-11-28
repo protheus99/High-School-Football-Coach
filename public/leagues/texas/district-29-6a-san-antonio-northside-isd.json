@@ -1,0 +1,89 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-29-6a-san-antonio-northside-isd",
+  "districtName": "District 29-6A (San Antonio Northside ISD)",
+  "schools": [
+    {
+      "name": "San Antonio Brennan",
+      "mascot": "Bears",
+      "prestige": 91,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Antonio Harlan",
+      "mascot": "Hawks",
+      "prestige": 86,
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Antonio Holmes",
+      "mascot": "Huskies",
+      "prestige": 58,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "San Antonio Marshall",
+      "mascot": "Rams",
+      "prestige": 68,
+      "primaryColor": "#002D62",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Antonio O'Connor",
+      "mascot": "Panthers",
+      "prestige": 74,
+      "primaryColor": "#00205B",
+      "secondaryColor": "#000000",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Antonio Sotomayor",
+      "mascot": "WILDCATS",
+      "prestige": 82,
+      "primaryColor": "#4B0082",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Antonio Stevens",
+      "mascot": "Falcons",
+      "prestige": 57,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "San Antonio Taft",
+      "mascot": "Raiders",
+      "prestige": 79,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "San Antonio Warren",
+      "mascot": "Warriors",
+      "prestige": 67,
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_FOUR"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-18-6a-clear-creek-isd-the-bay-area",
+  "districtName": "District 18-6A (Clear Creek ISD & the Bay Area)",
+  "schools": [
+    {
+      "name": "Deer Park",
+      "mascot": "Deer",
+      "prestige": 85,
+      "primaryColor": "#003087",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Dickinson",
+      "mascot": "Gators",
+      "prestige": 89,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Friendswood Clear Brook",
+      "mascot": "Wolverines",
+      "prestige": 73,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#B3A369",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Houston Clear Lake",
+      "mascot": "Falcons",
+      "prestige": 77,
+      "primaryColor": "#BA0C2F",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "League City Clear Creek",
+      "mascot": "Wildcats",
+      "prestige": 72,
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "League City Clear Falls",
+      "mascot": "Knights",
+      "prestige": 82,
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#000000",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "League City Clear Springs",
+      "mascot": "Chargers",
+      "prestige": 84,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Mont Belvieu Barbers Hill",
+      "mascot": "Eagles",
+      "prestige": 85,
+      "primaryColor": "#1D4ED8",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    }
+  ]
+}

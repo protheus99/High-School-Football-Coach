@@ -1,0 +1,80 @@
+{
+  "state": "Texas",
+  "classification": "6A",
+  "districtId": "texas_district-8-6a-heb-irving-grand-prairie",
+  "districtName": "District 8-6A (HEB, Irving & Grand Prairie)",
+  "schools": [
+    {
+      "name": "Euless Trinity",
+      "mascot": "Trojans",
+      "prestige": 90,
+      "primaryColor": "#C8102E",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Grand Prairie",
+      "mascot": "Gophers",
+      "prestige": 67,
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Haltom City Haltom",
+      "mascot": "Buffaloes",
+      "prestige": 66,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#000000",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Hurst L.D. Bell",
+      "mascot": "Blue Raiders",
+      "prestige": 73,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFC72C",
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Irving High",
+      "mascot": "Tigers",
+      "prestige": 58,
+      "primaryColor": "#6F263D",
+      "secondaryColor": "#FFD700",
+      "offenseScheme": "TRIPLE_OPTION",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "Irving MacArthur",
+      "mascot": "Cardinals",
+      "prestige": 69,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Irving Nimitz",
+      "mascot": "Vikings",
+      "prestige": 64,
+      "primaryColor": "#000000",
+      "secondaryColor": "#000000",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_FOUR"
+    },
+    {
+      "name": "South Grand Prairie",
+      "mascot": "Warriors",
+      "prestige": 81,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    }
+  ]
+}

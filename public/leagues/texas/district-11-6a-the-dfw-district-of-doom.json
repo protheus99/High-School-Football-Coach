@@ -5,76 +5,76 @@
   "districtName": "District 11-6A (The DFW \"District of Doom\")",
   "schools": [
     {
-      "name": "Duncanville",
-      "mascot": "Panthers",
-      "primaryColor": "#00573F",
-      "secondaryColor": "#FFC72C",
-      "prestige": 99,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "DeSoto",
+      "name": "Crowley",
       "mascot": "Eagles",
-      "primaryColor": "#FF6600",
-      "secondaryColor": "#C0C0C0",
-      "prestige": 98,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Lancaster",
-      "mascot": "Tigers",
-      "primaryColor": "#4B0082",
-      "secondaryColor": "#C0C0C0",
-      "prestige": 88,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Waxahachie",
-      "mascot": "Indians",
-      "primaryColor": "#00573F",
-      "secondaryColor": "#FFFFFF",
-      "prestige": 86,
-      "offenseScheme": "POWER_I",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "Cedar Hill",
-      "mascot": "Longhorns",
+      "prestige": 81,
       "primaryColor": "#1C3F94",
-      "secondaryColor": "#FFFFFF",
-      "prestige": 84,
+      "secondaryColor": "#C0C0C0",
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Mesquite Horn",
-      "mascot": "Jaguars",
-      "primaryColor": "#8B0000",
-      "secondaryColor": "#000000",
-      "prestige": 80,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
     },
     {
       "name": "Dallas Skyline",
       "mascot": "Raiders",
+      "prestige": 77,
       "primaryColor": "#000000",
       "secondaryColor": "#FFC72C",
-      "prestige": 77,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
     },
     {
-      "name": "Mesquite High",
-      "mascot": "Skeeters",
-      "primaryColor": "#7C2529",
+      "name": "Duncanville",
+      "mascot": "Panthers",
+      "prestige": 99,
+      "primaryColor": "#00573F",
       "secondaryColor": "#FFC72C",
-      "prestige": 71,
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Mansfield",
+      "mascot": "Tigers",
+      "prestige": 80,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFD700",
       "offenseScheme": "POWER_I",
-      "defenseScheme": "FOUR_FOUR"
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Mansfield Lake Ridge",
+      "mascot": "Eagles",
+      "prestige": 78,
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "North Crowley",
+      "mascot": "Panthers",
+      "prestige": 94,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#C0C0C0",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "THREE_THREE_FIVE"
+    },
+    {
+      "name": "Red Oak",
+      "mascot": "Hawks",
+      "prestige": 82,
+      "primaryColor": "#6B1F2A",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "DROP_EIGHT"
+    },
+    {
+      "name": "Waxahachie",
+      "mascot": "Indians",
+      "prestige": 86,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
     }
   ]
 }

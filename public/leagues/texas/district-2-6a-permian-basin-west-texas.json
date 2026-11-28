@@ -5,58 +5,49 @@
   "districtName": "District 2-6A (Permian Basin & West Texas)",
   "schools": [
     {
-      "name": "Odessa Permian",
-      "mascot": "Panthers",
-      "primaryColor": "#00573F",
-      "secondaryColor": "#000000",
-      "prestige": 88,
-      "offenseScheme": "POWER_I",
-      "defenseScheme": "FOUR_THREE"
-    },
-    {
-      "name": "Midland Legacy",
-      "mascot": "Rebels",
-      "primaryColor": "#1C3F94",
-      "secondaryColor": "#FFFFFF",
-      "prestige": 87,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
-      "name": "Wolfforth Frenship",
-      "mascot": "Tigers",
-      "primaryColor": "#00205B",
-      "secondaryColor": "#FFC72C",
-      "prestige": 84,
-      "offenseScheme": "AIR_RAID",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
       "name": "Midland High",
       "mascot": "Bulldogs",
+      "prestige": 82,
       "primaryColor": "#1C3F94",
       "secondaryColor": "#B3A369",
-      "prestige": 82,
       "offenseScheme": "TRIPLE_OPTION",
       "defenseScheme": "FOUR_FOUR"
     },
     {
-      "name": "San Angelo Central",
-      "mascot": "Bobcats",
-      "primaryColor": "#FF6600",
-      "secondaryColor": "#000000",
-      "prestige": 78,
-      "offenseScheme": "AIR_RAID",
+      "name": "Midland Legacy",
+      "mascot": "Rebels",
+      "prestige": 87,
+      "primaryColor": "#1C3F94",
+      "secondaryColor": "#FFFFFF",
+      "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Odessa High",
       "mascot": "Bronchos",
+      "prestige": 68,
       "primaryColor": "#4B0082",
       "secondaryColor": "#FFC72C",
-      "prestige": 68,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "Odessa Permian",
+      "mascot": "Panthers",
+      "prestige": 88,
+      "primaryColor": "#00573F",
+      "secondaryColor": "#000000",
+      "offenseScheme": "POWER_I",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
+      "name": "San Angelo Central",
+      "mascot": "Bobcats",
+      "prestige": 78,
+      "primaryColor": "#FF6600",
+      "secondaryColor": "#000000",
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
     }
   ]
 }

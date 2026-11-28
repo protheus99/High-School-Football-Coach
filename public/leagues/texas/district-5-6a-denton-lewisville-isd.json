@@ -5,74 +5,74 @@
   "districtName": "District 5-6A (Denton & Lewisville ISD)",
   "schools": [
     {
+      "name": "Denton Braswell",
+      "mascot": "Bengals",
+      "prestige": 74,
+      "primaryColor": "#002D62",
+      "secondaryColor": "#B3A369",
+      "offenseScheme": "SPREAD",
+      "defenseScheme": "FOUR_THREE"
+    },
+    {
       "name": "Denton Guyer",
       "mascot": "Wildcats",
+      "prestige": 92,
       "primaryColor": "#BA0C2F",
       "secondaryColor": "#FFC72C",
-      "prestige": 92,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
-      "name": "Coppell",
-      "mascot": "Cowboys",
-      "primaryColor": "#8B0000",
-      "secondaryColor": "#FFC72C",
-      "prestige": 91,
+      "name": "Frisco Wakeland",
+      "mascot": "Wolverines",
+      "prestige": 84,
+      "primaryColor": "#0B1F4B",
+      "secondaryColor": "#EA580C",
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Lewisville",
       "mascot": "Farmers",
+      "prestige": 86,
       "primaryColor": "#4F2683",
       "secondaryColor": "#FFD700",
-      "prestige": 86,
       "offenseScheme": "POWER_I",
       "defenseScheme": "FOUR_THREE"
     },
     {
-      "name": "Lewisville Marcus",
-      "mascot": "Marauders",
-      "primaryColor": "#4F2683",
-      "secondaryColor": "#B3A369",
-      "prestige": 85,
-      "offenseScheme": "AIR_RAID",
-      "defenseScheme": "THREE_THREE_FIVE"
-    },
-    {
       "name": "Lewisville Flower Mound",
       "mascot": "Jaguars",
+      "prestige": 83,
       "primaryColor": "#006747",
       "secondaryColor": "#B3A369",
-      "prestige": 83,
       "offenseScheme": "AIR_RAID",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Lewisville Hebron",
       "mascot": "Hawks",
+      "prestige": 79,
       "primaryColor": "#FF6600",
       "secondaryColor": "#FFFFFF",
-      "prestige": 79,
       "offenseScheme": "SPREAD",
       "defenseScheme": "THREE_THREE_FIVE"
     },
     {
-      "name": "Denton Braswell",
-      "mascot": "Bengals",
-      "primaryColor": "#002D62",
+      "name": "Lewisville Marcus",
+      "mascot": "Marauders",
+      "prestige": 85,
+      "primaryColor": "#4F2683",
       "secondaryColor": "#B3A369",
-      "prestige": 74,
-      "offenseScheme": "SPREAD",
-      "defenseScheme": "FOUR_THREE"
+      "offenseScheme": "AIR_RAID",
+      "defenseScheme": "THREE_THREE_FIVE"
     },
     {
       "name": "Little Elm",
       "mascot": "Lobos",
+      "prestige": 68,
       "primaryColor": "#7C2529",
       "secondaryColor": "#FFC72C",
-      "prestige": 68,
       "offenseScheme": "SPREAD",
       "defenseScheme": "FOUR_THREE"
     }
